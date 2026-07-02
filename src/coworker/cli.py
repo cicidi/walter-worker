@@ -263,7 +263,7 @@ def init(is_global, is_project):
             local_md_path.write_text(generate_local_claude_md())
             console.print(f"[green]Created:[/green] CLAUDE.local.md")
             gitignore_path = Path.cwd() / ".gitignore"
-            entries = ["CLAUDE.local.md", "docs/state-*.md"]
+            entries = ["CLAUDE.local.md", "docs/state/"]
             if not gitignore_path.exists():
                 gitignore_path.write_text("\n".join(entries) + "\n")
             else:
@@ -272,7 +272,7 @@ def init(is_global, is_project):
                     for entry in entries:
                         if entry not in existing:
                             f.write(f"{entry}\n")
-            console.print("[dim]Added CLAUDE.local.md, docs/state-*.md to .gitignore[/dim]")
+            console.print("[dim]Added CLAUDE.local.md, docs/state/ to .gitignore[/dim]")
 
         console.print("\n[bold green]Setup complete![/bold green] Run [cyan]coworker sync[/cyan] to apply.")
 
@@ -286,7 +286,7 @@ def state_update(task, summary):
 
     # Find state file path from CLAUDE.local.md
     local_md = cwd / "CLAUDE.local.md"
-    state_path = cwd / "docs" / f"state-{task}.md"
+    state_path = cwd / "docs" / "state" / f"{task}.md"
     if local_md.exists():
         import re
         content = local_md.read_text()

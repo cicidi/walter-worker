@@ -21,4 +21,4 @@ global/
 .claude/hooks/
 
 CLAUDE.local.md
-docs/state-*.md
+docs/state/
