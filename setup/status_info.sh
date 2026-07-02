@@ -12,20 +12,31 @@ cd "$PANE_PATH" || exit 0
 # ── Session name ──
 printf "#[fg=colour240]tmux:#[fg=green]%s#[fg=colour240] | " "$SESSION"
 
+# ── Worktree detection (must be early — affects project name) ──
+GIT_DIR=$(git rev-parse --git-dir 2>/dev/null)
+GIT_COMMON=$(git rev-parse --git-common-dir 2>/dev/null)
+SUPERPROJECT=$(git rev-parse --show-superproject-working-tree 2>/dev/null)
+IS_WORKTREE=0
+if [ "$GIT_DIR" != "$GIT_COMMON" ] && [ -z "$SUPERPROJECT" ]; then
+    IS_WORKTREE=1
+fi
+
 # ── Project folder ──
 PROJECT_DIR=$(git rev-parse --show-toplevel 2>/dev/null)
 if [ -n "$PROJECT_DIR" ]; then
-    FOLDER=$(basename "$PROJECT_DIR")
+    if [ "$IS_WORKTREE" -eq 1 ] && [ -n "$GIT_COMMON" ]; then
+        MAIN_REPO=$(dirname "$GIT_COMMON")
+        FOLDER=$(basename "$MAIN_REPO")
+    else
+        FOLDER=$(basename "$PROJECT_DIR")
+    fi
 else
     FOLDER=$(basename "$PWD")
 fi
 printf "#[fg=colour240]project:#[fg=brightwhite]%s#[fg=colour240] | " "$FOLDER"
 
-# ── Worktree name (only shown inside a git worktree) ──
-GIT_DIR=$(git rev-parse --git-dir 2>/dev/null)
-GIT_COMMON=$(git rev-parse --git-common-dir 2>/dev/null)
-SUPERPROJECT=$(git rev-parse --show-superproject-working-tree 2>/dev/null)
-if [ "$GIT_DIR" != "$GIT_COMMON" ] && [ -z "$SUPERPROJECT" ]; then
+# ── Worktree name ──
+if [ "$IS_WORKTREE" -eq 1 ]; then
     WORKTREE_NAME=$(basename "$GIT_DIR")
     printf "#[fg=colour240]worktree:#[fg=brightcyan]%s#[fg=colour240] | " "$WORKTREE_NAME"
 fi
