@@ -286,7 +286,7 @@ def state_update(task, summary):
 
     # Find state file path from CLAUDE.local.md
     local_md = cwd / "CLAUDE.local.md"
-    state_path = cwd / "docs" / "state" / f"{task}.md"
+    state_path = cwd / "docs" / "state" / f"state-{task}.md"
     if local_md.exists():
         import re
         content = local_md.read_text()

@@ -19,7 +19,7 @@ _(initiative reference docs appear here when activated)_
 
 Active task: _(none)_
 Goal: _(what this task is trying to achieve)_
-State file: `docs/state/{taskname}.md`  (saved on compaction/Stop)
+State file: `docs/state/state-{taskname}.md`  (saved on compaction/Stop)
 
 ## Current Workflow
 

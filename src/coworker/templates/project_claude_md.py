@@ -45,7 +45,7 @@ COMPACTION = """## Compaction & State Persistence
 
 1. **Save on compaction / session end**: A hook runs `coworker state-update` on Stop. State file path is in `CLAUDE.local.md`.
 2. **Manual milestone save**: Run `coworker state-update -s "what I finished"` after completing a milestone.
-3. **After compaction**: CLAUDE.md is re-injected but prior conversation is gone. Re-read `docs/state/{task}.md` and CLAUDE.local.md. Re-run the Context Self-Assessment Checklist.
+3. **After compaction**: CLAUDE.md is re-injected but prior conversation is gone. Re-read `docs/state/state-{task}.md` and CLAUDE.local.md. Re-run the Context Self-Assessment Checklist.
 4. **Compact early**: Write state at 50-70% of context window — before model performance degrades.
 """
 
