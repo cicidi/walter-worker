@@ -278,11 +278,21 @@ def init(is_global, is_project):
 
 
 @main.command()
-@click.argument("task", default="current")
+@click.argument("task", required=False, default=None)
 @click.option("--summary", "-s", default=None, help="One-line progress summary")
 def state_update(task, summary):
-    """Update the task state file (called by Stop hook or manually for milestones)."""
+    """Update the task state file (called on Stop or manually for milestones).
+
+    When no task name is given, a timestamp is used to ensure uniqueness.
+    Use a descriptive task name for manual milestone saves:
+      coworker state-update fix-state-paths -s "moved state files to docs/state/"
+    """
     cwd = Path.cwd()
+
+    # Auto-generate timestamp task name when none provided
+    if not task:
+        from datetime import datetime
+        task = datetime.now().strftime("%Y-%m-%d-%H%M")
 
     # Find state file path from CLAUDE.local.md
     local_md = cwd / "CLAUDE.local.md"
