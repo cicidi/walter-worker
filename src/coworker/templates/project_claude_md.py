@@ -1,5 +1,10 @@
 # src/coworker/templates/project_claude_md.py
 
+# Sentinel string the init command uses to detect an existing coworker-generated
+# CLAUDE.md. Must match what the template actually emits (single source of truth;
+# if this heading ever changes, update this constant).
+PROJECT_CLAUDE_MD_SENTINEL = "## Project Identity"
+
 LOCAL_OVERRIDE = """## Local Override
 
 CRITICAL: If `CLAUDE.local.md` exists in this project root, use Read tool to load it now before doing anything else.

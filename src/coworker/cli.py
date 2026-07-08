@@ -24,6 +24,8 @@ from .adapters import ADAPTERS
 from .initiatives.manager import InitiativeManager
 from .templates.project_claude_md import generate_project_claude_md
 from .templates.local_claude_md import generate_local_claude_md
+from .templates.project_claude_md import PROJECT_CLAUDE_MD_SENTINEL
+from . import backup
 
 console = Console()
 
@@ -237,6 +239,7 @@ def init(is_global, is_project):
             return
 
         project_config = Path.cwd() / PROJECT_CONFIG_NAME
+        project_config.parent.mkdir(parents=True, exist_ok=True)
         project_config.write_text(PROJECT_CONFIG_TEMPLATE)
         console.print(f"[green]Created:[/green] {project_config}")
 
@@ -244,11 +247,13 @@ def init(is_global, is_project):
         new_content = _build_project_claude_md(info)
         if claude_md.exists():
             content = claude_md.read_text()
-            if "## Identity & Project Context" in content:
+            if PROJECT_CLAUDE_MD_SENTINEL in content:
                 console.print("[yellow]CLAUDE.md already has project context, skipping generation.[/yellow]")
             else:
+                backup.snapshot([claude_md], "init")
                 claude_md.write_text(new_content)
                 console.print(f"[green]Created:[/green] CLAUDE.md (with new template)")
+                console.print(f"[dim]Backup of original CLAUDE.md taken.[/dim]")
         else:
             claude_md.write_text(new_content)
             console.print(f"[green]Created:[/green] CLAUDE.md")
