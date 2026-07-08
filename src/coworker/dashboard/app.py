@@ -3,7 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 import json
 import os
-from src.coworker.dashboard import queries
+from . import queries
 
 app = FastAPI(title="Coworker Analytics Dashboard")
 

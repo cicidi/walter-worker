@@ -1,5 +1,5 @@
 from __future__ import annotations
-from src.coworker.analytics.db import get_db
+from ..analytics.db import get_db
 
 
 def query_sessions(limit: int = 50):

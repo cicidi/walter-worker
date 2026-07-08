@@ -845,7 +845,7 @@ def analytics_once():
     """Import new sessions once (no daemon)."""
     from .analytics.auto_import import run_once
     stats = run_once(verbose=True)
-    console.print(f"[green]Imported:[/green] claude={stats['claude_imported']} opencode={stats['opencode_imported']} skipped={stats['skipped']}")
+    console.print(f"[green]Imported:[/green] claude_jsonl={stats['claude_jsonl']} claude_hooks={stats['claude_hooks']} opencode={stats['opencode']} skipped={stats['skipped']}")
 
 
 @analytics.command("dashboard")

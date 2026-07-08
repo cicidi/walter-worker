@@ -63,8 +63,8 @@ log "Checking global CLAUDE.md..."
 
 CLAUDE_MD_CONTENT=$(python3 -c "
 import sys
-sys.path.insert(0, '$REPO_ROOT')
-from src.coworker.templates.global_claude_md import generate_global_claude_md
+sys.path.insert(0, '$REPO_ROOT/src')
+from coworker.templates.global_claude_md import generate_global_claude_md
 print(generate_global_claude_md())
 ")
 
@@ -420,8 +420,8 @@ fi
 
 # Initialize analytics DB
 python3 -c "
-import sys; sys.path.insert(0, '$REPO_ROOT')
-from src.coworker.analytics.db import init_db
+import sys; sys.path.insert(0, '$REPO_ROOT/src')
+from coworker.analytics.db import init_db
 init_db()
 print('Analytics DB initialized')
 " 2>/dev/null && ok "Analytics database initialized" || warn "Analytics DB init skipped"
