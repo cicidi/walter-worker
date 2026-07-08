@@ -429,7 +429,7 @@ analytics hooks, MCP config, and project config are processed.
 ```bash
 MCP_JSON="$COWORKER_ROOT/.mcp.json"
 if [[ -f "$MCP_JSON" ]]; then
-  coworker import-mcp "$MCP_JSON" 2>/dev/null || echo "MCP import skipped (CLI not available)"
+  # (coworker import-mcp removed — not yet implemented; MCP servers are managed via coworker sync)
 fi
 ```
 

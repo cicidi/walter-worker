@@ -274,14 +274,14 @@ case "$SKILL_CHOICE" in
 esac
 
 # =============================================================================
-# Step 9 — Always install coworker-meta-setup-coworker
-# =============================================================================
-SETUP_SKILL_SRC="$REPO_ROOT/skills/coworker-meta-setup-coworker.md"
+# Step 9 — Always install the core init skill
+log "Installing core skill (init)..."
+SETUP_SKILL_SRC="$REPO_ROOT/skills/init/SKILL.md"
 if [[ -f "$SETUP_SKILL_SRC" ]]; then
-  cp "$SETUP_SKILL_SRC" "$CLAUDE_DIR/coworker-meta-setup-coworker.md"
-  ok "Installed coworker-meta-setup-coworker (core, always installed)"
+  cp "$SETUP_SKILL_SRC" "$CLAUDE_DIR/init.md"
+  ok "Installed init skill (core, always installed)"
 else
-  warn "coworker-meta-setup-coworker.md not found at $SETUP_SKILL_SRC"
+  warn "skills/init/SKILL.md not found at $SETUP_SKILL_SRC"
 fi
 
 # =============================================================================
@@ -334,14 +334,14 @@ if [[ -n "$OPENCODE_DIR" ]]; then
 
   mkdir -p "$OPENCODE_DIR"
 
-  # Symlink setup-coworker if possible
-  if [[ -f "$CLAUDE_DIR/coworker-meta-setup-coworker.md" ]]; then
-    if [[ -L "$OPENCODE_DIR/coworker-meta-setup-coworker.md" ]]; then
-      ok "  OpenCode symlink already exists: coworker-meta-setup-coworker.md"
+  # Symlink init skill if possible
+  if [[ -f "$CLAUDE_DIR/init.md" ]]; then
+    if [[ -L "$OPENCODE_DIR/init.md" ]]; then
+      ok "  OpenCode symlink already exists: init.md"
     else
-      ln -sf "$CLAUDE_DIR/coworker-meta-setup-coworker.md" "$OPENCODE_DIR/coworker-meta-setup-coworker.md" 2>/dev/null || \
-        cp "$CLAUDE_DIR/coworker-meta-setup-coworker.md" "$OPENCODE_DIR/coworker-meta-setup-coworker.md"
-      ok "  Synced to OpenCode: coworker-meta-setup-coworker.md"
+      ln -sf "$CLAUDE_DIR/init.md" "$OPENCODE_DIR/init.md" 2>/dev/null || \
+        cp "$CLAUDE_DIR/init.md" "$OPENCODE_DIR/init.md"
+      ok "  Synced to OpenCode: init.md"
     fi
   fi
 
@@ -349,7 +349,7 @@ if [[ -n "$OPENCODE_DIR" ]]; then
   for skill_file in "$CLAUDE_DIR"/*.md; do
     [[ -f "$skill_file" ]] || continue
     name="${skill_file##*/}"
-    [[ "$name" == "coworker-meta-setup-coworker.md" ]] && continue
+    [[ "$name" == "init.md" ]] && continue
     if [[ ! -f "$OPENCODE_DIR/$name" ]]; then
       ln -sf "$skill_file" "$OPENCODE_DIR/$name" 2>/dev/null || cp "$skill_file" "$OPENCODE_DIR/$name"
     elif ! diff -q "$skill_file" "$OPENCODE_DIR/$name" &>/dev/null; then
@@ -450,10 +450,7 @@ if command -v coworker &>/dev/null; then
 
   MCP_JSON="$REPO_ROOT/.mcp.json"
   if [[ -f "$MCP_JSON" ]]; then
-    coworker import-mcp "$MCP_JSON" && ok "MCP servers imported"
-  fi
-
-  coworker sync && ok "Config synced to all tools"
+    coworker sync && ok "Config synced to all tools"
 else
   warn "coworker CLI not found. Run: pipx install $REPO_ROOT"
   warn "Then re-run this script to sync MCP config."
@@ -512,7 +509,7 @@ echo "    SLACK_BOT_TOKEN=..."
 echo "    TELEGRAM_BOT_TOKEN=..."
 echo "    DISCORD_TOKEN=..."
 echo "  Run: coworker sync"
-echo "  Analytics: coworker dashboard"
+echo "  Analytics: coworker analytics dashboard"
 echo "  Sessions recorded to: ~/.coworker/analytics/sessions/"
 echo "  Start coding — skills are ready!"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
