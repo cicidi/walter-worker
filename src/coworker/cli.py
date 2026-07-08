@@ -27,6 +27,7 @@ from .templates.local_claude_md import generate_local_claude_md
 from .templates.project_claude_md import PROJECT_CLAUDE_MD_SENTINEL
 from . import backup
 from .semantic_merge import classify_sections, apply_merge, verify_protected
+from .constants import DOCS_SUBDIRS, STATE_DIR
 from .templates.global_claude_md import generate_global_claude_md
 
 console = Console()
@@ -259,7 +260,7 @@ def init(is_global, is_project):
             console.print(f"[green]Created:[/green] CLAUDE.md")
 
         docs_dir = Path.cwd() / "docs"
-        for subdir in ["specs", "discussion"]:
+        for subdir in DOCS_SUBDIRS:
             (docs_dir / subdir).mkdir(parents=True, exist_ok=True)
         console.print("[green]Created docs/ structure (specs/, discussion/)[/green]")
 
