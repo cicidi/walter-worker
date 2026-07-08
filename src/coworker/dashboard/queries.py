@@ -125,3 +125,77 @@ def query_overview():
         "tool_distribution": [dict(r) for r in tool_dist],
         "daily_sessions": [dict(r) for r in daily],
     }
+
+
+def query_session_timeline(session_id: str):
+    """Unified chronological timeline: messages + tool_calls + file_ops interleaved."""
+    conn = get_db()
+    rows = conn.execute(
+        """SELECT ts, 'message' as kind, seq, type as subtype, content as detail, NULL as tool
+           FROM messages WHERE session_id = ?
+           UNION ALL
+           SELECT ts, 'tool_call' as kind,
+                  COALESCE(seq_before, seq_after) as seq, tool as subtype,
+                  COALESCE(args, '') as detail, tool
+           FROM tool_calls WHERE session_id = ?
+           UNION ALL
+           SELECT ts, 'file_op' as kind,
+                  0 as seq, op_type as subtype,
+                  file_path as detail, tool
+           FROM file_ops WHERE session_id = ?
+           ORDER BY ts, seq""",
+        (session_id, session_id, session_id),
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def query_skill_sessions():
+    """Which skills were used in which sessions."""
+    conn = get_db()
+    rows = conn.execute(
+        """SELECT tc.session_id, tc.tool as skill_name, COUNT(*) as invocations,
+                  s.project, s.created_at
+           FROM tool_calls tc
+           JOIN sessions s ON tc.session_id = s.id
+           WHERE tc.tool = 'Skill'
+           GROUP BY tc.session_id, tc.tool
+           ORDER BY s.created_at DESC
+           LIMIT 200"""
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def query_file_stats():
+    """Top files touched across all sessions, with read/write breakdown."""
+    conn = get_db()
+    rows = conn.execute(
+        """SELECT file_path, op_type, COUNT(*) as ops, s.project
+           FROM file_ops f
+           LEFT JOIN sessions s ON f.session_id = s.id
+           GROUP BY file_path, op_type
+           ORDER BY ops DESC
+           LIMIT 200"""
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def query_top_files(limit: int = 50):
+    """Files ranked by total touches."""
+    conn = get_db()
+    rows = conn.execute(
+        """SELECT file_path, COUNT(*) as total_ops,
+                  SUM(CASE WHEN op_type = 'read' THEN 1 ELSE 0 END) as reads,
+                  SUM(CASE WHEN op_type IN ('write','edit') THEN 1 ELSE 0 END) as writes,
+                  GROUP_CONCAT(DISTINCT s.project) as projects
+           FROM file_ops f
+           LEFT JOIN sessions s ON f.session_id = s.id
+           GROUP BY file_path
+           ORDER BY total_ops DESC
+           LIMIT ?""",
+        (limit,),
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]

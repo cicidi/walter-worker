@@ -53,6 +53,26 @@ def api_initiatives():
     return queries.query_initiatives()
 
 
+@app.get("/api/sessions/{session_id}/timeline")
+def api_session_timeline(session_id: str):
+    return queries.query_session_timeline(session_id)
+
+
+@app.get("/api/skill-sessions")
+def api_skill_sessions():
+    return queries.query_skill_sessions()
+
+
+@app.get("/api/top-files")
+def api_top_files(limit: int = 50):
+    return queries.query_top_files(limit)
+
+
+@app.get("/api/file-stats")
+def api_file_stats():
+    return queries.query_file_stats()
+
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
