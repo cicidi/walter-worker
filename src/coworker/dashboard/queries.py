@@ -140,8 +140,8 @@ def query_session_timeline(session_id: str):
            FROM tool_calls WHERE session_id = ?
            UNION ALL
            SELECT ts, 'file_op' as kind,
-                  0 as seq, op_type as subtype,
-                  file_path as detail, tool
+                  seq, op as subtype,
+                  path as detail, NULL as tool
            FROM file_ops WHERE session_id = ?
            ORDER BY ts, seq""",
         (session_id, session_id, session_id),
@@ -171,10 +171,10 @@ def query_file_stats():
     """Top files touched across all sessions, with read/write breakdown."""
     conn = get_db()
     rows = conn.execute(
-        """SELECT file_path, op_type, COUNT(*) as ops, s.project
+        """SELECT path as file_path, op as op_type, COUNT(*) as ops, s.project
            FROM file_ops f
            LEFT JOIN sessions s ON f.session_id = s.id
-           GROUP BY file_path, op_type
+           GROUP BY path, op
            ORDER BY ops DESC
            LIMIT 200"""
     ).fetchall()
@@ -186,13 +186,13 @@ def query_top_files(limit: int = 50):
     """Files ranked by total touches."""
     conn = get_db()
     rows = conn.execute(
-        """SELECT file_path, COUNT(*) as total_ops,
-                  SUM(CASE WHEN op_type = 'read' THEN 1 ELSE 0 END) as reads,
-                  SUM(CASE WHEN op_type IN ('write','edit') THEN 1 ELSE 0 END) as writes,
+        """SELECT path as file_path, COUNT(*) as total_ops,
+                  SUM(CASE WHEN op = 'read' THEN 1 ELSE 0 END) as reads,
+                  SUM(CASE WHEN op IN ('write','edit') THEN 1 ELSE 0 END) as writes,
                   GROUP_CONCAT(DISTINCT s.project) as projects
            FROM file_ops f
            LEFT JOIN sessions s ON f.session_id = s.id
-           GROUP BY file_path
+           GROUP BY path
            ORDER BY total_ops DESC
            LIMIT ?""",
         (limit,),
