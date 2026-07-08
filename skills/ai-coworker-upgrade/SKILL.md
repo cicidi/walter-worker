@@ -1,29 +1,30 @@
 ---
 name: ai-coworker-upgrade
-description: |
-  Use when updating the ai-coworker installation — pulls latest code from
+version: 0.1.0
+description: 'Use when updating the ai-coworker installation — pulls latest code from
+
   ai-coworker and skill-factory, updates global and project-level CLAUDE.md
+
   with semantic merge, installs new/updated skills from both repos, re-runs
+
   install, syncs configs to all IDE tools.
+
+  '
+triggers:
+- update ai-coworker
+- update ai-worker
+- update coworker
+- upgrade coworker
+- pull latest coworker
+- refresh coworker
+- sync coworker
+when-to-use: 'When the user''s ai-coworker installation is out of date and needs
+
+  the latest code, skills, analytics hooks, MCP config, or CLAUDE.md
+
+  rules synced to all IDEs.'
 license: MIT
 compatibility: claude-code,opencode
-metadata:
-  triggers:
-    - update ai-coworker
-    - update ai-worker
-    - update coworker
-    - upgrade coworker
-    - pull latest coworker
-    - refresh coworker
-    - sync coworker
-  when_to_use: |
-    When the user's ai-coworker installation is out of date and needs
-    the latest code, skills, analytics hooks, MCP config, or CLAUDE.md
-    rules synced to all IDEs.
-  when_not_to_use: |
-    For installing coworker from scratch — use init instead.
-    For creating or editing individual skills — use skill-create or skill-edit.
-    For managing initiatives — use initiative-create, initiative-edit, etc.
 ---
 
 # ai-coworker-upgrade
@@ -407,7 +408,7 @@ Re-run install.sh to deploy analytics hooks, MCP config, and project configs.
 Step 1 — Detect install mode:
 
 ```bash
-CONFIG="$HOME/.config/ai-coworker/config.yaml"
+CONFIG="$HOME/.coworker/coworker.yaml"
 if [[ -f "$CONFIG" ]]; then
   MODE=$(grep "install_mode:" "$CONFIG" 2>/dev/null | awk '{print $2}' || echo "global")
 else
@@ -429,7 +430,7 @@ analytics hooks, MCP config, and project config are processed.
 ```bash
 MCP_JSON="$COWORKER_ROOT/.mcp.json"
 if [[ -f "$MCP_JSON" ]]; then
-  coworker import-mcp "$MCP_JSON" 2>/dev/null || echo "MCP import skipped (CLI not available)"
+  # (coworker import-mcp removed — not yet implemented; MCP servers are managed via coworker sync)
 fi
 ```
 
@@ -463,7 +464,7 @@ ls ~/.claude/commands/ 2>/dev/null | wc -l
 
 echo ""
 echo "=== Active initiative ==="
-cat ~/.config/ai-coworker/initiatives/.active 2>/dev/null || echo "(none)"
+cat ~/.coworker/initiatives/.active 2>/dev/null || echo "(none)"
 
 echo ""
 echo "=== Analytics hooks ==="

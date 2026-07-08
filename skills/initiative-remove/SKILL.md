@@ -1,13 +1,12 @@
 ---
 name: initiative-remove
+version: 0.1.0
 description: Permanently remove an initiative
+triggers:
+- initiative-remove
+when-to-use: When user needs to permanently remove an initiative
 license: MIT
 compatibility: claude-code,opencode,gemini
-metadata:
-  triggers:
-    - initiative-remove
-  when_to_use: When user needs to permanently remove an initiative
-  audience: ai-coworker
 ---
 
 # initiative-remove

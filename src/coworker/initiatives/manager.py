@@ -16,14 +16,19 @@ from ..models import (
     InitiativeProjectRef,
 )
 from ..adapters.claude import inject_initiative, remove_initiative
-from ..adapters.opencode import (
-    inject_initiative as opencode_inject,
-    remove_initiative as opencode_remove,
-)
 
 KEBAB_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
-ACTIVE_MARKER = INITIATIVES_DIR / ".active"
+
+def _local_md_path(project_dir: Path) -> Path:
+    return project_dir / "CLAUDE.local.md"
+
+
+def _extract_active_name(content: str) -> str | None:
+    m = re.search(r"<!--\s*INITIATIVE:(\S+)\s+START\s*-->", content)
+    if m:
+        return m.group(1)
+    return None
 
 
 class InitiativeManager:
@@ -86,13 +91,8 @@ class InitiativeManager:
         actions = []
         self.deactivate()
 
-        for injector in [inject_initiative, opencode_inject]:
-            try:
-                actions += injector(config, project_dir=self.project_dir)
-            except Exception:
-                pass
-
-        ACTIVE_MARKER.write_text(name)
+        # Claude injects into CLAUDE.local.md; OpenCode reads the same file.
+        actions += inject_initiative(config, project_dir=self.project_dir)
         actions.append(f"Activated initiative '{name}'")
         return actions
 
@@ -100,18 +100,11 @@ class InitiativeManager:
         actions = []
         had_effect = False
 
-        for remover in [remove_initiative, opencode_remove]:
-            try:
-                result = remover(project_dir=self.project_dir)
-                for r in result:
-                    if "removed" in r:
-                        had_effect = True
-                    actions.append(r)
-            except Exception:
-                pass
-
-        if ACTIVE_MARKER.exists():
-            ACTIVE_MARKER.unlink()
+        result = remove_initiative(project_dir=self.project_dir)
+        for r in result:
+            if "removed" in r:
+                had_effect = True
+            actions.append(r)
 
         if had_effect:
             actions.append("Deactivated current initiative")
@@ -120,9 +113,12 @@ class InitiativeManager:
         return actions
 
     def active_name(self) -> str | None:
-        if ACTIVE_MARKER.exists():
-            return ACTIVE_MARKER.read_text().strip()
-        return None
+        """Derive the active initiative from the project's CLAUDE.local.md
+        INITIATIVE block.  No global .active marker — single source of truth."""
+        local_md = _local_md_path(self.project_dir)
+        if not local_md.exists():
+            return None
+        return _extract_active_name(local_md.read_text(encoding="utf-8"))
 
     def archive(self, name: str) -> InitiativeConfig:
         return self.edit(name, status="archived")
@@ -130,13 +126,6 @@ class InitiativeManager:
     def inject_static_context(self) -> list[str]:
         from ..config import load_project_catalog
         from ..adapters.claude import inject_static_context
-        from ..adapters.opencode import inject_static_context as opencode_static
 
         catalog = load_project_catalog()
-        actions = []
-        for injector in [inject_static_context, opencode_static]:
-            try:
-                actions += injector(catalog, project_dir=self.project_dir)
-            except Exception:
-                pass
-        return actions
+        return inject_static_context(catalog, project_dir=self.project_dir)

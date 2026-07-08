@@ -1,6 +1,6 @@
 import json
 from datetime import datetime, timedelta
-from src.coworker.analytics.db import get_db
+from .db import get_db
 
 
 def get_session_data(session_id: str):

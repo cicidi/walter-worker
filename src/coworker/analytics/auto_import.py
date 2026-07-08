@@ -3,7 +3,7 @@ import json
 import time
 from pathlib import Path
 from datetime import datetime
-from src.coworker.analytics.db import get_db
+from .db import get_db
 
 HOME = Path.home()
 BASE = HOME / ".coworker" / "analytics"

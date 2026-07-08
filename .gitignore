@@ -22,3 +22,9 @@ global/
 
 CLAUDE.local.md
 docs/state/
+docs/work-review/
+docs/superpowers/
+pic/
+.coworker/
+*.bak
+.polish-loop-stop

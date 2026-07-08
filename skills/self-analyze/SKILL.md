@@ -1,7 +1,16 @@
 ---
 name: self-analyze
+version: 0.1.0
 description: Scan project's .self-healing/traces/, find patterns, inject summary into CLAUDE.md
-aliases: [analyze-traces, analyze, self-improve]
+triggers:
+- analyze-traces
+- analyze
+- self-improve
+when-to-use: Scan project's .self-healing/traces/, find patterns, inject summary into CLAUDE.md
+aliases:
+- analyze-traces
+- analyze
+- self-improve
 ---
 
 # Self-Analyze

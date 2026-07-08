@@ -47,8 +47,4 @@ def temp_initiatives_dir(monkeypatch, tmp_path):
     monkeypatch.setattr(
         "coworker.initiatives.manager.INITIATIVES_DIR", init_dir
     )
-    monkeypatch.setattr(
-        "coworker.initiatives.manager.ACTIVE_MARKER",
-        init_dir / ".active",
-    )
     yield init_dir

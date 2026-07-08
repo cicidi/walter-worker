@@ -126,6 +126,11 @@ def get_db(db_path: str | Path | None = None) -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
+    # Idempotently ensure the schema exists so every entrypoint (once/daemon/
+    # import/dashboard) works on a fresh DB without an explicit create-db first.
+    # Every statement in SCHEMA is CREATE ... IF NOT EXISTS, so this is safe to repeat.
+    conn.executescript(SCHEMA)
+    conn.commit()
     return conn
 
 

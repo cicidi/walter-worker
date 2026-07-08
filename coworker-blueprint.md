@@ -493,6 +493,26 @@ coworker analytics daemon      → Auto-import every 30 minutes
 coworker analytics dashboard   → Web UI at http://localhost:8080
 ```
 
+### Analytics Dashboard
+
+The dashboard provides real-time monitoring of AI coding sessions:
+
+- **Overview**: total sessions, messages, tool calls, skills used, daily chart
+- **Monitor**: active sessions, top skills by invocation count, top files by read/write ops — at a glance view of "what the AI is doing"
+- **Sessions**: chronological list with drill-down to per-session detail
+- **Session Detail**: unified timeline mixing messages, tool calls, and file ops in chronological order with icons — shows exactly what happened in a session and how
+- **Skills**: which skills were invoked, how often
+- **Tools**: tool call distribution and avg duration
+- **Files**: per-file read/write/delete stats, ranked by total operations, with project attribution
+- **Knowledge**: LLM-generated insights extracted from sessions
+- **Initiatives**: cross-session workstreams grouped by initiative tag
+
+### Analytics Database
+
+- **Schema**: sessions, messages, tool_calls, file_ops, session_stats, skills, knowledge, session_summaries
+- **File ops** record every Read/Write/Edit/Glob/Bash operation with file_path, op_type, timestamp, and session attribution
+- **Tool calls** capture tool name, args, duration, and session — Skill invocations link to the skills registry
+
 ---
 
 ## 12. Configuration Layer

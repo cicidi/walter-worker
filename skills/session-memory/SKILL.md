@@ -1,22 +1,25 @@
 ---
 name: session-memory
-description: |
-  Use when summarizing past opencode sessions into structured memory cards for both AI context reuse and personal knowledge management. Use when the user asks to "summarize sessions", "extract memory", "scan session history", or "build knowledge graph from conversations". Periodically runs batch extraction from opencode.db, feeds session content through a local LLM, and writes Markdown memory cards to the Obsidian vault.
+version: 0.1.0
+description: 'Use when summarizing past opencode sessions into structured memory cards for both AI context reuse and personal
+  knowledge management. Use when the user asks to "summarize sessions", "extract memory", "scan session history", or "build
+  knowledge graph from conversations". Periodically runs batch extraction from opencode.db, feeds session content through
+  a local LLM, and writes Markdown memory cards to the Obsidian vault.
+
+  '
+triggers:
+- summarize sessions
+- extract memory
+- scan session history
+- build knowledge graph
+- session memory
+- 整理记忆
+- 总结session
+when-to-use: Periodic batch summarization of completed opencode sessions. Building a searchable knowledge base from agent
+  conversation history. Extracting reusable patterns, decisions, and lessons from past work. Feeding AI context into future
+  sessions.
 license: MIT
 compatibility: opencode
-metadata:
-  triggers:
-    - "summarize sessions"
-    - "extract memory"
-    - "scan session history"
-    - "build knowledge graph"
-    - "session memory"
-    - "整理记忆"
-    - "总结session"
-  when_to_use: |
-    Periodic batch summarization of completed opencode sessions. Building a searchable knowledge base from agent conversation history. Extracting reusable patterns, decisions, and lessons from past work. Feeding AI context into future sessions.
-  when_not_to_use: |
-    Real-time session tracking (use self-healing-trace instead). Single session quick notes. Sessions with zero meaningful content (pure system commands).
 ---
 
 # ai-coworker-session-memory
@@ -67,8 +70,10 @@ Read the opencode database and identify sessions to process.
 ```python
 import sqlite3, json, time
 
-DB_PATH = "/home/cicidi/.local/share/opencode/opencode.db"
-VAULT_PATH = "/home/cicidi/obsidian/coworker-brain"
+DB_PATH = os.environ.get("COWORKER_ANALYTICS_DB",
+                         os.path.expanduser("~/.coworker/analytics/analytics.db"))
+VAULT_PATH = os.environ.get("COWORKER_VAULT_PATH",
+                            os.path.expanduser("~/obsidian/coworker-brain"))
 MEMORY_DIR = f"{VAULT_PATH}/session-memory"
 
 db = sqlite3.connect(DB_PATH)

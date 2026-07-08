@@ -2,9 +2,15 @@
 
 **Project context and memory manager for AI coding assistants.**
 
-AI Coworker keeps your IDE (Claude Code, OpenCode, Gemini, Cursor) aware of your project structure, active initiatives, and available skills. It auto-scans projects, injects context into your AI's config, and connects to [skill-factory](https://github.com/cicidi/skill-factory) for skill lifecycle management.
+AI Coworker keeps your IDE (Claude Code, OpenCode, Gemini) aware of your project structure, active initiatives, and available skills. It auto-scans projects, injects context into your AI's config, and connects to [skill-factory](https://github.com/cicidi/skill-factory) for skill lifecycle management.
 
-It also analyzes your AI sessions — tracking which skills get used, how often, and what patterns emerge — building the foundation for an autonomous coding agent.
+It also records your AI sessions (SQLite-backed) — tracking which skills get used, how often, and what patterns emerge — building the data foundation for an autonomous coding agent.
+
+| IDE | Support |
+|-----|---------|
+| Claude Code | Full — config sync, skills, context injection, analytics |
+| OpenCode | Config + skills + context injection |
+| Gemini | Settings / MCP config only |
 
 ## What It Does
 
@@ -13,8 +19,7 @@ It also analyzes your AI sessions — tracking which skills get used, how often,
 - **Manage initiatives** — cross-project work with decisions, links, project scope
 - **Track projects** — catalog with upstream/downstream relationships, knowledge pools
 - **Sync skills** from config to all installed IDEs
-- **Analyze sessions** — track skill usage, tool calls, token costs across sessions
-- **Memory management** — extract reusable knowledge from session history into SQLite + Obsidian
+- **Record sessions** — sessions are stored in SQLite; dashboard for browsing
 - **Road to autonomy** — data foundation for building an auto-coding agent
 
 ## What It Doesn't Do
@@ -28,7 +33,13 @@ It also analyzes your AI sessions — tracking which skills get used, how often,
 ```bash
 git clone https://github.com/cicidi/ai-coworker.git ~/ai-coworker
 cd ~/ai-coworker
-pip install --break-system-packages -e .
+pipx install .           # or: python3 -m venv .venv && source .venv/bin/activate && pip install -e .
+```
+
+After installing the Python package, run the setup script to wire analytics hooks and IDE integration:
+
+```bash
+bash setup/install.sh --global
 ```
 
 ## Usage
@@ -112,3 +123,10 @@ python -m pytest tests/python/test_skill_factory_integration.py -v
 ## License
 
 MIT
+
+## Roadmap (not shipped yet)
+
+- **Token/cost tracking** — per-session token counts and cost estimates
+- **Knowledge extraction** — LLM-driven session summaries: extract reusable insights into SQLite + Obsidian
+- **Gemini full support** — context injection and skill sync for Gemini CLI
+- **Cursor adapter** — config sync and context injection for Cursor

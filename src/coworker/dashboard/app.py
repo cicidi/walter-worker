@@ -1,9 +1,14 @@
+import json
+import logging
+from importlib.resources import files as resource_files
+
 from fastapi import FastAPI, WebSocket
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
-import json
-import os
-from src.coworker.dashboard import queries
+
+from . import queries
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Coworker Analytics Dashboard")
 
@@ -48,6 +53,26 @@ def api_initiatives():
     return queries.query_initiatives()
 
 
+@app.get("/api/sessions/{session_id}/timeline")
+def api_session_timeline(session_id: str):
+    return queries.query_session_timeline(session_id)
+
+
+@app.get("/api/skill-sessions")
+def api_skill_sessions():
+    return queries.query_skill_sessions()
+
+
+@app.get("/api/top-files")
+def api_top_files(limit: int = 50):
+    return queries.query_top_files(limit)
+
+
+@app.get("/api/file-stats")
+def api_file_stats():
+    return queries.query_file_stats()
+
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -57,9 +82,9 @@ async def websocket_endpoint(websocket: WebSocket):
             overview = queries.query_overview()
             await websocket.send_text(json.dumps(overview, default=str))
     except Exception:
-        pass
+        logger.exception("WebSocket error")
 
 
-static_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "static")
-if os.path.exists(static_path):
-    app.mount("/", StaticFiles(directory=static_path, html=True), name="static")
+static_dir = resource_files("coworker.dashboard") / "static"
+if static_dir.is_dir():
+    app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")

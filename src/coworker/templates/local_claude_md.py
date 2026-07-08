@@ -23,7 +23,7 @@ State files: `docs/state/state-{taskname}.md` — use a descriptive task name; a
 
 ## Current Workflow
 
-Approach: _(e.g., TDD, direct impl, brainstorming → spec)_
+Approach: _(e.g., TDD, direct impl, brainstorming -> spec)_
 Testing: _(how this task is tested)_
 Recommended skills: _(set during initiative activation — user reviewed)_
 
@@ -34,34 +34,41 @@ _(override project-level defaults here)_
 
 INITIATIVE_PLACEHOLDER = "<!-- INITIATIVE_PLACEHOLDER -->"
 
+_INITIATIVE_ANY_RE = re.compile(
+    r"<!--\s*INITIATIVE:\S+\s+START\s*-->.*?"
+    r"<!--\s*INITIATIVE:\S+\s+END\s*-->\n?",
+    re.DOTALL,
+)
+
 
 def generate_local_claude_md() -> str:
-    """Return the canonical CLAUDE.local.md template."""
     return LOCAL_CLAUDE_MD_TEMPLATE.strip()
 
 
 def inject_initiative_into_local_md(content: str, initiative_block: str) -> str:
-    """Inject an initiative block into local.md content, replacing existing blocks."""
-    cleaned = re.sub(
-        r"<!-- INITIATIVE:.*? START -->.*?<!-- INITIATIVE:.*? END -->",
-        "",
-        content,
-        flags=re.DOTALL,
-    )
+    """Idempotently inject an initiative block. Removes any existing
+    initiative block (consuming its trailing newline), collapses excess
+    blank lines only around the removal site."""
+    cleaned = _INITIATIVE_ANY_RE.sub("", content)
+    # Scoped collapse: replace \n{3,} with \n\n only around the injection point
     if INITIATIVE_PLACEHOLDER in cleaned:
-        return cleaned.replace(
+        cleaned = cleaned.replace(
             INITIATIVE_PLACEHOLDER,
             initiative_block.strip() + "\n\n" + INITIATIVE_PLACEHOLDER,
         )
-    return cleaned.strip() + "\n\n" + initiative_block.strip()
+    else:
+        cleaned = cleaned.rstrip() + "\n\n" + initiative_block.strip() + "\n"
+    return cleaned
 
 
 def remove_initiative_from_local_md(content: str, name: str) -> str:
-    """Remove a specific initiative block from local.md content."""
-    pattern = (
-        r"<!-- INITIATIVE:" + re.escape(name) + r" START -->.*?"
-        r"<!-- INITIATIVE:" + re.escape(name) + r" END -->"
+    """Remove a specific initiative block. Consumes trailing newline.
+    Idempotent: repeated calls produce the same result."""
+    escaped = re.escape(name)
+    pattern = re.compile(
+        r"<!--\s*INITIATIVE:" + escaped + r"\s+START\s*-->.*?"
+        r"<!--\s*INITIATIVE:" + escaped + r"\s+END\s*-->\n?",
+        re.DOTALL,
     )
-    result = re.sub(pattern, "", content, flags=re.DOTALL)
-    return re.sub(r"\n{3,}", "\n\n", result)
-
+    result = pattern.sub("", content)
+    return result.rstrip() + "\n"

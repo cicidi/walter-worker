@@ -1,7 +1,16 @@
 ---
 name: self-heal
+version: 0.1.0
 description: Log user corrections to project's .self-healing/traces/. Auto-installs global hooks for Claude Code and OpenCode.
-aliases: [trace, log-correction, heal]
+triggers:
+- trace
+- log-correction
+- heal
+when-to-use: Log user corrections to project's .self-healing/traces/. Auto-installs global hooks for Claude Code and OpenCode.
+aliases:
+- trace
+- log-correction
+- heal
 ---
 
 # Self-Heal

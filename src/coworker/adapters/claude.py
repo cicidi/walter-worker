@@ -1,13 +1,17 @@
 from __future__ import annotations
 import json
+import os
 import shutil
 import re
+import tempfile
 from pathlib import Path
 from ..models import CoworkerConfig, ProjectCatalog, InitiativeConfig
+from .. import backup
 
 CLAUDE_GLOBAL_DIR = Path.home() / ".claude"
 CLAUDE_GLOBAL_SETTINGS = CLAUDE_GLOBAL_DIR / "settings.json"
 CLAUDE_GLOBAL_SKILLS = CLAUDE_GLOBAL_DIR / "skills"
+CLAUDE_GLOBAL_MCP = Path.home() / ".claude.json"
 
 STATIC_START = "<!-- COWORKER:STATIC START -->"
 STATIC_END = "<!-- COWORKER:STATIC END -->"
@@ -31,11 +35,71 @@ def _resolve_local_md(project_dir: Path | None) -> Path:
 def _replace_or_append_block(
     content: str, start: str, end: str, new_block: str
 ) -> str:
+    """Replace content between start..end markers with new_block.
+    Handles truncated blocks (START present, END missing) by appending.
+    Uses a single regex for the full range."""
+    escaped_start = re.escape(start)
+    escaped_end = re.escape(end)
+    pattern = re.compile(
+        escaped_start + r".*?" + escaped_end, re.DOTALL
+    )
+    if pattern.search(content):
+        return pattern.sub(new_block, content)
+    # No full match — could be truncated (START without END)
     if start in content:
-        before = content[: content.index(start)]
-        after = content[content.index(end) + len(end):]
-        return before + new_block + after
+        idx = content.index(start)
+        return content[:idx] + new_block + "\n"
     return content.rstrip() + "\n\n" + new_block + "\n"
+
+
+def _had_block(content: str, start: str) -> bool:
+    return start in content
+
+
+def _write_json_atomic(path: Path, data: object) -> None:
+    """Write JSON to path atomically (tmp + rename) and keep a .bak."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if path.exists():
+        backup.snapshot([path], "json-sync")
+    fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=path.name + ".", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        os.replace(tmp, path)
+    except BaseException:
+        os.unlink(tmp)
+        raise
+
+
+def _sync_mcp(config: CoworkerConfig, mcp_path: Path) -> list[str]:
+    """Write MCP servers to mcp_path (union by server name)."""
+    existing_mcp = {}
+    if mcp_path.exists():
+        try:
+            existing_mcp = json.loads(mcp_path.read_text(encoding="utf-8")).get("mcpServers", {})
+        except (json.JSONDecodeError, KeyError):
+            pass
+
+    ours = {}
+    for server in config.mcp:
+        if not server.enabled:
+            continue
+        entry: dict = {"command": server.command, "args": server.args}
+        if server.env:
+            entry["env"] = server.env
+        ours[server.name] = entry
+
+    merged = {**existing_mcp, **ours}  # our entries win on name collision
+    mcp_doc = {"mcpServers": merged}
+    _write_json_atomic(mcp_path, mcp_doc)
+    added = [k for k in ours if k not in existing_mcp]
+    updated = [k for k in ours if k in existing_mcp]
+    actions = []
+    if added:
+        actions.append(f"MCP servers added: {', '.join(added)}")
+    if updated:
+        actions.append(f"MCP servers kept: {', '.join(updated)}")
+    return actions
 
 
 def sync(config: CoworkerConfig, project_dir: Path | None = None) -> list[str]:
@@ -45,54 +109,60 @@ def sync(config: CoworkerConfig, project_dir: Path | None = None) -> list[str]:
     if project_dir:
         settings_path = project_dir / ".claude" / "settings.json"
         skills_dir = project_dir / ".claude" / "skills"
+        mcp_path = project_dir / ".mcp.json"
     else:
         settings_path = CLAUDE_GLOBAL_SETTINGS
         skills_dir = CLAUDE_GLOBAL_SKILLS
+        mcp_path = CLAUDE_GLOBAL_MCP
 
     # --- settings.json ---
     settings_path.parent.mkdir(parents=True, exist_ok=True)
     existing = {}
     if settings_path.exists():
-        with open(settings_path) as f:
+        with open(settings_path, encoding="utf-8") as f:
             existing = json.load(f)
 
-    # apply claude overrides
-    overrides = config.claude.model_dump(exclude={"extra"})
-    overrides.update(config.claude.extra)
-    existing.update(overrides)
-
-    # apply permissions
+    # Permissions: union-merge — never remove user's entries
     if config.permissions.allow:
-        existing["permissions"] = existing.get("permissions", {})
-        existing["permissions"]["allow"] = config.permissions.allow
+        existing.setdefault("permissions", {})
+        user_allow = set(existing["permissions"].get("allow", []))
+        existing["permissions"]["allow"] = sorted(user_allow | set(config.permissions.allow))
     if config.permissions.deny:
-        existing.setdefault("permissions", {})["deny"] = config.permissions.deny
+        existing.setdefault("permissions", {})
+        user_deny = set(existing["permissions"].get("deny", []))
+        existing["permissions"]["deny"] = sorted(user_deny | set(config.permissions.deny))
 
-    # apply MCP servers
+    # MCP servers → ~/.claude.json or .mcp.json (Claude Code reads MCP from
+    # these files, NOT from settings.json).  Remove stale mcpServers from
+    # settings.json if present.
     if config.mcp:
-        mcp_servers = {}
-        for server in config.mcp:
-            if not server.enabled:
-                continue
-            entry: dict = {"command": server.command, "args": server.args}
-            if server.env:
-                entry["env"] = server.env
-            mcp_servers[server.name] = entry
-        existing["mcpServers"] = mcp_servers
+        mcp_actions = _sync_mcp(config, mcp_path)
+        actions.extend(mcp_actions)
+    existing.pop("mcpServers", None)
+    existing.pop("effortLevel", None)
+    existing.pop("skipDangerousModePermissionPrompt", None)
 
-    # apply state-update hook (runs coworker state-update on Stop)
+    # State-update hook (correctly-shaped — already fixed in prior WIP)
     existing.setdefault("hooks", {})
     stop_hooks = existing["hooks"].get("Stop", [])
-    state_update_hook = {
-        "type": "command",
-        "command": "coworker state-update"
-    }
-    if not any(h.get("command") == "coworker state-update" for h in stop_hooks):
-        stop_hooks.append(state_update_hook)
-        existing["hooks"]["Stop"] = stop_hooks
 
-    with open(settings_path, "w") as f:
-        json.dump(existing, f, indent=2)
+    def _is_state_update(h):
+        return isinstance(h, dict) and h.get("command") == "coworker state-update"
+
+    stop_hooks = [g for g in stop_hooks if not (_is_state_update(g) and "hooks" not in g)]
+    has_state_update = any(
+        _is_state_update(h)
+        for g in stop_hooks if isinstance(g, dict)
+        for h in (g.get("hooks") or [])
+    )
+    if not has_state_update:
+        stop_hooks.append({
+            "matcher": "",
+            "hooks": [{"type": "command", "command": "coworker state-update"}],
+        })
+    existing["hooks"]["Stop"] = stop_hooks
+
+    _write_json_atomic(settings_path, existing)
     actions.append(f"updated {settings_path}")
 
     # --- skills ---
@@ -102,7 +172,6 @@ def sync(config: CoworkerConfig, project_dir: Path | None = None) -> list[str]:
             continue
         skill_path = Path(skill.path)
         if not skill_path.is_absolute():
-            # resolve relative to coworker global dir or project dir
             base = project_dir or (Path.home() / ".coworker")
             skill_path = base / skill.path
         if not skill_path.exists():
@@ -131,12 +200,13 @@ def inject_static_context(
     target = _resolve_claude_md(project_dir)
 
     content = target.read_text() if target.exists() else ""
+    had_block = _had_block(content, STATIC_START)
     content = _replace_or_append_block(content, STATIC_START, STATIC_END, block)
 
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(content)
+    target.write_text(content, encoding="utf-8")
 
-    verb = "updated" if STATIC_START in content else "injected"
+    verb = "updated" if had_block else "injected"
     actions.append(f"{verb} static context in {target.name}")
     return actions
 
@@ -241,81 +311,17 @@ def _build_static_block(catalog: ProjectCatalog) -> str:
     lines.append("")
     lines.append("## Docs Directory Structure")
     lines.append("")
-    lines.append("Expected project documentation layout:")
-    lines.append("- `docs/` — Project documentation root")
-    lines.append("- `docs/architecture/` — Architecture decisions and overview")
-    lines.append("- `docs/spec/` — Feature specifications and technical design")
-    lines.append("- `docs/planning/` — Task breakdowns and implementation plans")
+    from ..constants import DOCS_SUBDIRS
+    for d in DOCS_SUBDIRS:
+        lines.append(f"- `docs/{d}/` — Project documentation")
     lines.append("")
     lines.append("## Coworker Skills")
     lines.append("")
-    lines.append("Prefer coworker skills for repeatable workflows. Check available skills before")
-    lines.append("writing ad-hoc instructions. Skills are auto-loaded from `personal/skills/` and")
-    lines.append("`.cursor/rules/` directories. If a task has a matching coworker skill, use it.")
+    lines.append("Coworker skills are installed to IDE skill directories. Check available")
+    lines.append("skills before writing ad-hoc instructions. Use `coworker skill list` to")
+    lines.append("see installed skills.")
     lines.append("")
-    lines.append("Key skill categories:")
-    lines.append("- `coworker-dev-*` — Development workflow stages (understand, decompose, execute, verify, pr)")
-    lines.append("- `coworker-do-*` — Quality gates (guardrails, code-review, code-conventions, unit-tests)")
-    lines.append("- `coworker-debug-*` — Debugging and issue investigation")
-    lines.append("")
-    lines.append("For tasks without a matching skill, follow the 5-stage pipeline defined above.")
-    lines.append("When a pattern repeats, suggest creating a new coworker skill via `create-skill`.")
-    lines.append("")
-    lines.append("## Additional Behavioral Guidelines")
-    lines.append("")
-    lines.append("_Source: [andrej-karpathy-skills](https://github.com/multica-ai/andrej-karpathy-skills) —")
-    lines.append("merged with attribution._")
-    lines.append("")
-    lines.append("### 1. Think Before Coding")
-    lines.append("")
-    lines.append("Dont assume. Dont hide confusion. Surface tradeoffs.")
-    lines.append("")
-    lines.append("- State your assumptions explicitly. If uncertain, ask.")
-    lines.append("- If multiple interpretations exist, present them — dont pick silently.")
-    lines.append("- If a simpler approach exists, say so. Push back when warranted.")
-    lines.append("- If something is unclear, stop. Name whats confusing. Ask.")
-    lines.append("")
-    lines.append("### 2. Simplicity First")
-    lines.append("")
-    lines.append("Minimum code that solves the problem. Nothing speculative.")
-    lines.append("")
-    lines.append("- No features beyond what was asked.")
-    lines.append("- No abstractions for single-use code.")
-    lines.append("- No flexibility or configurability that wasnt requested.")
-    lines.append("- No error handling for impossible scenarios.")
-    lines.append("- If you write 200 lines and it could be 50, rewrite it.")
-    lines.append("")
-    lines.append("Ask yourself: Would a senior engineer say this is overcomplicated? If yes, simplify.")
-    lines.append("")
-    lines.append("### 3. Surgical Changes")
-    lines.append("")
-    lines.append("Touch only what you must. Clean up only your own mess.")
-    lines.append("")
-    lines.append("- Dont improve adjacent code, comments, or formatting.")
-    lines.append("- Dont refactor things that arent broken.")
-    lines.append("- Match existing style, even if youd do it differently.")
-    lines.append("- If you notice unrelated dead code, mention it — dont delete it.")
-    lines.append("")
-    lines.append("When your changes create orphans, remove only what YOUR changes made unused.")
-    lines.append("The test: Every changed line should trace directly to the users request.")
-    lines.append("")
-    lines.append("### 4. Goal-Driven Execution")
-    lines.append("")
-    lines.append("Define success criteria. Loop until verified.")
-    lines.append("")
-    lines.append("Transform tasks into verifiable goals:")
-    lines.append('- "Add validation" → "Write tests for invalid inputs, then make them pass"')
-    lines.append('- "Fix the bug" → "Write a test that reproduces it, then make it pass"')
-    lines.append('- "Refactor X" → "Ensure tests pass before and after"')
-    lines.append("")
-    lines.append("For multi-step tasks, state a brief plan with verifiable checkpoints.")
-    lines.append("Strong success criteria let you loop independently.")
-    lines.append("")
-    lines.append("---")
-    lines.append("")
-    lines.append("These guidelines are working if: fewer unnecessary diffs, fewer rewrites")
-    lines.append("from overcomplication, and clarifying questions come before implementation")
-    lines.append("rather than after mistakes.")
+    lines.append("Skills must have a matching trigger phrase to be invoked.")
     lines.append("")
     lines.append(STATIC_END)
     return "\n".join(lines) + "\n"

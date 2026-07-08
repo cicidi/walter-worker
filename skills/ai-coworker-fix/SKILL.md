@@ -1,7 +1,16 @@
 ---
 name: ai-coworker-fix
-description: Fix the ai-coworker project itself, then distribute via upgrade. Use when user asks to fix an issue and it's in ai-coworker source code (not just usage/config).
-aliases: [coworker-fix, fix-coworker]
+version: 0.1.0
+description: Fix the ai-coworker project itself, then distribute via upgrade. Use when user asks to fix an issue and it's
+  in ai-coworker source code (not just usage/config).
+triggers:
+- coworker-fix
+- fix-coworker
+when-to-use: Fix the ai-coworker project itself, then distribute via upgrade. Use when user asks to fix an issue and it's
+  in ai-coworker source code (not just usage/config).
+aliases:
+- coworker-fix
+- fix-coworker
 ---
 
 # ai-coworker-fix

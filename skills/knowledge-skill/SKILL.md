@@ -1,21 +1,23 @@
 ---
 name: knowledge-skill
-description: |
-  Reads session data from analytics.db, feeds to LLM for structured analysis,
+version: 0.1.0
+description: 'Reads session data from analytics.db, feeds to LLM for structured analysis,
+
   writes session summaries and knowledge cards back to SQLite.
+
+  '
+triggers:
+- analyze this session
+- summarize what i did
+- generate knowledge cards
+- summarize session
+- analyze today sessions
+- run knowledge skill
+when-to-use: 'After completing a session to extract insights.
+
+  Periodic batch analysis of recent sessions.'
 license: MIT
 compatibility: claude-code,opencode
-metadata:
-  triggers:
-    - analyze this session
-    - summarize what I did
-    - generate knowledge cards
-    - summarize session
-    - analyze today sessions
-    - run knowledge skill
-  when_to_use: |
-    After completing a session to extract insights.
-    Periodic batch analysis of recent sessions.
 ---
 
 # knowledge-skill

@@ -1,7 +1,20 @@
 ---
 name: bug-report
+version: 0.1.0
 description: Create a GitHub Issue on any repo — bugs, features, coworker system issues. Reads project catalog for repos.
-aliases: [new-issue, create-issue, report-bug, issue, report]
+triggers:
+- new-issue
+- create-issue
+- report-bug
+- issue
+- report
+when-to-use: Create a GitHub Issue on any repo — bugs, features, coworker system issues. Reads project catalog for repos.
+aliases:
+- new-issue
+- create-issue
+- report-bug
+- issue
+- report
 ---
 
 # Bug Report

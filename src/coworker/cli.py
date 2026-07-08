@@ -24,6 +24,11 @@ from .adapters import ADAPTERS
 from .initiatives.manager import InitiativeManager
 from .templates.project_claude_md import generate_project_claude_md
 from .templates.local_claude_md import generate_local_claude_md
+from .templates.project_claude_md import PROJECT_CLAUDE_MD_SENTINEL
+from . import backup
+from .semantic_merge import classify_sections, apply_merge, verify_protected
+from .constants import DOCS_SUBDIRS, STATE_DIR
+from .templates.global_claude_md import generate_global_claude_md
 
 console = Console()
 
@@ -48,8 +53,6 @@ skills: []
 permissions:
   allow:
     - Bash(git *)
-    - Read(*)
-    - Write(*)
   deny: []
 
 # Claude Code specific settings
@@ -138,7 +141,7 @@ def _scan_project() -> dict:
             pyproject = (cwd / "pyproject.toml").read_text()
             if "fastapi" in pyproject.lower(): info["framework"].append("FastAPI")
             if "django" in pyproject.lower(): info["framework"].append("Django")
-            if "flask" in pyproject.lower() and "flask" != pyproject.lower()[:100]: info["framework"].append("Flask")
+            if "flask" in pyproject.lower(): info["framework"].append("Flask")
             if "click" in pyproject.lower(): info["framework"].append("Click")
         except Exception:
             pass
@@ -237,6 +240,7 @@ def init(is_global, is_project):
             return
 
         project_config = Path.cwd() / PROJECT_CONFIG_NAME
+        project_config.parent.mkdir(parents=True, exist_ok=True)
         project_config.write_text(PROJECT_CONFIG_TEMPLATE)
         console.print(f"[green]Created:[/green] {project_config}")
 
@@ -244,17 +248,19 @@ def init(is_global, is_project):
         new_content = _build_project_claude_md(info)
         if claude_md.exists():
             content = claude_md.read_text()
-            if "## Identity & Project Context" in content:
+            if PROJECT_CLAUDE_MD_SENTINEL in content:
                 console.print("[yellow]CLAUDE.md already has project context, skipping generation.[/yellow]")
             else:
+                backup.snapshot([claude_md], "init")
                 claude_md.write_text(new_content)
                 console.print(f"[green]Created:[/green] CLAUDE.md (with new template)")
+                console.print(f"[dim]Backup of original CLAUDE.md taken.[/dim]")
         else:
             claude_md.write_text(new_content)
             console.print(f"[green]Created:[/green] CLAUDE.md")
 
         docs_dir = Path.cwd() / "docs"
-        for subdir in ["specs", "discussion"]:
+        for subdir in DOCS_SUBDIRS:
             (docs_dir / subdir).mkdir(parents=True, exist_ok=True)
         console.print("[green]Created docs/ structure (specs/, discussion/)[/green]")
 
@@ -267,11 +273,14 @@ def init(is_global, is_project):
             if not gitignore_path.exists():
                 gitignore_path.write_text("\n".join(entries) + "\n")
             else:
-                existing = gitignore_path.read_text()
-                with open(gitignore_path, "a") as f:
-                    for entry in entries:
-                        if entry not in existing:
-                            f.write(f"{entry}\n")
+                existing = gitignore_path.read_text().rstrip("\n")
+                existing_lines = set(existing.splitlines())
+                new_entries = [e for e in entries if e not in existing_lines]
+                if new_entries:
+                    with open(gitignore_path, "a") as f:
+                        if existing:
+                            f.write("\n")
+                        f.write("\n".join(new_entries) + "\n")
             console.print("[dim]Added CLAUDE.local.md, docs/state/ to .gitignore[/dim]")
 
         console.print("\n[bold green]Setup complete![/bold green] Run [cyan]coworker sync[/cyan] to apply.")
@@ -283,45 +292,44 @@ def init(is_global, is_project):
 def state_update(task, summary):
     """Update the task state file (called on Stop or manually for milestones).
 
-    When no task name is given, a timestamp is used to ensure uniqueness.
-    Use a descriptive task name for manual milestone saves:
-      coworker state-update fix-state-paths -s "moved state files to docs/state/"
+    When no task name is given, writes one state file per DAY.
+    Exits silently unless the cwd (or an ancestor) contains .coworker/ or
+    CLAUDE.local.md — prevents littering non-coworker repos.
     """
     cwd = Path.cwd()
 
-    # Auto-generate timestamp task name when none provided
-    if not task:
-        from datetime import datetime
-        task = datetime.now().strftime("%Y-%m-%d-%H%M")
-
-    # Find state file path from CLAUDE.local.md
-    local_md = cwd / "CLAUDE.local.md"
-    state_path = cwd / "docs" / "state" / f"state-{task}.md"
-    if local_md.exists():
-        import re
-        content = local_md.read_text()
-        match = re.search(r"State file:\s*`([^`]+)`", content)
-        if match:
-            state_path = cwd / match.group(1).replace("{taskname}", task)
-
-    state_path.parent.mkdir(parents=True, exist_ok=True)
+    # Opt-in gate: only run inside a coworker-managed project
+    opt_in = False
+    for p in [cwd, *cwd.parents]:
+        if (p / ".coworker").is_dir() or (p / "CLAUDE.local.md").exists():
+            opt_in = True
+            break
+    if not opt_in:
+        return
 
     from datetime import datetime
+    if not task:
+        task = datetime.now().strftime("%Y-%m-%d")
+
+    state_path = cwd / "docs" / "state" / f"state-{task}.md"
+    state_path.parent.mkdir(parents=True, exist_ok=True)
+
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
 
     if state_path.exists():
-        existing = state_path.read_text()
+        existing = state_path.read_text(encoding="utf-8")
         entry = f"\n\n## Update — {now}\n\n"
         if summary:
             entry += f"{summary}\n"
         else:
             entry += "_Progress checkpoint._\n"
-        state_path.write_text(existing.rstrip() + entry)
+        state_path.write_text(existing.rstrip() + entry, encoding="utf-8")
     else:
         state_path.write_text(f"# Task State: {task}\n\n"
                               f"**Started:** {now}\n"
                               f"**Status:** in progress\n\n"
-                              f"## Progress\n\n")
+                              f"## Progress\n\n",
+                              encoding="utf-8")
 
     console.print(f"[green]State updated: {state_path}[/green]")
 
@@ -384,6 +392,66 @@ def status():
     console.print(table)
 
 
+@main.command()
+@click.option("--dry-run", is_flag=True, help="Print the merge plan without writing")
+@click.option("--yes", "-y", "auto_confirm", is_flag=True, help="Skip confirmation prompts")
+def upgrade(dry_run, auto_confirm):
+    """Merge template updates into ~/.claude/CLAUDE.md."""
+    global_md = Path.home() / ".claude" / "CLAUDE.md"
+    if not global_md.exists():
+        console.print("[yellow]No global CLAUDE.md found — run install.sh first.[/yellow]")
+        return
+
+    current = global_md.read_text(encoding="utf-8")
+    future = generate_global_claude_md()
+
+    cls = classify_sections(current, future)
+    table = Table(title="Merge Plan")
+    table.add_column("Section", style="cyan")
+    table.add_column("Action")
+    table.add_column("Detail")
+    for c in cls:
+        detail = ""
+        if c.category == "OVERWRITE":
+            detail = "content differs"
+        elif c.category == "MERGE_ADD":
+            detail = "new section"
+        elif c.category == "OUTDATED":
+            detail = "report-only (not auto-deleted)"
+        table.add_row(c.heading, c.category, detail)
+    console.print(table)
+
+    if dry_run:
+        console.print("[dim](--dry-run — no changes written)[/dim]")
+        return
+
+    if not auto_confirm and not sys.stdout.isatty():
+        console.print("[red]stdout is not a TTY; pass --yes to auto-accept the merge plan.[/red]")
+        return
+
+    applied = sum(1 for c in cls if c.category in ("OVERWRITE", "MERGE_ADD"))
+    if applied == 0:
+        console.print("[green]Already up to date.[/green]")
+        return
+
+    if not auto_confirm:
+        if not click.confirm("Apply this merge plan?", default=True):
+            return
+
+    backup.snapshot([global_md], "upgrade")
+    merged = apply_merge(cls, current, future)
+
+    violations = verify_protected(current, merged)
+    if violations:
+        console.print("[red]PROTECTED block violation — rolling back.[/red]")
+        for v in violations:
+            console.print(f"  [red]•[/red] {v}")
+        sys.exit(1)
+
+    global_md.write_text(merged, encoding="utf-8")
+    console.print("[green]CLAUDE.md upgraded.[/green]")
+
+
 @main.group()
 def skill():
     """Manage skills."""
@@ -408,7 +476,7 @@ def skill_list():
 
 @skill.command("new")
 @click.argument("name")
-@click.option("--global", "is_global", is_flag=True, default=True)
+@click.option("--global/--project", "is_global", default=True, help="Target global (default) or project skill dir")
 def skill_new(name, is_global):
     """Scaffold a new skill."""
     if is_global:
@@ -425,14 +493,21 @@ def skill_new(name, is_global):
     skill_file.write_text(f"""\
 ---
 name: {name}
-description: "{name} skill — describe what this skill does and when to use it"
-user-invocable: true
+version: 0.1.0
+description: >
+  {name} skill — describe what this skill does and when to use it.
+triggers:
+  - {name}
+  - add a trigger phrase here
+when-to-use: >
+  Describe the exact situation in which this skill should be invoked.
+  What user request or context makes it relevant?
 ---
 
 # {name}
 
 ## When to use
-Describe when Claude should invoke this skill.
+Describe when the AI should invoke this skill.
 
 ## Steps
 1. Step one
@@ -595,6 +670,17 @@ def initiative():
 def initiative_start(name, description, proj_dir, role, branches):
     """Quick-start: create, add project, and activate in one step."""
     pd = Path(proj_dir) if proj_dir else Path.cwd()
+
+    def _project_name(pp: Path) -> str:
+        """Resolve a directory to a catalog project name, falling back to basename."""
+        try:
+            for entry in load_project_catalog().entries:
+                if entry.local_path == str(pp.resolve()):
+                    return entry.name
+        except Exception:
+            pass
+        return pp.name
+
     mgr = InitiativeManager(project_dir=pd)
 
     try:
@@ -605,13 +691,15 @@ def initiative_start(name, description, proj_dir, role, branches):
         console.print(f"[red]{e}[/red]")
         return
 
-    if proj_dir:
-        config = load_initiative(name)
-        if config and not any(p.name == proj_dir for p in config.projects):
+    # Always add the current (or -p specified) project
+    config = load_initiative(name)
+    if config:
+        proj_name = _project_name(pd)
+        if not any(p.name == proj_name for p in config.projects):
             branch_list = [b.strip() for b in branches.split(",") if b.strip()]
             config.projects.append(
                 InitiativeProjectRef(
-                    name=proj_dir,
+                    name=proj_name,
                     role=role,
                     branches=branch_list,
                 )
@@ -691,7 +779,7 @@ def initiative_edit(name, proj_dir, description, add_proj, add_link_spec, add_de
         )
 
     if add_decision_spec:
-        parts = add_decision_spec.split("|")
+        parts = add_decision_spec.split("|", 1)
         config.decisions.append(
             Decision(
                 date=parts[0] if len(parts) > 0 else "",
@@ -845,7 +933,7 @@ def analytics_once():
     """Import new sessions once (no daemon)."""
     from .analytics.auto_import import run_once
     stats = run_once(verbose=True)
-    console.print(f"[green]Imported:[/green] claude={stats['claude_imported']} opencode={stats['opencode_imported']} skipped={stats['skipped']}")
+    console.print(f"[green]Imported:[/green] claude_jsonl={stats['claude_jsonl']} claude_hooks={stats['claude_hooks']} opencode={stats['opencode']} skipped={stats['skipped']}")
 
 
 @analytics.command("dashboard")

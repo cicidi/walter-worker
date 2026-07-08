@@ -18,6 +18,13 @@ SKILL_FACTORY_URL="https://github.com/cicidi/skill-factory"
 SKILL_FACTORY_DIR="$HOME/.config/opencode/skills/skill-factory"
 GLOBAL_CLAUDE_MD="$HOME/.claude/CLAUDE.md"
 
+default_branch() {
+    local ref
+    ref=$(git ls-remote --symref origin HEAD 2>/dev/null | \
+          awk '/^ref:/ {sub("refs/heads/","",$2); print $2}')
+    echo "${ref:-main}"
+}
+
 INSTALL_MODE=""
 PROJECT_PATH=""
 
@@ -63,13 +70,14 @@ log "Checking global CLAUDE.md..."
 
 CLAUDE_MD_CONTENT=$(python3 -c "
 import sys
-sys.path.insert(0, '$REPO_ROOT')
-from src.coworker.templates.global_claude_md import generate_global_claude_md
+sys.path.insert(0, '$REPO_ROOT/src')
+from coworker.templates.global_claude_md import generate_global_claude_md
 print(generate_global_claude_md())
 ")
 
 if [[ -f "$GLOBAL_CLAUDE_MD" ]]; then
   ok "Global CLAUDE.md already exists at $GLOBAL_CLAUDE_MD"
+  log "Run 'coworker upgrade' to merge template updates into your existing CLAUDE.md."
 else
   log "Creating global CLAUDE.md at $GLOBAL_CLAUDE_MD..."
   mkdir -p "$(dirname "$GLOBAL_CLAUDE_MD")"
@@ -84,7 +92,7 @@ log "Setting up skill-factory..."
 
 if [[ -d "$SKILL_FACTORY_DIR" ]]; then
   log "Updating skill-factory from GitHub..."
-  git -C "$SKILL_FACTORY_DIR" pull --ff-only origin main 2>/dev/null || \
+  git -C "$SKILL_FACTORY_DIR" pull --ff-only origin "$(default_branch)" 2>/dev/null || \
     warn "Could not update skill-factory (dirty or offline). Continuing with current version."
 else
   log "Cloning skill-factory from $SKILL_FACTORY_URL..."
@@ -145,14 +153,15 @@ else
   mkdir -p "$OPENCODE_SKILLS_DIR"
 
   # Save old skill content hashes before sync
-  declare -A OLD_HASHES
+  declare -a OLD_DIRS=()
+  declare -a OLD_DIR_HASHES=()
   if [[ -d "$OPENCODE_SKILLS_DIR" ]]; then
     for skill_dir in "$OPENCODE_SKILLS_DIR"/*/; do
       [[ -d "$skill_dir" ]] || continue
       skill_file="${skill_dir}SKILL.md"
       [[ -f "$skill_file" ]] || continue
-      dir_name=$(basename "$skill_dir")
-      OLD_HASHES["$dir_name"]=$(md5sum "$skill_file" | cut -d' ' -f1)
+      OLD_DIRS+=("$(basename "$skill_dir")")
+      OLD_DIR_HASHES+=("$(md5sum "$skill_file" | cut -d' ' -f1)")
     done
   fi
 
@@ -160,27 +169,32 @@ else
   rsync -a "$REPO_ROOT/skills/" "$OPENCODE_SKILLS_DIR/"
 
   # Build source skill hash map for rename detection
-  declare -A SRC_HASHES
+  declare -a SRC_DIRS=()
+  declare -a SRC_DIR_HASHES=()
   for skill_dir in "$REPO_ROOT/skills"/*/; do
     [[ -d "$skill_dir" ]] || continue
     skill_file="${skill_dir}SKILL.md"
     [[ -f "$skill_file" ]] || continue
-    dir_name=$(basename "$skill_dir")
-    SRC_HASHES["$dir_name"]=$(md5sum "$skill_file" | cut -d' ' -f1)
+    SRC_DIRS+=("$(basename "$skill_dir")")
+    SRC_DIR_HASHES+=("$(md5sum "$skill_file" | cut -d' ' -f1)")
   done
 
-  # Detect renames: old dir gone from source, content moved to new dir
-  for old_dir in "${!OLD_HASHES[@]}"; do
-    old_hash="${OLD_HASHES[$old_dir]}"
-    [[ -d "$REPO_ROOT/skills/$old_dir" ]] && continue
-    for src_dir in "${!SRC_HASHES[@]}"; do
-      if [[ "${SRC_HASHES[$src_dir]}" == "$old_hash" ]]; then
-        log "Renamed skill: $old_dir → $src_dir (cleaning up old)"
-        rm -rf "$OPENCODE_SKILLS_DIR/$old_dir"
-        break
-      fi
+  # Detect renames: old dir gone from source, content moved to new dir.
+  # Indexed parallel arrays (bash-3.2 compatible; declare -A breaks on macOS).
+  if [[ ${#OLD_DIRS[@]} -gt 0 && ${#SRC_DIRS[@]} -gt 0 ]]; then
+    for old_i in "${!OLD_DIRS[@]}"; do
+      old_dir="${OLD_DIRS[$old_i]}"
+      old_hash="${OLD_DIR_HASHES[$old_i]}"
+      [[ -d "$REPO_ROOT/skills/$old_dir" ]] && continue
+      for src_i in "${!SRC_DIRS[@]}"; do
+        if [[ "${SRC_DIR_HASHES[$src_i]}" == "$old_hash" ]]; then
+          log "Renamed skill: $old_dir → ${SRC_DIRS[$src_i]} (cleaning up old)"
+          rm -rf "$OPENCODE_SKILLS_DIR/$old_dir"
+          break
+        fi
+      done
     done
-  done
+  fi
 
   ok "Deployed skills to $OPENCODE_SKILLS_DIR"
 fi
@@ -213,6 +227,7 @@ index_skills() {
 index_skills "$SKILL_FACTORY_DIR/ai-coworker-skills" "[factory] "
 index_skills "$SKILL_FACTORY_DIR/personal-skills" "[personal] "
 index_skills "$SKILL_FACTORY_DIR/import-skills" "[import] "
+index_skills "$REPO_ROOT/skills" "[bundle] "
 
 if [[ ${#AVAILABLE_SKILLS[@]} -eq 0 ]]; then
   warn "No skills found in skill-factory."
@@ -261,14 +276,14 @@ case "$SKILL_CHOICE" in
 esac
 
 # =============================================================================
-# Step 9 — Always install coworker-meta-setup-coworker
-# =============================================================================
-SETUP_SKILL_SRC="$REPO_ROOT/skills/coworker-meta-setup-coworker.md"
+# Step 9 — Always install the core init skill
+log "Installing core skill (init)..."
+SETUP_SKILL_SRC="$REPO_ROOT/skills/init/SKILL.md"
 if [[ -f "$SETUP_SKILL_SRC" ]]; then
-  cp "$SETUP_SKILL_SRC" "$CLAUDE_DIR/coworker-meta-setup-coworker.md"
-  ok "Installed coworker-meta-setup-coworker (core, always installed)"
+  cp "$SETUP_SKILL_SRC" "$CLAUDE_DIR/init.md"
+  ok "Installed init skill (core, always installed)"
 else
-  warn "coworker-meta-setup-coworker.md not found at $SETUP_SKILL_SRC"
+  warn "skills/init/SKILL.md not found at $SETUP_SKILL_SRC"
 fi
 
 # =============================================================================
@@ -321,14 +336,14 @@ if [[ -n "$OPENCODE_DIR" ]]; then
 
   mkdir -p "$OPENCODE_DIR"
 
-  # Symlink setup-coworker if possible
-  if [[ -f "$CLAUDE_DIR/coworker-meta-setup-coworker.md" ]]; then
-    if [[ -L "$OPENCODE_DIR/coworker-meta-setup-coworker.md" ]]; then
-      ok "  OpenCode symlink already exists: coworker-meta-setup-coworker.md"
+  # Symlink init skill if possible
+  if [[ -f "$CLAUDE_DIR/init.md" ]]; then
+    if [[ -L "$OPENCODE_DIR/init.md" ]]; then
+      ok "  OpenCode symlink already exists: init.md"
     else
-      ln -sf "$CLAUDE_DIR/coworker-meta-setup-coworker.md" "$OPENCODE_DIR/coworker-meta-setup-coworker.md" 2>/dev/null || \
-        cp "$CLAUDE_DIR/coworker-meta-setup-coworker.md" "$OPENCODE_DIR/coworker-meta-setup-coworker.md"
-      ok "  Synced to OpenCode: coworker-meta-setup-coworker.md"
+      ln -sf "$CLAUDE_DIR/init.md" "$OPENCODE_DIR/init.md" 2>/dev/null || \
+        cp "$CLAUDE_DIR/init.md" "$OPENCODE_DIR/init.md"
+      ok "  Synced to OpenCode: init.md"
     fi
   fi
 
@@ -336,7 +351,7 @@ if [[ -n "$OPENCODE_DIR" ]]; then
   for skill_file in "$CLAUDE_DIR"/*.md; do
     [[ -f "$skill_file" ]] || continue
     name="${skill_file##*/}"
-    [[ "$name" == "coworker-meta-setup-coworker.md" ]] && continue
+    [[ "$name" == "init.md" ]] && continue
     if [[ ! -f "$OPENCODE_DIR/$name" ]]; then
       ln -sf "$skill_file" "$OPENCODE_DIR/$name" 2>/dev/null || cp "$skill_file" "$OPENCODE_DIR/$name"
     elif ! diff -q "$skill_file" "$OPENCODE_DIR/$name" &>/dev/null; then
@@ -350,7 +365,7 @@ fi
 # Step 12 — Symlink CLAUDE.md for OpenCode
 # =============================================================================
 if [[ "$INSTALL_MODE" == "project" ]]; then
-  CLAUDE_MD="$REPO_ROOT/CLAUDE.md"
+  CLAUDE_MD="$PROJECT_PATH/CLAUDE.md"
   OPENCODE_AGENTS="$PROJECT_PATH/AGENTS.md"
   if [[ -f "$CLAUDE_MD" ]]; then
     ln -sf "$CLAUDE_MD" "$OPENCODE_AGENTS" 2>/dev/null || true
@@ -363,7 +378,7 @@ fi
 if [[ "$INSTALL_MODE" == "project" ]]; then
   GITIGNORE="$PROJECT_PATH/.gitignore"
   [[ -f "$GITIGNORE" ]] || touch "$GITIGNORE"
-  for entry in "personal/" ".local_config.yaml" ".env" ".cursorrules" "AGENTS.md" "GEMINI.md"; do
+  for entry in "personal/" ".local_config.yaml" ".env" ".cursorrules" "AGENTS.md" "GEMINI.md" "CLAUDE.local.md" "docs/state/"; do
     grep -qxF "$entry" "$GITIGNORE" 2>/dev/null || echo "$entry" >> "$GITIGNORE"
   done
 fi
@@ -396,10 +411,22 @@ python3 -c "
 import json
 with open('$CLAUDE_SETTINGS') as f: cfg = json.load(f)
 cfg.setdefault('hooks', {})
-cfg['hooks']['UserPromptSubmit'] = [{'matcher': '', 'hooks': [{'type': 'command', 'command': '$HOME/.coworker/analytics/hooks/on-user-prompt.sh'}]}]
-cfg['hooks']['PreToolUse'] = [{'matcher': '', 'hooks': [{'type': 'command', 'command': '$HOME/.coworker/analytics/hooks/on-pre-tool.sh'}]}]
-cfg['hooks']['PostToolUse'] = [{'matcher': '', 'hooks': [{'type': 'command', 'command': '$HOME/.coworker/analytics/hooks/on-post-tool.sh'}]}]
-cfg['hooks']['Stop'] = [{'matcher': '', 'hooks': [{'type': 'command', 'command': '$HOME/.coworker/analytics/hooks/on-stop.sh'}]}]
+
+def _merge_hook(event, cmd):
+    entries = cfg['hooks'].setdefault(event, [])
+    has_it = any(
+        h.get('command') == cmd
+        for g in entries if isinstance(g, dict)
+        for h in (g.get('hooks') or [])
+    )
+    if not has_it:
+        entries.append({'matcher': '', 'hooks': [{'type': 'command', 'command': cmd}]})
+
+_merge_hook('UserPromptSubmit', '$HOME/.coworker/analytics/hooks/on-user-prompt.sh')
+_merge_hook('PreToolUse',        '$HOME/.coworker/analytics/hooks/on-pre-tool.sh')
+_merge_hook('PostToolUse',       '$HOME/.coworker/analytics/hooks/on-post-tool.sh')
+_merge_hook('Stop',              '$HOME/.coworker/analytics/hooks/on-stop.sh')
+
 with open('$CLAUDE_SETTINGS', 'w') as f: json.dump(cfg, f, indent=2)
 " 2>/dev/null && ok "Claude Code hooks configured" || warn "Failed to configure Claude Code hooks"
 
@@ -420,8 +447,8 @@ fi
 
 # Initialize analytics DB
 python3 -c "
-import sys; sys.path.insert(0, '$REPO_ROOT')
-from src.coworker.analytics.db import init_db
+import sys; sys.path.insert(0, '$REPO_ROOT/src')
+from coworker.analytics.db import init_db
 init_db()
 print('Analytics DB initialized')
 " 2>/dev/null && ok "Analytics database initialized" || warn "Analytics DB init skipped"
@@ -437,10 +464,9 @@ if command -v coworker &>/dev/null; then
 
   MCP_JSON="$REPO_ROOT/.mcp.json"
   if [[ -f "$MCP_JSON" ]]; then
-    coworker import-mcp "$MCP_JSON" && ok "MCP servers imported"
+    :  # (MCP import removed — handled via sync)
   fi
-
-  coworker sync && ok "Config synced to all tools"
+    coworker sync && ok "Config synced to all tools"
 else
   warn "coworker CLI not found. Run: pipx install $REPO_ROOT"
   warn "Then re-run this script to sync MCP config."
@@ -480,6 +506,50 @@ else
 fi
 
 # =============================================================================
+# Step 16 — Write install manifest
+# =============================================================================
+MANIFEST="$HOME/.coworker/install-manifest.json"
+python3 -c "
+import json, os, glob
+home = os.environ['HOME']
+manifest = {
+    'install_mode': '${INSTALL_MODE}',
+    'repo_root': '${REPO_ROOT}',
+    'hook_commands': [],
+    'files': [],
+    'owned_dirs': [],
+    'project_path': '${PROJECT_PATH}',
+}
+# Files we know were written (conditional on what actually exists)
+for d in [f'{home}/.coworker/analytics', f'{home}/.coworker/skills',
+          f'{home}/.claude', f'{home}/.opencode',
+          f'{home}/.config/opencode/skills/ai-coworker']:
+    if os.path.isdir(d):
+        for root, dirs, files in os.walk(d):
+            for fn in files:
+                manifest['files'].append(os.path.join(root, fn))
+# Global CLAUDE.md
+md = f'{home}/.claude/CLAUDE.md'
+if os.path.isfile(md): manifest['files'].append(md)
+# Hook commands from settings.json
+sf = f'{home}/.claude/settings.json'
+if os.path.isfile(sf):
+    cfg = json.load(open(sf))
+    for entries in cfg.get('hooks', {}).values():
+        if isinstance(entries, list):
+            for g in entries:
+                if isinstance(g, dict):
+                    for h in g.get('hooks', []):
+                        manifest['hook_commands'].append(h.get('command', ''))
+# Owned dirs
+for d in [f'{home}/.coworker', f'{home}/.config/opencode/skills/ai-coworker']:
+    if os.path.isdir(d):
+        manifest['owned_dirs'].append(d)
+os.makedirs(f'{home}/.coworker', exist_ok=True)
+json.dump(manifest, open('$MANIFEST', 'w'), indent=2)
+" 2>/dev/null && ok "Install manifest written to $MANIFEST" || warn "Manifest write skipped"
+
+# =============================================================================
 # Done
 # =============================================================================
 echo ""
@@ -499,7 +569,7 @@ echo "    SLACK_BOT_TOKEN=..."
 echo "    TELEGRAM_BOT_TOKEN=..."
 echo "    DISCORD_TOKEN=..."
 echo "  Run: coworker sync"
-echo "  Analytics: coworker dashboard"
+echo "  Analytics: coworker analytics dashboard"
 echo "  Sessions recorded to: ~/.coworker/analytics/sessions/"
 echo "  Start coding — skills are ready!"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

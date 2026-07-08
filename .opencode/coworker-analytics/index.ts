@@ -68,9 +68,9 @@ export default {
       },
 
       "experimental.session.compacting"(_input, _output) {
-        if (currentRecorder && currentSessionId) {
+        if (currentRecorder) {
           try {
-            currentRecorder.writeSessionYaml({ closed: new Date().toISOString() })
+            currentRecorder.writeSessionYaml({ compacted: new Date().toISOString() })
           } catch {}
         }
         if ($) {
@@ -78,8 +78,6 @@ export default {
             $.nothrow()`coworker state-update`.quiet()
           } catch {}
         }
-        currentRecorder = null
-        currentSessionId = null
       },
     }
   },

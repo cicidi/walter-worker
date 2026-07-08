@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -e ".[test]"
+      - run: python -m pytest tests/ -q
+
+  wheel-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # Build a real wheel, install into a clean venv, and exercise the
+      # entrypoints. Guards the whole class of "works in dev, broken when
+      # packaged" bugs (relative imports, missing package-data, etc.).
+      - run: |
+          pip install build
+          python -m build --wheel --outdir dist/
+      - run: |
+          python -m venv /tmp/venv
+          /tmp/venv/bin/pip install dist/*.whl
+          /tmp/venv/bin/coworker --help
+          /tmp/venv/bin/coworker analytics create-db
+          /tmp/venv/bin/coworker status
+
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ludeeus/action-shellcheck@master
+        with:
+          severity: warning
+          additional_files: "setup/install.sh setup/update.sh setup/uninstall.sh"

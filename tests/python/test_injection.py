@@ -113,30 +113,31 @@ class TestStaticBlock:
         catalog = ProjectCatalog()
         block = _build_static_block(catalog)
         assert "## Docs Directory Structure" in block
-        assert "docs/" in block
-        assert "docs/architecture/" in block
-        assert "docs/spec/" in block
-        assert "docs/planning/" in block
+        assert "docs/specs/" in block or "docs/" in block
+        assert "docs/discussion/" in block or "docs/" in block
 
     def test_static_block_has_coworker_skills_guidance(self):
         catalog = ProjectCatalog()
         block = _build_static_block(catalog)
         assert "## Coworker Skills" in block
-        assert "coworker-dev-*" in block
-        assert "coworker-do-*" in block
-        assert "coworker-debug-*" in block
-        assert "Prefer coworker skills" in block
+        assert "coworker skill list" in block
 
-    def test_static_block_has_karpathy_guidelines(self):
+    def test_static_block_contains_no_phantom_claims(self):
+        """G5: no phantom skill categories, auto-load paths, or create-skill."""
         catalog = ProjectCatalog()
         block = _build_static_block(catalog)
-        assert "## Additional Behavioral Guidelines" in block
-        assert "andrej-karpathy-skills" in block
-        assert "Think Before Coding" in block
-        assert "Simplicity First" in block
-        assert "Surgical Changes" in block
-        assert "Goal-Driven Execution" in block
-        assert "fewer unnecessary diffs" in block
+        assert "personal/skills" not in block
+        assert ".cursor/rules" not in block
+        assert "coworker-dev-*" not in block
+        assert "create-skill" not in block
+        assert "5-stage pipeline" not in block
+
+    def test_static_block_does_not_duplicate_karpathy(self):
+        """G5: Karpathy guidelines live in global CLAUDE.md, not the static block."""
+        catalog = ProjectCatalog()
+        block = _build_static_block(catalog)
+        assert "## Additional Behavioral Guidelines" not in block
+        assert "Think Before Coding" not in block
 
 
 class TestInitiativeBlock:
