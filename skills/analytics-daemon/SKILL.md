@@ -1,15 +1,14 @@
 ---
 name: analytics-daemon
+version: 0.1.0
 description: Auto-import daemon — scans projects every 30 minutes, imports new sessions into SQLite
+triggers:
+- analytics-daemon
+- start analytics daemon
+- auto import sessions
+when-to-use: When user wants continuous auto-import of sessions
 license: MIT
 compatibility: claude-code,opencode,gemini
-metadata:
-  triggers:
-    - analytics-daemon
-    - start analytics daemon
-    - auto import sessions
-  when_to_use: When user wants continuous auto-import of sessions
-  audience: ai-coworker
 ---
 
 # analytics-daemon

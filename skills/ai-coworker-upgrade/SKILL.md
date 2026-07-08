@@ -1,29 +1,30 @@
 ---
 name: ai-coworker-upgrade
-description: |
-  Use when updating the ai-coworker installation — pulls latest code from
+version: 0.1.0
+description: 'Use when updating the ai-coworker installation — pulls latest code from
+
   ai-coworker and skill-factory, updates global and project-level CLAUDE.md
+
   with semantic merge, installs new/updated skills from both repos, re-runs
+
   install, syncs configs to all IDE tools.
+
+  '
+triggers:
+- update ai-coworker
+- update ai-worker
+- update coworker
+- upgrade coworker
+- pull latest coworker
+- refresh coworker
+- sync coworker
+when-to-use: 'When the user''s ai-coworker installation is out of date and needs
+
+  the latest code, skills, analytics hooks, MCP config, or CLAUDE.md
+
+  rules synced to all IDEs.'
 license: MIT
 compatibility: claude-code,opencode
-metadata:
-  triggers:
-    - update ai-coworker
-    - update ai-worker
-    - update coworker
-    - upgrade coworker
-    - pull latest coworker
-    - refresh coworker
-    - sync coworker
-  when_to_use: |
-    When the user's ai-coworker installation is out of date and needs
-    the latest code, skills, analytics hooks, MCP config, or CLAUDE.md
-    rules synced to all IDEs.
-  when_not_to_use: |
-    For installing coworker from scratch — use init instead.
-    For creating or editing individual skills — use skill-create or skill-edit.
-    For managing initiatives — use initiative-create, initiative-edit, etc.
 ---
 
 # ai-coworker-upgrade

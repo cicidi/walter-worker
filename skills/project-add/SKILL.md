@@ -1,13 +1,12 @@
 ---
 name: project-add
+version: 0.1.0
 description: Add a project to the catalog
+triggers:
+- project-add
+when-to-use: When user needs to add a project to the catalog
 license: MIT
 compatibility: claude-code,opencode,gemini
-metadata:
-  triggers:
-    - project-add
-  when_to_use: When user needs to add a project to the catalog
-  audience: ai-coworker
 ---
 
 # project-add

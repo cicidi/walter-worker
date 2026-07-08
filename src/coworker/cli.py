@@ -493,14 +493,21 @@ def skill_new(name, is_global):
     skill_file.write_text(f"""\
 ---
 name: {name}
-description: "{name} skill — describe what this skill does and when to use it"
-user-invocable: true
+version: 0.1.0
+description: >
+  {name} skill — describe what this skill does and when to use it.
+triggers:
+  - {name}
+  - add a trigger phrase here
+when-to-use: >
+  Describe the exact situation in which this skill should be invoked.
+  What user request or context makes it relevant?
 ---
 
 # {name}
 
 ## When to use
-Describe when Claude should invoke this skill.
+Describe when the AI should invoke this skill.
 
 ## Steps
 1. Step one

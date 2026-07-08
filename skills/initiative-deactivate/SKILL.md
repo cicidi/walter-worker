@@ -1,13 +1,12 @@
 ---
 name: initiative-deactivate
+version: 0.1.0
 description: Deactivate the current active initiative
+triggers:
+- initiative-deactivate
+when-to-use: When user needs to deactivate the current active initiative
 license: MIT
 compatibility: claude-code,opencode,gemini
-metadata:
-  triggers:
-    - initiative-deactivate
-  when_to_use: When user needs to deactivate the current active initiative
-  audience: ai-coworker
 ---
 
 # initiative-deactivate

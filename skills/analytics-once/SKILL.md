@@ -1,15 +1,14 @@
 ---
 name: analytics-once
+version: 0.1.0
 description: Import new sessions once — scans for unimported Claude Code and OpenCode sessions
+triggers:
+- analytics-once
+- import sessions once
+- check for new sessions
+when-to-use: When user wants to import sessions without running the daemon
 license: MIT
 compatibility: claude-code,opencode,gemini
-metadata:
-  triggers:
-    - analytics-once
-    - import sessions once
-    - check for new sessions
-  when_to_use: When user wants to import sessions without running the daemon
-  audience: ai-coworker
 ---
 
 # analytics-once

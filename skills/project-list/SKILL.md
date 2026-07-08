@@ -1,13 +1,12 @@
 ---
 name: project-list
+version: 0.1.0
 description: List all tracked projects
+triggers:
+- project-list
+when-to-use: When user needs to list all tracked projects
 license: MIT
 compatibility: claude-code,opencode,gemini
-metadata:
-  triggers:
-    - project-list
-  when_to_use: When user needs to list all tracked projects
-  audience: ai-coworker
 ---
 
 # project-list

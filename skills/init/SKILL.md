@@ -1,16 +1,15 @@
 ---
 name: init
+version: 0.1.0
 description: Auto-scan project and generate config — detects language, dependencies, IDEs
+triggers:
+- init
+- setup coworker
+- initialize ai coworker
+- coworker init
+when-to-use: When setting up ai-coworker for a new project
 license: MIT
 compatibility: claude-code,opencode,gemini
-metadata:
-  triggers:
-    - init
-    - setup coworker
-    - initialize ai coworker
-    - coworker init
-  when_to_use: When setting up ai-coworker for a new project
-  audience: ai-coworker
 ---
 
 # init

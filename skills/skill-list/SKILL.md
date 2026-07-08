@@ -1,13 +1,12 @@
 ---
 name: skill-list
+version: 0.1.0
 description: List all configured skills
+triggers:
+- skill-list
+when-to-use: When user needs to list all configured skills
 license: MIT
 compatibility: claude-code,opencode,gemini
-metadata:
-  triggers:
-    - skill-list
-  when_to_use: When user needs to list all configured skills
-  audience: ai-coworker
 ---
 
 # skill-list

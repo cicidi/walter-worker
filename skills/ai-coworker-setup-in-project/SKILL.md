@@ -1,17 +1,17 @@
 ---
 name: ai-coworker-setup-in-project
-description: Interactive interview to generate project-level CLAUDE.md and CLAUDE.local.md with auto-detected skills, guardrails, and state persistence hooks.
+version: 0.1.0
+description: Interactive interview to generate project-level CLAUDE.md and CLAUDE.local.md with auto-detected skills, guardrails,
+  and state persistence hooks.
+triggers:
+- setup project claude md
+- setup project
+- configure project claude.md
+- setup ai coworker for project
+- init project rules
+when-to-use: When setting up a project with the new three-layer CLAUDE.md architecture. Use after `coworker init`.
 license: MIT
 compatibility: claude-code,opencode
-metadata:
-  triggers:
-    - setup project claude md
-    - setup project
-    - configure project claude.md
-    - setup ai coworker for project
-    - init project rules
-  when_to_use: When setting up a project with the new three-layer CLAUDE.md architecture. Use after `coworker init`.
-  audience: ai-coworker
 ---
 
 # ai-coworker-setup-in-project

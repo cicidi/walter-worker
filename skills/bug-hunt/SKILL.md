@@ -1,7 +1,20 @@
 ---
 name: bug-hunt
+version: 0.1.0
 description: Root cause investigation — from quick code bug to multi-service outage. Hypothesis-driven, no guessing.
-aliases: [debug, investigate, oncall, deep-dive, sleuth]
+triggers:
+- debug
+- investigate
+- oncall
+- deep-dive
+- sleuth
+when-to-use: Root cause investigation — from quick code bug to multi-service outage. Hypothesis-driven, no guessing.
+aliases:
+- debug
+- investigate
+- oncall
+- deep-dive
+- sleuth
 ---
 
 # Bug Hunt

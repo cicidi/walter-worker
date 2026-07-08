@@ -1,23 +1,22 @@
 ---
 name: initiative-edit
-description: |
-  Use when editing an existing initiative — adding projects, decisions, links,
+version: 0.1.0
+description: 'Use when editing an existing initiative — adding projects, decisions, links,
+
   reference docs, or changing status. Use for updating active work context.
+
+  '
+triggers:
+- edit initiative
+- update initiative
+- add to initiative
+- change initiative
+- modify initiative
+when-to-use: 'When the user wants to modify an existing initiative. Adding projects,
+
+  decisions, links, or reference docs. Archiving old initiatives.'
 license: MIT
 compatibility: claude-code,opencode
-metadata:
-  triggers:
-    - edit initiative
-    - update initiative
-    - add to initiative
-    - change initiative
-    - modify initiative
-  when_to_use: |
-    When the user wants to modify an existing initiative. Adding projects,
-    decisions, links, or reference docs. Archiving old initiatives.
-  when_not_to_use: |
-    For creating a new initiative, use initiative-create.
-    For viewing without changes, use `coworker initiative show <name>`.
 ---
 
 # initiative-edit
