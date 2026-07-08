@@ -450,7 +450,7 @@ if command -v coworker &>/dev/null; then
 
   MCP_JSON="$REPO_ROOT/.mcp.json"
   if [[ -f "$MCP_JSON" ]]; then
-    :  # (coworker import-mcp was here — removed; MCP handled via sync)
+    :  # (MCP import removed — handled via sync)
   fi
     coworker sync && ok "Config synced to all tools"
 else
