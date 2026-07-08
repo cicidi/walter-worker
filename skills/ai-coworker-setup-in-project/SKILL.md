@@ -136,8 +136,13 @@ if settings.exists():
     cfg = json.loads(settings.read_text())
 cfg.setdefault('hooks', {})
 stop_hooks = cfg['hooks'].get('Stop', [])
-if not any(h.get('command') == 'coworker state-update' for h in stop_hooks):
-    stop_hooks.append({'type': 'command', 'command': 'coworker state-update'})
+has_state_update = any(
+    h.get('command') == 'coworker state-update'
+    for g in stop_hooks if isinstance(g, dict)
+    for h in (g.get('hooks') or [])
+)
+if not has_state_update:
+    stop_hooks.append({'matcher': '', 'hooks': [{'type': 'command', 'command': 'coworker state-update'}]})
     cfg['hooks']['Stop'] = stop_hooks
     settings.parent.mkdir(parents=True, exist_ok=True)
     settings.write_text(json.dumps(cfg, indent=2))

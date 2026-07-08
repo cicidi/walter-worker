@@ -80,16 +80,28 @@ def sync(config: CoworkerConfig, project_dir: Path | None = None) -> list[str]:
             mcp_servers[server.name] = entry
         existing["mcpServers"] = mcp_servers
 
-    # apply state-update hook (runs coworker state-update on Stop)
+    # apply state-update hook (runs coworker state-update on Stop).
+    # Each entry must be {"matcher": str, "hooks": [{"type","command"}, ...]}.
     existing.setdefault("hooks", {})
     stop_hooks = existing["hooks"].get("Stop", [])
-    state_update_hook = {
-        "type": "command",
-        "command": "coworker state-update"
-    }
-    if not any(h.get("command") == "coworker state-update" for h in stop_hooks):
-        stop_hooks.append(state_update_hook)
-        existing["hooks"]["Stop"] = stop_hooks
+
+    def _is_state_update(h):
+        return isinstance(h, dict) and h.get("command") == "coworker state-update"
+
+    # Drop legacy malformed entries (command at group level) and detect any
+    # correctly-nested state-update hook so we don't duplicate it.
+    stop_hooks = [g for g in stop_hooks if not (_is_state_update(g) and "hooks" not in g)]
+    has_state_update = any(
+        _is_state_update(h)
+        for g in stop_hooks if isinstance(g, dict)
+        for h in (g.get("hooks") or [])
+    )
+    if not has_state_update:
+        stop_hooks.append({
+            "matcher": "",
+            "hooks": [{"type": "command", "command": "coworker state-update"}],
+        })
+    existing["hooks"]["Stop"] = stop_hooks
 
     with open(settings_path, "w") as f:
         json.dump(existing, f, indent=2)
