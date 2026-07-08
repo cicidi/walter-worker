@@ -77,6 +77,7 @@ print(generate_global_claude_md())
 
 if [[ -f "$GLOBAL_CLAUDE_MD" ]]; then
   ok "Global CLAUDE.md already exists at $GLOBAL_CLAUDE_MD"
+  log "Run 'coworker upgrade' to merge template updates into your existing CLAUDE.md."
 else
   log "Creating global CLAUDE.md at $GLOBAL_CLAUDE_MD..."
   mkdir -p "$(dirname "$GLOBAL_CLAUDE_MD")"

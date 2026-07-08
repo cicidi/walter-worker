@@ -26,6 +26,8 @@ from .templates.project_claude_md import generate_project_claude_md
 from .templates.local_claude_md import generate_local_claude_md
 from .templates.project_claude_md import PROJECT_CLAUDE_MD_SENTINEL
 from . import backup
+from .semantic_merge import classify_sections, apply_merge, verify_protected
+from .templates.global_claude_md import generate_global_claude_md
 
 console = Console()
 
@@ -390,6 +392,66 @@ def status():
     )
 
     console.print(table)
+
+
+@main.command()
+@click.option("--dry-run", is_flag=True, help="Print the merge plan without writing")
+@click.option("--yes", "-y", "auto_confirm", is_flag=True, help="Skip confirmation prompts")
+def upgrade(dry_run, auto_confirm):
+    """Merge template updates into ~/.claude/CLAUDE.md."""
+    global_md = Path.home() / ".claude" / "CLAUDE.md"
+    if not global_md.exists():
+        console.print("[yellow]No global CLAUDE.md found — run install.sh first.[/yellow]")
+        return
+
+    current = global_md.read_text(encoding="utf-8")
+    future = generate_global_claude_md()
+
+    cls = classify_sections(current, future)
+    table = Table(title="Merge Plan")
+    table.add_column("Section", style="cyan")
+    table.add_column("Action")
+    table.add_column("Detail")
+    for c in cls:
+        detail = ""
+        if c.category == "OVERWRITE":
+            detail = "content differs"
+        elif c.category == "MERGE_ADD":
+            detail = "new section"
+        elif c.category == "OUTDATED":
+            detail = "report-only (not auto-deleted)"
+        table.add_row(c.heading, c.category, detail)
+    console.print(table)
+
+    if dry_run:
+        console.print("[dim](--dry-run — no changes written)[/dim]")
+        return
+
+    if not auto_confirm and not sys.stdout.isatty():
+        console.print("[red]stdout is not a TTY; pass --yes to auto-accept the merge plan.[/red]")
+        return
+
+    applied = sum(1 for c in cls if c.category in ("OVERWRITE", "MERGE_ADD"))
+    if applied == 0:
+        console.print("[green]Already up to date.[/green]")
+        return
+
+    if not auto_confirm:
+        if not click.confirm("Apply this merge plan?", default=True):
+            return
+
+    backup.snapshot([global_md], "upgrade")
+    merged = apply_merge(cls, current, future)
+
+    violations = verify_protected(current, merged)
+    if violations:
+        console.print("[red]PROTECTED block violation — rolling back.[/red]")
+        for v in violations:
+            console.print(f"  [red]•[/red] {v}")
+        sys.exit(1)
+
+    global_md.write_text(merged, encoding="utf-8")
+    console.print("[green]CLAUDE.md upgraded.[/green]")
 
 
 @main.group()
