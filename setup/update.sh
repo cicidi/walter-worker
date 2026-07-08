@@ -78,7 +78,7 @@ fi
 # =============================================================================
 log "Re-running install to sync skills..."
 
-CONFIG="$HOME/.config/ai-coworker/config.yaml"
+CONFIG="$HOME/.coworker/coworker.yaml"
 if [[ -f "$CONFIG" ]]; then
   SAVED_MODE=$(grep "install_mode:" "$CONFIG" 2>/dev/null | awk '{print $2}' || echo "global")
   bash "$SCRIPT_DIR/install.sh" "--$SAVED_MODE"

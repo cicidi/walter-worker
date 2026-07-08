@@ -140,7 +140,7 @@ def _scan_project() -> dict:
             pyproject = (cwd / "pyproject.toml").read_text()
             if "fastapi" in pyproject.lower(): info["framework"].append("FastAPI")
             if "django" in pyproject.lower(): info["framework"].append("Django")
-            if "flask" in pyproject.lower() and "flask" != pyproject.lower()[:100]: info["framework"].append("Flask")
+            if "flask" in pyproject.lower(): info["framework"].append("Flask")
             if "click" in pyproject.lower(): info["framework"].append("Click")
         except Exception:
             pass
@@ -272,11 +272,14 @@ def init(is_global, is_project):
             if not gitignore_path.exists():
                 gitignore_path.write_text("\n".join(entries) + "\n")
             else:
-                existing = gitignore_path.read_text()
-                with open(gitignore_path, "a") as f:
-                    for entry in entries:
-                        if entry not in existing:
-                            f.write(f"{entry}\n")
+                existing = gitignore_path.read_text().rstrip("\n")
+                existing_lines = set(existing.splitlines())
+                new_entries = [e for e in entries if e not in existing_lines]
+                if new_entries:
+                    with open(gitignore_path, "a") as f:
+                        if existing:
+                            f.write("\n")
+                        f.write("\n".join(new_entries) + "\n")
             console.print("[dim]Added CLAUDE.local.md, docs/state/ to .gitignore[/dim]")
 
         console.print("\n[bold green]Setup complete![/bold green] Run [cyan]coworker sync[/cyan] to apply.")
@@ -413,7 +416,7 @@ def skill_list():
 
 @skill.command("new")
 @click.argument("name")
-@click.option("--global", "is_global", is_flag=True, default=True)
+@click.option("--global/--project", "is_global", default=True, help="Target global (default) or project skill dir")
 def skill_new(name, is_global):
     """Scaffold a new skill."""
     if is_global:
@@ -600,6 +603,17 @@ def initiative():
 def initiative_start(name, description, proj_dir, role, branches):
     """Quick-start: create, add project, and activate in one step."""
     pd = Path(proj_dir) if proj_dir else Path.cwd()
+
+    def _project_name(pp: Path) -> str:
+        """Resolve a directory to a catalog project name, falling back to basename."""
+        try:
+            for entry in load_project_catalog().entries:
+                if entry.local_path == str(pp.resolve()):
+                    return entry.name
+        except Exception:
+            pass
+        return pp.name
+
     mgr = InitiativeManager(project_dir=pd)
 
     try:
@@ -610,13 +624,15 @@ def initiative_start(name, description, proj_dir, role, branches):
         console.print(f"[red]{e}[/red]")
         return
 
-    if proj_dir:
-        config = load_initiative(name)
-        if config and not any(p.name == proj_dir for p in config.projects):
+    # Always add the current (or -p specified) project
+    config = load_initiative(name)
+    if config:
+        proj_name = _project_name(pd)
+        if not any(p.name == proj_name for p in config.projects):
             branch_list = [b.strip() for b in branches.split(",") if b.strip()]
             config.projects.append(
                 InitiativeProjectRef(
-                    name=proj_dir,
+                    name=proj_name,
                     role=role,
                     branches=branch_list,
                 )
@@ -696,7 +712,7 @@ def initiative_edit(name, proj_dir, description, add_proj, add_link_spec, add_de
         )
 
     if add_decision_spec:
-        parts = add_decision_spec.split("|")
+        parts = add_decision_spec.split("|", 1)
         config.decisions.append(
             Decision(
                 date=parts[0] if len(parts) > 0 else "",

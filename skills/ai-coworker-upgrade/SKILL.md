@@ -407,7 +407,7 @@ Re-run install.sh to deploy analytics hooks, MCP config, and project configs.
 Step 1 — Detect install mode:
 
 ```bash
-CONFIG="$HOME/.config/ai-coworker/config.yaml"
+CONFIG="$HOME/.coworker/coworker.yaml"
 if [[ -f "$CONFIG" ]]; then
   MODE=$(grep "install_mode:" "$CONFIG" 2>/dev/null | awk '{print $2}' || echo "global")
 else
@@ -463,7 +463,7 @@ ls ~/.claude/commands/ 2>/dev/null | wc -l
 
 echo ""
 echo "=== Active initiative ==="
-cat ~/.config/ai-coworker/initiatives/.active 2>/dev/null || echo "(none)"
+cat ~/.coworker/initiatives/.active 2>/dev/null || echo "(none)"
 
 echo ""
 echo "=== Analytics hooks ==="

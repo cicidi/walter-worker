@@ -67,8 +67,10 @@ Read the opencode database and identify sessions to process.
 ```python
 import sqlite3, json, time
 
-DB_PATH = "/home/cicidi/.local/share/opencode/opencode.db"
-VAULT_PATH = "/home/cicidi/obsidian/coworker-brain"
+DB_PATH = os.environ.get("COWORKER_ANALYTICS_DB",
+                         os.path.expanduser("~/.coworker/analytics/analytics.db"))
+VAULT_PATH = os.environ.get("COWORKER_VAULT_PATH",
+                            os.path.expanduser("~/obsidian/coworker-brain"))
 MEMORY_DIR = f"{VAULT_PATH}/session-memory"
 
 db = sqlite3.connect(DB_PATH)
