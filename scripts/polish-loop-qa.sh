@@ -27,9 +27,10 @@ BASE="fix/fix-plan-round1"
 echo "[qa] diff stat vs $BASE:"
 git diff --stat "$BASE...HEAD" || true
 
-# 2a) no PROTECTED block edits
-if git diff "$BASE...HEAD" -- '*.md' | grep -E '^[+-].*PROTECTED:' ; then
-  echo "[qa] FAIL: diff touches a PROTECTED block" >&2
+# 2a) no PROTECTED block MODIFICATIONS (only flag removals of marker lines;
+#     new files legitimately add PROTECTED blocks, which show as '+' additions)
+if git diff "$BASE...HEAD" -- '*.md' | grep -E '^-.*PROTECTED:' ; then
+  echo "[qa] FAIL: diff removes/modifies a PROTECTED block marker" >&2
   exit 2
 fi
 
