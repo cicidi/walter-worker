@@ -30,7 +30,7 @@ while (( cycle < MAX_CYCLES )); do
   # One manager cycle. cd so opencode runs in repo context.
   cd "$REPO" || { echo "[driver] cd failed" | tee -a "$LOG"; break; }
   set +e
-  opencode run --dir "$REPO" -m "$MANAGER_MODEL" "$(cat "$RUNNER")" >> "$LOG" 2>&1
+  timeout "${POLISH_CYCLE_TIMEOUT:-1500}" opencode run --dir "$REPO" -m "$MANAGER_MODEL" "$(cat "$RUNNER")" >> "$LOG" 2>&1
   rc=$?
   set -e
   end=$(date +%s); elapsed=$((end - start))
