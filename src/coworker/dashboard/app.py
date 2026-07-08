@@ -1,9 +1,14 @@
+import json
+import logging
+from importlib.resources import files as resource_files
+
 from fastapi import FastAPI, WebSocket
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
-import json
-import os
+
 from . import queries
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Coworker Analytics Dashboard")
 
@@ -57,9 +62,9 @@ async def websocket_endpoint(websocket: WebSocket):
             overview = queries.query_overview()
             await websocket.send_text(json.dumps(overview, default=str))
     except Exception:
-        pass
+        logger.exception("WebSocket error")
 
 
-static_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "static")
-if os.path.exists(static_path):
-    app.mount("/", StaticFiles(directory=static_path, html=True), name="static")
+static_dir = resource_files("coworker.dashboard") / "static"
+if static_dir.is_dir():
+    app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")

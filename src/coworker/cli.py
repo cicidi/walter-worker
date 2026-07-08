@@ -292,45 +292,44 @@ def init(is_global, is_project):
 def state_update(task, summary):
     """Update the task state file (called on Stop or manually for milestones).
 
-    When no task name is given, a timestamp is used to ensure uniqueness.
-    Use a descriptive task name for manual milestone saves:
-      coworker state-update fix-state-paths -s "moved state files to docs/state/"
+    When no task name is given, writes one state file per DAY.
+    Exits silently unless the cwd (or an ancestor) contains .coworker/ or
+    CLAUDE.local.md — prevents littering non-coworker repos.
     """
     cwd = Path.cwd()
 
-    # Auto-generate timestamp task name when none provided
-    if not task:
-        from datetime import datetime
-        task = datetime.now().strftime("%Y-%m-%d-%H%M")
-
-    # Find state file path from CLAUDE.local.md
-    local_md = cwd / "CLAUDE.local.md"
-    state_path = cwd / "docs" / "state" / f"state-{task}.md"
-    if local_md.exists():
-        import re
-        content = local_md.read_text()
-        match = re.search(r"State file:\s*`([^`]+)`", content)
-        if match:
-            state_path = cwd / match.group(1).replace("{taskname}", task)
-
-    state_path.parent.mkdir(parents=True, exist_ok=True)
+    # Opt-in gate: only run inside a coworker-managed project
+    opt_in = False
+    for p in [cwd, *cwd.parents]:
+        if (p / ".coworker").is_dir() or (p / "CLAUDE.local.md").exists():
+            opt_in = True
+            break
+    if not opt_in:
+        return
 
     from datetime import datetime
+    if not task:
+        task = datetime.now().strftime("%Y-%m-%d")
+
+    state_path = cwd / "docs" / "state" / f"state-{task}.md"
+    state_path.parent.mkdir(parents=True, exist_ok=True)
+
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
 
     if state_path.exists():
-        existing = state_path.read_text()
+        existing = state_path.read_text(encoding="utf-8")
         entry = f"\n\n## Update — {now}\n\n"
         if summary:
             entry += f"{summary}\n"
         else:
             entry += "_Progress checkpoint._\n"
-        state_path.write_text(existing.rstrip() + entry)
+        state_path.write_text(existing.rstrip() + entry, encoding="utf-8")
     else:
         state_path.write_text(f"# Task State: {task}\n\n"
                               f"**Started:** {now}\n"
                               f"**Status:** in progress\n\n"
-                              f"## Progress\n\n")
+                              f"## Progress\n\n",
+                              encoding="utf-8")
 
     console.print(f"[green]State updated: {state_path}[/green]")
 
