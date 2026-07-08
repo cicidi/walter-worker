@@ -18,6 +18,13 @@ SKILL_FACTORY_URL="https://github.com/cicidi/skill-factory"
 SKILL_FACTORY_DIR="$HOME/.config/opencode/skills/skill-factory"
 GLOBAL_CLAUDE_MD="$HOME/.claude/CLAUDE.md"
 
+default_branch() {
+    local ref
+    ref=$(git ls-remote --symref origin HEAD 2>/dev/null | \
+          awk '/^ref:/ {sub("refs/heads/","",$2); print $2}')
+    echo "${ref:-main}"
+}
+
 INSTALL_MODE=""
 PROJECT_PATH=""
 
@@ -84,7 +91,7 @@ log "Setting up skill-factory..."
 
 if [[ -d "$SKILL_FACTORY_DIR" ]]; then
   log "Updating skill-factory from GitHub..."
-  git -C "$SKILL_FACTORY_DIR" pull --ff-only origin main 2>/dev/null || \
+  git -C "$SKILL_FACTORY_DIR" pull --ff-only origin "$(default_branch)" 2>/dev/null || \
     warn "Could not update skill-factory (dirty or offline). Continuing with current version."
 else
   log "Cloning skill-factory from $SKILL_FACTORY_URL..."
@@ -145,14 +152,15 @@ else
   mkdir -p "$OPENCODE_SKILLS_DIR"
 
   # Save old skill content hashes before sync
-  declare -A OLD_HASHES
+  declare -a OLD_DIRS=()
+  declare -a OLD_DIR_HASHES=()
   if [[ -d "$OPENCODE_SKILLS_DIR" ]]; then
     for skill_dir in "$OPENCODE_SKILLS_DIR"/*/; do
       [[ -d "$skill_dir" ]] || continue
       skill_file="${skill_dir}SKILL.md"
       [[ -f "$skill_file" ]] || continue
-      dir_name=$(basename "$skill_dir")
-      OLD_HASHES["$dir_name"]=$(md5sum "$skill_file" | cut -d' ' -f1)
+      OLD_DIRS+=("$(basename "$skill_dir")")
+      OLD_DIR_HASHES+=("$(md5sum "$skill_file" | cut -d' ' -f1)")
     done
   fi
 
@@ -160,27 +168,32 @@ else
   rsync -a "$REPO_ROOT/skills/" "$OPENCODE_SKILLS_DIR/"
 
   # Build source skill hash map for rename detection
-  declare -A SRC_HASHES
+  declare -a SRC_DIRS=()
+  declare -a SRC_DIR_HASHES=()
   for skill_dir in "$REPO_ROOT/skills"/*/; do
     [[ -d "$skill_dir" ]] || continue
     skill_file="${skill_dir}SKILL.md"
     [[ -f "$skill_file" ]] || continue
-    dir_name=$(basename "$skill_dir")
-    SRC_HASHES["$dir_name"]=$(md5sum "$skill_file" | cut -d' ' -f1)
+    SRC_DIRS+=("$(basename "$skill_dir")")
+    SRC_DIR_HASHES+=("$(md5sum "$skill_file" | cut -d' ' -f1)")
   done
 
-  # Detect renames: old dir gone from source, content moved to new dir
-  for old_dir in "${!OLD_HASHES[@]}"; do
-    old_hash="${OLD_HASHES[$old_dir]}"
-    [[ -d "$REPO_ROOT/skills/$old_dir" ]] && continue
-    for src_dir in "${!SRC_HASHES[@]}"; do
-      if [[ "${SRC_HASHES[$src_dir]}" == "$old_hash" ]]; then
-        log "Renamed skill: $old_dir → $src_dir (cleaning up old)"
-        rm -rf "$OPENCODE_SKILLS_DIR/$old_dir"
-        break
-      fi
+  # Detect renames: old dir gone from source, content moved to new dir.
+  # Indexed parallel arrays (bash-3.2 compatible; declare -A breaks on macOS).
+  if [[ ${#OLD_DIRS[@]} -gt 0 && ${#SRC_DIRS[@]} -gt 0 ]]; then
+    for old_i in "${!OLD_DIRS[@]}"; do
+      old_dir="${OLD_DIRS[$old_i]}"
+      old_hash="${OLD_DIR_HASHES[$old_i]}"
+      [[ -d "$REPO_ROOT/skills/$old_dir" ]] && continue
+      for src_i in "${!SRC_DIRS[@]}"; do
+        if [[ "${SRC_DIR_HASHES[$src_i]}" == "$old_hash" ]]; then
+          log "Renamed skill: $old_dir → ${SRC_DIRS[$src_i]} (cleaning up old)"
+          rm -rf "$OPENCODE_SKILLS_DIR/$old_dir"
+          break
+        fi
+      done
     done
-  done
+  fi
 
   ok "Deployed skills to $OPENCODE_SKILLS_DIR"
 fi
