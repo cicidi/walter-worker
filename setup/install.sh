@@ -364,7 +364,7 @@ fi
 # Step 12 — Symlink CLAUDE.md for OpenCode
 # =============================================================================
 if [[ "$INSTALL_MODE" == "project" ]]; then
-  CLAUDE_MD="$REPO_ROOT/CLAUDE.md"
+  CLAUDE_MD="$PROJECT_PATH/CLAUDE.md"
   OPENCODE_AGENTS="$PROJECT_PATH/AGENTS.md"
   if [[ -f "$CLAUDE_MD" ]]; then
     ln -sf "$CLAUDE_MD" "$OPENCODE_AGENTS" 2>/dev/null || true
@@ -377,7 +377,7 @@ fi
 if [[ "$INSTALL_MODE" == "project" ]]; then
   GITIGNORE="$PROJECT_PATH/.gitignore"
   [[ -f "$GITIGNORE" ]] || touch "$GITIGNORE"
-  for entry in "personal/" ".local_config.yaml" ".env" ".cursorrules" "AGENTS.md" "GEMINI.md"; do
+  for entry in "personal/" ".local_config.yaml" ".env" ".cursorrules" "AGENTS.md" "GEMINI.md" "CLAUDE.local.md" "docs/state/"; do
     grep -qxF "$entry" "$GITIGNORE" 2>/dev/null || echo "$entry" >> "$GITIGNORE"
   done
 fi
@@ -410,10 +410,22 @@ python3 -c "
 import json
 with open('$CLAUDE_SETTINGS') as f: cfg = json.load(f)
 cfg.setdefault('hooks', {})
-cfg['hooks']['UserPromptSubmit'] = [{'matcher': '', 'hooks': [{'type': 'command', 'command': '$HOME/.coworker/analytics/hooks/on-user-prompt.sh'}]}]
-cfg['hooks']['PreToolUse'] = [{'matcher': '', 'hooks': [{'type': 'command', 'command': '$HOME/.coworker/analytics/hooks/on-pre-tool.sh'}]}]
-cfg['hooks']['PostToolUse'] = [{'matcher': '', 'hooks': [{'type': 'command', 'command': '$HOME/.coworker/analytics/hooks/on-post-tool.sh'}]}]
-cfg['hooks']['Stop'] = [{'matcher': '', 'hooks': [{'type': 'command', 'command': '$HOME/.coworker/analytics/hooks/on-stop.sh'}]}]
+
+def _merge_hook(event, cmd):
+    entries = cfg['hooks'].setdefault(event, [])
+    has_it = any(
+        h.get('command') == cmd
+        for g in entries if isinstance(g, dict)
+        for h in (g.get('hooks') or [])
+    )
+    if not has_it:
+        entries.append({'matcher': '', 'hooks': [{'type': 'command', 'command': cmd}]})
+
+_merge_hook('UserPromptSubmit', '$HOME/.coworker/analytics/hooks/on-user-prompt.sh')
+_merge_hook('PreToolUse',        '$HOME/.coworker/analytics/hooks/on-pre-tool.sh')
+_merge_hook('PostToolUse',       '$HOME/.coworker/analytics/hooks/on-post-tool.sh')
+_merge_hook('Stop',              '$HOME/.coworker/analytics/hooks/on-stop.sh')
+
 with open('$CLAUDE_SETTINGS', 'w') as f: json.dump(cfg, f, indent=2)
 " 2>/dev/null && ok "Claude Code hooks configured" || warn "Failed to configure Claude Code hooks"
 
@@ -491,6 +503,50 @@ if [[ -f "$TMUX_CONF" ]]; then
 else
   warn "$TMUX_CONF not found — skipping tmux config update"
 fi
+
+# =============================================================================
+# Step 16 — Write install manifest
+# =============================================================================
+MANIFEST="$HOME/.coworker/install-manifest.json"
+python3 -c "
+import json, os, glob
+home = os.environ['HOME']
+manifest = {
+    'install_mode': '${INSTALL_MODE}',
+    'repo_root': '${REPO_ROOT}',
+    'hook_commands': [],
+    'files': [],
+    'owned_dirs': [],
+    'project_path': '${PROJECT_PATH}',
+}
+# Files we know were written (conditional on what actually exists)
+for d in [f'{home}/.coworker/analytics', f'{home}/.coworker/skills',
+          f'{home}/.claude', f'{home}/.opencode',
+          f'{home}/.config/opencode/skills/ai-coworker']:
+    if os.path.isdir(d):
+        for root, dirs, files in os.walk(d):
+            for fn in files:
+                manifest['files'].append(os.path.join(root, fn))
+# Global CLAUDE.md
+md = f'{home}/.claude/CLAUDE.md'
+if os.path.isfile(md): manifest['files'].append(md)
+# Hook commands from settings.json
+sf = f'{home}/.claude/settings.json'
+if os.path.isfile(sf):
+    cfg = json.load(open(sf))
+    for entries in cfg.get('hooks', {}).values():
+        if isinstance(entries, list):
+            for g in entries:
+                if isinstance(g, dict):
+                    for h in g.get('hooks', []):
+                        manifest['hook_commands'].append(h.get('command', ''))
+# Owned dirs
+for d in [f'{home}/.coworker', f'{home}/.config/opencode/skills/ai-coworker']:
+    if os.path.isdir(d):
+        manifest['owned_dirs'].append(d)
+os.makedirs(f'{home}/.coworker', exist_ok=True)
+json.dump(manifest, open('$MANIFEST', 'w'), indent=2)
+" 2>/dev/null && ok "Install manifest written to $MANIFEST" || warn "Manifest write skipped"
 
 # =============================================================================
 # Done

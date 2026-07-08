@@ -35,11 +35,25 @@ def _resolve_local_md(project_dir: Path | None) -> Path:
 def _replace_or_append_block(
     content: str, start: str, end: str, new_block: str
 ) -> str:
+    """Replace content between start..end markers with new_block.
+    Handles truncated blocks (START present, END missing) by appending.
+    Uses a single regex for the full range."""
+    escaped_start = re.escape(start)
+    escaped_end = re.escape(end)
+    pattern = re.compile(
+        escaped_start + r".*?" + escaped_end, re.DOTALL
+    )
+    if pattern.search(content):
+        return pattern.sub(new_block, content)
+    # No full match — could be truncated (START without END)
     if start in content:
-        before = content[: content.index(start)]
-        after = content[content.index(end) + len(end):]
-        return before + new_block + after
+        idx = content.index(start)
+        return content[:idx] + new_block + "\n"
     return content.rstrip() + "\n\n" + new_block + "\n"
+
+
+def _had_block(content: str, start: str) -> bool:
+    return start in content
 
 
 def _write_json_atomic(path: Path, data: object) -> None:
@@ -186,12 +200,13 @@ def inject_static_context(
     target = _resolve_claude_md(project_dir)
 
     content = target.read_text() if target.exists() else ""
+    had_block = _had_block(content, STATIC_START)
     content = _replace_or_append_block(content, STATIC_START, STATIC_END, block)
 
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(content)
+    target.write_text(content, encoding="utf-8")
 
-    verb = "updated" if STATIC_START in content else "injected"
+    verb = "updated" if had_block else "injected"
     actions.append(f"{verb} static context in {target.name}")
     return actions
 
