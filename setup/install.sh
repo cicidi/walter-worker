@@ -450,6 +450,8 @@ if command -v coworker &>/dev/null; then
 
   MCP_JSON="$REPO_ROOT/.mcp.json"
   if [[ -f "$MCP_JSON" ]]; then
+    :  # (coworker import-mcp was here — removed; MCP handled via sync)
+  fi
     coworker sync && ok "Config synced to all tools"
 else
   warn "coworker CLI not found. Run: pipx install $REPO_ROOT"
