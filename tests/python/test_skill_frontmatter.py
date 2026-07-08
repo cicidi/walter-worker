@@ -41,19 +41,16 @@ def test_frontmatter_has_required_fields(skill_file):
     assert isinstance(when, str) and when.strip(), f"{skill_file}: when-to-use required and non-empty"
 
 
-def test_scaffold_conforms():
+def test_scaffold_conforms(monkeypatch):
     """Running 'coworker skill new test-skill' produces schema-compliant output."""
     from click.testing import CliRunner
     from coworker.cli import main
     import tempfile, os
 
     with tempfile.TemporaryDirectory() as tmp:
-        # skill new --global writes to GLOBAL_DIR/skills/name
-        monkey = pytest.MonkeyPatch()
-        monkey.setenv("COWORKER_HOME", tmp)  # if supported
-        # Use --project to write to local dir
+        monkeypatch.setenv("COWORKER_HOME", tmp)
         runner = CliRunner()
-        os.chdir(tmp)
+        monkeypatch.chdir(tmp)
         result = runner.invoke(main, ["skill", "new", "--project", "test-skill"])
         assert result.exit_code == 0
 
