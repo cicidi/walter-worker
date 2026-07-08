@@ -1,13 +1,17 @@
 from __future__ import annotations
 import json
+import os
 import shutil
 import re
+import tempfile
 from pathlib import Path
 from ..models import CoworkerConfig, ProjectCatalog, InitiativeConfig
+from .. import backup
 
 CLAUDE_GLOBAL_DIR = Path.home() / ".claude"
 CLAUDE_GLOBAL_SETTINGS = CLAUDE_GLOBAL_DIR / "settings.json"
 CLAUDE_GLOBAL_SKILLS = CLAUDE_GLOBAL_DIR / "skills"
+CLAUDE_GLOBAL_MCP = Path.home() / ".claude.json"
 
 STATIC_START = "<!-- COWORKER:STATIC START -->"
 STATIC_END = "<!-- COWORKER:STATIC END -->"
@@ -38,6 +42,52 @@ def _replace_or_append_block(
     return content.rstrip() + "\n\n" + new_block + "\n"
 
 
+def _write_json_atomic(path: Path, data: object) -> None:
+    """Write JSON to path atomically (tmp + rename) and keep a .bak."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if path.exists():
+        backup.snapshot([path], "json-sync")
+    fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=path.name + ".", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        os.replace(tmp, path)
+    except BaseException:
+        os.unlink(tmp)
+        raise
+
+
+def _sync_mcp(config: CoworkerConfig, mcp_path: Path) -> list[str]:
+    """Write MCP servers to mcp_path (union by server name)."""
+    existing_mcp = {}
+    if mcp_path.exists():
+        try:
+            existing_mcp = json.loads(mcp_path.read_text(encoding="utf-8")).get("mcpServers", {})
+        except (json.JSONDecodeError, KeyError):
+            pass
+
+    ours = {}
+    for server in config.mcp:
+        if not server.enabled:
+            continue
+        entry: dict = {"command": server.command, "args": server.args}
+        if server.env:
+            entry["env"] = server.env
+        ours[server.name] = entry
+
+    merged = {**existing_mcp, **ours}  # our entries win on name collision
+    mcp_doc = {"mcpServers": merged}
+    _write_json_atomic(mcp_path, mcp_doc)
+    added = [k for k in ours if k not in existing_mcp]
+    updated = [k for k in ours if k in existing_mcp]
+    actions = []
+    if added:
+        actions.append(f"MCP servers added: {', '.join(added)}")
+    if updated:
+        actions.append(f"MCP servers kept: {', '.join(updated)}")
+    return actions
+
+
 def sync(config: CoworkerConfig, project_dir: Path | None = None) -> list[str]:
     """Sync coworker config to Claude Code. Returns list of actions taken."""
     actions = []
@@ -45,51 +95,46 @@ def sync(config: CoworkerConfig, project_dir: Path | None = None) -> list[str]:
     if project_dir:
         settings_path = project_dir / ".claude" / "settings.json"
         skills_dir = project_dir / ".claude" / "skills"
+        mcp_path = project_dir / ".mcp.json"
     else:
         settings_path = CLAUDE_GLOBAL_SETTINGS
         skills_dir = CLAUDE_GLOBAL_SKILLS
+        mcp_path = CLAUDE_GLOBAL_MCP
 
     # --- settings.json ---
     settings_path.parent.mkdir(parents=True, exist_ok=True)
     existing = {}
     if settings_path.exists():
-        with open(settings_path) as f:
+        with open(settings_path, encoding="utf-8") as f:
             existing = json.load(f)
 
-    # apply claude overrides
-    overrides = config.claude.model_dump(exclude={"extra"})
-    overrides.update(config.claude.extra)
-    existing.update(overrides)
-
-    # apply permissions
+    # Permissions: union-merge — never remove user's entries
     if config.permissions.allow:
-        existing["permissions"] = existing.get("permissions", {})
-        existing["permissions"]["allow"] = config.permissions.allow
+        existing.setdefault("permissions", {})
+        user_allow = set(existing["permissions"].get("allow", []))
+        existing["permissions"]["allow"] = sorted(user_allow | set(config.permissions.allow))
     if config.permissions.deny:
-        existing.setdefault("permissions", {})["deny"] = config.permissions.deny
+        existing.setdefault("permissions", {})
+        user_deny = set(existing["permissions"].get("deny", []))
+        existing["permissions"]["deny"] = sorted(user_deny | set(config.permissions.deny))
 
-    # apply MCP servers
+    # MCP servers → ~/.claude.json or .mcp.json (Claude Code reads MCP from
+    # these files, NOT from settings.json).  Remove stale mcpServers from
+    # settings.json if present.
     if config.mcp:
-        mcp_servers = {}
-        for server in config.mcp:
-            if not server.enabled:
-                continue
-            entry: dict = {"command": server.command, "args": server.args}
-            if server.env:
-                entry["env"] = server.env
-            mcp_servers[server.name] = entry
-        existing["mcpServers"] = mcp_servers
+        mcp_actions = _sync_mcp(config, mcp_path)
+        actions.extend(mcp_actions)
+    existing.pop("mcpServers", None)
+    existing.pop("effortLevel", None)
+    existing.pop("skipDangerousModePermissionPrompt", None)
 
-    # apply state-update hook (runs coworker state-update on Stop).
-    # Each entry must be {"matcher": str, "hooks": [{"type","command"}, ...]}.
+    # State-update hook (correctly-shaped — already fixed in prior WIP)
     existing.setdefault("hooks", {})
     stop_hooks = existing["hooks"].get("Stop", [])
 
     def _is_state_update(h):
         return isinstance(h, dict) and h.get("command") == "coworker state-update"
 
-    # Drop legacy malformed entries (command at group level) and detect any
-    # correctly-nested state-update hook so we don't duplicate it.
     stop_hooks = [g for g in stop_hooks if not (_is_state_update(g) and "hooks" not in g)]
     has_state_update = any(
         _is_state_update(h)
@@ -103,8 +148,7 @@ def sync(config: CoworkerConfig, project_dir: Path | None = None) -> list[str]:
         })
     existing["hooks"]["Stop"] = stop_hooks
 
-    with open(settings_path, "w") as f:
-        json.dump(existing, f, indent=2)
+    _write_json_atomic(settings_path, existing)
     actions.append(f"updated {settings_path}")
 
     # --- skills ---
@@ -114,7 +158,6 @@ def sync(config: CoworkerConfig, project_dir: Path | None = None) -> list[str]:
             continue
         skill_path = Path(skill.path)
         if not skill_path.is_absolute():
-            # resolve relative to coworker global dir or project dir
             base = project_dir or (Path.home() / ".coworker")
             skill_path = base / skill.path
         if not skill_path.exists():

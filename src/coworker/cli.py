@@ -52,8 +52,6 @@ skills: []
 permissions:
   allow:
     - Bash(git *)
-    - Read(*)
-    - Write(*)
   deny: []
 
 # Claude Code specific settings
