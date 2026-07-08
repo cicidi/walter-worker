@@ -6,11 +6,20 @@ generate_session_id() {
   echo "$(date +%Y-%m-%d-T%H%M%S)-$(openssl rand -hex 3)"
 }
 
+# Parse session_id from stdin JSON (is piped in via ensure_session's caller).
+# Claude Code never sets $SESSION_ID env var; the real id is in the hook JSON.
+_parse_session_id() {
+  echo "$1" | python3 -c "import sys,json; print(json.load(sys.stdin).get('session_id',''))" 2>/dev/null || true
+}
+
 ensure_session() {
-  if [ -z "$SESSION_ID" ] || [ ! -d "$SESSIONS/$SESSION_ID" ]; then
-    SESSION_ID=$(ls -t "$SESSIONS" 2>/dev/null | head -1)
-    if [ -z "$SESSION_ID" ]; then
-      SESSION_ID=$(generate_session_id)
+  local input="$1"
+  local sid
+  sid=$(_parse_session_id "$input")
+
+  if [[ -n "$sid" ]]; then
+    SESSION_ID="$sid"
+    if [[ ! -d "$SESSIONS/$SESSION_ID" ]]; then
       mkdir -p "$SESSIONS/$SESSION_ID"
       cat > "$SESSIONS/$SESSION_ID/session.yaml" <<YAML
 session_id: "$SESSION_ID"
@@ -19,20 +28,27 @@ ide: "claude-code"
 cwd: "$(pwd)"
 YAML
     fi
+  else
+    # Quarantine — no session_id in the JSON payload
+    mkdir -p "$SESSIONS/_unattributed"
+    SESSION_ID="_unattributed"
   fi
   SEQ_FILE="$SESSIONS/$SESSION_ID/.seq"
 }
 
 next_seq() {
   local seq=0
-  [ -f "$SEQ_FILE" ] && seq=$(cat "$SEQ_FILE")
+  [[ -f "$SEQ_FILE" ]] && seq=$(cat "$SEQ_FILE")
   seq=$((seq + 1))
   echo "$seq" > "$SEQ_FILE"
   echo "$seq"
 }
 
 append_jsonl() {
-  local file="$1" json="$2"
+  local file="$1" json="${2:-}"
+  if [[ -z "$json" ]]; then
+    json=$(cat)
+  fi
   echo "$json" >> "$SESSIONS/$SESSION_ID/$file" 2>/dev/null || true
 }
 

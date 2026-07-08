@@ -227,6 +227,7 @@ index_skills() {
 index_skills "$SKILL_FACTORY_DIR/ai-coworker-skills" "[factory] "
 index_skills "$SKILL_FACTORY_DIR/personal-skills" "[personal] "
 index_skills "$SKILL_FACTORY_DIR/import-skills" "[import] "
+index_skills "$REPO_ROOT/skills" "[bundle] "
 
 if [[ ${#AVAILABLE_SKILLS[@]} -eq 0 ]]; then
   warn "No skills found in skill-factory."
