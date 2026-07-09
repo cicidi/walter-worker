@@ -13,6 +13,18 @@ CLAUDE_PROJECTS = HOME / ".claude" / "projects"
 POLL_INTERVAL = 1800
 
 
+def _parse_session_id(session_dir: Path) -> str:
+    """Read session_id from session.yaml, falling back to directory name."""
+    yaml_file = session_dir / "session.yaml"
+    if yaml_file.exists():
+        for line in yaml_file.read_text(encoding="utf-8").strip().split("\n"):
+            if line.startswith("session_id:"):
+                val = line.split(":", 1)[1].strip().strip('"')
+                if val:
+                    return val
+    return session_dir.name
+
+
 def _get_skills(jsonl_file: Path) -> set:
     """Extract unique skill names from a Claude Code JSONL session."""
     skills = set()
@@ -254,11 +266,14 @@ def run_once(verbose: bool = False) -> dict:
     # --- Claude Code hooks ---
     if SESSIONS.exists():
         for session_dir in sorted(SESSIONS.iterdir()):
-            if not session_dir.is_dir() or session_dir.name.startswith('.'):
+            if not session_dir.is_dir() or session_dir.name.startswith('.') or session_dir.name.startswith('_'):
                 continue
             if not (session_dir / "session.yaml").exists():
                 continue
-            sid = session_dir.name
+            # Use session_id from session.yaml (matches Claude Code's real session
+            # id from hook JSON), not the directory name, so multiple Stop events
+            # for the same conversation map to one DB session.
+            sid = _parse_session_id(session_dir)
             if sid in existing:
                 stats["skipped"] += 1
                 continue

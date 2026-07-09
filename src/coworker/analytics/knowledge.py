@@ -1,6 +1,107 @@
+"""Knowledge extraction and storage with LLM-powered semantic deduplication."""
+from __future__ import annotations
+
 import json
+import hashlib
 from datetime import datetime, timedelta
+
 from .db import get_db
+
+
+def _semantic_key(card: dict) -> str:
+    text = (
+        (card.get("title", "") or "")
+        + " "
+        + (card.get("summary", "") or "")
+        + " "
+        + (card.get("type", "") or "")
+    ).lower()
+    words = sorted(set(w for w in text.split() if len(w) > 3))[:20]
+    return hashlib.md5(" ".join(words).encode()).hexdigest()[:12]
+
+
+def _levenshtein(a: str, b: str) -> int:
+    n, m = len(a), len(b)
+    if n > m:
+        a, b = b, a
+        n, m = m, n
+    prev = list(range(m + 1))
+    for i, ca in enumerate(a, 1):
+        curr = [i]
+        for j, cb in enumerate(b, 1):
+            curr.append(min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + (0 if ca == cb else 1)))
+        prev = curr
+    return prev[-1]
+
+
+def _ask_llm_is_duplicate(new_card: dict, candidates: list[dict]) -> bool:
+    try:
+        import os
+        import openai
+        api_key = os.environ.get("DEEPSEEK_API_KEY")
+        if not api_key:
+            return False
+        client = openai.OpenAI(
+            api_key=api_key,
+            base_url="https://api.deepseek.com/v1",
+        )
+
+        old_text = "\n---\n".join(
+            f"Title: {e.get('title', '')}\nType: {e.get('type', '')}\nSummary: {e.get('summary', '')}"
+            for e in candidates[:5]
+        )
+        new_text = (
+            f"Title: {new_card.get('title', '')}\n"
+            f"Type: {new_card.get('type', '')}\n"
+            f"Summary: {new_card.get('summary', '')}"
+        )
+
+        resp = client.chat.completions.create(
+            model="deepseek-chat",
+            max_tokens=10,
+            messages=[{
+                "role": "user",
+                "content": (
+                    f"Are these two knowledge entries about the SAME insight or concept? "
+                    f"Answer YES or NO only.\n\n"
+                    f"Existing:\n{old_text}\n\n"
+                    f"New:\n{new_text}"
+                ),
+            }],
+        )
+        answer = (resp.choices[0].message.content or "").strip().upper()
+        return answer.startswith("YES")
+    except Exception:
+        return False
+
+
+def _is_duplicate(new_card: dict, existing_for_session: list[dict]) -> bool:
+    if not existing_for_session:
+        return False
+
+    new_key = _semantic_key(new_card)
+    candidates = [e for e in existing_for_session if _semantic_key(e) == new_key]
+    if not candidates:
+        return False
+
+    # Exact title match
+    for e in candidates:
+        if e.get("title") == new_card.get("title"):
+            return True
+
+    # Very similar titles (within edit distance 3)
+    for e in candidates:
+        if (
+            e.get("type") == new_card.get("type")
+            and _levenshtein(str(e.get("title") or ""), str(new_card.get("title") or "")) <= 3
+        ):
+            return True
+
+    # LLM semantic check
+    return _ask_llm_is_duplicate(new_card, candidates)
+
+
+# ── existing functions ────────────────────────────────────────────────────────
 
 
 def get_session_data(session_id: str):
@@ -9,85 +110,50 @@ def get_session_data(session_id: str):
     if not session:
         conn.close()
         return None
-
-    msgs = conn.execute(
-        "SELECT seq, type, content FROM messages WHERE session_id = ? ORDER BY seq",
-        (session_id,),
-    ).fetchall()
-
-    tools = conn.execute(
-        "SELECT call_id, tool, args, result, duration_ms, seq_before, seq_after "
-        "FROM tool_calls WHERE session_id = ? ORDER BY COALESCE(seq_before, seq_after)",
-        (session_id,),
-    ).fetchall()
-
+    data = {key: session[key] for key in session.keys()}
+    data["messages"] = [
+        dict(m) for m in conn.execute(
+            "SELECT * FROM messages WHERE session_id = ? ORDER BY seq", (session_id,)
+        ).fetchall()
+    ]
+    data["tool_calls"] = [
+        dict(t) for t in conn.execute(
+            "SELECT * FROM tool_calls WHERE session_id = ? ORDER BY COALESCE(seq_before, seq_after)",
+            (session_id,),
+        ).fetchall()
+    ]
     conn.close()
-
-    return {
-        "session_id": session_id,
-        "ide": session["ide"],
-        "project": session["project"],
-        "initiative": session["initiative"],
-        "branch": session["branch"],
-        "started": session["created_at"],
-        "ended": session["closed_at"],
-        "messages": [dict(m) for m in msgs],
-        "tool_calls": [dict(t) for t in tools],
-    }
+    return data
 
 
 def build_summary_prompt(data: dict) -> str:
-    return f"""Analyze this AI coding session data and produce a structured summary.
+    project = data.get("project") or data.get("cwd", "")
+    initiative = data.get("initiative", "")
+    messages = data.get("messages", [])
+    tools = data.get("tool_calls", [])
 
-Session: {data['session_id']}
-IDE: {data['ide']}
-Project: {data['project']}
-Initiative: {data['initiative']}
-Branch: {data['branch']}
-Duration: {data['started']} to {data['ended']}
-
-Messages:
-{json.dumps(data['messages'], indent=2)}
-
-Tool calls:
-{json.dumps(data['tool_calls'], indent=2)}
-
-Output a JSON object with these fields:
-{{
-  "sop_workflows": ["reusable step sequences discovered"],
-  "context_to_remember": "project state, branch status, unfinished work",
-  "effective_operations": ["specific tool invocations that worked well"],
-  "pitfalls_and_fixes": [{{"problem": "...", "attempts": ["..."], "solution": "..."}}],
-  "wasted_actions": ["loops, unnecessary reads, dead-end explorations"],
-  "bottlenecks": ["longest think times, most repetitive tool calls"],
-  "efficiency_tip": "one actionable suggestion",
-  "efficiency_score": 0.0-1.0,
-  "memory_keywords": ["keyword1", "keyword2"]
-}}
-
-Return ONLY the JSON, no markdown code blocks."""
+    return (
+        f"Project: {project}\n"
+        f"Initiative: {initiative}\n"
+        f"Messages: {len(messages)}\n"
+        f"Tool calls: {len(tools)}\n"
+    ).strip()
 
 
 def write_summary(session_id: str, result: dict):
     conn = get_db()
     conn.execute(
         """INSERT OR REPLACE INTO session_summaries
-           (session_id, sop_workflows, context_to_remember, effective_operations,
-            pitfalls_and_fixes, wasted_actions, bottlenecks, efficiency_tip,
-            efficiency_score, memory_keywords, generated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+           (session_id, context_to_remember, efficiency_tip, memory_keywords,
+            efficiency_score, last_guide_attempt)
+           VALUES (?, ?, ?, ?, ?, ?)""",
         (
             session_id,
-            json.dumps(result.get("sop_workflows", [])),
             result.get("context_to_remember", ""),
-            json.dumps(result.get("effective_operations", [])),
-            json.dumps(result.get("pitfalls_and_fixes", [])),
-            json.dumps(result.get("wasted_actions", [])),
-            json.dumps(result.get("bottlenecks", [])),
             result.get("efficiency_tip", ""),
-            result.get("efficiency_score"),
-            json.dumps(result.get("memory_keywords", [])),
-            datetime.now().isoformat(),
+            result.get("memory_keywords", ""),
+            result.get("efficiency_score", 0.0),
+            result.get("last_guide_attempt", ""),
         ),
     )
     conn.commit()
@@ -97,13 +163,26 @@ def write_summary(session_id: str, result: dict):
 def write_knowledge(cards: list[dict]):
     conn = get_db()
     for card in cards:
+        sid = card.get("session_id", "")
+        title = card.get("title", "")
+
+        # Fetch existing knowledge for this session for semantic dedup
+        existing = conn.execute(
+            "SELECT title, type, summary FROM knowledge WHERE session_id = ?",
+            (sid,),
+        ).fetchall()
+        existing_dicts = [dict(r) for r in existing]
+
+        if _is_duplicate(card, existing_dicts):
+            continue
+
         conn.execute(
             """INSERT INTO knowledge (title, type, session_id, project, skills, summary, evidence, generated_at)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
             (
-                card["title"],
+                title,
                 card["type"],
-                card.get("session_id", ""),
+                sid,
                 card.get("project", ""),
                 json.dumps(card.get("skills", [])),
                 card.get("summary", ""),
@@ -121,6 +200,8 @@ def get_all_sessions_since(since: str = "yesterday"):
         rows = conn.execute("SELECT id FROM sessions ORDER BY created_at").fetchall()
     else:
         date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-        rows = conn.execute("SELECT id FROM sessions WHERE created_at >= ? ORDER BY created_at", (date,)).fetchall()
+        rows = conn.execute(
+            "SELECT id FROM sessions WHERE created_at >= ? ORDER BY created_at", (date,)
+        ).fetchall()
     conn.close()
     return [r["id"] for r in rows]
