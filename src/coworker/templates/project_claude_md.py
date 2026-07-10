@@ -55,6 +55,11 @@ WORKFLOW_HEURISTICS = """## Workflow Selection
 AUTO_MEMORY = """## Auto Memory
 
 - Upfront rules override auto-memory; never let auto-memory write back into CLAUDE.md
+
+## Development Loop
+
+- After every code change: run lint + tests before marking task complete
+- Commit in logical chunks with conventional commit messages
 """
 
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -23,7 +24,7 @@ from .models import (
 from .adapters import ADAPTERS
 from .initiatives.manager import InitiativeManager
 from .templates.project_claude_md import generate_project_claude_md
-from .templates.local_claude_md import generate_local_claude_md, update_project_info
+from .templates.local_claude_md import generate_local_claude_md, update_project_info, inject_initiative_into_local_md
 from .templates.project_claude_md import PROJECT_CLAUDE_MD_SENTINEL
 from . import backup
 from .semantic_merge import classify_sections, apply_merge, verify_protected
@@ -261,13 +262,21 @@ def init(is_global, is_project):
 
         local_md_path = Path.cwd() / "CLAUDE.local.md"
         existing_local = local_md_path.exists()
-        base_content = local_md_path.read_text() if existing_local else generate_local_claude_md()
-        local_content = update_project_info(base_content, info)
+
+        # Always generate from fresh template, preserving initiative block
         if existing_local:
-            if local_content != base_content:
+            old_content = local_md_path.read_text()
+            base_content = generate_local_claude_md()
+            # Extract and preserve existing initiative block
+            m = re.search(r'(<!-- INITIATIVE:\S+ START -->.*?<!-- INITIATIVE:\S+ END -->)', old_content, re.DOTALL)
+            if m:
+                base_content = inject_initiative_into_local_md(base_content, m.group(1))
+            local_content = update_project_info(base_content, info)
+            if local_content != old_content:
                 local_md_path.write_text(local_content)
-                console.print(f"[green]Updated:[/green] CLAUDE.local.md (project info)")
+                console.print(f"[green]Updated:[/green] CLAUDE.local.md (regenerated from latest template)")
         else:
+            local_content = update_project_info(generate_local_claude_md(), info)
             local_md_path.write_text(local_content)
             console.print(f"[green]Created:[/green] CLAUDE.local.md")
             gitignore_path = Path.cwd() / ".gitignore"
