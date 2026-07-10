@@ -113,7 +113,7 @@ if [[ -z "$INSTALL_MODE" ]]; then
   echo "Install location:"
   echo "  1) Global (~/.claude/commands/) — available in all projects [default]"
   echo "  2) Project (current directory) — only this project"
-  read -rp "  Choose [1]: " CHOICE
+  read -rp "  Choose [1]: " CHOICE || CHOICE=""
   CHOICE="${CHOICE:-1}"
   case "$CHOICE" in
     1) INSTALL_MODE="global" ;;
@@ -243,7 +243,7 @@ echo "Skill selection:"
 echo "  0) None — skip skill installation [default]"
 echo "  1) All — install all available skills"
 echo "  2) Select — pick individual skills"
-read -rp "  Choose [0]: " SKILL_CHOICE
+read -rp "  Choose [0]: " SKILL_CHOICE || SKILL_CHOICE=""
 SKILL_CHOICE="${SKILL_CHOICE:-0}"
 
 SELECTED_SKILLS=()
@@ -262,7 +262,7 @@ case "$SKILL_CHOICE" in
     for i in "${!SKILL_LABELS[@]}"; do
       printf "  %2d) %s  (%s)\n" "$((i+1))" "${SKILL_LABELS[$i]}" "${AVAILABLE_SKILLS[$i]}"
     done
-    read -rp "  Select: " SELECTED_NUMS
+    read -rp "  Select: " SELECTED_NUMS || SELECTED_NUMS=""
     for num in $SELECTED_NUMS; do
       idx=$((num-1))
       if [[ $idx -ge 0 && $idx -lt ${#AVAILABLE_SKILLS[@]} ]]; then

@@ -1,0 +1,60 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><title>Coworker Dashboard</title><style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,monospace;background:#0d1117;color:#c9d1d9;height:100vh;overflow:hidden}
+#app{display:flex;height:100vh}
+.sidebar{width:200px;min-width:200px;background:#161b22;border-right:1px solid #30363d;padding:12px 0;overflow-y:auto}
+.stitle{font-size:10px;text-transform:uppercase;color:#484f58;padding:0 14px;margin-bottom:8px}
+.sitem{display:flex;align-items:center;gap:8px;padding:6px 14px;font-size:12px;color:#8b949e;cursor:pointer;border-left:2px solid transparent}
+.sitem:hover{color:#e6edf3;background:#1c2129}
+.sitem.active{color:#58a6ff;border-left-color:#58a6ff;background:#1c2129}
+.scount{font-size:10px;color:#484f58;margin-left:auto}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{display:flex;align-items:center;gap:12px;padding:8px 16px;background:#161b22;border-bottom:1px solid #30363d;font-size:11px}
+.topbar input{background:#0d1117;border:1px solid #30363d;border-radius:4px;padding:4px 10px;color:#c9d1d9;font-size:11px;width:300px;font-family:monospace}
+.content{flex:1;overflow-y:auto;padding:16px}
+.list-item{display:flex;align-items:center;padding:8px 12px;background:#161b22;border:1px solid #30363d;border-radius:6px;margin-bottom:4px;cursor:pointer;font-size:11px}
+.list-item:hover{background:#1c2129;border-color:#58a6ff}
+.lname{font-weight:bold;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lmeta{font-size:10px;color:#8b949e;margin-left:12px;white-space:nowrap}
+.lexpand{background:#1c2129;border:1px solid #30363d;border-radius:0 0 6px 6px;padding:12px;margin-top:-2px;margin-bottom:4px;display:none}
+.lexpand.open{display:block}
+.tab-bar{display:flex;gap:2px;margin-bottom:10px;border-bottom:1px solid #30363d}
+.tbtn{padding:4px 12px;font-size:10px;color:#8b949e;cursor:pointer;border-bottom:2px solid transparent}
+.tbtn:hover{color:#c9d1d9}.tbtn.active{color:#58a6ff;border-bottom-color:#58a6ff}
+.tc{display:none}.tc.active{display:block}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.card{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:14px}
+.ctitle{font-size:11px;font-weight:bold;margin-bottom:8px}
+.tag{display:inline-block;font-size:9px;padding:2px 8px;border-radius:10px;margin:2px;background:#1c2129;color:#8b949e}
+.tag-f{color:#3fb950;border:1px solid #3fb950}
+.tag-s{color:#f85149;border:1px solid #f85149}
+.tag-t{color:#58a6ff;border:1px solid #58a6ff}
+.tag-se{color:#d29922;border:1px solid #d29922}
+.tag-k{color:#bc8cff;border:1px solid #bc8cff}
+.tag-mcp{color:#79c0ff;border:1px solid #79c0ff;background:#0d419d}
+.badge{font-size:8px;padding:1px 6px;border-radius:10px;margin-left:6px}
+.bg-active{background:#3fb950;color:#0d1117}
+.bg-done{background:#58a6ff;color:#eee}
+.bg-wait{background:#d29922;color:#0d1117}
+.bg-future{background:#d29922;color:#0d1117;font-size:9px;padding:2px 6px;border-radius:10px;margin-left:6px}
+.p10{font-size:10px}.p11{font-size:11px}.p13{font-size:13px}
+.warn{color:#f85149}.info{color:#58a6ff}.good{color:#3fb950}.caution{color:#d29922}.dim{color:#8b949e}
+.mb4{margin-bottom:4px}.mb6{margin-bottom:6px}.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}.mt4{margin-top:4px}.mt8{margin-top:8px}
+.flex{display:flex;align-items:center}.between{justify-content:space-between}
+.icon{font-size:14px;width:20px;text-align:center}
+.graph-box{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:20px;text-align:center;min-height:150px;display:flex;align-items:center;justify-content:center}
+.gnode{display:inline-block;padding:8px 14px;border-radius:6px;font-size:10px;margin:6px}
+.gp{background:#1a3a2a;border:2px solid #3fb950;color:#3fb950}
+.btn{display:inline-block;padding:4px 12px;border-radius:4px;font-size:10px;cursor:pointer;border:1px solid}
+.btn-primary{background:#1f6feb;border-color:#1f6feb;color:#fff}
+.btn-outline{background:transparent;border-color:#30363d;color:#8b949e}
+.skill-content{background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:12px;font-size:10px;max-height:300px;overflow-y:auto;font-family:monospace;white-space:pre-wrap;color:#8b949e;line-height:1.5}
+.evidence-item{padding:4px 8px;background:#0d1117;border-left:2px solid #bc8cff;margin-bottom:4px;border-radius:0 4px 4px 0;font-size:10px}
+.workflow-step{display:flex;gap:8px;padding:4px 0;font-size:10px;align-items:flex-start}
+.wf-icon{width:24px;text-align:center;font-size:12px;flex-shrink:0}
+.wf-conn{width:24px;text-align:center;color:#30363d;font-size:8px;flex-shrink:0}
+h2{font-size:16px;margin-bottom:4px}
+.sub{font-size:11px;color:#8b949e;margin-bottom:12px}
+</style></head><body>
+<div id="app"><div class="sidebar"><div class="stitle">Explore</div><div class="sitem active" onclick="navigate('projects')"><span class="icon">📁</span> Projects<span class="scount">4</span></div><div class="sitem" onclick="navigate('sessions')"><span class="icon">📋</span> Sessions<span class="scount">3</span></div><div class="sitem" onclick="navigate('skills')"><span class="icon">🧠</span> Skills<span class="scount">5</span></div><div class="sitem" onclick="navigate('tools')"><span class="icon">🔧</span> Tools<span class="scount">8</span></div><div class="sitem" onclick="navigate('files')"><span class="icon">📄</span> Files<span class="scount">5</span></div><div class="sitem" onclick="navigate('knowledge')"><span class="icon">💡</span> Knowledge<span class="scount">4</span></div><div class="sitem" onclick="navigate('initiatives')"><span class="icon">🎯</span> Initiatives<span class="scount">1</span></div></div><div class="main"><div class="topbar"><input placeholder="Search anything..."><span class="dim" style="margin-left:auto">ai-coworker · SDK: opencode ✓ claude ✓</span></div><div class="content" id="content"></div></div></div><script src="dashboard.js"></script></body></html>

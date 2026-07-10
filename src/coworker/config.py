@@ -1,5 +1,6 @@
 from __future__ import annotations
 import os
+import re
 from pathlib import Path
 import yaml
 from .models import CoworkerConfig
@@ -107,11 +108,25 @@ def save_project_catalog(catalog: ProjectCatalog) -> None:
 from .models import InitiativeConfig
 
 INITIATIVES_DIR = GLOBAL_DIR / "initiatives"
+_INITIATIVE_NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
 
 def _initiatives_dir() -> Path:
     INITIATIVES_DIR.mkdir(parents=True, exist_ok=True)
     return INITIATIVES_DIR
+
+
+def _validate_initiative_name(name: str) -> str:
+    if not name or not _INITIATIVE_NAME_RE.match(name):
+        raise ValueError(
+            f"Invalid initiative name: {name!r}. "
+            f"Must be kebab-case (e.g. 'my-project')."
+        )
+    return name
+
+
+def _safe_initiative_path(name: str) -> Path:
+    return _initiatives_dir() / f"{_validate_initiative_name(name)}.yaml"
 
 
 def list_initiatives() -> list[InitiativeConfig]:
@@ -130,8 +145,7 @@ def list_initiatives() -> list[InitiativeConfig]:
 
 
 def load_initiative(name: str) -> InitiativeConfig | None:
-    d = _initiatives_dir()
-    path = d / f"{name}.yaml"
+    path = _safe_initiative_path(name)
     if not path.exists():
         return None
     with open(path) as f:
@@ -140,16 +154,15 @@ def load_initiative(name: str) -> InitiativeConfig | None:
 
 
 def save_initiative(config: InitiativeConfig) -> None:
-    d = _initiatives_dir()
+    path = _safe_initiative_path(config.name)
     data = config.model_dump(exclude_none=True)
-    path = d / f"{config.name}.yaml"
     with open(path, "w") as f:
         yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
 
 
 def initiative_path(name: str) -> Path:
-    return _initiatives_dir() / f"{name}.yaml"
+    return _safe_initiative_path(name)
 
 
 def initiative_exists(name: str) -> bool:
-    return initiative_path(name).exists()
+    return _safe_initiative_path(name).exists()

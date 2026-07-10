@@ -23,7 +23,7 @@ def test_init_project_idempotent(tmp_path, monkeypatch):
     first_content = claude_md.read_text()
     assert first_content
 
-    # run again — should skip (detects Project Identity sentinel)
+    # run again — should skip (detects PROTECTED block sentinel)
     result = runner.invoke(main, ["init", "--project"], input="y\n")
     assert result.exit_code == 0
     assert claude_md.read_text() == first_content, "CLAUDE.md was overwritten on re-init"
@@ -46,7 +46,7 @@ def test_init_over_handwritten_claude_md_backs_up(tmp_path, monkeypatch):
     assert result.exit_code == 0, f"init failed: {result.output}"
 
     new_content = (tmp_path / "CLAUDE.md").read_text()
-    assert "## Project Identity" in new_content  # template was written
+    assert "<!-- PROTECTED:CRITICAL-RULES -->" in new_content  # template was written
     assert original != new_content
 
     # backup dir should exist with a snapshot of the original

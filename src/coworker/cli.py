@@ -23,7 +23,7 @@ from .models import (
 from .adapters import ADAPTERS
 from .initiatives.manager import InitiativeManager
 from .templates.project_claude_md import generate_project_claude_md
-from .templates.local_claude_md import generate_local_claude_md
+from .templates.local_claude_md import generate_local_claude_md, update_project_info
 from .templates.project_claude_md import PROJECT_CLAUDE_MD_SENTINEL
 from . import backup
 from .semantic_merge import classify_sections, apply_merge, verify_protected
@@ -188,14 +188,9 @@ def _scan_project() -> dict:
 
 
 def _build_project_claude_md(info: dict) -> str:
-    """Generate project CLAUDE.md using canonical template."""
+    """Generate project CLAUDE.md (pure meta-controller, no project info)."""
     return generate_project_claude_md(
         project_name=info.get("project_name", ""),
-        repo=info.get("repo_url") or "",
-        branch="main",
-        relationships=info.get("relationships", ""),
-        doc_map=info.get("doc_map", ""),
-        team_links=info.get("team_links", ""),
     )
 
 
@@ -265,8 +260,15 @@ def init(is_global, is_project):
         console.print("[green]Created docs/ structure (specs/, discussion/)[/green]")
 
         local_md_path = Path.cwd() / "CLAUDE.local.md"
-        if not local_md_path.exists():
-            local_md_path.write_text(generate_local_claude_md())
+        existing_local = local_md_path.exists()
+        base_content = local_md_path.read_text() if existing_local else generate_local_claude_md()
+        local_content = update_project_info(base_content, info)
+        if existing_local:
+            if local_content != base_content:
+                local_md_path.write_text(local_content)
+                console.print(f"[green]Updated:[/green] CLAUDE.local.md (project info)")
+        else:
+            local_md_path.write_text(local_content)
             console.print(f"[green]Created:[/green] CLAUDE.local.md")
             gitignore_path = Path.cwd() / ".gitignore"
             entries = ["CLAUDE.local.md", "docs/state/"]

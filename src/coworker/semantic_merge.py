@@ -20,7 +20,22 @@ MERGE_ADD = "MERGE_ADD"
 KEEP = "KEEP"
 
 _HEADING_RE = re.compile(r"^#{1,3}\s+.+$")
+_H1_RE = re.compile(r"^#\s+.+$")
 _FENCE_RE = re.compile(r"^\s*(```+|~~~+)\s*$")
+
+_PLACEHOLDER_PATTERNS = [
+    re.compile(r"_\(none configured\)_"),
+    re.compile(r"_Repo URL auto-discovered by AI\._"),
+    re.compile(r"_\(run `coworker init` to scan docs/ structure\)_"),
+    re.compile(r"_\(none configured — add shared wikis, Slack channels, design docs\)_"),
+]
+
+
+def _is_placeholder(body: str) -> bool:
+    stripped = body.strip()
+    if not stripped:
+        return False
+    return any(p.search(stripped) for p in _PLACEHOLDER_PATTERNS)
 
 
 # ── data types ────────────────────────────────────────────────────────────────
@@ -195,9 +210,15 @@ def classify_sections(current: str, future: str) -> list[SectionClassification]:
 
         if fut is not None:
             if s.body.strip() != fut.body.strip():
+                if _is_placeholder(fut.body) or s.body.strip().startswith(fut.body.strip()):
+                    cat = KEEP
+                    content = s.body
+                else:
+                    cat = OVERWRITE
+                    content = fut.body
                 classifications.append(SectionClassification(
-                    heading=s.heading, category=OVERWRITE,
-                    current_content=s.body, future_content=fut.body,
+                    heading=s.heading, category=cat,
+                    current_content=s.body, future_content=content if cat == OVERWRITE else "",
                 ))
             else:
                 classifications.append(SectionClassification(
@@ -209,6 +230,8 @@ def classify_sections(current: str, future: str) -> list[SectionClassification]:
             ))
 
     for s in future_sections:
+        if _H1_RE.match(s.heading):
+            continue
         key = (s.heading, s.occurrence)
         if key not in {(cs.heading, None) for cs in current_sections}:
             # Check by heading name only (legacy dict-based lookup fallback)
