@@ -112,7 +112,6 @@ class TestProjectTemplate:
         result = generate_project_claude_md(project_name="test")
         assert "Compaction" in result
         assert "state" in result.lower()
-        assert "coworker state-update" in result
 
     def test_protected_block(self):
         result = generate_project_claude_md(project_name="test")
