@@ -1,0 +1,17 @@
+{
+  "round_num": 0,
+  "commit": "",
+  "global_lines": 82,
+  "project_lines": 95,
+  "local_lines": 51,
+  "blueprint_score": 100.0,
+  "duplication_score": 100,
+  "utility_score": 100.0,
+  "budget_score": 100.0,
+  "overall_score": 100.0,
+  "notes": [
+    "Missing: "
+  ],
+  "instructions_count": 38,
+  "instructions_useful": 38
+}

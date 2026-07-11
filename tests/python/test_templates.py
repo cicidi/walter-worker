@@ -47,9 +47,14 @@ class TestProjectTemplate:
         lines = result.strip().split("\n")
         assert len(lines) < 200, f"{len(lines)} lines, must be <200"
 
-    def test_project_identity_is_minimal(self):
+    def test_project_identity_not_in_claude_md(self):
+        """Project info moved to CLAUDE.local.md — must not be in project CLAUDE.md."""
         result = generate_project_claude_md(project_name="test")
-        assert "Project Identity" in result
+        assert "Project Identity" not in result
+        assert "Project Relationships" not in result
+        assert "Knowledge Repo" not in result
+        assert "Team Links" not in result
+        assert "Repo:" not in result
 
     def test_contains_local_override(self):
         result = generate_project_claude_md(project_name="test")
@@ -81,27 +86,15 @@ class TestProjectTemplate:
         result = generate_project_claude_md(project_name="test")
         assert ".claude/rules/" not in result
 
-    def test_relationships_section(self):
-        result = generate_project_claude_md(
-            project_name="test",
-            relationships="| auth | upstream | test |\n| web | downstream | test |"
-        )
-        assert "upstream" in result
-        assert "downstream" in result
-
-    def test_doc_map_section(self):
-        result = generate_project_claude_md(
-            project_name="test",
-            doc_map="- Specs: `docs/specs/`\n- Discussions: `docs/discussion/`"
-        )
-        assert "docs/specs/" in result
-        assert "docs/discussion/" in result
-
-    def test_state_not_in_doc_map(self):
+    def test_relationships_in_local_not_claude_md(self):
+        """Relationships moved to CLAUDE.local.md — no relationships heading in CLAUDE.md."""
         result = generate_project_claude_md(project_name="test")
-        knowledge_section_start = result.index("Knowledge Repo")
-        knowledge_section = result[knowledge_section_start:knowledge_section_start + 200]
-        assert "state-" not in knowledge_section  # state refs are in local.md, not in committed doc map
+        assert "## Project Relationships" not in result
+
+    def test_doc_info_not_in_claude_md(self):
+        """Doc map and knowledge repo headings removed from project CLAUDE.md."""
+        result = generate_project_claude_md(project_name="test")
+        assert "## Knowledge Repo" not in result
 
     def test_auto_memory_section(self):
         result = generate_project_claude_md(project_name="test")
@@ -119,7 +112,6 @@ class TestProjectTemplate:
         result = generate_project_claude_md(project_name="test")
         assert "Compaction" in result
         assert "state" in result.lower()
-        assert "coworker state-update" in result
 
     def test_protected_block(self):
         result = generate_project_claude_md(project_name="test")
@@ -138,7 +130,7 @@ class TestLocalTemplate:
 
     def test_has_config_path_section(self):
         result = generate_local_claude_md()
-        assert "Config Paths" in result
+        assert "Config" in result
 
     def test_has_reference_docs_section(self):
         result = generate_local_claude_md()
@@ -146,11 +138,11 @@ class TestLocalTemplate:
 
     def test_has_recommended_skills_placeholder(self):
         result = generate_local_claude_md()
-        assert "Recommended skills" in result or "Recommended Skills" in result
+        assert "Skills:" in result
 
     def test_has_task_state_section(self):
         result = generate_local_claude_md()
-        assert "Task State" in result
+        assert "Current Task" in result
 
     def test_inject_initiative_no_duplicates(self):
         content = generate_local_claude_md()

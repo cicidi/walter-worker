@@ -91,7 +91,7 @@ fi
 # =============================================================================
 echo ""
 if [[ -d "$SKILL_FACTORY_DIR" ]]; then
-  read -rp "  Update skill-factory from GitHub? (y/n) [n]: " UPDATE_SF
+  read -rp "  Update skill-factory from GitHub? (y/n) [n]: " UPDATE_SF || UPDATE_SF=""
   UPDATE_SF="${UPDATE_SF:-n}"
   if [[ "$UPDATE_SF" == "y" || "$UPDATE_SF" == "Y" ]]; then
     log "Updating skill-factory..."

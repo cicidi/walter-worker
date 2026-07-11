@@ -45,7 +45,7 @@ if $RESTORE_PRIS; then
 else
   warn "This will remove AI coworker files and hook entries."
 fi
-read -rp "Continue? (y/n) [n]: " CONFIRM
+read -rp "Continue? (y/n) [n]: " CONFIRM || CONFIRM=""
 CONFIRM="${CONFIRM:-n}"
 [[ "$CONFIRM" != "y" && "$CONFIRM" != "Y" ]] && echo "Aborted." && exit 0
 

@@ -3,11 +3,15 @@ import re
 
 LOCAL_CLAUDE_MD_TEMPLATE = """# Personal Working Context
 
-This file is NOT committed to git. It contains your personal working context for this project.
+This file is NOT committed to git. Your personal working context for this project.
 
-## Config Paths
+## Config
 
 - Project Catalog: ~/.coworker/project.yaml
+
+## Project Info
+
+_(auto-discovered by `coworker init`)_
 
 <!-- INITIATIVE_PLACEHOLDER -->
 
@@ -15,21 +19,17 @@ This file is NOT committed to git. It contains your personal working context for
 
 _(initiative reference docs appear here when activated)_
 
-## Current Task State
+## Current Task
 
 Active task: _(none)_
 Goal: _(what this task is trying to achieve)_
-State files: `docs/state/state-{taskname}.md` — use a descriptive task name; auto-timestamp if none given
+State: `docs/state/state-{taskname}.md`
 
 ## Current Workflow
 
-Approach: _(e.g., TDD, direct impl, brainstorming -> spec)_
+Approach: _(e.g., TDD, direct impl, brainstorming → spec)_
 Testing: _(how this task is tested)_
-Recommended skills: _(set during initiative activation — user reviewed)_
-
-## Personal Preferences
-
-_(override project-level defaults here)_
+Skills: _(set during initiative activation)_
 """
 
 INITIATIVE_PLACEHOLDER = "<!-- INITIATIVE_PLACEHOLDER -->"
@@ -45,12 +45,51 @@ def generate_local_claude_md() -> str:
     return LOCAL_CLAUDE_MD_TEMPLATE.strip()
 
 
+def update_project_info(content: str, project_info: dict) -> str:
+    lines = []
+    if project_info.get("repo_url"):
+        lines.append(f"- Repo: {project_info['repo_url']}")
+    if project_info.get("language") and project_info["language"] != "unknown":
+        lines.append(f"- Language: {project_info['language']}")
+    if project_info.get("framework"):
+        fw = project_info["framework"] if isinstance(project_info["framework"], str) else ", ".join(project_info["framework"])
+        lines.append(f"- Framework: {fw}")
+    if project_info.get("deps"):
+        deps_show = project_info["deps"][:5]
+        deps_str = ", ".join(deps_show)
+        if len(project_info["deps"]) > 5:
+            deps_str += f" (+{len(project_info['deps']) - 5} more)"
+        lines.append(f"- Dependencies: {deps_str}")
+    if project_info.get("ides"):
+        lines.append(f"- IDEs: {', '.join(project_info['ides'])}")
+    if project_info.get("test_command"):
+        lines.append(f"- Test: {project_info['test_command']}")
+    if project_info.get("lint_command"):
+        lines.append(f"- Lint: {project_info['lint_command']}")
+
+    if not project_info.get("repo_url") and not lines:
+        return content
+
+    if lines:
+        new_section = "## Project Info\n\n" + "\n".join(lines) + "\n"
+    else:
+        new_section = "## Project Info\n\n_(auto-discovered by `coworker init`)_\n"
+
+    pattern = re.compile(
+        r"## Project Info\n.*?(?=\n(?:<!-- INITIATIVE_PLACEHOLDER-->|## ))",
+        re.DOTALL,
+    )
+    if pattern.search(content):
+        return pattern.sub(new_section, content)
+    else:
+        return content.replace(
+            "<!-- INITIATIVE_PLACEHOLDER -->",
+            new_section + "\n<!-- INITIATIVE_PLACEHOLDER -->",
+        )
+
+
 def inject_initiative_into_local_md(content: str, initiative_block: str) -> str:
-    """Idempotently inject an initiative block. Removes any existing
-    initiative block (consuming its trailing newline), collapses excess
-    blank lines only around the removal site."""
     cleaned = _INITIATIVE_ANY_RE.sub("", content)
-    # Scoped collapse: replace \n{3,} with \n\n only around the injection point
     if INITIATIVE_PLACEHOLDER in cleaned:
         cleaned = cleaned.replace(
             INITIATIVE_PLACEHOLDER,
@@ -62,8 +101,6 @@ def inject_initiative_into_local_md(content: str, initiative_block: str) -> str:
 
 
 def remove_initiative_from_local_md(content: str, name: str) -> str:
-    """Remove a specific initiative block. Consumes trailing newline.
-    Idempotent: repeated calls produce the same result."""
     escaped = re.escape(name)
     pattern = re.compile(
         r"<!--\s*INITIATIVE:" + escaped + r"\s+START\s*-->.*?"
