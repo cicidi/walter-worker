@@ -13,8 +13,8 @@ triggers:
 - scan session history
 - build knowledge graph
 - session memory
-- 整理记忆
-- 总结session
+- organize memory
+- archive sessions
 when-to-use: Periodic batch summarization of completed opencode sessions. Building a searchable knowledge base from agent
   conversation history. Extracting reusable patterns, decisions, and lessons from past work. Feeding AI context into future
   sessions.

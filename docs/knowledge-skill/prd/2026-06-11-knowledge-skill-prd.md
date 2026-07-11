@@ -34,12 +34,12 @@ Knowledge Skill reads raw session events, feeds them to an LLM with structured p
 For each completed session, produce a structured summary stored in the session data.
 
 **What to capture:**
-- **SOP / Workflows:** Reusable step sequences discovered or validated in this session (e.g. "创建 worktree → 安装依赖 → 运行测试 → 开始开发")
+- **SOP / Workflows:** Reusable step sequences discovered or validated in this session (e.g. "create worktree → install deps → run tests → start development")
 - **Context to remember:** Project state, branch status, unfinished work, decisions pending — things the next session needs to know
 - **Effective operations:** Specific tool invocations or approaches that worked well
 - **Command line:** Useful CLI commands, flags, or patterns discovered or validated
 - **Documentation insights:** Which docs were useful, what they helped solve, gaps identified
-- **Pitfalls & fixes:** Things that failed repeatedly, what was tried, and the final working solution — the "折腾了半天最后怎么解决的" story
+- **Pitfalls & fixes:** Things that failed repeatedly, what was tried, and the final working solution — the "after hours of struggle, how it was finally resolved" story
 - **Wasted actions:** Loops, unnecessary reads, dead-end explorations that led nowhere
 - **Bottlenecks:** Longest think times, most repetitive tool calls, user wait time
 - **Efficiency tip:** One actionable suggestion for next similar session
