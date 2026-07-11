@@ -28,7 +28,7 @@ from .templates.local_claude_md import generate_local_claude_md, update_project_
 from .templates.project_claude_md import PROJECT_CLAUDE_MD_SENTINEL
 from . import backup
 from .semantic_merge import classify_sections, apply_merge, verify_protected
-from .constants import DOCS_SUBDIRS, STATE_DIR
+from .constants import DOCS_DISCIPLINES, STATE_DIR
 from .templates.global_claude_md import generate_global_claude_md
 
 console = Console()
@@ -162,14 +162,13 @@ def _scan_project() -> dict:
 
     docs_dir = cwd / "docs"
     if docs_dir.exists():
-        parts = []
-        if (docs_dir / "specs").exists():
-            parts.append("- Specs: `docs/specs/`")
-        if (docs_dir / "discussion").exists():
-            parts.append("- Discussions: `docs/discussion/`")
-        info["doc_map"] = "\n".join(parts) if parts else "- `docs/` exists but no specs/discussion subdirectories"
+        topics = [d.name for d in docs_dir.iterdir() if d.is_dir() and d.name not in ("state",)]
+        if topics:
+            info["doc_map"] = f"Docs organized by topic: {', '.join(topics[:5])}"
+        else:
+            info["doc_map"] = "`docs/` exists — organize by topic: `docs/<topic>/prd|plan|spec/`"
     else:
-        info["doc_map"] = "_`docs/` directory not found. Run `coworker init` to create._"
+        info["doc_map"] = "`docs/` directory not found. Run `coworker init` to create._"
 
     try:
         catalog = load_project_catalog()
@@ -256,9 +255,8 @@ def init(is_global, is_project):
             console.print(f"[green]Created:[/green] CLAUDE.md")
 
         docs_dir = Path.cwd() / "docs"
-        for subdir in DOCS_SUBDIRS:
-            (docs_dir / subdir).mkdir(parents=True, exist_ok=True)
-        console.print("[green]Created docs/ structure (specs/, discussion/)[/green]")
+        docs_dir.mkdir(parents=True, exist_ok=True)
+        console.print("[green]Created docs/ directory[/green]")
 
         local_md_path = Path.cwd() / "CLAUDE.local.md"
         existing_local = local_md_path.exists()

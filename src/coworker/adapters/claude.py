@@ -311,9 +311,11 @@ def _build_static_block(catalog: ProjectCatalog) -> str:
     lines.append("")
     lines.append("## Docs Directory Structure")
     lines.append("")
-    from ..constants import DOCS_SUBDIRS
-    for d in DOCS_SUBDIRS:
-        lines.append(f"- `docs/{d}/` — Project documentation")
+    from ..constants import DOCS_DISCIPLINES
+    disciplines = ", ".join(DOCS_DISCIPLINES)
+    lines.append(f"Docs organized by topic: `docs/<initiative>/{{{disciplines}}}/`")
+    lines.append("")
+    lines.append("Each initiative creates its own docs folder with prd/plan/spec subdirectories.")
     lines.append("")
     lines.append("## Coworker Skills")
     lines.append("")

@@ -35,7 +35,7 @@ COMPACTION = """## Compaction & State Persistence
 CONTEXT_MGMT = """## Context Management
 
 1. Clarify goal — if unclear, ask user
-2. Check `docs/specs/` for PRD/design docs, `docs/discussion/` for prior discussions
+2. Check `docs/<initiative>/` for PRD/design docs and prior discussions
 3. Recall state — read prior state files and `CLAUDE.local.md`
 4. Verify all referenced documents are actually read before proceeding
 """
