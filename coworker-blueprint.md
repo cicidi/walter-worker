@@ -78,7 +78,7 @@ Every AI session starts from zero. Past learnings, effective workflows, and mist
 │  - Auto Memory                                   │
 │  - Project Identity (repo URL)                   │
 │  - Project Relationships (upstream/downstream)   │
-│  - Knowledge Repo (docs/specs/, docs/discussion/)│
+│  - Knowledge Repo (docs/ organized by topic)   │
 │  - Team Links (wikis, Slack, shared refs)        │
 ├────────────────────────────────────────────────┤
 │  CLAUDE.local.md (<project>/CLAUDE.local.md)     │
@@ -197,12 +197,10 @@ generate_project_claude_md(
 #   1. Local Override (CRITICAL: read local.md)
 #   2. Mandatory Guardrails (git/code safety)
 #   3. Compaction & State Persistence
-#   4. Context Management (5-step checklist + info flow table)
+#   4. Context Management (4-step checklist)
 #   5. Workflow Selection (auto/confirm + escape hatch)
 #   6. Auto Memory
-#   7. Project Identity (repo URL only — rest auto-discovered)
-#   8. Project Relationships
-#   9. Knowledge Repo
+#   7. Development Loop (lint + tests + commit)
 #  10. Team Links
 ```
 
@@ -446,7 +444,7 @@ coworker analytics create-db/import/daemon/once/dashboard
 1. Scan project (language, framework, deps — for display only, NOT written to CLAUDE.md)
 2. Generate Project CLAUDE.md from canonical template
 3. Generate CLAUDE.local.md from template
-4. Create `docs/specs/` and `docs/discussion/`
+4. Create `docs/` directory
 5. Add `CLAUDE.local.md` and `docs/state-*.md` to `.gitignore`
 
 For full interactive setup with interview, use the `ai-coworker-setup-in-project` skill.
@@ -602,7 +600,8 @@ coworker status      # Verify everything is set up
 | Step | Creates |
 |------|---------|
 | `coworker init --global` | `~/.coworker/coworker.yaml`, `~/.coworker/skills/` |
-| `coworker init --project` | `./coworker.yaml`, `CLAUDE.md`, `CLAUDE.local.md`, `docs/specs/`, `docs/discussion/`, `.gitignore` entries |
+| `coworker init --project` | `./coworker.yaml`, `CLAUDE.md`, `CLAUDE.local.md`, `docs/`, `.gitignore` entries |
+| `coworker initiative create` | `docs/<initiative>/{prd,plan,spec}/` |
 | `coworker sync` | Copies skills to IDE dirs, writes settings, configures Stop hook |
 | Global CLAUDE.md | `~/.claude/CLAUDE.md` (from canonical template, not overridden if exists) |
 

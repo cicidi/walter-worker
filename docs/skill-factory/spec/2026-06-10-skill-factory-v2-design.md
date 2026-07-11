@@ -41,7 +41,7 @@ The v1 audit surfaced **43 issues** in 4 severity tiers:
 3. **Use opencode-compatible format** (5 frontmatter fields, `SKILL.md` filename, `skills/<name>/` directory).
 4. **Leverage obra/superpowers:writing-skills** (already installed) as optional enhancement, not as a replacement.
 5. **Slim to ~200 lines** — fits in context, fast to read, no progressive disclosure needed yet.
-6. **Single version, no deploy/** — user explicitly said "skill-factory 就保留一个版本就行".
+6. **Single version, no deploy/** — user explicitly said "skill-factory only needs to keep one version".
 7. **No `## Changelog` section** — git log is the source of truth for changes.
 8. **Production-ready on day 1** — every MUST gate must be enforceable today, not tomorrow.
 
@@ -75,7 +75,7 @@ The v1 audit surfaced **43 issues** in 4 severity tiers:
 | D12 | **obra is OPTIONAL** | Body uses `> Optional enhancement:` markers; main flow works without obra |
 | D13 | **MUST/NICE quality gates** (borrowed from skill-forge) | MUST = block publish; NICE = warn only |
 | D14 | **4-phase process** preserved as: Phase 0 (Search) / 1 (Interview) / 2 (Build) / 3 (Verify) / 4 (Publish) | User's explicit choice |
-| D15 | **Sources段** (markdown) replaces v1's `provenance.json` | Each major section lists source + confidence (high/med/low) |
+| D15 | **Sources section** (markdown) replaces v1's `provenance.json` | Each major section lists source + confidence (high/med/low) |
 | D16 | **Test Scenarios** (markdown) replaces v1's `evals.json` | 4 scenarios, manually run, no JSON schema |
 
 ---
@@ -141,7 +141,7 @@ The `superpowers` plugin is already added to `~/.config/opencode/config.json`. A
 |-------|--------------|-------------|---------------------------|
 | **0. Search & Reuse Audit** | List existing skills in `~/project/skill-factory/skills/`; if ≥70% similar found, stop and recommend `skill-edit` instead | Web search for similar skills on GitHub | n/a |
 | **1. Interview** | One question at a time; capture intent + failure modes + factor weight; ask until clear | Use obra's `brainstorming` skill for interview rhythm | obra:brainstorming |
-| **2. Build** | Write frontmatter (5 fields), body sections, Sources段; use `skill-create` body as template | Run CSO check on description (per obra) | obra:writing-skills (CSO + anti-rationalization) |
+| **2. Build** | Write frontmatter (5 fields), body sections, Sources section; use `skill-create` body as template | Run CSO check on description (per obra) | obra:writing-skills (CSO + anti-rationalization) |
 | **3. Verify** | Run inline Quality Gates (MUST list); present to user; wait for sign-off | Run Test Scenarios | obra:verification-before-completion, obra:requesting-code-review, obra:test-driven-development |
 | **4. Publish** | git commit with conventional message; no auto-push | Create PR | n/a |
 
@@ -232,7 +232,7 @@ metadata:
 - Webfetch GitHub search for similar skills (optional, slow)
 - Note promising patterns in `## Sources` for Phase 2 to reference
 
-**Sources段 input (for Phase 2 to use):**
+**Sources section input (for Phase 2 to use):**
 - "Phase 0: Search — local skills scanned, N matched, M similar"
 - Confidence: high (if local scan was thorough)
 
@@ -253,7 +253,7 @@ metadata:
 - Use obra `brainstorming` skill for interview rhythm
 - Use multiple-choice questions when possible (faster for user)
 
-**Sources段 input:**
+**Sources section input:**
 - "Phase 1: Interview — factor weights recorded: {dict}"
 - Confidence: medium (user's stated needs may shift)
 
@@ -309,7 +309,7 @@ metadata:
 - If user says yes, git push
 - If user wants a PR, use `gh pr create` (if gh CLI configured)
 
-**Sources段 input:**
+**Sources section input:**
 - "Phase 4: Publish — git commit: <hash>"
 - Confidence: high (commit hash is ground truth)
 
@@ -319,31 +319,31 @@ metadata:
 
 ### MUST (block publish)
 
-- [ ] Frontmatter 5 字段完整: `name`, `description`, `license`, `compatibility`, `metadata`
-- [ ] `name` 与目录名 `skills/<name>/` 匹配
-- [ ] `description` ≤ 1024 字符
-- [ ] `description` 不用第一人称 ("I can..." ❌)
-- [ ] `description` 不总结工作流 ("dispatches subagent, then does X" ❌)
-- [ ] 不引用不存在的 `scripts/`、`schemas/`、其他本地 skill
-- [ ] 不引用不存在的外部路径（除非用 webfetch 动态拉）
-- [ ] body 无 `## Changelog` 段（用 git log 替代）
-- [ ] body 无 `## Convention Notes` 段（用项目 CONVENTIONS.md）
-- [ ] 无真实组织名 / 真实 Slack domain / 真实 GitHub org 泄漏
-- [ ] 无 `2024-04-32` 等无效日期
-- [ ] 无装饰 emoji (✅ ❌ 🚀 🔥 等)
-- [ ] 4 阶段节标题齐全 (`### Phase 0/1/2/3/4`)
-- [ ] 无截断句子（`"must be reph..."` 这种）
-- [ ] 无 `**>...<**` 伪影
+- [ ] Frontmatter 5 fields complete: `name`, `description`, `license`, `compatibility`, `metadata`
+- [ ] `name` matches directory name `skills/<name>/`
+- [ ] `description` ≤ 1024 characters
+- [ ] `description` avoids first person ("I can..." ❌)
+- [ ] `description` does not summarize workflow ("dispatches subagent, then does X" ❌)
+- [ ] Does not reference non-existent `scripts/`, `schemas/`, or other local skills
+- [ ] Does not reference non-existent external paths (unless dynamically fetched via webfetch)
+- [ ] body has no `## Changelog` section (use git log instead)
+- [ ] body has no `## Convention Notes` section (use project CONVENTIONS.md)
+- [ ] No real organization names / real Slack domains / real GitHub orgs leaked
+- [ ] No invalid dates like `2024-04-32`
+- [ ] No decorative emoji (✅ ❌ 🚀 🔥 etc.)
+- [ ] 4 phase section headings present (`### Phase 0/1/2/3/4`)
+- [ ] No truncated sentences (like `"must be reph..."`)
+- [ ] No `**>...<**` artifacts
 
 ### NICE (warn only)
 
-- [ ] `description` 以 "Use when..." 开头
-- [ ] body < 500 行
-- [ ] 引用 obra 时标注是 optional
-- [ ] `## Sources` 段每条标注 confidence (high/med/low)
-- [ ] `## Test Scenarios` 至少 4 条
-- [ ] Markdown 表格列名清晰
-- [ ] 无 `TODO` / `FIXME` 残留
+- [ ] `description` starts with "Use when..."
+- [ ] body < 500 lines
+- [ ] Mark obra references as optional
+- [ ] Each `## Sources` entry tagged with confidence (high/med/low)
+- [ ] `## Test Scenarios` has at least 4 entries
+- [ ] Markdown table column names are clear
+- [ ] No residual `TODO` / `FIXME`
 
 ---
 

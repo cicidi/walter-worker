@@ -105,8 +105,7 @@ class TestProjectTemplate:
         result = generate_project_claude_md(project_name="test")
         assert "CLAUDE.local.md" in result
         assert "state" in result.lower()
-        assert "docs/specs/" in result
-        assert "docs/discussion/" in result
+        assert "docs/" in result
 
     def test_compaction_section(self):
         result = generate_project_claude_md(project_name="test")

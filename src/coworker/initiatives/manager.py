@@ -51,7 +51,19 @@ class InitiativeManager:
             created=datetime.now().strftime("%Y-%m-%d"),
         )
         save_initiative(config)
+
+        self._scaffold_docs(name)
         return config
+
+    def _scaffold_docs(self, name: str) -> None:
+        """Create docs/<initiative>/{prd,plan,spec}/ directories."""
+        try:
+            from ...constants import DOCS_DISCIPLINES
+        except ImportError:
+            from ..constants import DOCS_DISCIPLINES
+        for discipline in DOCS_DISCIPLINES:
+            (self.project_dir / "docs" / name / discipline).mkdir(parents=True, exist_ok=True)
+
 
     def edit(self, name: str, **updates) -> InitiativeConfig:
         config = load_initiative(name)
