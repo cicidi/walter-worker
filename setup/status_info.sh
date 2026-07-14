@@ -124,12 +124,34 @@ case "$PATH_DISPLAY" in
   "$HOME_PFX"*) PATH_DISPLAY="~/${PATH_DISPLAY#$HOME_PFX}" ;;
 esac
 
-# ── Build output lines ──
-LINE1="$MODE | ${MODEL} | ${EFFORT} | tmux:${SESSION} | project:${FOLDER}"
-LINE1="${LINE1} | branch:${BRANCH:-?}"
-[ -n "$INITIATIVE" ] && LINE1="${LINE1} | initiative:${INITIATIVE}"
+# ── Colors ──
+G="fg=colour240"  # gray separator
+DEF="default"     # reset
 
-LINE2="ctx:${CTX_PCT} | cost:\$${COST} | path:${PATH_DISPLAY}"
+mode_emoji="🔨"; mode_color="fg=green"
+if [ "$MODE" = "Plan" ]; then
+  mode_emoji="📋"; mode_color="fg=blue"
+elif [ "$MODE" = "Build" ]; then
+  mode_color="fg=yellow"
+fi
+
+effort_color="fg=white"
+case "$EFFORT" in high|max) effort_color="fg=red" ;; medium) effort_color="fg=yellow" ;; low) effort_color="fg=green" ;; esac
+
+ctx_color="fg=white"
+_ctx_num=$(echo "$CTX_PCT" | tr -d '%')
+if [ -n "$_ctx_num" ] && [ "${_ctx_num}" -eq "${_ctx_num}" ] 2>/dev/null; then
+  [ "$_ctx_num" -gt 80 ] && ctx_color="fg=red"
+  [ "$_ctx_num" -gt 50 ] && [ "$_ctx_num" -le 80 ] && ctx_color="fg=yellow"
+fi
+
+cost_color="fg=white"
+
+# ── Build output lines with emoji + color ──
+LINE1="#[${mode_color}]${mode_emoji} #[fg=white]${MODE}#[${G}] | #[fg=cyan]🤖 #[fg=white]${MODEL}#[${G}] | #[${effort_color}]⚡ #[fg=white]${EFFORT}#[${G}] | #[fg=green]🖥️  #[fg=white]tmux:${SESSION}#[${G}] | #[fg=brightwhite]📁 #[fg=white]project:${FOLDER}#[${G}] | #[fg=cyan]🌿 #[fg=white]branch:${BRANCH:-?}"
+[ -n "$INITIATIVE" ] && LINE1="${LINE1}#[${G}] | #[fg=magenta]🎯 #[fg=white]initiative:${INITIATIVE}"
+
+LINE2="#[${ctx_color}]📊 #[fg=white]ctx:${CTX_PCT}#[${G}] | #[${cost_color}]💰 #[fg=white]cost:\$${COST}#[${G}] | #[fg=colour240]📂 #[fg=brightwhite]path:${PATH_DISPLAY}"
 
 # ── Output based on --line argument ──
 case "$1" in
