@@ -473,7 +473,7 @@ else
 fi
 
 # =============================================================================
-# Step 16 — Deploy tmux status bar
+# Step 16 — Deploy tmux status bar (2-line)
 # =============================================================================
 echo ""
 log "Setting up tmux status bar..."
@@ -486,20 +486,46 @@ chmod +x "$TMUX_SCRIPTS_DIR/status_info.sh"
 ok "Status bar script deployed to $TMUX_SCRIPTS_DIR/status_info.sh"
 
 TMUX_CONF="$HOME/.tmux.conf"
+COWORKER_MARKER="# ai-coworker status bar"
+
 if [[ -f "$TMUX_CONF" ]]; then
   if grep -q "status_info.sh" "$TMUX_CONF" 2>/dev/null; then
-    ok "tmux.conf already references status_info.sh"
+    if grep -q "status-format" "$TMUX_CONF" 2>/dev/null; then
+      ok "tmux.conf already has 2-line coworker status bar"
+    else
+      # Upgrade from old 1-line to new 2-line format
+      log "Upgrading tmux.conf to 2-line status bar..."
+      sed -i '/# ai-coworker status bar/,/status-right.*status_info\.sh/d' "$TMUX_CONF"
+      {
+        echo ""
+        echo "$COWORKER_MARKER"
+        echo "set -g status 2"
+        echo "set -g status-style 'bg=colour236,fg=white'"
+        echo "set -g status-left-length 40"
+        echo "set -g status-left \"#[fg=yellow]#{session_created_string} \""
+        echo "set -g status-right-length 500"
+        echo "set -g status-right \"#(~/.tmux/scripts/status_info.sh --line1) \""
+        echo "set -g status-format[1] \"#[align=left] #[align=right]#(~/.tmux/scripts/status_info.sh --line2) \""
+        echo "setw -g window-status-current-format ' #I:#W#F '"
+        echo "setw -g window-status-format ' #I:#W#F '"
+      } >> "$TMUX_CONF"
+      ok "tmux.conf upgraded to 2-line status bar"
+    fi
   else
     {
       echo ""
-      echo "# ai-coworker status bar"
+      echo "$COWORKER_MARKER"
+      echo "set -g status 2"
       echo "set -g status-style 'bg=colour236,fg=white'"
       echo "set -g status-left-length 40"
       echo "set -g status-left \"#[fg=yellow]#{session_created_string} \""
-      echo "set -g status-right-length 250"
-      echo "set -g status-right \"#(~/.tmux/scripts/status_info.sh) \""
+      echo "set -g status-right-length 500"
+      echo "set -g status-right \"#(~/.tmux/scripts/status_info.sh --line1) \""
+      echo "set -g status-format[1] \"#[align=left] #[align=right]#(~/.tmux/scripts/status_info.sh --line2) \""
+      echo "setw -g window-status-current-format ' #I:#W#F '"
+      echo "setw -g window-status-format ' #I:#W#F '"
     } >> "$TMUX_CONF"
-    ok "tmux.conf updated with status bar config"
+    ok "tmux.conf updated with 2-line status bar config"
   fi
 else
   warn "$TMUX_CONF not found — skipping tmux config update"

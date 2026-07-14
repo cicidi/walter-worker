@@ -53,6 +53,13 @@ CRITICAL: If `CLAUDE.local.md` exists, read it before doing anything else.
 
 - Upfront rules override auto-memory; never let auto-memory write back into CLAUDE.md
 
+## Documentation
+
+- **MUST use `write-doc` skill** before writing or modifying any file in `docs/`
+- Every doc modification appends a Change Log entry at end of file
+- Change Log format: `| YYYY-MM-DD | Brief description |`
+- This rule applies to: creating, moving, editing, renaming any doc file
+
 ## Development Loop
 
 - After every code change: run lint + tests before marking task complete

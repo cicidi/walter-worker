@@ -59,7 +59,7 @@ After each answer, confirm: "Got it. Next question?"
 
 2. **Knowledge Repo:** Where are design docs, PRDs, and specs?
    - Ask: "Where are your project's design documents?"
-   - Options: `docs/specs/` (default), custom path, "no docs yet", URLs (wiki/Notion/etc.)
+   - Options: `docs/` (default, 2-tier: `prd/`, `spec/`, `plan/`, `test/`, `initiatives/`), custom path, "no docs yet", URLs (wiki/Notion/etc.)
    - Record as doc_map entries
 
 3. **Architecture Quirks:** Anything not obvious from scanning the repo?
@@ -108,7 +108,7 @@ Show: "Detected N available skills. Local.md created."
 ### Phase 5: Create docs/ structure
 
 ```bash
-mkdir -p <project_dir>/docs/specs <project_dir>/docs/discussion
+mkdir -p <project_dir>/docs/{prd,spec,plan,test,discussion,initiatives}
 ```
 
 ### Phase 6: Gitignore
@@ -182,7 +182,7 @@ Global CLAUDE.md:  [existing — not modified]
 Project CLAUDE.md: <project>/CLAUDE.md
 CLAUDE.local.md:   <project>/CLAUDE.local.md (N skills detected)
 State hooks:        Claude Code + OpenCode configured
-Docs:               docs/specs/ docs/discussion/
+Docs:               docs/prd/ docs/spec/ docs/plan/ docs/test/ docs/initiatives/
 Gitignore:          CLAUDE.local.md docs/state-*.md
 
 Next: Activate your initiative with `coworker initiative activate <name>`

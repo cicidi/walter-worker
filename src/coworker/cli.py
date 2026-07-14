@@ -166,7 +166,7 @@ def _scan_project() -> dict:
         if topics:
             info["doc_map"] = f"Docs organized by topic: {', '.join(topics[:5])}"
         else:
-            info["doc_map"] = "`docs/` exists — organize by topic: `docs/<topic>/prd|plan|spec/`"
+            info["doc_map"] = "`docs/` exists — project level: `docs/prd|spec|plan|test/`; initiative level: `docs/initiatives/<name>/<name>-{spec,plan}.md`"
     else:
         info["doc_map"] = "`docs/` directory not found. Run `coworker init` to create._"
 
@@ -256,7 +256,9 @@ def init(is_global, is_project):
 
         docs_dir = Path.cwd() / "docs"
         docs_dir.mkdir(parents=True, exist_ok=True)
-        console.print("[green]Created docs/ directory[/green]")
+        for sub in ["prd", "spec", "plan", "test", "discussion", "initiatives"]:
+            (docs_dir / sub).mkdir(parents=True, exist_ok=True)
+        console.print("[green]Created docs/ with prd/, spec/, plan/, test/, discussion/, initiatives/[/green]")
 
         local_md_path = Path.cwd() / "CLAUDE.local.md"
         existing_local = local_md_path.exists()

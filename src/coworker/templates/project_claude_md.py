@@ -35,9 +35,17 @@ COMPACTION = """## Compaction & State Persistence
 CONTEXT_MGMT = """## Context Management
 
 1. Clarify goal — if unclear, ask user
-2. Check `docs/<initiative>/` for PRD/design docs and prior discussions
+2. Check `docs/spec/`, `docs/prd/`, `docs/plan/`, `docs/initiatives/<name>/` for design docs and prior discussions
 3. Recall state — read prior state files and `CLAUDE.local.md`
 4. Verify all referenced documents are actually read before proceeding
+"""
+
+DOC_ENFORCEMENT = """## Documentation
+
+- **MUST use `write-doc` skill** before writing or modifying any file in `docs/`
+- Every doc modification appends a Change Log entry at end of file
+- Change Log format: `| YYYY-MM-DD | Brief description |`
+- This rule applies to: creating, moving, editing, renaming any doc file
 """
 
 WORKFLOW_HEURISTICS = """## Workflow Selection
@@ -60,6 +68,7 @@ AUTO_MEMORY = """## Auto Memory
 
 - After every code change: run lint + tests before marking task complete
 - Commit in logical chunks with conventional commit messages
+- After completing a task: suggest 1-2 concrete next actions the user can take
 """
 
 
@@ -74,6 +83,7 @@ def generate_project_claude_md(project_name: str = "", **kwargs) -> str:
         COMPACTION.strip(),
         CONTEXT_MGMT.strip(),
         WORKFLOW_HEURISTICS.strip(),
+        DOC_ENFORCEMENT.strip(),
         AUTO_MEMORY.strip(),
         "<!-- END PROTECTED:CRITICAL-RULES -->",
     ]

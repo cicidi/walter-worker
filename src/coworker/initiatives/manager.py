@@ -19,6 +19,49 @@ from ..adapters.claude import inject_initiative, remove_initiative
 
 KEBAB_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
+INITIATIVE_SPEC_TEMPLATE = """# Spec: {name}
+
+## Overview
+
+
+## Requirements
+
+
+## Design
+
+
+## API / Interface
+
+
+## Change Log
+
+| Date | Change |
+|------|--------|
+| {date} | Initial creation |
+"""
+
+INITIATIVE_PLAN_TEMPLATE = """# Plan: {name}
+
+## Goal
+
+
+## Scope
+
+
+## Tasks
+
+- [ ] Task 1
+
+## Timeline
+
+
+## Change Log
+
+| Date | Change |
+|------|--------|
+| {date} | Initial creation |
+"""
+
 
 def _local_md_path(project_dir: Path) -> Path:
     return project_dir / "CLAUDE.local.md"
@@ -56,13 +99,24 @@ class InitiativeManager:
         return config
 
     def _scaffold_docs(self, name: str) -> None:
-        """Create docs/<initiative>/{prd,plan,spec}/ directories."""
-        try:
-            from ...constants import DOCS_DISCIPLINES
-        except ImportError:
-            from ..constants import DOCS_DISCIPLINES
-        for discipline in DOCS_DISCIPLINES:
-            (self.project_dir / "docs" / name / discipline).mkdir(parents=True, exist_ok=True)
+        """Create docs/initiatives/<name>/ with spec + plan template files."""
+        from datetime import datetime
+        today = datetime.now().strftime("%Y-%m-%d")
+
+        init_dir = self.project_dir / "docs" / "initiatives" / name
+        init_dir.mkdir(parents=True, exist_ok=True)
+
+        spec_file = init_dir / f"{name}-spec.md"
+        if not spec_file.exists():
+            spec_file.write_text(INITIATIVE_SPEC_TEMPLATE.format(
+                name=name, date=today
+            ), encoding="utf-8")
+
+        plan_file = init_dir / f"{name}-plan.md"
+        if not plan_file.exists():
+            plan_file.write_text(INITIATIVE_PLAN_TEMPLATE.format(
+                name=name, date=today
+            ), encoding="utf-8")
 
 
     def edit(self, name: str, **updates) -> InitiativeConfig:
