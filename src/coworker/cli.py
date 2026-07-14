@@ -197,7 +197,8 @@ def _build_project_claude_md(info: dict) -> str:
 @main.command()
 @click.option("--global", "is_global", is_flag=True, default=False, help="Init global config")
 @click.option("--project", "is_project", is_flag=True, default=False, help="Init project config in cwd")
-def init(is_global, is_project):
+@click.option("--force", "force", is_flag=True, default=False, help="Force overwrite existing CLAUDE.md from latest template")
+def init(is_global, is_project, force):
     """Initialize global or project config with auto-scan."""
     if not is_global and not is_project:
         is_global = click.confirm("Init global config (~/.coworker/)?", default=True)
@@ -243,7 +244,7 @@ def init(is_global, is_project):
         new_content = _build_project_claude_md(info)
         if claude_md.exists():
             content = claude_md.read_text()
-            if PROJECT_CLAUDE_MD_SENTINEL in content:
+            if PROJECT_CLAUDE_MD_SENTINEL in content and not force:
                 console.print("[yellow]CLAUDE.md already has project context, skipping generation.[/yellow]")
             else:
                 backup.snapshot([claude_md], "init")

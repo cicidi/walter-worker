@@ -50,6 +50,9 @@ let currentModel = ""
 let currentMode = ""
 let currentEffort = ""
 let cumulativeCost = 0
+let currentProject = ""
+let currentBranch = ""
+let currentPath = ""
 
 export default {
   id: "coworker-analytics",
@@ -64,6 +67,30 @@ export default {
       execSync("git rev-parse --git-dir", { cwd, timeout: 2000 })
     } catch {}
 
+    let project = ""
+    let branch = ""
+    try {
+      project = execSync("git rev-parse --show-toplevel", { cwd, timeout: 2000 }).toString().trim()
+      project = project.split("/").pop() || project
+      branch = execSync("git rev-parse --abbrev-ref HEAD", { cwd, timeout: 2000 }).toString().trim()
+    } catch {}
+    currentProject = project
+    currentBranch = branch
+    currentPath = cwd
+
+    writeState({
+      session_id: "",
+      mode: "Build",
+      model: "",
+      effort: "",
+      ctx_pct: "0%",
+      cost: "0",
+      project,
+      branch,
+      path: cwd,
+      updated: new Date().toISOString(),
+    })
+
     return {
       async event({ event }) {
         try {
@@ -76,13 +103,15 @@ export default {
             currentMode = ""
             currentEffort = ""
 
-            let project = ""
-            let branch = ""
+            let sp = ""
+            let sb = ""
             try {
-              project = execSync("git rev-parse --show-toplevel", { cwd, timeout: 2000 }).toString().trim()
-              project = project.split("/").pop() || project
-              branch = execSync("git rev-parse --abbrev-ref HEAD", { cwd, timeout: 2000 }).toString().trim()
+              sp = execSync("git rev-parse --show-toplevel", { cwd, timeout: 2000 }).toString().trim()
+              sp = sp.split("/").pop() || sp
+              sb = execSync("git rev-parse --abbrev-ref HEAD", { cwd, timeout: 2000 }).toString().trim()
             } catch {}
+            currentProject = sp
+            currentBranch = sb
 
             writeState({
               session_id: id,
@@ -91,8 +120,8 @@ export default {
               effort: "",
               ctx_pct: "0",
               cost: "0",
-              project,
-              branch,
+              project: sp,
+              branch: sb,
               path: cwd,
               updated: new Date().toISOString(),
             })
@@ -129,6 +158,9 @@ export default {
               effort: currentEffort,
               ctx_pct: ctxPct,
               cost: String(cumulativeCost),
+              project: currentProject,
+              branch: currentBranch,
+              path: currentPath,
               updated: new Date().toISOString(),
             })
           } else {
@@ -148,6 +180,9 @@ export default {
               effort: currentEffort,
               ctx_pct: "0%",
               cost: String(cumulativeCost),
+              project: currentProject,
+              branch: currentBranch,
+              path: currentPath,
               updated: new Date().toISOString(),
             })
           }

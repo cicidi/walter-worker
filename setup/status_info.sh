@@ -36,8 +36,42 @@ if [ -n "$STATE_FILE" ]; then
   if [ -n "$update_ts" ]; then
     now=$(date +%s)
     then_ts=$(date -d "$update_ts" +%s 2>/dev/null || echo 0)
-    [ $((now - then_ts)) -gt 300 ] && STATE_FILE="" # stale > 5 min
+    [ $((now - then_ts)) -gt 300 ] && STATE_FILE=""  # stale > 5 min
   fi
+fi
+
+# ── Fallback: read static config for empty/missing fields ──
+read_static_config() {
+  if ! python3 -c "import json" 2>/dev/null; then return 1; fi
+  if [ ! -f "$HOME/.config/opencode/opencode.json" ]; then return 1; fi
+  python3 -c "
+import json
+c = json.load(open('$HOME/.config/opencode/opencode.json'))
+model = c.get('model','').split('/')[-1]
+effort = 'default'
+for pid, pd in c.get('provider',{}).items():
+    for mid, md in pd.get('models',{}).items():
+        if c.get('model','').endswith(mid):
+            effort = md.get('options',{}).get('reasoningEffort','default')
+print(model + '||' + effort)
+" 2>/dev/null
+}
+
+static_mode() {
+  python3 -c "import json; c=json.load(open('$HOME/.config/opencode/config.json')); a=c.get('agent',{}); prim=[k for k,v in a.items() if v.get('mode')=='primary']; print(prim[0].capitalize() if prim else 'Build')" 2>/dev/null
+}
+
+if [ -z "$MODEL" ] || [ "$MODEL" = "?" ]; then
+  result=$(read_static_config 2>/dev/null)
+  if [ -n "$result" ]; then
+    MODEL=$(echo "$result" | cut -d'|' -f1 | head -1)
+    EFFORT_FALLBACK=$(echo "$result" | cut -d'|' -f3 | head -1)
+    [ "$EFFORT" = "?" ] && EFFORT=""
+    [ -z "$EFFORT" ] && EFFORT="${EFFORT_FALLBACK:-default}"
+  fi
+fi
+if [ -z "$MODE" ] || [ "$MODE" = "?" ]; then
+  MODE=$(static_mode 2>/dev/null)
 fi
 
 [ -z "$MODE" ] && MODE="?"
