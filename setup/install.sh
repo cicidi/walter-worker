@@ -8,7 +8,7 @@ set -euo pipefail
 #
 # Usage:
 #   ./setup/install.sh              # interactive mode
-#   ./setup/install.sh --global     # install to ~/.claude/commands/ (default)
+#   ./setup/install.sh --global     # install to ~/.claude/skills/ (default)
 #   ./setup/install.sh --project /path/to/project
 # =============================================================================
 
@@ -111,7 +111,7 @@ ok "Skill-factory ready at $SKILL_FACTORY_DIR"
 if [[ -z "$INSTALL_MODE" ]]; then
   echo ""
   echo "Install location:"
-  echo "  1) Global (~/.claude/commands/) — available in all projects [default]"
+  echo "  1) Global (~/.claude/skills/) — available in all projects [default]"
   echo "  2) Project (current directory) — only this project"
   read -rp "  Choose [1]: " CHOICE || CHOICE=""
   CHOICE="${CHOICE:-1}"
@@ -130,14 +130,14 @@ fi
 # Step 5 — Determine install destinations
 # =============================================================================
 if [[ "$INSTALL_MODE" == "global" ]]; then
-  CLAUDE_DIR="$HOME/.claude/commands"
+  CLAUDE_DIR="$HOME/.claude/skills"
   OPENCODE_DIR="$HOME/.opencode/instructions"
 else
-  CLAUDE_DIR="$PROJECT_PATH/.claude/commands"
+  CLAUDE_DIR="$PROJECT_PATH/.claude/skills"
   OPENCODE_DIR="$PROJECT_PATH/.opencode/instructions"
 fi
 
-# Ensure Claude directory exists (Claude Code is primary)
+# Ensure Claude directory exists
 mkdir -p "$CLAUDE_DIR"
 ok "Claude Code skills dir: $CLAUDE_DIR"
 
@@ -280,7 +280,13 @@ esac
 log "Installing core skill (init)..."
 SETUP_SKILL_SRC="$REPO_ROOT/skills/init/SKILL.md"
 if [[ -f "$SETUP_SKILL_SRC" ]]; then
-  cp "$SETUP_SKILL_SRC" "$CLAUDE_DIR/init.md"
+  mkdir -p "$CLAUDE_DIR/init"
+  cp "$SETUP_SKILL_SRC" "$CLAUDE_DIR/init/SKILL.md"
+  # Copy any additional files from the init skill directory
+  for f in "$REPO_ROOT/skills/init/"*; do
+    [[ "$f" == "$REPO_ROOT/skills/init/SKILL.md" ]] && continue
+    [[ -f "$f" ]] && cp "$f" "$CLAUDE_DIR/init/"
+  done
   ok "Installed init skill (core, always installed)"
 else
   warn "skills/init/SKILL.md not found at $SETUP_SKILL_SRC"
@@ -295,27 +301,39 @@ SKIPPED=0
 
 install_skill() {
   local src="$1"
-  local target_dir="$2"
-  local folder_name=""
-  folder_name="$(basename "$(dirname "$src")")"
-  local filename="${folder_name}.md"
+  local target_base="$2"
+  local skill_dir=""
+  skill_dir="$(basename "$(dirname "$src")")"
+  local target="$target_base/$skill_dir"
 
   if [[ ! -f "$src" ]]; then
     warn "Source not found: $src"
     return
   fi
 
-  mkdir -p "$target_dir"
-  if [[ ! -f "$target_dir/$filename" ]]; then
-    cp "$src" "$target_dir/$filename"
-    ((CREATED++)) || true
-    ok "  Created: $filename"
-  elif ! diff -q "$src" "$target_dir/$filename" &>/dev/null; then
-    cp "$src" "$target_dir/$filename"
-    ((UPDATED++)) || true
-    ok "  Updated: $filename"
-  else
+  mkdir -p "$target"
+  local already_installed=false
+  if [[ -f "$target/SKILL.md" ]]; then
+    if diff -q "$src" "$target/SKILL.md" &>/dev/null; then
+      already_installed=true
+    fi
+  fi
+
+  if $already_installed; then
     ((SKIPPED++)) || true
+  else
+    # Copy SKILL.md and all other files in the skill directory
+    for f in "$(dirname "$src")"/*; do
+      [[ -f "$f" ]] || continue
+      cp "$f" "$target/"
+    done
+    if [[ -f "$target/SKILL.md" ]]; then
+      ((UPDATED++)) || true
+      ok "  Updated: $skill_dir"
+    else
+      ((CREATED++)) || true
+      ok "  Created: $skill_dir"
+    fi
   fi
 }
 
@@ -328,7 +346,49 @@ if [[ ${#SELECTED_SKILLS[@]} -gt 0 ]]; then
 fi
 
 # =============================================================================
-# Step 11 — OpenCode: symlink or copy
+# Step 11 — Install skill-factory skills to ~/.claude/skills/ (SKILL.md format)
+# =============================================================================
+echo ""
+log "Installing skill-factory skills to Claude Code skill directory..."
+
+CLAUDE_SKILLS_DIR="$HOME/.claude/skills"
+mkdir -p "$CLAUDE_SKILLS_DIR"
+
+install_skill_directory() {
+  local src_dir="$1"
+  local target_base="$2"
+  if [[ ! -d "$src_dir" ]]; then return; fi
+  for skill_subdir in "$src_dir"/*/; do
+    [[ -d "$skill_subdir" ]] || continue
+    local skill_file="${skill_subdir}SKILL.md"
+    [[ -f "$skill_file" ]] || continue
+    local skill_name
+    skill_name=$(basename "$skill_subdir")
+    local target="$target_base/$skill_name"
+    mkdir -p "$target"
+    local installed=false
+    for f in "$skill_subdir"/*; do
+      [[ -f "$f" ]] || continue
+      cp "$f" "$target/"
+      installed=true
+    done
+    if $installed; then
+      ok "  SKILL.md: $skill_name"
+    fi
+  done
+}
+
+install_skill_directory "$SKILL_FACTORY_DIR/ai-coworker-skills" "$CLAUDE_SKILLS_DIR"
+install_skill_directory "$SKILL_FACTORY_DIR/personal-skills" "$CLAUDE_SKILLS_DIR"
+install_skill_directory "$SKILL_FACTORY_DIR/import-skills" "$CLAUDE_SKILLS_DIR"
+
+# Also install ai-coworker bundle skills
+install_skill_directory "$REPO_ROOT/skills" "$CLAUDE_SKILLS_DIR"
+
+ok "Skills deployed to $CLAUDE_SKILLS_DIR"
+
+# =============================================================================
+# Step 12 — OpenCode: symlink or copy
 # =============================================================================
 if [[ -n "$OPENCODE_DIR" ]]; then
   echo ""
@@ -337,32 +397,37 @@ if [[ -n "$OPENCODE_DIR" ]]; then
   mkdir -p "$OPENCODE_DIR"
 
   # Symlink init skill if possible
-  if [[ -f "$CLAUDE_DIR/init.md" ]]; then
-    if [[ -L "$OPENCODE_DIR/init.md" ]]; then
-      ok "  OpenCode symlink already exists: init.md"
+  if [[ -f "$CLAUDE_DIR/init/SKILL.md" ]]; then
+    if [[ -L "$OPENCODE_DIR/init/SKILL.md" ]]; then
+      ok "  OpenCode symlink already exists: init"
     else
-      ln -sf "$CLAUDE_DIR/init.md" "$OPENCODE_DIR/init.md" 2>/dev/null || \
-        cp "$CLAUDE_DIR/init.md" "$OPENCODE_DIR/init.md"
-      ok "  Synced to OpenCode: init.md"
+      mkdir -p "$OPENCODE_DIR/init"
+      ln -sf "$CLAUDE_DIR/init/SKILL.md" "$OPENCODE_DIR/init/SKILL.md" 2>/dev/null || \
+        cp "$CLAUDE_DIR/init/SKILL.md" "$OPENCODE_DIR/init/SKILL.md"
+      ok "  Synced to OpenCode: init"
     fi
   fi
 
-  # Sync selected skills
-  for skill_file in "$CLAUDE_DIR"/*.md; do
-    [[ -f "$skill_file" ]] || continue
-    name="${skill_file##*/}"
-    [[ "$name" == "init.md" ]] && continue
-    if [[ ! -f "$OPENCODE_DIR/$name" ]]; then
-      ln -sf "$skill_file" "$OPENCODE_DIR/$name" 2>/dev/null || cp "$skill_file" "$OPENCODE_DIR/$name"
-    elif ! diff -q "$skill_file" "$OPENCODE_DIR/$name" &>/dev/null; then
-      cp "$skill_file" "$OPENCODE_DIR/$name"
+  # Sync selected skills (directory format)
+  for skill_dir in "$CLAUDE_DIR"/*/; do
+    [[ -d "$skill_dir" ]] || continue
+    [[ -f "$skill_dir/SKILL.md" ]] || continue
+    name="${skill_dir%/}"
+    name="${name##*/}"
+    [[ "$name" == "init" ]] && continue
+    local_target="$OPENCODE_DIR/$name"
+    mkdir -p "$local_target"
+    if [[ ! -f "$local_target/SKILL.md" ]]; then
+      ln -sf "$skill_dir/SKILL.md" "$local_target/SKILL.md" 2>/dev/null || cp "$skill_dir/SKILL.md" "$local_target/SKILL.md"
+    elif ! diff -q "$skill_dir/SKILL.md" "$local_target/SKILL.md" &>/dev/null; then
+      cp "$skill_dir/SKILL.md" "$local_target/SKILL.md"
     fi
   done
   ok "OpenCode sync complete."
 fi
 
 # =============================================================================
-# Step 12 — Symlink CLAUDE.md for OpenCode
+# Step 13 — Symlink CLAUDE.md for OpenCode
 # =============================================================================
 if [[ "$INSTALL_MODE" == "project" ]]; then
   CLAUDE_MD="$PROJECT_PATH/CLAUDE.md"
@@ -373,7 +438,7 @@ if [[ "$INSTALL_MODE" == "project" ]]; then
 fi
 
 # =============================================================================
-# Step 13 — Update .gitignore (project mode)
+# Step 14 — Update .gitignore (project mode)
 # =============================================================================
 if [[ "$INSTALL_MODE" == "project" ]]; then
   GITIGNORE="$PROJECT_PATH/.gitignore"
@@ -384,7 +449,7 @@ if [[ "$INSTALL_MODE" == "project" ]]; then
 fi
 
 # =============================================================================
-# Step 14 — Analytics Listener Setup
+# Step 15 — Analytics Listener Setup
 # =============================================================================
 echo ""
 log "Setting up analytics listener..."
@@ -396,7 +461,8 @@ mkdir -p "$ANALYTICS_DIR/hooks"
 HOOKS_SRC="$REPO_ROOT/src/coworker/analytics/hooks"
 if [[ -d "$HOOKS_SRC" ]]; then
   cp "$HOOKS_SRC/"*.sh "$ANALYTICS_DIR/hooks/"
-  chmod +x "$ANALYTICS_DIR/hooks/"*.sh
+  cp "$HOOKS_SRC/"*.py "$ANALYTICS_DIR/hooks/" 2>/dev/null || true
+  chmod +x "$ANALYTICS_DIR/hooks/"*.sh "$ANALYTICS_DIR/hooks/"*.py 2>/dev/null || true
   ok "Hook scripts installed to $ANALYTICS_DIR/hooks/"
 else
   warn "Hook scripts not found — skipping"
@@ -456,7 +522,7 @@ print('Analytics DB initialized')
 echo "Analytics listener setup complete."
 
 # =============================================================================
-# Step 15 — MCP config sync
+# Step 16 — MCP config sync
 # =============================================================================
 if command -v coworker &>/dev/null; then
   echo ""
@@ -473,7 +539,7 @@ else
 fi
 
 # =============================================================================
-# Step 16 — Deploy tmux status bar (2-line)
+# Step 17 — Deploy tmux status bar (2-line)
 # =============================================================================
 echo ""
 log "Setting up tmux status bar..."
@@ -532,7 +598,44 @@ else
 fi
 
 # =============================================================================
-# Step 16 — Write install manifest
+# Step 18 — Deploy Claude Code status line
+# =============================================================================
+echo ""
+log "Setting up Claude Code status line..."
+
+CLAUDE_STATUSLINE_SRC="$REPO_ROOT/setup/claude-statusline.sh"
+CLAUDE_STATUSLINE_DST="$HOME/.claude/statusline-command.sh"
+
+if [[ -f "$CLAUDE_STATUSLINE_SRC" ]]; then
+  mkdir -p "$(dirname "$CLAUDE_STATUSLINE_DST")"
+  cp "$CLAUDE_STATUSLINE_SRC" "$CLAUDE_STATUSLINE_DST"
+  chmod +x "$CLAUDE_STATUSLINE_DST"
+  ok "Claude status line script deployed to $CLAUDE_STATUSLINE_DST"
+
+  # Configure statusLine in Claude settings.json
+  CLAUDE_SETTINGS="$HOME/.claude/settings.json"
+  if [[ -f "$CLAUDE_SETTINGS" ]]; then
+    python3 -c "
+import json
+with open('$CLAUDE_SETTINGS') as f: cfg = json.load(f)
+cfg['statusLine'] = {
+    'type': 'command',
+    'command': 'bash $CLAUDE_STATUSLINE_DST',
+    'padding': 0
+}
+with open('$CLAUDE_SETTINGS', 'w') as f: json.dump(cfg, f, indent=2)
+print('statusLine configured')
+" 2>/dev/null && ok "Claude statusLine configured in settings.json" || warn "Failed to configure statusLine"
+  else
+    echo '{"statusLine":{"type":"command","command":"bash '"$CLAUDE_STATUSLINE_DST"'","padding":0}}' > "$CLAUDE_SETTINGS"
+    ok "Claude settings.json created with statusLine"
+  fi
+else
+  warn "claude-statusline.sh not found at $CLAUDE_STATUSLINE_SRC — skipping"
+fi
+
+# =============================================================================
+# Step 19 — Write install manifest
 # =============================================================================
 MANIFEST="$HOME/.coworker/install-manifest.json"
 python3 -c "
@@ -584,9 +687,9 @@ ok "Setup complete!"
 echo "   Mode    : $INSTALL_MODE"
 echo "   Claude  : $CLAUDE_DIR"
 [[ -n "$OPENCODE_DIR" ]] && echo "   OpenCode: $OPENCODE_DIR"
-echo "   Created : $CREATED files"
-echo "   Updated : $UPDATED files"
-echo "   Skipped : $SKIPPED files (already up-to-date)"
+echo "   Created : $CREATED skills"
+echo "   Updated : $UPDATED skills"
+echo "   Skipped : $SKIPPED skills (already up-to-date)"
 echo ""
 echo "Next steps:"
 echo "  Add env vars to ~/.coworker/.env or ~/.zshrc:"

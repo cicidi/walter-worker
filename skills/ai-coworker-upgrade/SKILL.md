@@ -270,7 +270,7 @@ Project CLAUDE.md updates:
 ### Phase 4: Install Skills
 
 Scans both ai-coworker (already pulled in Phase 1) and skill-factory skills,
-compares against deployed skills in `~/.claude/commands/`, and installs
+compares against deployed skills in `~/.claude/skills/`, and installs
 any new or updated skills.
 
 Step 1 — Pull skill-factory to get latest skills:
@@ -298,7 +298,7 @@ for skill_dir in "$COWORKER_ROOT/skills"/*/; do
   name=$(grep -m1 '^name:' "$skill_file" 2>/dev/null | sed 's/name: *//' | xargs)
   [[ -n "$name" ]] || continue
 
-  target="$HOME/.claude/commands/${name}.md"
+  target="$HOME/.claude/skills/$name/SKILL.md"
   if [[ ! -f "$target" ]]; then
     echo "NEW (ai-coworker): $name"
   elif [[ "$skill_file" -nt "$target" ]]; then
@@ -325,7 +325,7 @@ for cat_dir in "$SKILL_FACTORY_DIR/ai-coworker-skills" "$SKILL_FACTORY_DIR/perso
     [[ -n "$name" ]] || continue
     base=$(basename "$skill_dir")
 
-    target="$HOME/.claude/commands/${name}.md"
+    target="$HOME/.claude/skills/$name/SKILL.md"
     if [[ ! -f "$target" ]]; then
       echo "NEW (skill-factory): $name"
     elif [[ "$skill_file" -nt "$target" ]]; then
@@ -372,21 +372,37 @@ SKIP (already current):
 
 Step 5 — Install confirmed skills.
 
-For each confirmed skill, copy to IDE config directories:
+For each confirmed skill, install as directory symlinks to both IDEs:
 
 ```bash
 install_one_skill() {
-  local src="$1"        # path to SKILL.md
+  local src="$1"        # path to SKILL.md (inside source skill directory)
   local name="$2"       # skill name from frontmatter
-  local claude_dir="$HOME/.claude/commands"
-  local opencode_dir="$HOME/.opencode/instructions"
+  local src_dir
+  src_dir="$(dirname "$src")"        # e.g., ~/project/ai-coworker/skills/write-doc/
+  local claude_dir="$HOME/.claude/skills"
+  local opencode_dir="$HOME/.opencode/skills"
 
-  mkdir -p "$claude_dir" "$opencode_dir"
-  cp "$src" "$claude_dir/${name}.md"
-  # Symlink for OpenCode (fallback to copy if ln fails)
-  ln -sf "$claude_dir/${name}.md" "$opencode_dir/${name}.md" 2>/dev/null || \
-    cp "$src" "$opencode_dir/${name}.md"
-  echo "Installed: $name"
+  # Claude Code: symlink entire skill directory
+  mkdir -p "$claude_dir"
+  if [[ -L "$claude_dir/$name" ]]; then
+    rm -f "$claude_dir/$name"
+  elif [[ -d "$claude_dir/$name" ]]; then
+    # Real directory exists — upgrade by removing + symlink
+    rm -rf "$claude_dir/$name"
+  fi
+  ln -sf "$src_dir" "$claude_dir/$name"
+
+  # OpenCode: symlink entire skill directory
+  mkdir -p "$opencode_dir"
+  if [[ -L "$opencode_dir/$name" ]]; then
+    rm -f "$opencode_dir/$name"
+  elif [[ -d "$opencode_dir/$name" ]]; then
+    rm -rf "$opencode_dir/$name"
+  fi
+  ln -sf "$src_dir" "$opencode_dir/$name"
+
+  echo "Installed: $name ($src_dir → claude + opencode)"
 }
 ```
 
@@ -459,8 +475,8 @@ echo "=== Global CLAUDE.md ==="
 head -5 ~/.claude/CLAUDE.md 2>/dev/null || echo "(not found)"
 
 echo ""
-echo "=== Installed skills (~/.claude/commands/) ==="
-ls ~/.claude/commands/ 2>/dev/null | wc -l
+echo "=== Installed skills (~/.claude/skills/) ==="
+ls ~/.claude/skills/ 2>/dev/null | wc -l
 
 echo ""
 echo "=== Active initiative ==="
