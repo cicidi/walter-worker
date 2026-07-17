@@ -72,7 +72,7 @@ project/
 │   ├── INDEX.md                     ← Auto-generated directory + move log
 │   ├── <initiative>/
 │   │   └── <type>/
-│   │       └── YYYY-MM-DD-<initiative>-<description>.md
+│   │       └── YYYY-MM-DD-<specific-topic>.md
 │   └── shared/                      ← Cross-initiative docs
 │       ├── glossary.md
 │       └── conventions.md
@@ -127,7 +127,8 @@ docs/team-oncall/
 ├── how-to/2026-07-05-pagerduty-escalation-flow.md
 ├── how-to/2026-07-06-database-incident-runbook.md
 ├── decision-history/2026-07-08-why-pagerduty-over-opsgenie.md
-├── evidence/2026-07-10-q2-incident-stats-before-after.md
+├── research/2026-07-10-q2-incident-stats-before-after.md
+│   └── research/2026-07-10-q2-incident-stats-before-after.evidence.md
 └── retro/2026-07-15-july-oncall-handoff.md
 
 # Refactoring / Migration
@@ -136,7 +137,8 @@ docs/payment-refactor/
 ├── design/2026-07-05-new-payment-provider-interface.md
 ├── research/2026-07-06-migration-vs-big-bang-cutover.md
 ├── impl-plan/2026-07-10-gradual-migration-phases.md
-└── evidence/2026-07-20-migration-performance-benchmarks.md
+└── impl-plan/2026-07-20-migration-performance-benchmarks.md
+│   └── impl-plan/2026-07-20-migration-performance-benchmarks.evidence.md
 ```
 
 ---
@@ -210,8 +212,8 @@ Rules:
 ### When user asks to create a doc
 
 1. **Identify initiative** — Ask if unclear. Check existing initiatives in `docs/`.
-2. **Determine type** — Match user's intent to one of the 12 types. Ask if ambiguous.
-3. **Generate path** — `docs/<initiative>/<type>/YYYY-MM-DD-<initiative>-<desc>.md`
+2. **Determine type** — Match user's intent to one of the 9 types. Ask if ambiguous.
+3. **Generate path** — `docs/<initiative>/<type>/YYYY-MM-DD-<specific-topic>.md`
 4. **Create file** — Use `write-doc` conventions for content.
 5. **Update INDEX.md** — Append new entry.
 
