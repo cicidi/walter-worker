@@ -1,7 +1,7 @@
 ---
 name: doc-organize
 version: 0.1.0
-description: Document organization skill — determines where to place docs, what to name them, and maintains INDEX.md. Covers 12 document types with naming conventions and folder hierarchy. Use when creating, moving, or reorganizing documentation files.
+description: Document organization skill — determines where to place docs, what to name them, and maintains INDEX.md. Covers 11 document types + evidence suffix with naming conventions and folder hierarchy. Use when creating, moving, or reorganizing documentation files.
 triggers:
 - organize docs
 - where to put this doc
@@ -24,22 +24,36 @@ Works alongside `write-doc` — this skill handles placement, write-doc handles 
 
 ---
 
-## Document Types (12)
+## Document Types (11 + evidence suffix)
 
 | Type | Purpose | Write When |
 |------|---------|------------|
 | `prd` | Product Requirements Document | Project kickoff |
-| `research` | Investigation + comparison of options. Covers competitor analysis, tech selection, feasibility, side-by-side comparison | Before making a decision |
+| `research` | Investigation + comparison of options | Before making a decision |
 | `hld` | High-Level Design — architecture, system topology, data flow | Choosing overall architecture |
 | `lld` | Low-Level Design — module/component detail, class diagrams, API contracts | Before implementation |
 | `spec` | Detailed technical specification | Formalizing interfaces |
 | `impl-plan` | Implementation plan with milestones | Breaking down tasks |
 | `test-plan` | Testing strategy and cases | Before QA phase |
 | `decision-history` | Architecture Decision Record (ADR) | Making key decisions |
-| `evidence` | Experimental data and results | Validating hypotheses |
 | `why-this` | Rationale for a choice | Defending a decision |
 | `retro` | Retrospective / post-mortem | End of phase/milestone |
 | `how-to` | Operational guide / runbook | Documenting repeatable processes |
+
+### Evidence (suffix, not a type)
+
+Evidence is NOT a standalone document type. It's a **suffix** attached to any other document:
+
+```
+docs/dashboard-v2/research/2026-07-02-competitor-analysis.md
+docs/dashboard-v2/research/2026-07-02-competitor-analysis.evidence.md   ← data/graphs/results
+```
+
+Rules:
+- Same name + `.evidence.md` suffix
+- Stays in same folder as the parent doc
+- Contains raw data, benchmarks, screenshots, test results that back up the parent
+- INDEX.md only lists the parent doc; evidence is implicitly attached
 
 ---
 
