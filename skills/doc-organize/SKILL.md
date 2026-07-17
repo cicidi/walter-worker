@@ -1,7 +1,7 @@
 ---
 name: doc-organize
 version: 0.1.0
-description: Document organization skill — determines where to place docs, what to name them, and maintains INDEX.md. Covers 10 document types + evidence suffix with naming conventions and folder hierarchy. Use when creating, moving, or reorganizing documentation files.
+description: Document organization skill — determines where to place docs, what to name them, and maintains INDEX.md. Covers 9 document types + evidence suffix with naming conventions and folder hierarchy. Use when creating, moving, or reorganizing documentation files.
 triggers:
 - organize docs
 - where to put this doc
@@ -24,7 +24,7 @@ Works alongside `write-doc` — this skill handles placement, write-doc handles 
 
 ---
 
-## Document Types (10 + evidence suffix)
+## Document Types (9 + evidence suffix)
 
 | Type | Purpose | Write When |
 |------|---------|------------|
@@ -34,8 +34,7 @@ Works alongside `write-doc` — this skill handles placement, write-doc handles 
 | `spec` | Detailed technical specification | Formalizing interfaces |
 | `impl-plan` | Implementation plan with milestones | Breaking down tasks |
 | `test-plan` | Testing strategy and cases | Before QA phase |
-| `decision-history` | Architecture Decision Record (ADR) | Making key decisions |
-| `why-this` | Rationale for a choice | Defending a decision |
+| `decision-history` | Architecture Decision Record (ADR). Covers Context → Options → Decision → Why this option → Consequences | Making key decisions, defending a choice |
 | `retro` | Retrospective / post-mortem | End of phase/milestone |
 | `how-to` | Operational guide / runbook | Documenting repeatable processes |
 
@@ -117,7 +116,7 @@ docs/dev-env-setup/
 ├── prd/2026-06-01-dockerize-all-services.md
 ├── research/2026-06-02-podman-vs-docker-compose.md
 ├── research/2026-06-03-devcontainer-vs-vagrant.md
-├── why-this/2026-06-03-why-docker-compose-not-k8s.md
+├── decision-history/2026-06-03-why-docker-compose-not-k8s.md
 ├── design/2026-06-05-container-orchestration-plan.md
 ├── impl-plan/2026-06-10-onboarding-scripts-and-docs.md
 └── how-to/2026-06-15-new-hire-setup-checklist.md
