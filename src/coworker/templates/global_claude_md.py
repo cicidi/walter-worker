@@ -92,6 +92,19 @@ Before implementing:
 - Analyze: is the issue in ai-coworker source code (not just usage/config)?
 - If yes: edit ai-coworker source files, run tests, commit, push, then invoke `ai-coworker-upgrade` to distribute.
 - Dogfood: the fix workflow applies ai-coworker's own tools to itself.
+
+## 10. Documentation
+
+Project docs live in `docs/`. Read `docs/INDEX.md` first to find relevant documents.
+All documentation follows the `doc-organize` convention (10 types, 6 stages, INDEX.md).
+
+**When writing or moving docs**, invoke `doc-organize` to determine correct path and naming,
+then `write-doc` to add Change Log entries.
+
+**If the project has a knowledge-repo** (separate git repo for shared docs), it is
+referenced below. Prefer knowledge-repo for cross-project docs.
+
+<!-- KNOWLEDGE_REPO_PLACEHOLDER -->
 """
 
 

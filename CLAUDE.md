@@ -65,10 +65,11 @@ This applies to every single prompt, even seemingly trivial ones. The user prefe
 
 ## Documentation
 
-- **MUST use `write-doc` skill** before writing or modifying any file in `docs/`
-- Every doc modification appends a Change Log entry at end of file
+- **Read `docs/INDEX.md` first** — it lists all docs with paths, types, stages, and content summaries
+- **MUST use `doc-organize`** to determine correct path + filename before creating/moving any doc
+- **MUST use `write-doc`** to append Change Log entry on every doc modification
+- Doc convention: 10 types, 6 stages, `<topic>-<type>.md` naming. See `doc-organize` skill for details.
 - Change Log format: `| YYYY-MM-DD | Brief description |`
-- This rule applies to: creating, moving, editing, renaming any doc file
 
 ## Development Loop
 
