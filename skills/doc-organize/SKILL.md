@@ -76,11 +76,45 @@ Rules:
 - Multiple files of same type in one initiative are normal
 
 Examples:
+
 ```
-docs/dashboard-v2/prd/2026-07-14-realtime-data-pipeline.md
-docs/dashboard-v2/design/2026-07-15-hld-caching-layer.md
-docs/team-oncall/how-to/2026-07-17-pagerduty-escalation.md
-docs/dev-env-setup/impl-plan/2026-07-10-docker-compose-migration.md
+# Product feature
+docs/user-profile-v2/
+├── prd/2026-07-01-user-profile-v2-requirements.md
+├── research/2026-07-02-competitor-profile-pages.md
+├── hld/2026-07-05-profile-service-architecture.md
+├── lld/2026-07-08-profile-api-and-db-schema.md
+├── spec/2026-07-10-profile-endpoint-contracts.md
+├── impl-plan/2026-07-12-profile-migration-steps.md
+├── test-plan/2026-07-14-profile-integration-tests.md
+└── retro/2026-08-01-profile-v2-launch-review.md
+
+# Environment / Setup
+docs/dev-env-setup/
+├── prd/2026-06-01-dockerize-all-services.md
+├── research/2026-06-02-podman-vs-docker-compose.md
+├── compare/2026-06-03-devcontainer-vs-vagrant.md
+├── why-this/2026-06-03-why-docker-compose-not-k8s.md
+├── hld/2026-06-05-container-orchestration-plan.md
+├── impl-plan/2026-06-10-onboarding-scripts-and-docs.md
+└── how-to/2026-06-15-new-hire-setup-checklist.md
+
+# Team Oncall
+docs/team-oncall/
+├── prd/2026-07-01-oncall-rotation-redesign.md
+├── how-to/2026-07-05-pagerduty-escalation-flow.md
+├── how-to/2026-07-06-database-incident-runbook.md
+├── decision-history/2026-07-08-why-pagerduty-over-opsgenie.md
+├── evidence/2026-07-10-q2-incident-stats-before-after.md
+└── retro/2026-07-15-july-oncall-handoff.md
+
+# Refactoring / Migration
+docs/payment-refactor/
+├── research/2026-07-01-stripe-vs-adyen-2026.md
+├── lld/2026-07-05-new-payment-provider-interface.md
+├── compare/2026-07-06-migration-vs-big-bang-cutover.md
+├── impl-plan/2026-07-10-gradual-migration-phases.md
+└── evidence/2026-07-20-migration-performance-benchmarks.md
 ```
 
 ---
