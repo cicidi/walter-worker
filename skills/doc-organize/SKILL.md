@@ -1,7 +1,7 @@
 ---
 name: doc-organize
 version: 0.1.0
-description: Document organization skill — determines where to place docs, what to name them, and maintains INDEX.md. Covers 11 document types + evidence suffix with naming conventions and folder hierarchy. Use when creating, moving, or reorganizing documentation files.
+description: Document organization skill — determines where to place docs, what to name them, and maintains INDEX.md. Covers 10 document types + evidence suffix with naming conventions and folder hierarchy. Use when creating, moving, or reorganizing documentation files.
 triggers:
 - organize docs
 - where to put this doc
@@ -24,14 +24,13 @@ Works alongside `write-doc` — this skill handles placement, write-doc handles 
 
 ---
 
-## Document Types (11 + evidence suffix)
+## Document Types (10 + evidence suffix)
 
 | Type | Purpose | Write When |
 |------|---------|------------|
 | `prd` | Product Requirements Document | Project kickoff |
 | `research` | Investigation + comparison of options | Before making a decision |
-| `hld` | High-Level Design — architecture, system topology, data flow | Choosing overall architecture |
-| `lld` | Low-Level Design — module/component detail, class diagrams, API contracts | Before implementation |
+| `design` | Technical design — one type, two optional suffixes (`.hld.md` for architecture, `.lld.md` for module detail) | Choosing architecture, before implementation |
 | `spec` | Detailed technical specification | Formalizing interfaces |
 | `impl-plan` | Implementation plan with milestones | Breaking down tasks |
 | `test-plan` | Testing strategy and cases | Before QA phase |
@@ -40,20 +39,29 @@ Works alongside `write-doc` — this skill handles placement, write-doc handles 
 | `retro` | Retrospective / post-mortem | End of phase/milestone |
 | `how-to` | Operational guide / runbook | Documenting repeatable processes |
 
-### Evidence (suffix, not a type)
+### Suffixes (not standalone types)
 
-Evidence is NOT a standalone document type. It's a **suffix** attached to any other document:
+**Evidence** — attach to any doc to provide supporting data:
 
 ```
 docs/dashboard-v2/research/2026-07-02-competitor-analysis.md
-docs/dashboard-v2/research/2026-07-02-competitor-analysis.evidence.md   ← data/graphs/results
+docs/dashboard-v2/research/2026-07-02-competitor-analysis.evidence.md   ← benchmarks/screenshots
 ```
 
-Rules:
-- Same name + `.evidence.md` suffix
-- Stays in same folder as the parent doc
-- Contains raw data, benchmarks, screenshots, test results that back up the parent
-- INDEX.md only lists the parent doc; evidence is implicitly attached
+**Design detail** — attach to a design doc for HLD or LLD view:
+
+```
+docs/dashboard-v2/design/2026-07-05-caching-strategy.md                 ← main design doc
+docs/dashboard-v2/design/2026-07-05-caching-strategy.hld.md             ← architecture overview
+docs/dashboard-v2/design/2026-07-05-caching-strategy.lld.md             ← component detail
+```
+
+Rules for both:
+- Same name prefix, same folder as parent
+- INDEX.md only lists the parent doc
+- Suffix files are optional — simple designs don't need them
+- `.hld.md` = system topology, service boundaries, data flow
+- `.lld.md` = class diagrams, API contracts, DB schema, module internals
 
 ---
 
@@ -95,8 +103,10 @@ Examples:
 docs/user-profile-v2/
 ├── prd/2026-07-01-user-profile-v2-requirements.md
 ├── research/2026-07-02-competitor-profile-pages.md
-├── hld/2026-07-05-profile-service-architecture.md
-├── lld/2026-07-08-profile-api-and-db-schema.md
+├── design/2026-07-05-profile-service-architecture.md
+│   ├── design/2026-07-05-profile-service-architecture.hld.md
+│   └── design/2026-07-05-profile-service-architecture.lld.md
+├── design/2026-07-08-profile-api-and-db-schema.md
 ├── spec/2026-07-10-profile-endpoint-contracts.md
 ├── impl-plan/2026-07-12-profile-migration-steps.md
 ├── test-plan/2026-07-14-profile-integration-tests.md
@@ -108,7 +118,7 @@ docs/dev-env-setup/
 ├── research/2026-06-02-podman-vs-docker-compose.md
 ├── research/2026-06-03-devcontainer-vs-vagrant.md
 ├── why-this/2026-06-03-why-docker-compose-not-k8s.md
-├── hld/2026-06-05-container-orchestration-plan.md
+├── design/2026-06-05-container-orchestration-plan.md
 ├── impl-plan/2026-06-10-onboarding-scripts-and-docs.md
 └── how-to/2026-06-15-new-hire-setup-checklist.md
 
@@ -124,7 +134,7 @@ docs/team-oncall/
 # Refactoring / Migration
 docs/payment-refactor/
 ├── research/2026-07-01-stripe-vs-adyen-2026.md
-├── lld/2026-07-05-new-payment-provider-interface.md
+├── design/2026-07-05-new-payment-provider-interface.md
 ├── research/2026-07-06-migration-vs-big-bang-cutover.md
 ├── impl-plan/2026-07-10-gradual-migration-phases.md
 └── evidence/2026-07-20-migration-performance-benchmarks.md
