@@ -66,14 +66,22 @@ project/
 ## File Naming Convention
 
 ```
-docs/<initiative>/<type>/YYYY-MM-DD-<initiative>-<short-description>.md
+docs/<initiative>/<type>/YYYY-MM-DD-<specific-topic>.md
 ```
 
 Rules:
 - Date: `YYYY-MM-DD` (creation date)
-- Initiative: kebab-case, matches directory name
-- Description: kebab-case, 2-5 words max, no special chars
-- Example: `docs/analytics-listener/prd/2026-07-14-analytics-listener-dashboard-v2.md`
+- Topic: kebab-case, describes the specific problem/subject — NOT the initiative name
+- An initiative can be a product feature, env setup, team oncall, or anything
+- Multiple files of same type in one initiative are normal
+
+Examples:
+```
+docs/dashboard-v2/prd/2026-07-14-realtime-data-pipeline.md
+docs/dashboard-v2/design/2026-07-15-hld-caching-layer.md
+docs/team-oncall/how-to/2026-07-17-pagerduty-escalation.md
+docs/dev-env-setup/impl-plan/2026-07-10-docker-compose-migration.md
+```
 
 ---
 
