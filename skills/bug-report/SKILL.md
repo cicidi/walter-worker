@@ -15,8 +15,8 @@ aliases:
 - report-bug
 - issue
 - report
+user-invocable: true
 ---
-
 # Bug Report
 
 Create a structured GitHub Issue. Covers project bugs, coworker system issues, and feature requests.

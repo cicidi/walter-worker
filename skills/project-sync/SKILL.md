@@ -7,8 +7,8 @@ triggers:
 when-to-use: When user needs to re-inject project catalog into ide config files
 license: MIT
 compatibility: claude-code,opencode,gemini
+user-invocable: true
 ---
-
 # project-sync
 
 Re-inject project catalog into IDE config files.

@@ -1,33 +1,35 @@
 ---
 name: write-doc
 version: 0.1.0
-description: >
-  Used when writing or modifying any documentation file (*.md, *.yaml) in the
-  docs/ directory. Enforces change log appending at the end of every file.
+description: Enforces Change Log on every docs/ file modification. Works with doc-organize for placement and naming. doc-organize decides WHERE and WHAT NAME; write-doc handles Change Log.
 triggers:
-  - write doc
-  - edit doc
-  - create spec
-  - update spec
-  - modify doc
-  - write spec
-  - edit spec
-  - create plan
-  - update plan
-  - document
-  - prd
-  - move file
-when-to-use: >
-  Used BEFORE writing or modifying any file under docs/ — ALWAYS append a
-  Change Log entry at the end of the file. This is mandatory for all doc
-  modifications, including file moves between directories.
+- write doc
+- edit doc
+- create spec
+- update spec
+- modify doc
+- write spec
+- edit spec
+- create plan
+- update plan
+- document
+- prd
+- move file
+when-to-use: Before writing or modifying any file under docs/. ALWAYS append a Change Log. For new files, consult doc-organize first for correct path and naming.
 aliases: []
 ---
-
 # Write Doc
 
-Every time a file in `docs/` is written or modified, append a **Change Log**
-entry at the END of the file.
+Every time a file in `docs/` is written or modified, append a **Change Log** at the END of the file.
+
+## Integration with doc-organize
+
+**CRITICAL**: Before creating a new file, invoke `doc-organize` to determine:
+1. Correct initiative and type folder
+2. Correct file name: `YYYY-MM-DD-<initiative>-<desc>.md`
+3. Update `docs/INDEX.md`
+
+write-doc handles ONLY the Change Log. doc-organize handles placement.
 
 ## Rules
 

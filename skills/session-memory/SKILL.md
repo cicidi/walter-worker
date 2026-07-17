@@ -1,12 +1,10 @@
 ---
 name: session-memory
 version: 0.1.0
-description: 'Use when summarizing past opencode sessions into structured memory cards for both AI context reuse and personal
+description: Use when summarizing past opencode sessions into structured memory cards for both AI context reuse and personal
   knowledge management. Use when the user asks to "summarize sessions", "extract memory", "scan session history", or "build
   knowledge graph from conversations". Periodically runs batch extraction from opencode.db, feeds session content through
   a local LLM, and writes Markdown memory cards to the Obsidian vault.
-
-  '
 triggers:
 - summarize sessions
 - extract memory
@@ -20,8 +18,8 @@ when-to-use: Periodic batch summarization of completed opencode sessions. Buildi
   sessions.
 license: MIT
 compatibility: opencode
+user-invocable: true
 ---
-
 # ai-coworker-session-memory
 
 Extracts structured memory cards from opencode session history using a local LLM. Each memory card captures the essence of a session for both AI retrieval and human review in Obsidian.

@@ -11,8 +11,8 @@ aliases:
 - trace
 - log-correction
 - heal
+user-invocable: true
 ---
-
 # Self-Heal
 
 Log every user correction for pattern analysis.

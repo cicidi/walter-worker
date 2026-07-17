@@ -11,8 +11,8 @@ when-to-use: Fix the ai-coworker project itself, then distribute via upgrade. Us
 aliases:
 - coworker-fix
 - fix-coworker
+user-invocable: true
 ---
-
 # ai-coworker-fix
 
 Fix issues in the ai-coworker project source code, run tests, commit, push, then invoke `ai-coworker-upgrade` to distribute the fix.

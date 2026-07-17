@@ -7,8 +7,8 @@ triggers:
 when-to-use: When user needs to add a project to the catalog
 license: MIT
 compatibility: claude-code,opencode,gemini
+user-invocable: true
 ---
-
 # project-add
 
 Add a project to the catalog.

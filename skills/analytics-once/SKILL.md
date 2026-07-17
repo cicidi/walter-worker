@@ -9,8 +9,8 @@ triggers:
 when-to-use: When user wants to import sessions without running the daemon
 license: MIT
 compatibility: claude-code,opencode,gemini
+user-invocable: true
 ---
-
 # analytics-once
 
 Import new sessions from Claude Code and OpenCode into the analytics database.

@@ -7,8 +7,8 @@ triggers:
 when-to-use: When user needs to show details of a single project
 license: MIT
 compatibility: claude-code,opencode,gemini
+user-invocable: true
 ---
-
 # project-show
 
 Show details of a single project.

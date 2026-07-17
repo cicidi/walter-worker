@@ -7,8 +7,8 @@ triggers:
 when-to-use: When user needs to show current coworker config status
 license: MIT
 compatibility: claude-code,opencode,gemini
+user-invocable: true
 ---
-
 # status
 
 Show current coworker config status.

@@ -15,8 +15,8 @@ aliases:
 - oncall
 - deep-dive
 - sleuth
+user-invocable: true
 ---
-
 # Bug Hunt
 
 Find and fix the root cause. Two modes depending on scope.

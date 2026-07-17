@@ -7,8 +7,8 @@ triggers:
 when-to-use: When user needs to show full details of a specific initiative
 license: MIT
 compatibility: claude-code,opencode,gemini
+user-invocable: true
 ---
-
 # initiative-show
 
 Show full details of a specific initiative.

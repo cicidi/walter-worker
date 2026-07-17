@@ -9,8 +9,8 @@ triggers:
 when-to-use: When user wants continuous auto-import of sessions
 license: MIT
 compatibility: claude-code,opencode,gemini
+user-invocable: true
 ---
-
 # analytics-daemon
 
 Run the auto-import daemon to continuously import new sessions.

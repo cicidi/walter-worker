@@ -1,11 +1,8 @@
 ---
 name: initiative-edit
 version: 0.1.0
-description: 'Use when editing an existing initiative — adding projects, decisions, links,
-
-  reference docs, or changing status. Use for updating active work context.
-
-  '
+description: Use when editing an existing initiative — adding projects, decisions, links, reference docs, or changing status.
+  Use for updating active work context.
 triggers:
 - edit initiative
 - update initiative
@@ -17,8 +14,8 @@ when-to-use: 'When the user wants to modify an existing initiative. Adding proje
   decisions, links, or reference docs. Archiving old initiatives.'
 license: MIT
 compatibility: claude-code,opencode
+user-invocable: true
 ---
-
 # initiative-edit
 
 Modifies an existing initiative YAML file at `~/.coworker/initiatives/<name>.yaml`.

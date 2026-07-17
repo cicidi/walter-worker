@@ -7,8 +7,8 @@ triggers:
 when-to-use: When user needs to deactivate the current active initiative
 license: MIT
 compatibility: claude-code,opencode,gemini
+user-invocable: true
 ---
-
 # initiative-deactivate
 
 Deactivate the current active initiative.

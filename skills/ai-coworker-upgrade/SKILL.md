@@ -1,15 +1,9 @@
 ---
 name: ai-coworker-upgrade
 version: 0.1.0
-description: 'Use when updating the ai-coworker installation — pulls latest code from
-
-  ai-coworker and skill-factory, updates global and project-level CLAUDE.md
-
-  with semantic merge, installs new/updated skills from both repos, re-runs
-
-  install, syncs configs to all IDE tools.
-
-  '
+description: Use when updating the ai-coworker installation — pulls latest code from ai-coworker and skill-factory, updates
+  global and project-level CLAUDE.md with semantic merge, installs new/updated skills from both repos, re-runs install, syncs
+  configs to all IDE tools.
 triggers:
 - update ai-coworker
 - update ai-worker
@@ -25,8 +19,8 @@ when-to-use: 'When the user''s ai-coworker installation is out of date and needs
   rules synced to all IDEs.'
 license: MIT
 compatibility: claude-code,opencode
+user-invocable: true
 ---
-
 # ai-coworker-upgrade
 
 Updates the ai-coworker installation end-to-end: pull latest source from

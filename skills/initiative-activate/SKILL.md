@@ -7,8 +7,8 @@ triggers:
 when-to-use: When user needs to activate an initiative and inject its context into ide configs
 license: MIT
 compatibility: claude-code,opencode,gemini
+user-invocable: true
 ---
-
 # initiative-activate
 
 Activate an initiative and inject its context into IDE configs.

@@ -1,13 +1,8 @@
 ---
 name: initiative-create
 version: 0.1.0
-description: 'Use when creating a new initiative — a cross-project work context that groups
-
-  links, decisions, reference docs, and upstream/downstream project branches.
-
-  Walks through interview, YAML generation, and optional activation.
-
-  '
+description: Use when creating a new initiative — a cross-project work context that groups links, decisions, reference docs,
+  and upstream/downstream project branches. Walks through interview, YAML generation, and optional activation.
 triggers:
 - start an initiative
 - create an initiative
@@ -19,8 +14,8 @@ when-to-use: 'When the user wants to create a new work context to scope a featur
   epic, or milestone. When switching to a different workstream.'
 license: MIT
 compatibility: claude-code,opencode
+user-invocable: true
 ---
-
 # initiative-create
 
 Creates a new initiative YAML file at `~/.coworker/initiatives/<name>.yaml`.

@@ -12,8 +12,8 @@ triggers:
 when-to-use: When setting up a project with the new three-layer CLAUDE.md architecture. Use after `coworker init`.
 license: MIT
 compatibility: claude-code,opencode
+user-invocable: true
 ---
-
 # ai-coworker-setup-in-project
 
 Interactive interview to generate project-level and local-level CLAUDE.md for a project using the three-layer architecture.

@@ -7,8 +7,8 @@ triggers:
 when-to-use: When user needs to list all configured skills
 license: MIT
 compatibility: claude-code,opencode,gemini
+user-invocable: true
 ---
-
 # skill-list
 
 List all configured skills.

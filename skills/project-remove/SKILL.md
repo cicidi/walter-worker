@@ -7,8 +7,8 @@ triggers:
 when-to-use: When user needs to remove a project from the catalog
 license: MIT
 compatibility: claude-code,opencode,gemini
+user-invocable: true
 ---
-
 # project-remove
 
 Remove a project from the catalog.

@@ -10,8 +10,8 @@ triggers:
 when-to-use: When setting up ai-coworker for a new project
 license: MIT
 compatibility: claude-code,opencode,gemini
+user-invocable: true
 ---
-
 # init
 
 Auto-scan project and generate configuration.

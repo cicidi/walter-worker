@@ -11,8 +11,8 @@ aliases:
 - analyze-traces
 - analyze
 - self-improve
+user-invocable: true
 ---
-
 # Self-Analyze
 
 Read project correction traces, find patterns, generate rules.

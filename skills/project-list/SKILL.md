@@ -7,8 +7,8 @@ triggers:
 when-to-use: When user needs to list all tracked projects
 license: MIT
 compatibility: claude-code,opencode,gemini
+user-invocable: true
 ---
-
 # project-list
 
 List all tracked projects.

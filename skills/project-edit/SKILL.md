@@ -7,8 +7,8 @@ triggers:
 when-to-use: When user needs to edit a project entry in the catalog
 license: MIT
 compatibility: claude-code,opencode,gemini
+user-invocable: true
 ---
-
 # project-edit
 
 Edit a project entry in the catalog.

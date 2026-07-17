@@ -9,8 +9,8 @@ triggers:
 when-to-use: When user needs to initialize the analytics SQLite database
 license: MIT
 compatibility: claude-code,opencode,gemini
+user-invocable: true
 ---
-
 # analytics-create-db
 
 Initialize the analytics SQLite database.
