@@ -1,7 +1,7 @@
 ---
 name: doc-organize
 version: 0.1.0
-description: Document organization skill — determines where to place docs, what to name them, and maintains INDEX.md. Covers 13 document types with naming conventions and folder hierarchy. Use when creating, moving, or reorganizing documentation files.
+description: Document organization skill — determines where to place docs, what to name them, and maintains INDEX.md. Covers 12 document types with naming conventions and folder hierarchy. Use when creating, moving, or reorganizing documentation files.
 triggers:
 - organize docs
 - where to put this doc
@@ -24,12 +24,12 @@ Works alongside `write-doc` — this skill handles placement, write-doc handles 
 
 ---
 
-## Document Types (13)
+## Document Types (12)
 
 | Type | Purpose | Write When |
 |------|---------|------------|
 | `prd` | Product Requirements Document | Project kickoff |
-| `research` | Investigation report | Before tech selection |
+| `research` | Investigation + comparison of options. Covers competitor analysis, tech selection, feasibility, side-by-side comparison | Before making a decision |
 | `hld` | High-Level Design — architecture, system topology, data flow | Choosing overall architecture |
 | `lld` | Low-Level Design — module/component detail, class diagrams, API contracts | Before implementation |
 | `spec` | Detailed technical specification | Formalizing interfaces |
@@ -37,7 +37,6 @@ Works alongside `write-doc` — this skill handles placement, write-doc handles 
 | `test-plan` | Testing strategy and cases | Before QA phase |
 | `decision-history` | Architecture Decision Record (ADR) | Making key decisions |
 | `evidence` | Experimental data and results | Validating hypotheses |
-| `compare` | Side-by-side option comparison | Evaluating alternatives |
 | `why-this` | Rationale for a choice | Defending a decision |
 | `retro` | Retrospective / post-mortem | End of phase/milestone |
 | `how-to` | Operational guide / runbook | Documenting repeatable processes |
@@ -93,7 +92,7 @@ docs/user-profile-v2/
 docs/dev-env-setup/
 ├── prd/2026-06-01-dockerize-all-services.md
 ├── research/2026-06-02-podman-vs-docker-compose.md
-├── compare/2026-06-03-devcontainer-vs-vagrant.md
+├── research/2026-06-03-devcontainer-vs-vagrant.md
 ├── why-this/2026-06-03-why-docker-compose-not-k8s.md
 ├── hld/2026-06-05-container-orchestration-plan.md
 ├── impl-plan/2026-06-10-onboarding-scripts-and-docs.md
@@ -112,7 +111,7 @@ docs/team-oncall/
 docs/payment-refactor/
 ├── research/2026-07-01-stripe-vs-adyen-2026.md
 ├── lld/2026-07-05-new-payment-provider-interface.md
-├── compare/2026-07-06-migration-vs-big-bang-cutover.md
+├── research/2026-07-06-migration-vs-big-bang-cutover.md
 ├── impl-plan/2026-07-10-gradual-migration-phases.md
 └── evidence/2026-07-20-migration-performance-benchmarks.md
 ```
