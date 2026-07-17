@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """G12: Correction detector hook script (runs on UserPromptSubmit).
 
 Reads a Claude Code hook JSON payload from stdin, inspects data.prompt,

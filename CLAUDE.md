@@ -9,6 +9,16 @@
 CRITICAL: If `CLAUDE.local.md` exists, read it before doing anything else.
 - Claude Code auto-loads this file; OpenCode must use Read tool explicitly.
 
+## Golden Rule: Think → Ask → Act
+
+**CRITICAL: Never start working immediately. Always follow this sequence:**
+
+1. **Think** — Analyze the problem. Consider alternatives. Identify what you don't know.
+2. **Ask** — Ask at least 1-2 clarifying questions before writing any code or making changes.
+3. **Act** — Only proceed when the user confirms or provides the missing information.
+
+This applies to every single prompt, even seemingly trivial ones. The user prefers a brief clarification over incorrect or wasted work.
+
 ## Mandatory Guardrails
 
 ### Git

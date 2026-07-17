@@ -4,7 +4,6 @@ from datetime import datetime
 from pathlib import Path
 
 from ..config import (
-    GLOBAL_DIR,
     INITIATIVES_DIR,
     load_initiative,
     save_initiative,
@@ -13,7 +12,6 @@ from ..config import (
 )
 from ..models import (
     InitiativeConfig,
-    InitiativeProjectRef,
 )
 from ..adapters.claude import inject_initiative, remove_initiative
 

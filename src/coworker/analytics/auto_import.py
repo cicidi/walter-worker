@@ -49,7 +49,7 @@ def _get_skills(jsonl_file: Path) -> set:
 def _count_jsonl_lines(path: Path) -> int:
     if not path.exists():
         return 0
-    return len([l for l in path.read_text().strip().split("\n") if l.strip()])
+    return len([_l for _l in path.read_text().strip().split("\n") if _l.strip()])
 
 
 def _count_jsonl_skill_calls(path: Path) -> set:
@@ -73,16 +73,22 @@ def _count_jsonl_skill_calls(path: Path) -> set:
 
 
 def import_claude_jsonl(jsonl_file: Path, conn):
-    """Store session metadata + stats + file ops from Claude Code JSONL."""
+    """Store session metadata + stats + file ops + messages from Claude Code JSONL."""
     sid = jsonl_file.stem
     lines = jsonl_file.read_text().strip().split("\n")
-    msg_count = len(lines)
+    msg_count = 0
+
+    # Clear stale message/tool_call data so we can re-import with full content
+    conn.execute("DELETE FROM messages WHERE session_id = ?", (sid,))
+    conn.execute("DELETE FROM tool_calls WHERE session_id = ?", (sid,))
 
     created = ""
     model = ""
     cwd = ""
+    branch = ""
     active_skill = None
     file_count = 0
+    tool_count = 0
     read_count = 0
     write_count = 0
 
@@ -99,6 +105,8 @@ def import_claude_jsonl(jsonl_file: Path, conn):
                 model = mi.get("model", "")
         if obj.get("cwd") and not cwd:
             cwd = obj["cwd"]
+        if obj.get("gitBranch") and not branch:
+            branch = obj["gitBranch"]
 
         msg = obj.get("message", {})
         ts = obj.get("timestamp", "")
@@ -106,12 +114,55 @@ def import_claude_jsonl(jsonl_file: Path, conn):
         if not isinstance(msg, dict):
             continue
 
+        # Import individual messages with content
+        obj_type = obj.get("type", "")
+        if obj_type in ("user", "assistant"):
+            content_text = ""
+            content_val = msg.get("content", "")
+            if isinstance(content_val, list):
+                parts = []
+                for b in content_val:
+                    if not isinstance(b, dict):
+                        continue
+                    bt = b.get("type", "")
+                    if bt == "thinking":
+                        parts.append(f"[thinking] {b.get('thinking', '')}")
+                    elif bt == "text":
+                        parts.append(b.get("text", ""))
+                    elif bt == "tool_use":
+                        parts.append(f"[tool: {b.get('name', '?')}] {json.dumps(b.get('input', {}))}")
+                content_text = "\n".join(parts)
+            elif content_val:
+                content_text = str(content_val)
+            if content_text:
+                conn.execute(
+                    "INSERT OR IGNORE INTO messages (session_id, seq, type, content, ts) VALUES (?, ?, ?, ?, ?)",
+                    (sid, seq, obj_type, content_text[:10000], ts),
+                )
+                msg_count += 1
+        elif obj_type == "system":
+            content_text = obj.get("subtype", "") or ""
+            if content_text:
+                conn.execute(
+                    "INSERT OR IGNORE INTO messages (session_id, seq, type, content, ts) VALUES (?, ?, ?, ?, ?)",
+                    (sid, seq, "system", content_text, ts),
+                )
+
         content = msg.get("content", []) if isinstance(msg.get("content"), list) else []
         for block in content:
             if not isinstance(block, dict):
                 continue
             btype = block.get("type", "")
             tname = block.get("name", "")
+            input_str = json.dumps(block.get("input", {})) if block.get("input") else None
+
+            if btype == "tool_use":
+                tool_count += 1
+                call_id = block.get("id", "") or f"{sid}-{seq}"
+                conn.execute(
+                    "INSERT OR IGNORE INTO tool_calls (session_id, call_id, tool, tool_type, args, parent_skill, seq_before, seq_after, ts) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (sid, call_id, tname, "builtin", input_str, active_skill, seq, seq, ts),
+                )
 
             if btype == "tool_use" and tname == "Skill":
                 active_skill = block.get("input", {}).get("name", "") or None
@@ -145,29 +196,63 @@ def import_claude_jsonl(jsonl_file: Path, conn):
                 active_skill = None
 
     conn.execute(
-        """INSERT OR REPLACE INTO sessions (id, ide, project, cwd, model, created_at)
-           VALUES (?, 'claude-code', ?, ?, ?, ?)""",
-        (sid, jsonl_file.parent.name, cwd, model, created or ""),
+        """INSERT OR IGNORE INTO sessions (id, ide, project, cwd, model, branch, created_at)
+           VALUES (?, 'claude-code', ?, ?, ?, ?, ?)""",
+        (sid, jsonl_file.parent.name, cwd, model, branch, created or ""),
     )
 
+    # Estimate tokens from message content
+    tokens_in = 0
+    tokens_out = 0
+    for seq, line in enumerate(lines):
+        try:
+            obj = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        msg = obj.get("message", {})
+        if not isinstance(msg, dict):
+            continue
+        content = msg.get("content", []) if isinstance(msg.get("content"), list) else []
+        msg_type = obj.get("type", "")
+        for block in content:
+            if not isinstance(block, dict):
+                continue
+            if block.get("type") == "text":
+                text = block.get("text", "")
+                # Rough estimate: ~4 chars per token
+                if msg_type == "user":
+                    tokens_in += len(text) // 4
+                else:
+                    tokens_out += len(text) // 4
+            elif block.get("type") == "tool_result":
+                text = str(block.get("content", ""))
+                tokens_in += len(text) // 4
+
     conn.execute(
-        """INSERT OR REPLACE INTO session_stats
-           (session_id, message_count, tool_count, skill_count, read_count, write_count, bash_count, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-        (sid, msg_count, file_count, len(_get_skills(jsonl_file)), read_count, write_count, 0, datetime.now().isoformat()),
+        """INSERT INTO session_stats
+           (session_id, message_count, tool_count, skill_count, read_count, write_count, bash_count, tokens_input, tokens_output, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT(session_id) DO UPDATE SET
+             message_count=excluded.message_count,
+             tool_count=excluded.tool_count,
+             skill_count=excluded.skill_count,
+             read_count=excluded.read_count,
+             write_count=excluded.write_count,
+             bash_count=excluded.bash_count,
+             tokens_input=excluded.tokens_input,
+             tokens_output=excluded.tokens_output,
+             updated_at=excluded.updated_at""",
+        (sid, msg_count, tool_count, len(_get_skills(jsonl_file)), read_count, write_count, 0, tokens_in, tokens_out, datetime.now().isoformat()),
     )
     conn.commit()
 
 
 def import_claude_hooks(session_dir: Path, conn):
-    """Store metadata from Claude Code hooks session directory."""
-    sid = session_dir.name
+    """Import messages, tool calls, and file ops from Claude Code hooks JSONL."""
+    sid = _parse_session_id(session_dir)
     yaml_file = session_dir / "session.yaml"
     msgs_file = session_dir / "messages.jsonl"
     tools_file = session_dir / "tools.jsonl"
-
-    msg_count = _count_jsonl_lines(msgs_file)
-    tool_count = _count_jsonl_lines(tools_file)
 
     info = {}
     if yaml_file.exists():
@@ -177,16 +262,168 @@ def import_claude_hooks(session_dir: Path, conn):
                 info[k.strip()] = v.strip().strip('"')
 
     conn.execute(
-        """INSERT OR REPLACE INTO sessions (id, ide, project, cwd, model, created_at)
-           VALUES (?, 'claude-code', ?, ?, ?, ?)""",
-        (sid, info.get("project", ""), info.get("cwd", ""), info.get("model", ""), info.get("created", "")),
+        """INSERT OR REPLACE INTO sessions (id, ide, project, cwd, model, initiative, branch, created_at)
+           VALUES (?, 'claude-code', ?, ?, ?, ?, ?, ?)""",
+        (sid, info.get("project", ""), info.get("cwd", ""), info.get("model", ""),
+         info.get("initiative", ""), info.get("branch", ""), info.get("created", "")),
     )
+
+    # Import messages from messages.jsonl
+    msg_count = 0
+    if msgs_file.exists():
+        for line in msgs_file.read_text().strip().split("\n"):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                m = json.loads(line)
+                content = m.get("content", "")
+                if content:
+                    conn.execute(
+                        "INSERT OR IGNORE INTO messages (session_id, seq, type, content, ts) VALUES (?, ?, ?, ?, ?)",
+                        (sid, m.get("seq", 0), m.get("type", ""), content, m.get("ts", "")),
+                    )
+                    msg_count += 1
+            except json.JSONDecodeError:
+                continue
+
+    # Import tool calls and file ops from tools.jsonl
+    pre_calls = {}
+    post_calls = {}
+    tool_count = 0
+    skill_names = set()
+
+    if tools_file.exists():
+        for line in tools_file.read_text().strip().split("\n"):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                t = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            cid = t.get("call_id", "")
+            if t.get("phase") == "before":
+                pre_calls[cid] = t
+            elif t.get("phase") == "after":
+                post_calls[cid] = t
+
+        for cid in sorted(set(pre_calls.keys()) | set(post_calls.keys())):
+            pre = pre_calls.get(cid, {})
+            post = post_calls.get(cid, {})
+            tool = pre.get("tool") or post.get("tool", "")
+            tool_type = pre.get("tool_type") or post.get("tool_type", "builtin")
+            server_name = pre.get("server_name") or post.get("server_name", "")
+            args_json = json.dumps(pre.get("args", {})) if pre.get("args") else None
+            result = post.get("result", "") or ""
+            duration = post.get("duration_ms") or 0
+            seq_before = pre.get("seq")
+            seq_after = post.get("seq")
+            ts = pre.get("ts") or post.get("ts", "")
+
+            if tool == "Skill" and args_json:
+                try:
+                    args = json.loads(args_json) if isinstance(args_json, str) else {}
+                    if isinstance(args, dict) and args.get("name"):
+                        skill_names.add(args["name"])
+                except json.JSONDecodeError:
+                    pass
+
+            conn.execute(
+                """INSERT OR IGNORE INTO tool_calls
+                   (session_id, call_id, tool, tool_type, server_name, args, result, duration_ms, seq_before, seq_after, ts)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (sid, cid, tool, tool_type, server_name or None, args_json, result, duration,
+                 seq_before, seq_after, ts),
+            )
+            tool_count += 1
+
+            # File ops from read/write/edit/glob tools (case-insensitive)
+            if tool.lower() in ("read", "write", "edit", "glob") and pre.get("args"):
+                args = pre["args"]
+                if isinstance(args, str):
+                    try:
+                        args = json.loads(args)
+                    except json.JSONDecodeError:
+                        args = {}
+                file_path = args.get("filePath") or args.get("path") or args.get("file_path") or ""
+                if file_path:
+                    op = tool.lower()
+                    file_type = Path(file_path).suffix.lstrip(".") or None
+                    project = info.get("project", "")
+                    conn.execute(
+                        """INSERT OR IGNORE INTO file_ops
+                           (session_id, call_id, op, path, file_type, project, seq, ts)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (sid, cid, op, file_path, file_type, project, seq_before or 0, ts),
+                    )
+
+    # Register skills
+    for name in skill_names:
+        conn.execute("INSERT OR IGNORE INTO skills (name) VALUES (?)", (name,))
+        conn.execute(
+            """UPDATE skills SET total_calls = total_calls + 1,
+               last_invoked = MAX(COALESCE(last_invoked, ''), ?),
+               first_invoked = CASE WHEN first_invoked IS NULL THEN ? ELSE first_invoked END
+               WHERE name = ?""",
+            (info.get("created", ""), info.get("created", ""), name),
+        )
+
+    # Update session_stats with real counts
+    msg_count = conn.execute("SELECT COUNT(*) FROM messages WHERE session_id = ?", (sid,)).fetchone()[0]
+    tool_count = conn.execute("SELECT COUNT(*) FROM tool_calls WHERE session_id = ?", (sid,)).fetchone()[0]
+    skill_count = conn.execute(
+        "SELECT COUNT(*) FROM tool_calls WHERE session_id = ? AND LOWER(tool) = 'skill'", (sid,)
+    ).fetchone()[0]
+    bash_count = conn.execute(
+        "SELECT COUNT(*) FROM tool_calls WHERE session_id = ? AND LOWER(tool) = 'bash'", (sid,)
+    ).fetchone()[0]
+    read_count = conn.execute(
+        "SELECT COUNT(*) FROM file_ops WHERE session_id = ? AND op = 'read'", (sid,)
+    ).fetchone()[0]
+    write_count = conn.execute(
+        "SELECT COUNT(*) FROM file_ops WHERE session_id = ? AND op IN ('write', 'edit')", (sid,)
+    ).fetchone()[0]
+    turn_count = conn.execute(
+        "SELECT COUNT(DISTINCT seq) FROM messages WHERE session_id = ? AND LOWER(type) = 'user'", (sid,)
+    ).fetchone()[0]
+
+    # Estimate tokens from message content (simple char/4 heuristic)
+    tokens_in = 0
+    tokens_out = 0
+    msgs = conn.execute("SELECT content, type FROM messages WHERE session_id = ?", (sid,)).fetchall()
+    for m in msgs:
+        content_len = len(m["content"] or "")
+        if m["type"] == "user":
+            tokens_in += content_len // 4
+        else:
+            tokens_out += content_len // 4
+
+    # Calculate duration from created/closed or last tool call
+    duration_min = None
+    created = info.get("created", "")
+    closed = info.get("closed", "")
+    if created:
+        if not closed:
+            # Try to get last timestamp from tools.jsonl
+            last_ts = conn.execute(
+                "SELECT MAX(ts) FROM tool_calls WHERE session_id = ?", (sid,)
+            ).fetchone()[0]
+            closed = last_ts if last_ts else datetime.now().isoformat()
+        try:
+            c1 = datetime.fromisoformat(created.replace('Z','+00:00'))
+            c2 = datetime.fromisoformat(closed.replace('Z','+00:00'))
+            duration_min = max(1, int((c2 - c1).total_seconds() / 60))
+        except (ValueError, TypeError):
+            pass
 
     conn.execute(
         """INSERT OR REPLACE INTO session_stats
-           (session_id, message_count, tool_count, updated_at)
-           VALUES (?, ?, ?, ?)""",
-        (sid, msg_count, tool_count, datetime.now().isoformat()),
+           (session_id, message_count, tool_count, skill_count, read_count, write_count,
+            bash_count, duration_min, tokens_input, tokens_output, turn_count, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (sid, msg_count, tool_count, skill_count, read_count, write_count,
+         bash_count, duration_min, tokens_in, tokens_out, turn_count, datetime.now().isoformat()),
     )
     conn.commit()
 
@@ -203,7 +440,8 @@ def import_opencode_meta(conn):
         oc = sqlite3.connect(str(OPCODE_DB))
         oc.row_factory = sqlite3.Row
         rows = oc.execute(
-            "SELECT id, title, model, cost, tokens_input, tokens_output, time_created "
+            "SELECT id, title, model, cost, tokens_input, tokens_output, "
+            "tokens_reasoning, tokens_cache_read, tokens_cache_write, time_created "
             "FROM session WHERE title IS NOT NULL AND title != ''"
         ).fetchall()
         oc.close()
@@ -213,24 +451,45 @@ def import_opencode_meta(conn):
     count = 0
     for row in rows:
         sid = row["id"]
-        if sid in existing:
-            continue
+        is_new = sid not in existing
         created = row["time_created"]
         if created:
             try:
                 created = datetime.fromtimestamp(int(created) / 1000).isoformat()
             except (ValueError, TypeError, OSError):
                 pass
+        if is_new:
+            conn.execute(
+                """INSERT OR REPLACE INTO sessions (id, ide, model, created_at)
+                   VALUES (?, 'opencode', ?, ?)""",
+                (sid, row["model"] or "", created or ""),
+            )
+            existing.add(sid)
+        else:
+            if row["model"]:
+                conn.execute("UPDATE sessions SET model=? WHERE id=?", (row["model"], sid))
+        tokens_in = row["tokens_input"] or 0
+        tokens_out = row["tokens_output"] or 0
+        tokens_reason = row["tokens_reasoning"] or 0
+        tokens_cr = row["tokens_cache_read"] or 0
+        tokens_cw = row["tokens_cache_write"] or 0
+        cost_val = row["cost"] or 0.0
         conn.execute(
-            """INSERT OR REPLACE INTO sessions (id, ide, model, created_at)
-               VALUES (?, 'opencode', ?, ?)""",
-            (sid, row["model"] or "", created or ""),
-        )
-        conn.execute(
-            """INSERT OR REPLACE INTO session_stats
-               (session_id, message_count, tool_count, updated_at)
-               VALUES (?, ?, ?, ?)""",
-            (sid, 0, 0, datetime.now().isoformat()),
+            """INSERT INTO session_stats
+               (session_id, message_count, tool_count,
+                tokens_input, tokens_output, tokens_reasoning, tokens_cache_read, tokens_cache_write,
+                cost, updated_at)
+               VALUES (?, 0, 0, ?, ?, ?, ?, ?, ?, ?)
+               ON CONFLICT(session_id) DO UPDATE SET
+                 tokens_input=excluded.tokens_input,
+                 tokens_output=excluded.tokens_output,
+                 tokens_reasoning=excluded.tokens_reasoning,
+                 tokens_cache_read=excluded.tokens_cache_read,
+                 tokens_cache_write=excluded.tokens_cache_write,
+                 cost=excluded.cost,
+                 updated_at=excluded.updated_at""",
+            (sid, tokens_in, tokens_out, tokens_reason, tokens_cr, tokens_cw, cost_val,
+             datetime.now().isoformat()),
         )
         count += 1
     conn.commit()
@@ -250,9 +509,6 @@ def run_once(verbose: bool = False) -> dict:
                 continue
             for jsonl_file in sorted(project_dir.glob("*.jsonl")):
                 sid = jsonl_file.stem
-                if sid in existing:
-                    stats["skipped"] += 1
-                    continue
                 try:
                     import_claude_jsonl(jsonl_file, conn)
                     existing.add(sid)
@@ -303,7 +559,7 @@ def run_daemon(interval: int = POLL_INTERVAL):
 
     while True:
         stats = run_once(verbose=True)
-        total = stats["claude_jsonl"] + stats["claude_hooks"] + stats["opencode"]
+        total = stats["claude_jsonl"] + stats["claude_hooks"] + stats["opencode"]  # noqa: F841
         print(f"[daemon] {datetime.now().strftime('%H:%M:%S')} "
               f"claude_jsonl={stats['claude_jsonl']} claude_hooks={stats['claude_hooks']} "
               f"opencode={stats['opencode']} skipped={stats['skipped']}")

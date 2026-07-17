@@ -66,15 +66,22 @@ CREATE INDEX IF NOT EXISTS idx_fo_type ON file_ops(file_type);
 CREATE INDEX IF NOT EXISTS idx_fo_project ON file_ops(project);
 
 CREATE TABLE IF NOT EXISTS session_stats (
-    session_id    TEXT PRIMARY KEY REFERENCES sessions(id),
-    message_count INTEGER DEFAULT 0,
-    tool_count    INTEGER DEFAULT 0,
-    skill_count   INTEGER DEFAULT 0,
-    read_count    INTEGER DEFAULT 0,
-    write_count   INTEGER DEFAULT 0,
-    bash_count    INTEGER DEFAULT 0,
-    duration_min  INTEGER,
-    updated_at    TEXT NOT NULL
+    session_id          TEXT PRIMARY KEY REFERENCES sessions(id),
+    message_count       INTEGER DEFAULT 0,
+    tool_count          INTEGER DEFAULT 0,
+    skill_count         INTEGER DEFAULT 0,
+    read_count          INTEGER DEFAULT 0,
+    write_count         INTEGER DEFAULT 0,
+    bash_count          INTEGER DEFAULT 0,
+    duration_min        INTEGER,
+    tokens_input        INTEGER DEFAULT 0,
+    tokens_output       INTEGER DEFAULT 0,
+    tokens_reasoning    INTEGER DEFAULT 0,
+    tokens_cache_read   INTEGER DEFAULT 0,
+    tokens_cache_write  INTEGER DEFAULT 0,
+    cost                REAL DEFAULT 0,
+    turn_count          INTEGER DEFAULT 0,
+    updated_at          TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS skills (

@@ -160,20 +160,49 @@ def write_summary(session_id: str, result: dict):
     conn.close()
 
 
+def _fetch_existing_for_dedup(conn, card: dict) -> list[dict]:
+    """Fetch candidate knowledge entries for dedup — same type + similar title, across ALL sessions."""
+    title = card.get("title", "")[:40]  # first 40 chars for fuzzy matching
+    card_type = card.get("type", "")
+    rows = conn.execute(
+        """SELECT title, type, summary FROM knowledge
+           WHERE type = ? AND (title LIKE ? OR ? LIKE '%' || substr(title,1,20) || '%')
+           LIMIT 20""",
+        (card_type, f"%{title[:30]}%", title[:30]),
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
 def write_knowledge(cards: list[dict]):
     conn = get_db()
+    # Ensure knowledge_sessions table exists
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS knowledge_sessions (
+            knowledge_id INTEGER NOT NULL REFERENCES knowledge(id),
+            session_id TEXT NOT NULL REFERENCES sessions(id),
+            generated_at TEXT NOT NULL,
+            PRIMARY KEY (knowledge_id, session_id)
+        )
+    """)
     for card in cards:
         sid = card.get("session_id", "")
         title = card.get("title", "")
 
-        # Fetch existing knowledge for this session for semantic dedup
-        existing = conn.execute(
-            "SELECT title, type, summary FROM knowledge WHERE session_id = ?",
-            (sid,),
-        ).fetchall()
-        existing_dicts = [dict(r) for r in existing]
+        # Check across ALL sessions for semantic dedup (not just this session)
+        candidates = _fetch_existing_for_dedup(conn, card)
 
-        if _is_duplicate(card, existing_dicts):
+        dup = _is_duplicate(card, candidates)
+        if dup:
+            # Found duplicate — link the session to existing knowledge
+            existing = conn.execute(
+                "SELECT id FROM knowledge WHERE title=? AND type=? LIMIT 1",
+                (title, card["type"]),
+            ).fetchone()
+            if existing:
+                conn.execute(
+                    "INSERT OR IGNORE INTO knowledge_sessions (knowledge_id, session_id, generated_at) VALUES (?, ?, ?)",
+                    (existing["id"], sid, datetime.now().isoformat()),
+                )
             continue
 
         conn.execute(
@@ -189,6 +218,12 @@ def write_knowledge(cards: list[dict]):
                 json.dumps(card.get("evidence", [])),
                 datetime.now().isoformat(),
             ),
+        )
+        # Also link the creating session
+        kid = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+        conn.execute(
+            "INSERT OR IGNORE INTO knowledge_sessions (knowledge_id, session_id, generated_at) VALUES (?, ?, ?)",
+            (kid, sid, datetime.now().isoformat()),
         )
     conn.commit()
     conn.close()

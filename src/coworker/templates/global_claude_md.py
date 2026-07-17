@@ -6,6 +6,17 @@ Behavioral guidelines to reduce common LLM coding mistakes.
 
 **Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
+## 0. Golden Rule: Think → Ask → Act
+
+**CRITICAL: Never start work immediately when given a prompt.**
+
+Before writing any code or making any change:
+1. **Think** — Analyze the problem, consider alternatives, identify unknowns.
+2. **Ask** — Ask at least 1-2 clarifying questions to confirm scope, intent, and tradeoffs.
+3. **Act** — Only after the user responds, begin implementation.
+
+This applies to EVERY prompt, even seemingly simple ones. The user would rather answer a question than have you redo work.
+
 ## 1. Ask and Confirm Before Coding
 
 **Don't assume. Don't hide confusion. Surface tradeoffs.**

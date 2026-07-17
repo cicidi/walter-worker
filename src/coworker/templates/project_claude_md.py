@@ -26,6 +26,17 @@ GUARDRAILS = """## Mandatory Guardrails
 - Don't modify PROTECTED blocks; don't fabricate information — ask when uncertain
 """
 
+GOLDEN_RULE = """## Golden Rule: Think → Ask → Act
+
+**CRITICAL: Never start working immediately. Always follow this sequence:**
+
+1. **Think** — Analyze the problem. Consider alternatives. Identify what you don't know.
+2. **Ask** — Ask at least 1-2 clarifying questions before writing any code or making changes.
+3. **Act** — Only proceed when the user confirms or provides the missing information.
+
+This applies to every single prompt, even seemingly trivial ones. The user prefers a brief clarification over incorrect or wasted work.
+"""
+
 COMPACTION = """## Compaction & State Persistence
 
 - Save task progress to `docs/state/` before compaction; compact early (50-70% context)
@@ -80,6 +91,7 @@ def generate_project_claude_md(project_name: str = "", **kwargs) -> str:
         "<!-- PROTECTED:CRITICAL-RULES -->",
         LOCAL_OVERRIDE.strip(),
         GUARDRAILS.strip(),
+        GOLDEN_RULE.strip(),
         COMPACTION.strip(),
         CONTEXT_MGMT.strip(),
         WORKFLOW_HEURISTICS.strip(),

@@ -1,9 +1,8 @@
 from __future__ import annotations
-import os
 import re
 from pathlib import Path
 import yaml
-from .models import CoworkerConfig
+from .models import CoworkerConfig, ProjectCatalog, InitiativeConfig
 
 GLOBAL_DIR = Path.home() / ".coworker"
 GLOBAL_CONFIG = GLOBAL_DIR / "coworker.yaml"
@@ -81,10 +80,6 @@ def save_config(config: CoworkerConfig, path: Path) -> None:
         yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
 
 
-# ── Project Catalog ─────────────────────────────────────────────────────────
-
-from .models import ProjectCatalog
-
 PROJECT_CATALOG_PATH = GLOBAL_DIR / "project.yaml"
 
 
@@ -103,9 +98,6 @@ def save_project_catalog(catalog: ProjectCatalog) -> None:
         yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
 
 
-# ── Initiative (global) ──────────────────────────────────────────────────────
-
-from .models import InitiativeConfig
 
 INITIATIVES_DIR = GLOBAL_DIR / "initiatives"
 _INITIATIVE_NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
