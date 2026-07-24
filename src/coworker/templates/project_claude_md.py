@@ -54,6 +54,10 @@ CONTEXT_MGMT = """## Context Management
 DOC_ENFORCEMENT = """## Documentation
 
 - **MUST use `write-doc` skill** before writing or modifying any file in `docs/`
+- **Doc placement MUST follow doc-organize conventions**: `docs/<initiative>/<type>/<topic>-<type>.md`
+  - Valid types: prd, research, design, spec, impl-plan, test-plan, decision-history, retro, how-to, state
+  - `raw/` may contain subdirectories for ephemeral agent outputs (e.g., `advocate-discussion/`)
+  - All outputs must update `docs/INDEX.md`
 - Every doc modification appends a Change Log entry at end of file
 - Change Log format: `| YYYY-MM-DD | Brief description |`
 - This rule applies to: creating, moving, editing, renaming any doc file

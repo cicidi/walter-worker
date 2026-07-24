@@ -76,4 +76,20 @@ This applies to every single prompt, even seemingly trivial ones. The user prefe
 - After every code change: run lint + tests before marking task complete
 - Commit in logical chunks with conventional commit messages
 
+## Skill Placement
+
+When adding or creating a skill, first determine where it belongs:
+
+| Skill type | Location | Examples |
+|-----------|----------|---------|
+| **ai-coworker-bound** | `skills/` in this repo | `ai-coworker-fix`, `ai-coworker-setup-in-project`, `ai-coworker-upgrade` |
+| **General-purpose** | `skill-factory` → `ai-coworker-skills/` | `find-my-unknown`, `write-doc`, `init` |
+
+A skill is **ai-coworker-bound** if removing ai-coworker would break it:
+- It imports or modifies ai-coworker source code (Python modules under `src/`)
+- It requires ai-coworker CLI commands to function (`coworker ...`)
+- It exists to install, upgrade, fix, or configure ai-coworker itself
+
+If a skill does NOT meet any of these criteria, it belongs in skill-factory.
+
 <!-- END PROTECTED:CRITICAL-RULES -->
