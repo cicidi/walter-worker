@@ -68,7 +68,7 @@ The agent generates three types of knowledge. Each has distinct storage, lifecyc
 │                                                         │
 │  ┌──────────┐    ┌──────────┐    ┌──────────────┐      │
 │  │ Observe  │ →  │  Decide  │ →  │ Update Context│      │
-│  │ analytics│    │ evaluate │    │ CLAUDE.md     │      │
+│  │ analytics│    │ evaluate │    │ CLAUDE.local.md│    │
 │  │ state    │    │ gaps     │    │ skills/memory │      │
 │  └──────────┘    └──────────┘    └──────────────┘      │
 │       ↑                              │                  │
@@ -132,7 +132,7 @@ One cycle = **Observe → Decide → Spawn Claude Code → Record**. Each cycle 
               └──────────────│    RECORD            │
                              │  Sync memory         │
                              │  Update state file   │
-                             │  Update CLAUDE.md    │
+                             │  Update CLAUDE.local.md│
                              └──────────────────────┘
 ```
 
@@ -168,6 +168,8 @@ On terminate: write closing state, run post-session summarization (Section 5.4),
 | `--max-time` | 4h | Maximum wall-clock time |
 
 Without `--loop`, `coworker run` executes ONE cycle and exits (spawn → record).
+
+> **What gets auto-updated vs. what doesn't:** The "Update Context" and "Record" steps modify only **CLAUDE.local.md** (personal working context, not committed to git), skills in `~/.coworker/skills/`, and memory in `~/.coworker/memory/`. **CLAUDE.md** (shared team file, committed to git) is NEVER auto-modified — the self-evolution rules in Section 5.1/5.3 are written once by the human, not the agent. This separation ensures the agent evolves its personal context without altering team-wide conventions.
 
 ### 2.2 No Publish / Transact (MVP)
 
