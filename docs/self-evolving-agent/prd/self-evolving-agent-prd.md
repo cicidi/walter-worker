@@ -359,7 +359,11 @@ Three dimensions — record if ANY one is met:
 
 ### 5.1 Auto Skill Creation
 
-**Trigger:** Completing a task with a significant tool-call footprint. Default threshold: 10+ tool calls (calibrated for ai-coworker's multi-agent patterns; Hermes's 5+ threshold is too low — a single Claude Code task can generate 50+ tool calls). Threshold is configurable via `coworker config set skill.create.threshold`.
+**Triggers (dual):**
+
+1. **In-session trigger:** Completing a task with a significant tool-call footprint. Default threshold: 10+ tool calls (calibrated for ai-coworker's multi-agent patterns; Hermes's 5+ threshold is too low — a single Claude Code task can generate 50+ tool calls). Threshold is configurable via `coworker config set skill.create.threshold`.
+
+2. **Post-session trigger (SessionStop):** When DeepSeek Flash summarizes the session for MEMORY.md (Section 5.4), it simultaneously assesses whether any workflows, patterns, or problem-solving approaches from the session are reusable. If yes → invokes `skill-create` with the full session transcript as context. This trigger is more powerful than the in-session trigger because it has the complete session picture — it can identify cross-task patterns that individual task triggers miss.
 
 **Rule in CLAUDE.md:**
 ```markdown
@@ -438,7 +442,13 @@ When using a skill and finding it incorrect or outdated:
 
 **Trigger:** Session Stop hook
 
-**Action:** DeepSeek Flash summarizes session → writes to MEMORY.md → indexes in FTS5. Provider fallback applies.
+**Actions (single LLM pass over full session transcript):**
+
+1. **Summarize experience** → write lessons, patterns, and pitfalls to MEMORY.md → index in FTS5
+2. **Identify reusable workflows** → assess whether any task patterns from the session are worth capturing as skills → if yes, invoke `skill-create` with the session transcript as context (see Section 5.1 trigger 2)
+3. **Provider fallback** applies (DeepSeek Flash → Gemini Flash → Claude Haiku)
+
+Using a single LLM pass for both summarization and skill identification avoids extra API calls. The full session transcript provides richer context for skill creation than any individual in-session trigger.
 
 ### 5.5 Curator
 

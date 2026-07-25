@@ -356,7 +356,11 @@ docs/<initiative>/state/YYYY-MM-DD-state.md
 
 ### 5.1 自动技能创建
 
-**触发：** 完成一个工具调用较多的任务。默认阈值：10+ 次工具调用（针对 ai-coworker 多 agent 模式校准；Hermes 的 5+ 阈值太低——单个 Claude Code 任务可能产生 50+ 次工具调用）。阈值可通过 `coworker config set skill.create.threshold` 配置。
+**触发（双重）：**
+
+1. **Session 内触发：** 完成一个工具调用较多的任务。默认阈值：10+ 次工具调用（针对 ai-coworker 多 agent 模式校准；Hermes 的 5+ 阈值太低——单个 Claude Code 任务可能产生 50+ 次工具调用）。阈值可通过 `coworker config set skill.create.threshold` 配置。
+
+2. **Session 后触发（SessionStop）：** 当 DeepSeek Flash 为 MEMORY.md 总结 session 时（第 5.4 节），同时评估 session 中的任何工作流、模式或问题解决方法是否可复用。若是 → 以完整 session 记录为上下文调用 `skill-create`。此触发比 session 内触发更强大，因为它拥有完整的 session 全局视图——能识别单个任务触发遗漏的跨任务模式。
 
 **CLAUDE.md 中的规则：**
 ```markdown
@@ -430,7 +434,13 @@ Agent 创建 skill
 
 **触发：** Session Stop hook
 
-**操作：** DeepSeek Flash 总结 session → 写入 MEMORY.md → 索引到 FTS5。Provider 备用生效。
+**操作（单次 LLM 遍览完整 session 记录）：**
+
+1. **总结经验** → 将教训、模式和坑点写入 MEMORY.md → 索引到 FTS5
+2. **识别可复用工作流** → 评估 session 中的任何任务模式是否值得捕获为技能 → 若是，以 session 记录为上下文调用 `skill-create`（见第 5.1 节触发 2）
+3. **Provider 备用**生效（DeepSeek Flash → Gemini Flash → Claude Haiku）
+
+用单次 LLM 调用同时完成总结和技能识别，避免额外 API 调用。完整 session 记录为技能创建提供比任何单个 session 内触发更丰富的上下文。
 
 ### 5.5 Curator
 
