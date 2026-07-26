@@ -191,3 +191,25 @@
 ### Wrong-History: ✅ 2 critical rules active
 
 ### Actions Taken: None (no critical issues found)
+
+## Round 3 — 2026-07-26T06:15:00Z
+
+### Fixed (2 issues)
+- ✅ W-2: Cache hit rate added to Cost dashboard (DeepSeek 97.8%, GPT 75.1%)
+- ✅ C-1: pending.py skill promotion wired — approve() now promotes to ~/.coworker/skills/
+
+### Verified
+- Tests: 100/100 passed
+- Cache query: OK (cache_hit_rate_pct computed correctly)
+- Pending promotion: OK (_promote_to_active creates SKILL.md + usage.json)
+
+### Health Check
+- Dashboard: 17 projects, 22 models
+- Frontend: JS 566l CSS 443l init+expand OK
+- Circuit: OK (0/3)
+- Wrong-History: 2 critical rules active
+
+### Remaining Issues (6)
+- HIGH: S-2 validate harness, S-3 skill patching
+- MEDIUM: S-1 training dashboard, W-3 spend alerts
+- LOW: W-4 OTel config, P-2 dashboard completeness

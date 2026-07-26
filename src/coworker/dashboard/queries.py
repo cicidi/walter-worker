@@ -324,6 +324,7 @@ def query_evolution_skills(auto_train: bool = True, project: str = "", status: s
                 "last_used": skill.get("last_used") or db_info[1] or (rows[-1][1] if rows else ""),
                 "reuse_rate": round(len(rows) / max(total_sessions, 1), 2),
                 "session_ids": [r[0] for r in rows],
+                "description": skill.get("description", ""),
             })
         return results
     finally:
@@ -547,7 +548,7 @@ def query_session_errors(limit: int = 20):
 
 
 def query_cost_analytics():
-    """Token consumption and cost per model, per day."""
+    """Token consumption, cost, and cache efficiency per model, per day."""
     conn = _get_db_conn()
     try:
         model_stats = conn.execute(
@@ -556,8 +557,14 @@ def query_cost_analytics():
                       COALESCE(SUM(ss.tokens_input),0) as total_input,
                       COALESCE(SUM(ss.tokens_output),0) as total_output,
                       COALESCE(SUM(ss.tokens_reasoning),0) as total_reasoning,
+                      COALESCE(SUM(ss.tokens_cache_read),0) as total_cache_read,
+                      COALESCE(SUM(ss.tokens_cache_write),0) as total_cache_write,
                       COALESCE(ROUND(SUM(ss.cost),4),0) as total_cost,
-                      COALESCE(ROUND(AVG(ss.cost),4),0) as avg_cost_per_session
+                      COALESCE(ROUND(AVG(ss.cost),4),0) as avg_cost_per_session,
+                      CASE WHEN COALESCE(SUM(ss.tokens_input),0) > 0
+                           THEN ROUND(COALESCE(SUM(ss.tokens_cache_read),0) * 100.0 /
+                                (COALESCE(SUM(ss.tokens_input),0) + COALESCE(SUM(ss.tokens_cache_read),0) + 1), 1)
+                           ELSE 0 END as cache_hit_rate_pct
                FROM sessions s
                LEFT JOIN session_stats ss ON s.id = ss.session_id
                WHERE ss.tokens_input > 0

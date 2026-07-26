@@ -22,6 +22,40 @@ def _pending_dir() -> Path:
     return Path(DEFAULT_PENDING_DIR).expanduser()
 
 
+def _promote_to_active(data: dict) -> None:
+    """Copy an approved pending skill to the active skills directory."""
+    skill_name = data.get("name", "")
+    if not skill_name:
+        return
+    skill_id = skill_name.replace(" ", "-").lower()
+    active_dir = Path.home() / ".coworker" / "skills" / skill_id
+    active_dir.mkdir(parents=True, exist_ok=True)
+
+    # Write SKILL.md stub
+    skill_md = active_dir / "SKILL.md"
+    if not skill_md.exists():
+        skill_md.write_text(
+            f"---\n"
+            f"name: {skill_id}\n"
+            f"description: {data.get('description', 'Auto-generated skill')}\n"
+            f"---\n\n"
+            f"# {skill_name}\n\n"
+            f"Auto-promoted from pending review. Source session: {data.get('source_session', 'unknown')}\n"
+        )
+
+    # Write usage.json
+    usage = {
+        "provenance": "agent",
+        "total_calls": data.get("tool_call_count", 0),
+        "state": "active",
+        "created_at": data.get("staged_at", ""),
+        "promoted_at": data.get("approved_at", ""),
+        "source_session": data.get("source_session", ""),
+    }
+    (active_dir / "usage.json").write_text(json.dumps(usage, indent=2))
+    logger.info("Promoted skill %s to active skills directory", skill_id)
+
+
 def stage_skill(name: str, description: str, tool_call_count: int, session_id: str) -> str:
     """Stage a new skill candidate to the pending queue.
 
@@ -69,7 +103,8 @@ def approve(skill_id: str) -> bool:
     data["approved_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     path.write_text(json.dumps(data, indent=2))
     logger.info("Approved skill: %s", skill_id)
-    # TODO: Trigger actual skill promotion (skill-create integration)
+    # Promote: copy pending skill to active skills directory
+    _promote_to_active(data)
     return True
 
 
