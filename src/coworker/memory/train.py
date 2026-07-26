@@ -47,6 +47,8 @@ def run_training_pipeline(
         Stats dict with sessions_processed, lessons_extracted, skills_staged, etc.
     """
     from coworker.memory.engine import extract_and_store
+    from coworker.analytics.db import list_all_sessions as db_list_sessions
+    from coworker.analytics.db import get_transcript as db_get_transcript
 
     stats = {
         "sessions_processed": 0,
@@ -62,7 +64,7 @@ def run_training_pipeline(
 
     # 1. Read sessions
     try:
-        sessions = db.list_all_sessions()
+        sessions = db_list_sessions(db)
     except Exception as exc:
         logger.error("Failed to list sessions: %s", exc)
         stats["errors"].append(str(exc))
@@ -86,7 +88,7 @@ def run_training_pipeline(
                 pass
 
         try:
-            transcript = db.get_transcript(session_id)
+            transcript = db_get_transcript(db, session_id)
         except AttributeError:
             transcript = None
 
@@ -96,6 +98,11 @@ def run_training_pipeline(
         transcript_text = "\n".join(
             f"[{m.get('role', '?')}] {m.get('content', '')}" for m in transcript
         )
+
+        # Skip sessions with too little content to extract meaningful lessons
+        content_chars = sum(len(m.get("content", "") or "") for m in transcript)
+        if content_chars < 500:
+            continue
 
         try:
             result = extract_and_store(

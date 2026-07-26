@@ -56,10 +56,46 @@ def extract_and_store(
                 {"role": "user", "content": f"Session transcript:\n{transcript}"},
             ],
             temperature=0.2,
-            max_tokens=1000,
+            max_tokens=4000,
             response_format={"type": "json_object"},
         )
+        if not response.content or not response.content.strip():
+            logger.warning("LLM returned empty content for session %s", session_id)
+            return ExtractionResult()
         data = json.loads(response.content)
+    except json.JSONDecodeError:
+        # Try to repair truncated JSON
+        content = response.content.strip()
+        # Remove trailing incomplete strings/objects
+        if not content.endswith("}"):
+            # Find last complete object or array close
+            last_good = max(
+                content.rfind('"}'),
+                content.rfind('"]'),
+                content.rfind("}"),
+            )
+            if last_good > 0:
+                content = content[: last_good + 1] + "\n}"
+        try:
+            data = json.loads(content)
+        except json.JSONDecodeError:
+            # Last resort: try without response_format constraint
+            try:
+                response2 = llm_client.chat(
+                    messages=[
+                        {"role": "system", "content": SESSION_END_PROMPT},
+                        {"role": "user", "content": f"Session transcript:\n{transcript[:30000]}"},
+                    ],
+                    temperature=0.2,
+                    max_tokens=4000,
+                )
+                if response2.content and response2.content.strip():
+                    data = json.loads(response2.content.strip())
+                else:
+                    raise
+            except Exception:
+                logger.error("LLM extraction failed for %s", session_id)
+                return ExtractionResult()
     except Exception as exc:
         logger.error("LLM extraction failed: %s", exc)
         return ExtractionResult()
