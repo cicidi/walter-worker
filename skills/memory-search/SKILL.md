@@ -1,6 +1,12 @@
 ---
 name: memory-search
+version: 0.1.0
 description: Search the agent's cross-session memory for past lessons, patterns, and conventions stored in mem0
+triggers:
+  - "memory search"
+  - "search memory"
+  - recall
+when-to-use: "Use when searching for past lessons or checking if a pattern was encountered before."
 ---
 
 # Memory Search

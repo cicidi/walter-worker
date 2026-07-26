@@ -1,6 +1,13 @@
 ---
 name: find-issues
-description: Use when you need a QA inspector to audit the codebase against PRD, spec, and industry best practices. Finds gaps, missing features, optimization opportunities, and bugs. MUST find issues every round — reads PRD/spec, searches web (Google, GitHub, Reddit) for best practices, uses DeepSeek v4 for deep analysis. Outputs actionable issue tickets for auto-worker to fix.
+version: 0.1.0
+description: "Use when you need a QA inspector to audit the codebase against PRD, spec, and industry best practices. Finds gaps, missing features, optimization opportunities, and bugs. MUST find issues every round."
+triggers:
+  - find-issues
+  - "find issues"
+  - inspector
+  - 甲方质检
+when-to-use: "Use when the user wants a codebase audit or asks to find problems."
 ---
 
 # Find-Issues — 甲方质检员

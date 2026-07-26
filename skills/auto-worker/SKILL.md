@@ -1,6 +1,12 @@
 ---
 name: auto-worker
-description: Use when running autonomous QA — the 乙方 (builder) that fixes issues found by find-issues (甲方 inspector). Runs health checks, executes fixes, verifies repairs, and reports. Works in a closed loop with find-issues: inspect → fix → verify → repeat. NOT a deterministic script — this is an AI agent doing real work.
+version: 0.2.0
+description: "Use when running autonomous QA — the 乙方 (builder) that fixes issues found by find-issues (甲方 inspector). Runs health checks, executes fixes, verifies repairs, and reports. Works in a closed loop with find-issues: inspect, fix, verify, repeat. NOT a deterministic script."
+triggers:
+  - auto-worker
+  - "run --loop"
+  - autonomous
+when-to-use: "Use when running autonomous QA or when find-issues has discovered issues to fix."
 ---
 
 # Auto-Worker — 乙方 (Builder)

@@ -1,6 +1,12 @@
 ---
 name: wrong-history
-description: Use when you made a mistake, caused a bug, or took a wrong approach that you want to record so it never happens again. Also use BEFORE starting any significant code change to check past mistakes for relevant warnings. Records summary, root cause, prevention rule, and session ID.
+version: 0.1.0
+description: Use when you made a mistake that you want to record so it never happens again. Also use BEFORE starting any significant code change to check past mistakes.
+triggers:
+  - "wrong history"
+  - mistake
+  - "record this"
+when-to-use: "Use after making a mistake or before starting a significant code change."
 ---
 
 # Wrong History
