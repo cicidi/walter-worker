@@ -1,74 +1,84 @@
 ---
 name: auto-worker
-description: Run an autonomous QA validation loop that checks 8 rules (mem0 health, API keys, skills directory, pending queue, memory store size, dead skills, usage-audit, requirement-audit) and auto-fixes issues where possible. Use when the user wants continuous autonomous validation or asks to "run auto-worker".
+description: Use when running autonomous QA — spawn a Claude agent that scans the codebase with real tools (Grep, Bash, Read, Glob), finds bugs, checks spec compliance, audits dashboard, and fixes issues. NOT a deterministic script — this is an AI agent doing real investigation.
 ---
 
 # Auto-Worker
 
-Autonomous QA validation loop that continuously checks the health of the self-evolving agent platform and flags or auto-fixes issues.
+> **This is a Claude agent skill, NOT a Python script.**
 
-## Quick Start
+When invoked, the agent:
+1. Uses real tools (Grep, Bash, Read, Glob) to scan the codebase
+2. Investigates issues — reads files, runs commands, checks outputs
+3. Makes decisions based on what it finds
+4. Fixes bugs or reports them with evidence
+5. Writes findings to state file
 
+## Two Modes
+
+### Mode 1: Agent Investigation (primary)
+Trigger: `/auto-worker` or cron at :03 and :33 each hour
+Duration: ~2-5 minutes per run
+Actions:
+- `git diff` recent commits → identify risky changes
+- `grep -rn "TODO\|FIXME" src/` → find unfinished work
+- Compare `docs/.../spec/` sections against `src/` → find spec gaps
+- Query dashboard APIs → verify data is returning
+- Check uncommitted files → flag forgotten work
+- Read modified files → identify potential bugs
+- Run targeted tests on changed code
+
+### Mode 2: Health Check (complementary)
+Trigger: cron every 10 minutes (:07, :17, :27, etc.)
+Duration: ~60 seconds
+Actions: Run unit tests, check imports, verify dashboard APIs, check circuit breaker, verify frontend integrity
+
+## Agent Investigation Checklist
+
+When invoked as an agent, work through these steps:
+
+1. **Recent changes** — `git diff --stat HEAD~3..HEAD`, read any suspicious diffs
+2. **TODOs** — `grep -rn "TODO\|FIXME\|HACK" src/coworker/ --include="*.py"`
+3. **Spec gaps** — compare spec sections against implemented modules, flag missing
+4. **Dashboard data** — query all API endpoints, verify non-empty responses
+5. **Uncommitted work** — `git status --short`, flag anything that looks forgotten
+6. **Dashboard frontend** — verify JS has init call, CSS has expand classes, line counts healthy
+7. **Wrong-history check** — read entries, verify prevention rules are being followed
+8. **Circuit breaker** — check safety gates status
+
+## Output
+
+Write findings to `docs/self-evolving-agent/state/auto-worker-YYYY-MM-DD-state.md`:
+```markdown
+## Agent Scan — <timestamp>
+- Finding 1
+- Finding 2
 ```
-coworker run --loop --max-hours 2 --project ai-coworker
-```
 
-Or within a Claude Code session:
+## Anti-Patterns
 
-```
-/auto-worker
-```
-
-## 8 Validation Rules
-
-| # | Rule | What it checks | Auto-Fix? |
-|---|------|---------------|-----------|
-| 1 | `validate_against_raw_data` | Skill `usage.json` claimed calls vs `analytics.db` actual calls | No (flags mismatch) |
-| 2 | `detect_dead_skills` | Skills with zero actual calls in analytics.db | No (reports dead) |
-| 3 | `audit_requirement` | PRD item vs code grep + test results | No (reports gap) |
-| 4 | `check_mem0_operational` | mem0 importable and configured | No |
-| 5 | `check_api_keys` | DEEPSEEK_API_KEY set in environment | No |
-| 6 | `check_skills_directory` | `~/.coworker/skills/` exists and has entries | No |
-| 7 | `check_pending_queue` | Pending review queue size (<20 is healthy) | Yes (flags for review) |
-| 8 | `check_memory_store_size` | Active mem0 entries (<500 is healthy) | No (flags for curation) |
-
-## State File
-
-Each run writes to `docs/self-evolving-agent/state/auto-worker-YYYY-MM-DD-state.md`:
-- **Checked** table — each rule with verdict (DONE_RIGHT / DONE_WRONG / NOT_DONE)
-- **Open Questions** table — issues that need human attention
-
-The loop exits when no new findings are discovered in a round (convergence).
-
-## Configuration
-
-| Env Var | Default | Description |
-|---------|---------|-------------|
-| `COWORKER_SKILL_THRESHOLD` | `10` | Min tool calls for skill creation trigger |
+- **DO NOT** just run a Python script and call it done
+- **DO NOT** skip the agent investigation step — use tools to explore
+- **DO NOT** claim "all good" without actually reading code
+- **DO** read real files, run real commands, find real issues
+- **DO** fix critical bugs immediately when found
 
 ## CLI Reference
 
 ```
-coworker run --loop                         # Start continuous auto-worker
-coworker run --loop --max-hours 4           # Run for up to 4 hours
-coworker run --loop --project skill-factory # Target a different project
+coworker run --loop --max-hours 12   # Continuous agent loop (Claude SDK)
+coworker memory refresh              # Refresh CLAUDE.local.md snapshots
+coworker memory train                # Batch-train mem0 from past sessions
 ```
 
-## Related
+## Related Skills
 
-- `coworker memory search` — Search cross-session memory
-- `coworker memory refresh` — Refresh CLAUDE.local.md snapshot
-- `coworker memory train` — Batch-train mem0 from past sessions
-- `coworker analytics dashboard` — Web dashboard with Evolution page
-
-## Anti-Patterns
-
-- Don't run auto-worker while another instance is writing to the same state file
-- Don't expect auto-fix for all rules — most are detection-only, requiring human review
-- Don't run indefinitely without a max-hours limit (default 12h)
+- `/wrong-history` — Record mistakes so they never repeat
+- `/bug-hunt` — Root cause investigation
+- `/contrarian-review` — Adversarial spec/code review
 
 ## Sources
 
-- Spec: `docs/self-evolving-agent/spec/self-evolving-agent-spec.md` §7 (Evolution Metrics)
-- Impl plan: `docs/self-evolving-agent/impl-plan/self-evolving-agent-impl-plan.md` Wave 6
-- Code: `src/coworker/autoworker/` (state.py, rules.py, engine.py)
+- Spec: `docs/self-evolving-agent/spec/self-evolving-agent-spec.md` §12
+- Engine: `src/coworker/autoworker/engine.py` (AutoWorkerAgent — Claude SDK spawner)
+- Rules: `src/coworker/autoworker/rules.py` (8 rules, used by agent for guidance)
