@@ -145,3 +145,14 @@ def populated_mem0(clean_mem0):
             metadata=entry["metadata"],
         )
     return client
+
+
+@pytest.fixture
+def real_llm():
+    """Real DeepSeek Flash LLMClient. Requires DEEPSEEK_API_KEY."""
+    import os
+    from coworker.memory.llm import LLMClient
+
+    if "DEEPSEEK_API_KEY" not in os.environ:
+        pytest.skip("DEEPSEEK_API_KEY not set")
+    return LLMClient()

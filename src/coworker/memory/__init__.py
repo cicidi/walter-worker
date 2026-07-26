@@ -3,6 +3,13 @@
 Public API:
     LLMClient — DeepSeek Flash wrapper with provider fallback chain.
     Mem0Client — mem0 wrapper: add, search, update, delete, get.
+    audit — Audit trail (write records, check gaps, rebuild index).
+    capture — Per-turn and session-end capture (process_turn, process_session_end).
+    engine — Evolution engine (extract_and_store, reconcile).
+    inject — CLAUDE.local.md context injection.
+    pending — Pending queue for staged skill review.
+    curator — Periodic maintenance (archive, merge, export).
+    train — Batch training pipeline.
 """
 
 from coworker.memory.llm import LLMClient, LLMResponse
