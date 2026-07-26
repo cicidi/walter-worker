@@ -250,3 +250,18 @@
 - Fixed: W-8 (recency-weighted memory scoring in curator)
 - Fixed: C-3 (all empty queries in curator → '.')
 - Progress: 20 found → 13 fixed → 7 remaining
+## Round 9 — 2026-07-26T07:37:00Z — All healthy, no new auto-fixable issues. 20 found/13 fixed/7 remaining (design-level).
+
+## Summary
+
+- **Rounds:** 50
+- **Fixed:** 0
+- **Asked:** 0
+- **Elapsed:** 49.1 min
+- **Completed:** 2026-07-26T07:20:15Z
+## Round 10 — 2026-07-26T07:57:00Z
+- ✅ Tests: 114/114 (expanded from 100 — +14 new)
+- Fixed: T-1 (errors.py tests), T-2 (metrics.py tests), T-3 (train.py tests)
+- 3 previously untested modules now have test coverage
+- Health: Dashboard OK, Circuit OK, Frontend 566l/443l OK
+- Progress: 32 found → 19 fixed → 13 remaining
