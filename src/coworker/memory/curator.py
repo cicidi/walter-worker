@@ -67,7 +67,7 @@ def _mark_stale(mem0_client) -> int:
     count = 0
     try:
         results = mem0_client.search(
-            query="",
+            query=".",
             filters={"state": "active"},
             top_k=200,
         )

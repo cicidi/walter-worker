@@ -9,6 +9,7 @@ from __future__ import annotations
 import logging
 import os
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -181,9 +182,27 @@ class Mem0Client:
         try:
             result = self._memory.search(**kwargs)
             # mem0 v2 returns {"results": [...]}
+            results_list: list[dict] = []
             if isinstance(result, dict) and "results" in result:
-                return list(result["results"])
-            return list(result) if result else []
+                results_list = list(result["results"])
+            elif result:
+                results_list = list(result)
+
+            # Auto-increment use_count for retrieved entries (W-5, C-5)
+            for entry in results_list:
+                try:
+                    meta = entry.get("metadata", {})
+                    current_count = int(meta.get("use_count", 0))
+                    entry_id = entry.get("id", "")
+                    if entry_id:
+                        self.update(entry_id, metadata={
+                            "use_count": current_count + 1,
+                            "last_used": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                        })
+                except Exception:
+                    pass  # Best-effort — don't fail search for tracking
+
+            return results_list
         except Exception as exc:
             logger.error("mem0 search failed: %s", exc)
             return []
