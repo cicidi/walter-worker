@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 from coworker.memory import pending
@@ -75,7 +75,7 @@ class TestExpire:
         # Manually backdate the file
         item_path = pending_dir / f"{sid}.json"
         data = json.loads(item_path.read_text())
-        old_date = (datetime.utcnow() - timedelta(days=31)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        old_date = (datetime.now(timezone.utc) - timedelta(days=31)).strftime("%Y-%m-%dT%H:%M:%SZ")
         data["staged_at"] = old_date
         item_path.write_text(json.dumps(data))
 
@@ -100,7 +100,7 @@ class TestExpire:
         # Backdate
         item_path = pending_dir / f"{sid}.json"
         data = json.loads(item_path.read_text())
-        old_date = (datetime.utcnow() - timedelta(days=31)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        old_date = (datetime.now(timezone.utc) - timedelta(days=31)).strftime("%Y-%m-%dT%H:%M:%SZ")
         data["staged_at"] = old_date
         data["status"] = "approved"
         item_path.write_text(json.dumps(data))

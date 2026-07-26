@@ -1,84 +1,119 @@
 ---
 name: auto-worker
-description: Use when running autonomous QA — spawn a Claude agent that scans the codebase with real tools (Grep, Bash, Read, Glob), finds bugs, checks spec compliance, audits dashboard, and fixes issues. NOT a deterministic script — this is an AI agent doing real investigation.
+description: Use when running autonomous QA — the 乙方 (builder) that fixes issues found by find-issues (甲方 inspector). Runs health checks, executes fixes, verifies repairs, and reports. Works in a closed loop with find-issues: inspect → fix → verify → repeat. NOT a deterministic script — this is an AI agent doing real work.
 ---
 
-# Auto-Worker
+# Auto-Worker — 乙方 (Builder)
 
-> **This is a Claude agent skill, NOT a Python script.**
+> **Closed-loop: 甲方 (find-issues) inspects → 乙方 (auto-worker) fixes → 甲方 verifies → loop**
 
-When invoked, the agent:
-1. Uses real tools (Grep, Bash, Read, Glob) to scan the codebase
-2. Investigates issues — reads files, runs commands, checks outputs
-3. Makes decisions based on what it finds
-4. Fixes bugs or reports them with evidence
-5. Writes findings to state file
+## Two-Role System
 
-## Two Modes
+```
+┌─────────────────────────────────────────────────────┐
+│                 Autonomous QA Loop                   │
+│                                                      │
+│  🔍 find-issues (甲方质检)                            │
+│  ├─ Read PRD/spec → find gaps                        │
+│  ├─ WebSearch GitHub/Reddit/Google → best practices  │
+│  ├─ DeepSeek v4 deep analysis → ranked improvements  │
+│  └─ Output: issues-found-YYYY-MM-DD.md               │
+│                         │                            │
+│                         ▼                            │
+│  🔧 auto-worker (乙方) ← YOU ARE HERE                 │
+│  ├─ Read issues-found-*.md                           │
+│  ├─ Health checks (tests, dashboard, frontend)       │
+│  ├─ Fix auto-fixable issues                          │
+│  ├─ Verify fixes                                     │
+│  └─ Report: auto-worker-YYYY-MM-DD-state.md          │
+│                         │                            │
+│                         ▼                            │
+│                    🔄 LOOP                            │
+└─────────────────────────────────────────────────────┘
+```
 
-### Mode 1: Agent Investigation (primary)
-Trigger: `/auto-worker` or cron at :03 and :33 each hour
-Duration: ~2-5 minutes per run
-Actions:
-- `git diff` recent commits → identify risky changes
-- `grep -rn "TODO\|FIXME" src/` → find unfinished work
-- Compare `docs/.../spec/` sections against `src/` → find spec gaps
-- Query dashboard APIs → verify data is returning
-- Check uncommitted files → flag forgotten work
-- Read modified files → identify potential bugs
-- Run targeted tests on changed code
+## Workflow
 
-### Mode 2: Health Check (complementary)
-Trigger: cron every 10 minutes (:07, :17, :27, etc.)
-Duration: ~60 seconds
-Actions: Run unit tests, check imports, verify dashboard APIs, check circuit breaker, verify frontend integrity
+### Step 1: Read Issues
+```bash
+cat docs/self-evolving-agent/state/issues-found-*.md | tail -100
+```
+Identify auto-fixable items (bugs, missing tests, broken APIs, frontend issues).
 
-## Agent Investigation Checklist
+### Step 2: Health Checks
+Run these every round — they're the baseline:
+1. `pytest tests/python/ -q --tb=no` — all tests must pass
+2. Dashboard API endpoints — all must return data
+3. Frontend integrity — JS init call, CSS expand classes
+4. Circuit breaker — must not be tripped
+5. Wrong-history prevention rules — must be followed
 
-When invoked as an agent, work through these steps:
+### Step 3: Fix Issues
+For each auto-fixable issue from find-issues:
+- Read the relevant code
+- Fix the bug / add the missing test / wire the endpoint
+- Commit with `fix:` prefix
 
-1. **Recent changes** — `git diff --stat HEAD~3..HEAD`, read any suspicious diffs
-2. **TODOs** — `grep -rn "TODO\|FIXME\|HACK" src/coworker/ --include="*.py"`
-3. **Spec gaps** — compare spec sections against implemented modules, flag missing
-4. **Dashboard data** — query all API endpoints, verify non-empty responses
-5. **Uncommitted work** — `git status --short`, flag anything that looks forgotten
-6. **Dashboard frontend** — verify JS has init call, CSS has expand classes, line counts healthy
-7. **Wrong-history check** — read entries, verify prevention rules are being followed
-8. **Circuit breaker** — check safety gates status
+### Step 4: Verify
+- Re-run the specific test that was failing
+- Re-check the API endpoint that was 404
+- Verify the fix in the dashboard
 
-## Output
-
-Write findings to `docs/self-evolving-agent/state/auto-worker-YYYY-MM-DD-state.md`:
+### Step 5: Report
+Write to `docs/self-evolving-agent/state/auto-worker-YYYY-MM-DD-state.md`:
 ```markdown
-## Agent Scan — <timestamp>
-- Finding 1
-- Finding 2
+## Round N — HH:MM UTC
+- Fixed: X issues (list)
+- Verified: Y fixes confirmed
+- Health: tests/dashboard/frontend/circuit all OK
+- Remaining: Z issues need human review
+```
+
+## Integration with find-issues
+
+| Role | Tool | Frequency |
+|------|------|-----------|
+| 🔍 甲方 Inspector | `/find-issues` | Every 30 min |
+| 🔧 乙方 Builder | `/auto-worker` | Every 10 min |
+
+The auto-worker reads the issues file from find-issues. If no issues file exists, run a health check only. If issues exist, fix them.
+
+## Auto-Fixable Issues (examples)
+
+| Issue Type | Can Auto-Fix? |
+|-----------|---------------|
+| Missing test for new code | ✅ Yes |
+| Broken API endpoint (404) | ✅ Yes |
+| Dashboard JS missing init call | ✅ Yes |
+| Circuit breaker tripped | ✅ Yes (reset) |
+| Typo in error message | ✅ Yes |
+| Missing spec implementation | ⚠️ Partial (can scaffold) |
+| Design-level architecture change | ❌ No (needs human) |
+| PRD scope decision | ❌ No (needs human) |
+
+## CLI
+
+```bash
+coworker run --loop --max-hours 12    # Continuous agent loop
+coworker memory refresh               # Refresh CLAUDE.local.md snapshots
 ```
 
 ## Anti-Patterns
 
 - **DO NOT** just run a Python script and call it done
-- **DO NOT** skip the agent investigation step — use tools to explore
-- **DO NOT** claim "all good" without actually reading code
-- **DO** read real files, run real commands, find real issues
-- **DO** fix critical bugs immediately when found
+- **DO NOT** skip reading the find-issues output
+- **DO NOT** claim "nothing to fix" without checking the issues file
+- **DO** use Grep, Bash, Read, Glob for actual investigation
+- **DO** fix issues with real code changes, not comments
 
-## CLI Reference
+## Related
 
-```
-coworker run --loop --max-hours 12   # Continuous agent loop (Claude SDK)
-coworker memory refresh              # Refresh CLAUDE.local.md snapshots
-coworker memory train                # Batch-train mem0 from past sessions
-```
-
-## Related Skills
-
+- `/find-issues` — 甲方质检员 (issue discovery)
 - `/wrong-history` — Record mistakes so they never repeat
-- `/bug-hunt` — Root cause investigation
-- `/contrarian-review` — Adversarial spec/code review
+- `docs/self-evolving-agent/state/issues-found-*.md` — Issue backlog
 
 ## Sources
 
 - Spec: `docs/self-evolving-agent/spec/self-evolving-agent-spec.md` §12
-- Engine: `src/coworker/autoworker/engine.py` (AutoWorkerAgent — Claude SDK spawner)
-- Rules: `src/coworker/autoworker/rules.py` (8 rules, used by agent for guidance)
+- Engine: `src/coworker/autoworker/engine.py`
+- Rules: `src/coworker/autoworker/rules.py`
