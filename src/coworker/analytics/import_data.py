@@ -49,6 +49,7 @@ def import_session(session_dir: Path, conn_or_path=None):
 
     pre_calls = {}
     post_calls = {}
+    skill_call_ids = set()
     tools_file = session_dir / "tools.jsonl"
     if tools_file.exists():
         for line in tools_file.read_text().strip().split("\n"):

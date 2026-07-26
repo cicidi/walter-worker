@@ -108,6 +108,7 @@ CREATE TABLE IF NOT EXISTS session_summaries (
     wasted_actions         TEXT,
     bottlenecks            TEXT,
     efficiency_tip         TEXT,
+    last_guide_attempt     TEXT,
     efficiency_score       REAL,
     think_action_ratio     REAL,
     edit_redundancy        REAL,

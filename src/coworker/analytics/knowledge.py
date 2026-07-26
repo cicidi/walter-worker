@@ -145,8 +145,8 @@ def write_summary(session_id: str, result: dict):
     conn.execute(
         """INSERT OR REPLACE INTO session_summaries
            (session_id, context_to_remember, efficiency_tip, memory_keywords,
-            efficiency_score, last_guide_attempt)
-           VALUES (?, ?, ?, ?, ?, ?)""",
+            efficiency_score, last_guide_attempt, generated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?)""",
         (
             session_id,
             result.get("context_to_remember", ""),
@@ -154,6 +154,7 @@ def write_summary(session_id: str, result: dict):
             result.get("memory_keywords", ""),
             result.get("efficiency_score", 0.0),
             result.get("last_guide_attempt", ""),
+            datetime.now().isoformat(),
         ),
     )
     conn.commit()
