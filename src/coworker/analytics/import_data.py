@@ -49,6 +49,7 @@ def import_session(session_dir: Path, conn_or_path=None):
 
     pre_calls = {}
     post_calls = {}
+    skill_call_ids = set()
     tools_file = session_dir / "tools.jsonl"
     if tools_file.exists():
         for line in tools_file.read_text().strip().split("\n"):
@@ -79,7 +80,7 @@ def import_session(session_dir: Path, conn_or_path=None):
             seq_after = post.get("seq")
             ts = pre.get("ts") or post.get("ts", "")
 
-            if tool == "Skill":
+            if tool.lower() == "skill":
                 skill_call_ids.add(cid)
 
             conn.execute(

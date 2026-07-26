@@ -108,6 +108,7 @@ CREATE TABLE IF NOT EXISTS session_summaries (
     wasted_actions         TEXT,
     bottlenecks            TEXT,
     efficiency_tip         TEXT,
+    last_guide_attempt     TEXT,
     efficiency_score       REAL,
     think_action_ratio     REAL,
     edit_redundancy        REAL,
@@ -139,3 +140,20 @@ def init_db(db_path: str | Path | None = None) -> sqlite3.Connection:
     conn.executescript(SCHEMA)
     conn.commit()
     return conn
+
+
+def list_all_sessions(conn: sqlite3.Connection) -> list[dict]:
+    """List all sessions from the analytics database."""
+    conn.row_factory = sqlite3.Row
+    rows = conn.execute("SELECT * FROM sessions ORDER BY created_at").fetchall()
+    return [dict(r) for r in rows]
+
+
+def get_transcript(conn: sqlite3.Connection, session_id: str) -> list[dict]:
+    """Get messages for a session formatted as transcript."""
+    conn.row_factory = sqlite3.Row
+    rows = conn.execute(
+        "SELECT type as role, content FROM messages WHERE session_id = ? ORDER BY seq",
+        (session_id,),
+    ).fetchall()
+    return [dict(r) for r in rows]

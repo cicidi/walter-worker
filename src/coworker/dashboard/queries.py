@@ -292,6 +292,14 @@ def query_evolution_skills(auto_train: bool = True, project: str = "", status: s
         all_skills = _list_skills()
         total_sessions = conn.execute("SELECT COUNT(*) FROM sessions").fetchone()[0]
 
+        # Backfill total_calls / last_used from analytics DB skills table
+        db_skills = {
+            r[0]: (r[1], r[2])
+            for r in conn.execute(
+                "SELECT name, total_calls, last_invoked FROM skills"
+            ).fetchall()
+        }
+
         results = []
         for skill in all_skills:
             if auto_train and skill.get("provenance") != "agent":
@@ -304,14 +312,16 @@ def query_evolution_skills(auto_train: bool = True, project: str = "", status: s
                 (f"%{skill['name']}%",),
             ).fetchall()
 
+            db_info = db_skills.get(skill["name"], (0, ""))
+
             results.append({
                 "name": skill["name"],
-                "provenance": skill.get("provenance", "manual"),
-                "state": skill.get("state", "active"),
+                "provenance": skill.get("provenance") or "bundled",
+                "state": skill.get("state") or "active",
                 "created_at": skill.get("created_at", ""),
-                "total_calls": skill.get("total_calls", 0),
+                "total_calls": skill.get("total_calls") or db_info[0],
                 "sessions_invoked": len(rows),
-                "last_used": skill.get("last_used", ""),
+                "last_used": skill.get("last_used") or db_info[1] or (rows[-1][1] if rows else ""),
                 "reuse_rate": round(len(rows) / max(total_sessions, 1), 2),
                 "session_ids": [r[0] for r in rows],
             })
