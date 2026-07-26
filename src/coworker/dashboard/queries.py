@@ -364,3 +364,168 @@ def query_evolution_pending():
         return list_pending()
     except Exception:
         return []
+
+
+# ---------------------------------------------------------------------------
+# Enhanced dashboard queries — project comparison, error tracking, activity
+# ---------------------------------------------------------------------------
+
+
+def query_project_comparison():
+    """Side-by-side project metrics for comparison view."""
+    conn = _get_db_conn()
+    try:
+        rows = conn.execute(
+            """SELECT s.project,
+                      COUNT(DISTINCT s.id) as sessions,
+                      COALESCE(SUM(ss.message_count),0) as messages,
+                      COALESCE(SUM(ss.tool_count),0) as tool_calls,
+                      COALESCE(SUM(ss.skill_count),0) as skills_used,
+                      COALESCE(ROUND(AVG(ss.duration_min),1),0) as avg_duration_min,
+                      MAX(s.created_at) as last_active
+               FROM sessions s
+               LEFT JOIN session_stats ss ON s.id = ss.session_id
+               WHERE s.project IS NOT NULL AND s.project != ''
+               GROUP BY s.project
+               ORDER BY sessions DESC"""
+        ).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def query_file_hotspots(limit: int = 30):
+    """Most frequently modified files with churn metrics."""
+    conn = _get_db_conn()
+    try:
+        rows = conn.execute(
+            """SELECT path as file_path,
+                      COUNT(*) as total_ops,
+                      SUM(CASE WHEN op = 'read' THEN 1 ELSE 0 END) as reads,
+                      SUM(CASE WHEN op IN ('write','edit') THEN 1 ELSE 0 END) as writes,
+                      SUM(CASE WHEN op = 'delete' THEN 1 ELSE 0 END) as deletes,
+                      COUNT(DISTINCT session_id) as sessions_touched,
+                      COUNT(DISTINCT s.project) as projects,
+                      MAX(f.ts) as last_touched
+               FROM file_ops f
+               LEFT JOIN sessions s ON f.session_id = s.id
+               GROUP BY path
+               ORDER BY writes DESC
+               LIMIT ?""",
+            (limit,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def query_activity_timeline(hours: int = 24):
+    """Hourly activity breakdown for recent period."""
+    conn = _get_db_conn()
+    try:
+        rows = conn.execute(
+            """SELECT substr(COALESCE(m.ts, t.ts), 1, 13) as hour,
+                      COUNT(DISTINCT m.id) as msgs,
+                      COUNT(DISTINCT t.call_id) as tools
+               FROM sessions s
+               LEFT JOIN messages m ON s.id = m.session_id
+               LEFT JOIN tool_calls t ON s.id = t.session_id
+               WHERE s.created_at >= datetime('now', '-' || ? || ' hours')
+               GROUP BY hour
+               ORDER BY hour DESC
+               LIMIT ?""",
+            (hours, hours),
+        ).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def query_error_patterns():
+    """Extract error patterns from tool calls and messages."""
+    conn = _get_db_conn()
+    try:
+        # Tool call errors — check args and result for error patterns
+        tool_errors = conn.execute(
+            """SELECT tool, COUNT(*) as error_count
+               FROM tool_calls
+               WHERE (args LIKE '%error%' OR args LIKE '%fail%'
+                  OR args LIKE '%exception%' OR args LIKE '%traceback%'
+                  OR result LIKE '%error%' OR result LIKE '%fail%'
+                  OR result LIKE '%exception%' OR result LIKE '%traceback%')
+               GROUP BY tool
+               ORDER BY error_count DESC
+               LIMIT 20"""
+        ).fetchall()
+
+        # File operation errors
+        file_errors = conn.execute(
+            """SELECT op, COUNT(*) as count
+               FROM file_ops
+               WHERE path LIKE '%error%' OR path LIKE '%fail%'
+               GROUP BY op"""
+        ).fetchall()
+
+        return {
+            "tool_errors": [dict(r) for r in tool_errors],
+            "file_errors": [dict(r) for r in file_errors],
+        }
+    finally:
+        conn.close()
+
+
+def query_memory_stats():
+    """Memory platform health statistics."""
+    stats = {"mem0_entries": 0, "pending_review": 0, "circuit_breaker": {}}
+    try:
+        from coworker.memory.mem0_client import Mem0Client
+        mem0 = Mem0Client.from_config()
+        active = mem0.search(query=".", filters={"state": "active"}, top_k=1000)
+        stats["mem0_entries"] = len(active)
+        stale = mem0.search(query=".", filters={"state": "stale"}, top_k=1000)
+        archived = mem0.search(query=".", filters={"state": "archived"}, top_k=1000)
+        stats["mem0_stale"] = len(stale)
+        stats["mem0_archived"] = len(archived)
+        stats["mem0_by_type"] = {}
+        for entry in active[:500]:
+            t = entry.get("metadata", {}).get("type", "unknown")
+            stats["mem0_by_type"][t] = stats["mem0_by_type"].get(t, 0) + 1
+    except Exception:
+        stats["mem0_error"] = "mem0 unavailable"
+
+    try:
+        from coworker.memory.safety import check_circuit_breaker
+        stats["circuit_breaker"] = check_circuit_breaker()
+    except Exception:
+        pass
+
+    try:
+        from coworker.memory.pending import list_pending
+        stats["pending_review"] = len(list_pending())
+    except Exception:
+        pass
+
+    return stats
+
+
+def query_session_errors(limit: int = 20):
+    """Sessions with the most tool errors."""
+    conn = _get_db_conn()
+    try:
+        rows = conn.execute(
+            """SELECT s.id as session_id, s.project, s.created_at,
+                      COUNT(t.call_id) as error_tools
+               FROM sessions s
+               JOIN tool_calls t ON s.id = t.session_id
+               WHERE (t.args LIKE '%error%' OR t.args LIKE '%fail%'
+                  OR t.args LIKE '%exception%'
+                  OR t.result LIKE '%error%' OR t.result LIKE '%fail%'
+                  OR t.result LIKE '%exception%')
+               GROUP BY s.id
+               ORDER BY error_tools DESC
+               LIMIT ?""",
+            (limit,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()

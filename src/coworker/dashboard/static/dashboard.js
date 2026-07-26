@@ -19,6 +19,10 @@ function renderSidebar() {
     {id:'knowledge',label:'Knowledge',icon:'◎',section:'Analytics'},
     {id:'initiatives',label:'Initiatives',icon:'◈',section:'Analytics'},
     {id:'evolution',label:'Evolution',icon:'⬡',section:'Monitoring'},
+    {id:'projects',label:'Projects',icon:'◈',section:'Analytics'},
+    {id:'hotspots',label:'Hotspots',icon:'◫',section:'Analytics'},
+    {id:'errors',label:'Errors',icon:'⚠',section:'Monitoring'},
+    {id:'memory',label:'Memory',icon:'◎',section:'Control'},
   ];
   let html='<div class="sidebar-header"><span class="icon">⧩</span> Coworker</div>';
   let lastSection='';
@@ -36,7 +40,7 @@ function navigate(view) {
   currentView = view;
   renderSidebar();
   document.getElementById('main').innerHTML='<div class="content"><div class="loading">Loading...</div></div>';
-  const loaders={overview:loadOverview,sessions:loadSessions,skills:loadSkills,monitor:loadMonitor,tools:loadTools,files:loadFiles,knowledge:loadKnowledge,initiatives:loadInitiatives,evolution:loadEvolution};
+  const loaders={overview:loadOverview,sessions:loadSessions,skills:loadSkills,monitor:loadMonitor,tools:loadTools,files:loadFiles,knowledge:loadKnowledge,initiatives:loadInitiatives,evolution:loadEvolution,projects:loadProjects,hotspots:loadHotspots,errors:loadErrors,memory:loadMemory};
   (loaders[view]||loadOverview)();
 }
 
@@ -267,6 +271,136 @@ Created: ${skill.created_at||'N/A'}
 Last Used: ${skill.last_used||'N/A'}
 Sessions: ${(skill.session_ids||[]).slice(0,10).join(', ')}`);
   }).catch(() => alert('Skill not found'));
+}
+
+async function loadProjects() {
+  try {
+    const data = await fetchJSON(`${API}/projects`);
+    document.getElementById('main').innerHTML = `
+      <div class="content">
+        <div class="page-title">◈ Project Comparison</div>
+        <div class="page-subtitle">Side-by-side metrics across all tracked projects</div>
+        <div class="panel"><div class="panel-header">Projects<span class="count">${data.length}</span></div>
+          <div class="panel-body"><table>
+            <tr><th>Project</th><th>Sessions</th><th>Messages</th><th>Tool Calls</th><th>Skills Used</th><th>Avg Duration</th><th>Last Active</th></tr>
+            ${data.map(p=>`<tr>
+              <td><strong>${p.project||'unknown'}</strong></td>
+              <td>${p.sessions||0}</td>
+              <td>${(p.messages||0).toLocaleString()}</td>
+              <td>${(p.tool_calls||0).toLocaleString()}</td>
+              <td>${p.skills_used||0}</td>
+              <td>${p.avg_duration_min||0} min</td>
+              <td class="text-sm text-muted">${(p.last_active||'').slice(0,16)}</td>
+            </tr>`).join('')||'<tr><td colspan="7" class="text-muted">No projects tracked</td></tr>'}
+          </table></div></div>
+      </div>`;
+  } catch(e) { document.getElementById('main').innerHTML=`<div class="content"><div class="error">Failed: ${e.message}</div></div>`; }
+}
+
+async function loadHotspots() {
+  try {
+    const data = await fetchJSON(`${API}/hotspots?limit=50`);
+    const maxWrites = Math.max(...data.map(d=>d.writes||0),1);
+    document.getElementById('main').innerHTML = `
+      <div class="content">
+        <div class="page-title">◫ File Hotspots</div>
+        <div class="page-subtitle">Most frequently modified files with churn breakdown</div>
+        <div class="panel"><div class="panel-header">Files<span class="count">${data.length}</span></div>
+          <div class="panel-body"><table>
+            <tr><th>File</th><th>Reads</th><th>Writes</th><th>Deletes</th><th>Sessions</th><th>Projects</th><th>Churn</th><th>Last</th></tr>
+            ${data.map(f=>`<tr>
+              <td class="text-sm" title="${f.file_path||''}">${(f.file_path||'').split('/').slice(-2).join('/')}</td>
+              <td>${f.reads||0}</td>
+              <td><strong>${f.writes||0}</strong></td>
+              <td>${f.deletes||0}</td>
+              <td>${f.sessions_touched||0}</td>
+              <td>${f.projects||1}</td>
+              <td><div style="width:${Math.round((f.writes||0)/maxWrites*100)}px;height:4px;background:var(--accent);border-radius:2px"></div></td>
+              <td class="text-xs text-muted">${(f.last_touched||'').slice(0,10)}</td>
+            </tr>`).join('')||'<tr><td colspan="8" class="text-muted">No file data</td></tr>'}
+          </table></div></div>
+      </div>`;
+  } catch(e) { document.getElementById('main').innerHTML=`<div class="content"><div class="error">Failed: ${e.message}</div></div>`; }
+}
+
+async function loadErrors() {
+  try {
+    const data = await fetchJSON(`${API}/errors`);
+    const sessionErrs = await fetchJSON(`${API}/session-errors?limit=10`);
+    document.getElementById('main').innerHTML = `
+      <div class="content">
+        <div class="page-title">⚠ Error Tracking</div>
+        <div class="page-subtitle">Tool errors and problematic sessions</div>
+        <div class="grid-2 mb-lg">
+          <div class="panel"><div class="panel-header">Tool Errors<span class="count">${data.tool_errors?.length||0}</span></div>
+            <div class="panel-body" style="max-height:400px;overflow-y:auto">
+              <table><tr><th>Tool</th><th>Errors</th></tr>
+              ${(data.tool_errors||[]).map(e=>`<tr><td><span class="tag tag-tool">${e.tool}</span></td><td><span class="value red">${e.error_count}</span></td></tr>`).join('')||'<tr><td colspan="2" class="text-muted">No errors detected</td></tr>'}
+              </table>
+            </div></div>
+          <div class="panel"><div class="panel-header">Error-Prone Sessions<span class="count">${sessionErrs.length}</span></div>
+            <div class="panel-body" style="max-height:400px;overflow-y:auto">
+              <table><tr><th>Session</th><th>Project</th><th>Errors</th><th>Date</th></tr>
+              ${sessionErrs.map(s=>`<tr>
+                <td><span class="clickable text-sm" onclick="viewSession('${s.session_id}')">${(s.session_id||'').slice(0,16)}</span></td>
+                <td>${s.project||'-'}</td><td><span class="value red">${s.error_tools}</span></td>
+                <td class="text-xs text-muted">${(s.created_at||'').slice(0,10)}</td>
+              </tr>`).join('')||'<tr><td colspan="4" class="text-muted">No error-prone sessions</td></tr>'}
+              </table>
+            </div></div>
+        </div>
+      </div>`;
+  } catch(e) { document.getElementById('main').innerHTML=`<div class="content"><div class="error">Failed: ${e.message}</div></div>`; }
+}
+
+async function loadMemory() {
+  try {
+    const stats = await fetchJSON(`${API}/memory-stats`);
+    const pending = await fetchJSON(`${API}/evolution/pending`);
+    const cb = stats.circuit_breaker||{};
+    document.getElementById('main').innerHTML = `
+      <div class="content">
+        <div class="page-title">◎ Memory Control</div>
+        <div class="page-subtitle">Memory platform health, circuit breaker, and control actions</div>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="label">Active Memories</div><div class="value blue">${stats.mem0_entries||0}</div></div>
+          <div class="stat-card"><div class="label">Stale</div><div class="value yellow">${stats.mem0_stale||0}</div></div>
+          <div class="stat-card"><div class="label">Archived</div><div class="value">${stats.mem0_archived||0}</div></div>
+          <div class="stat-card"><div class="label">Pending Review</div><div class="value ${(stats.pending_review||0)>0?'yellow':'green'}">${stats.pending_review||0}</div></div>
+          <div class="stat-card"><div class="label">Circuit Breaker</div><div class="value ${cb.allowed?'green':'red'}">${cb.allowed?'◯ OK':'✕ TRIPPED'}</div><div class="sub">${cb.count||0}/${cb.limit||3} evolutions</div></div>
+        </div>
+        ${stats.mem0_by_type ? `<div class="panel"><div class="panel-header">Memory by Type</div>
+          <div class="panel-body" style="padding:12px 16px">${Object.entries(stats.mem0_by_type).map(([k,v])=>`<span class="tag tag-${k||'default'} mr-sm">${k}: ${v}</span>`).join(' ')}</div></div>` : ''}
+        <div class="grid-2 mb-lg">
+          <div class="panel">
+            <div class="panel-header">Actions</div>
+            <div class="panel-body" style="display:flex;flex-direction:column;gap:8px;padding:12px 16px">
+              <button class="btn btn-primary" onclick="memoryAction('refresh')">🔄 Refresh CLAUDE.local.md Snapshot</button>
+              <button class="btn btn-warning" onclick="memoryAction('reset-circuit')">⚡ Reset Circuit Breaker</button>
+              <button class="btn" onclick="navigate('pending')">📋 Review Pending Skills (${pending.length})</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">Circuit Info</div>
+            <div class="panel-body" style="padding:12px 16px;font-size:11px;color:var(--text-secondary)">
+              <div>Limit: ${cb.limit||3} auto-evolutions per 24h</div>
+              <div>Count: ${cb.count||0}</div>
+              ${cb.resets_at?`<div>Resets at: ${cb.resets_at}</div>`:''}
+              ${cb.reason?`<div class="text-yellow mt-sm">${cb.reason}</div>`:''}
+            </div>
+          </div>
+        </div>
+      </div>`;
+  } catch(e) { document.getElementById('main').innerHTML=`<div class="content"><div class="error">Failed: ${e.message}. Is mem0 configured?</div></div>`; }
+}
+
+async function memoryAction(action) {
+  try {
+    const r = await fetch(`${API}/memory/${action}`, {method:'POST'});
+    const data = await r.json();
+    alert(`${action}: ${data.status}`);
+    loadMemory();
+  } catch(e) { alert(`Failed: ${e.message}`); }
 }
 
 renderSidebar();

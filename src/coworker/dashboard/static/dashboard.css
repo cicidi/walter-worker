@@ -174,4 +174,13 @@ tr:hover td{background:var(--bg-hover)}
 .tag-active{background:rgba(74,222,128,.12);border-color:var(--green);color:var(--green)}
 .tag-stale{background:rgba(250,204,21,.12);border-color:var(--yellow);color:var(--yellow)}
 .tag-archived{background:var(--bg-tertiary);border-color:var(--text-muted);color:var(--text-muted)}
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg-tertiary);color:var(--text-primary);font-size:12px;cursor:pointer;transition:.15s}
+.btn:hover{background:var(--bg-hover);border-color:var(--text-muted)}
+.btn-primary{border-color:var(--accent);color:var(--accent)}
+.btn-primary:hover{background:rgba(99,102,241,.1)}
+.btn-warning{border-color:var(--yellow);color:var(--yellow)}
+.btn-warning:hover{background:rgba(250,204,21,.1)}
+.mr-sm{margin-right:6px}
+.mt-sm{margin-top:6px}
 

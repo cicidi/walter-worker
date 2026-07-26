@@ -136,6 +136,71 @@ def api_evolution_reject(item_id: str):
     return {"status": "rejected", "id": item_id}
 
 
+# ---------------------------------------------------------------------------
+# Enhanced monitoring endpoints
+# ---------------------------------------------------------------------------
+
+
+@app.get("/api/projects")
+def api_projects():
+    """Project comparison — side-by-side metrics."""
+    return queries.query_project_comparison()
+
+
+@app.get("/api/hotspots")
+def api_hotspots(limit: int = 30):
+    """Most frequently modified files with churn metrics."""
+    return queries.query_file_hotspots(limit)
+
+
+@app.get("/api/activity")
+def api_activity(hours: int = 24):
+    """Hourly activity breakdown."""
+    return queries.query_activity_timeline(hours)
+
+
+@app.get("/api/errors")
+def api_errors():
+    """Error patterns across tools and sessions."""
+    return queries.query_error_patterns()
+
+
+@app.get("/api/memory-stats")
+def api_memory_stats():
+    """Memory platform health."""
+    return queries.query_memory_stats()
+
+
+@app.post("/api/memory/refresh-snapshot")
+def api_memory_refresh():
+    """Trigger CLAUDE.local.md snapshot refresh."""
+    from coworker.memory.inject import build_snapshot, inject_into_local_md
+    from coworker.memory.mem0_client import Mem0Client
+    try:
+        mem0 = Mem0Client.from_config()
+        import os
+        local_md = os.path.expanduser("~/CLAUDE.local.md")
+        snapshot = build_snapshot(mem0)
+        inject_into_local_md(str(local_md), snapshot)
+        return {"status": "refreshed"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/memory/reset-circuit")
+def api_memory_reset_circuit():
+    """Reset the circuit breaker."""
+    from coworker.memory.safety import reset_circuit_breaker
+    reset_circuit_breaker()
+    return {"status": "reset"}
+
+
+@app.get("/api/session-errors")
+def api_session_errors(limit: int = 20):
+    """Sessions with the most errors."""
+    return queries.query_session_errors(limit)
+
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
