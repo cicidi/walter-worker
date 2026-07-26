@@ -88,7 +88,18 @@ def inject_into_local_md(local_md_path: str, snapshot: str, project: str = "ai-c
 
     # Append if no existing block
     path.write_text(content.rstrip() + "\n\n" + snapshot + "\n")
-    logger.info("Appended memory snapshot to %s", local_md_path)
+
+    # Verify the injection actually worked (R-1, C-10)
+    try:
+        verify = path.read_text()
+        if start_marker in verify and end_marker in verify:
+            logger.info("Appended memory snapshot to %s (verified)", local_md_path)
+        else:
+            logger.error("Snapshot injection verification FAILED for %s", local_md_path)
+            return False
+    except Exception:
+        logger.warning("Could not verify snapshot injection in %s", local_md_path)
+
     return True
 
 
