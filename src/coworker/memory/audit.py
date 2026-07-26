@@ -7,7 +7,7 @@ Gap detection identifies missing captures between records.
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ def write_audit_record(
         status: ``"ok"`` or ``"error"``.
         ts: ISO-8601 timestamp (auto-generated if None).
     """
-    ts = ts or datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    ts = ts or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     record = AUDIT_LOG_FORMAT.format(
         ts=ts,
         trigger=trigger,

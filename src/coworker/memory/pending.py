@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ def stage_skill(name: str, description: str, tool_call_count: int, session_id: s
         "description": description,
         "tool_call_count": tool_call_count,
         "source_session": session_id,
-        "staged_at": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "staged_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "status": "pending",
     }
     path = _pending_dir() / f"{skill_id}.json"
@@ -66,7 +66,7 @@ def approve(skill_id: str) -> bool:
         return False
     data = json.loads(path.read_text())
     data["status"] = "approved"
-    data["approved_at"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    data["approved_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     path.write_text(json.dumps(data, indent=2))
     logger.info("Approved skill: %s", skill_id)
     # TODO: Trigger actual skill promotion (skill-create integration)
@@ -80,7 +80,7 @@ def reject(skill_id: str) -> bool:
         return False
     data = json.loads(path.read_text())
     data["status"] = "rejected"
-    data["rejected_at"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    data["rejected_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     path.write_text(json.dumps(data, indent=2))
     logger.info("Rejected skill: %s", skill_id)
     return True
@@ -109,17 +109,17 @@ def expire_old_items(days: int = AUTO_EXPIRE_DAYS) -> int:
     d = _pending_dir()
     if not d.exists():
         return 0
-    cutoff = datetime.utcnow() - timedelta(days=days)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
     count = 0
     for f in d.glob("*.json"):
         try:
             data = json.loads(f.read_text())
             if data.get("status") != "pending":
                 continue
-            staged = datetime.strptime(data["staged_at"], "%Y-%m-%dT%H:%M:%SZ")
+            staged = datetime.strptime(data["staged_at"], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
             if staged < cutoff:
                 data["status"] = "expired"
-                data["expired_at"] = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+                data["expired_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
                 f.write_text(json.dumps(data, indent=2))
                 count += 1
         except Exception:

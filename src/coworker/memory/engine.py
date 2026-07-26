@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -84,7 +84,7 @@ def extract_and_store(
                     "state": "active",
                     "source_session": session_id,
                     "use_count": 0,
-                    "last_used": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    "last_used": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
                 },
             )
             stored += 1

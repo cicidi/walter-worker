@@ -10,7 +10,7 @@ import json
 import logging
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -166,7 +166,7 @@ def process_turn(
                         "state": "active",
                         "source_session": session_id,
                         "use_count": 0,
-                        "last_used": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                        "last_used": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
                     },
                 )
             except Exception as exc:
@@ -258,7 +258,7 @@ def process_session_end(
                         "state": "active",
                         "source_session": session_id,
                         "use_count": 0,
-                        "last_used": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                        "last_used": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
                     },
                 )
                 stored += 1
@@ -296,10 +296,10 @@ def process_session_end(
 
 def _append_state_delta(state_dir: str, delta: str) -> None:
     """Append a timestamped line to the daily state file."""
-    today = datetime.utcnow().strftime("%Y-%m-%d")
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     state_path = Path(state_dir) / f"{today}-state.md"
     state_path.parent.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.utcnow().strftime("%H:%M")
+    timestamp = datetime.now(timezone.utc).strftime("%H:%M")
     with open(state_path, "a") as f:
         f.write(f"- {timestamp} | {delta}\n")
 
@@ -314,7 +314,7 @@ def _stage_skill(candidate: dict, session_id: str) -> None:
         "description": candidate.get("description", ""),
         "tool_call_count": candidate.get("tool_call_count", 0),
         "source_session": session_id,
-        "staged_at": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "staged_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "status": "pending",
     }
     path = pending_dir / f"{skill_id}.json"
