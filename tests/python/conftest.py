@@ -17,6 +17,9 @@ def temp_coworker_dir(monkeypatch):
             "coworker.config.GLOBAL_DIR", coworker_dir
         )
         monkeypatch.setattr(
+            "coworker.cli.GLOBAL_DIR", coworker_dir
+        )
+        monkeypatch.setattr(
             "coworker.config.PROJECT_CATALOG_PATH",
             coworker_dir / "project.yaml",
         )

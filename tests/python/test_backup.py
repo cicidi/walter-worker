@@ -78,3 +78,39 @@ def test_restore_by_full_dir_round_trips(fake_backup_root, tmp_path):
 
     assert any(p.resolve() == f.resolve() for p in restored)
     assert f.read_text() == "payload"  # back to snapshot content
+
+
+def test_snapshot_backs_up_directory(fake_backup_root, tmp_path):
+    """snapshot handles directory paths (copytree branch)."""
+    d = tmp_path / "mydir"
+    d.mkdir()
+    (d / "file.txt").write_text("content", encoding="utf-8")
+
+    dest = backup.snapshot([d], "dir-backup")
+    assert dest.is_dir()
+    assert (dest / str(d).lstrip("/") / "file.txt").read_text() == "content"
+
+
+def test_restore_by_bare_label(fake_backup_root, tmp_path):
+    """restore accepts a bare label and finds the newest matching backup."""
+    f = tmp_path / "data.txt"
+    f.write_text("v1", encoding="utf-8")
+    dest = backup.snapshot([f], "bare-test")
+
+    # Extract just the label portion from the dest name
+    label = dest.name.split("-", 1)[1] if "-" in dest.name else dest.name
+
+    restored = backup.restore(label)
+    assert any(p.resolve() == f.resolve() for p in restored)
+
+
+def test_restore_nonexistent_backup_fails(fake_backup_root):
+    """restore raises FileNotFoundError for nonexistent backup dir."""
+    with pytest.raises(FileNotFoundError, match="Backup dir not found"):
+        backup.restore("/nonexistent/path/to/backup")
+
+
+def test_restore_bare_label_not_found(fake_backup_root):
+    """restore with bare label that doesn't match any backup raises FileNotFoundError."""
+    with pytest.raises(FileNotFoundError, match="No backup matching label"):
+        backup.restore("nonexistent-label-xyz")
