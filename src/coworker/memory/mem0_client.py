@@ -110,6 +110,7 @@ class Mem0Client:
         self,
         memory: str,
         user_id: str = "default",
+        agent_id: str | None = None,
         run_id: str | None = None,
         metadata: dict | None = None,
         max_retries: int = 3,
@@ -121,6 +122,8 @@ class Mem0Client:
         """
         messages = [{"role": "user", "content": memory}]
         kwargs: dict = {"messages": messages, "user_id": user_id}
+        if agent_id:
+            kwargs["agent_id"] = agent_id
         if run_id:
             kwargs["run_id"] = run_id
         if metadata:
