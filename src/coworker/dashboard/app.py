@@ -144,7 +144,7 @@ def api_evolution_reject(item_id: str):
 @app.get("/api/projects")
 def api_projects():
     """Project comparison — side-by-side metrics."""
-    return queries.query_project_comparison()
+    return queries.query_projects()
 
 
 @app.get("/api/hotspots")

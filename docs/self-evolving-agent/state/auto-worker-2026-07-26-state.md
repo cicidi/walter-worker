@@ -219,6 +219,33 @@
 - Fixed: 0 (remaining 6 issues need design work, not auto-fixable)
 - Status: Healthy, waiting on find-issues for new discoveries
 
+## Round — 2026-07-27T01:00:00Z (loop-mode auto-worker)
+
+### Fixed (4 issues)
+- ✅ **FIX-2**: `/api/projects` 500 — `query_project_comparison()` renamed to `query_projects()` in app.py
+- ✅ **FIX-3**: `/api/cost-analytics, models, model-usage, efficiency, data-quality` all 500 — `queries_analytics.py` missing `_get_db_conn()` function → added
+- ✅ **FIX-4**: `/api/evolution/skills` 500 — SQL referenced non-existent `detail` column → fixed to `args`
+- ✅ **FIX-5**: `/api/hotspots, activity, errors, memory-stats, session-errors` all 500 — 5 query functions did not exist → implemented (`query_file_hotspots`, `query_activity_timeline`, `query_error_patterns`, `query_memory_stats`, `query_session_errors`)
+
+### Verified
+- Tests: 770/770 pass ✅
+- All 21 API endpoints: 200 ✅
+- Dashboard: up on port 8099 ✅
+- Frontend: JS 54 funcs, CSS 442 lines, init+expand OK ✅
+- Circuit: OK ✅
+- Wrong-History: 3 critical rules active ✅
+
+### Data Validation (data-validation skill applied)
+- Sessions: 569 | Initiatives: 6 | Skills DB: 28 (vs 35 dirs on disk — 7 gap)
+- Summaries: 53 (9.3% coverage — LOW, needs `coworker memory train`)
+- Knowledge: 7 entries
+- Git: clean (0 uncommitted)
+
+### Status
+- 101 found / 46 fixed (4 new fixes this round)
+- Remaining: summaries backfill (9.3%), skills gap (7 missing from DB)
+- System healthy. All endpoints operational.
+
 ## Summary
 
 - **Rounds:** 50

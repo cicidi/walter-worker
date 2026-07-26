@@ -202,6 +202,116 @@ def query_top_files(limit: int = 50):
 
 
 # ---------------------------------------------------------------------------
+# Enhanced monitoring queries
+# ---------------------------------------------------------------------------
+
+
+def query_file_hotspots(limit: int = 30):
+    """Most frequently modified files with churn metrics."""
+    conn = _get_db_conn()
+    try:
+        rows = conn.execute(
+            """SELECT path, file_type, COUNT(*) as total_ops,
+                      SUM(CASE WHEN op='write' THEN 1 ELSE 0 END) as writes,
+                      SUM(CASE WHEN op='read' THEN 1 ELSE 0 END) as reads,
+                      COUNT(DISTINCT session_id) as sessions_touched
+               FROM file_ops
+               GROUP BY path
+               ORDER BY total_ops DESC
+               LIMIT ?""",
+            (limit,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def query_activity_timeline(hours: int = 24):
+    """Hourly activity breakdown."""
+    conn = _get_db_conn()
+    try:
+        rows = conn.execute(
+            """SELECT substr(ts, 1, 13) as hour,
+                      COUNT(*) as tool_calls,
+                      COUNT(DISTINCT session_id) as active_sessions
+               FROM tool_calls
+               WHERE ts >= datetime('now', ? || ' hours')
+               GROUP BY hour
+               ORDER BY hour DESC""",
+            (f"-{hours}",),
+        ).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def query_error_patterns():
+    """Error patterns across tools and sessions."""
+    conn = _get_db_conn()
+    try:
+        rows = conn.execute(
+            """SELECT tc.tool, tc.server_name,
+                      COUNT(*) as error_count,
+                      COUNT(DISTINCT tc.session_id) as sessions_affected,
+                      GROUP_CONCAT(DISTINCT substr(tc.result, 1, 120)) as sample_errors
+               FROM tool_calls tc
+               WHERE tc.result LIKE '%error%' OR tc.result LIKE '%fail%'
+                  OR tc.result LIKE '%exception%' OR tc.result LIKE '%traceback%'
+               GROUP BY tc.tool, tc.server_name
+               ORDER BY error_count DESC
+               LIMIT 50"""
+        ).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def query_memory_stats():
+    """Memory platform health."""
+    conn = _get_db_conn()
+    try:
+        skills_count = conn.execute("SELECT COUNT(*) FROM skills").fetchone()[0]
+        knowledge_count = conn.execute("SELECT COUNT(*) FROM knowledge").fetchone()[0]
+        summaries_count = conn.execute(
+            "SELECT COUNT(*) FROM session_summaries"
+        ).fetchone()[0]
+        summary_coverage = conn.execute(
+            """SELECT ROUND(100.0 * (SELECT COUNT(*) FROM session_summaries) /
+                      MAX((SELECT COUNT(*) FROM sessions), 1), 1)"""
+        ).fetchone()[0]
+        return {
+            "skills_count": skills_count,
+            "knowledge_count": knowledge_count,
+            "summaries_count": summaries_count,
+            "summary_coverage_pct": summary_coverage,
+        }
+    finally:
+        conn.close()
+
+
+def query_session_errors(limit: int = 20):
+    """Recent sessions with tool errors."""
+    conn = _get_db_conn()
+    try:
+        rows = conn.execute(
+            """SELECT s.id, s.ide, s.project, s.initiative, s.created_at,
+                      COUNT(tc.id) as error_count,
+                      GROUP_CONCAT(DISTINCT tc.tool) as failing_tools
+               FROM sessions s
+               JOIN tool_calls tc ON s.id = tc.session_id
+               WHERE tc.result LIKE '%error%' OR tc.result LIKE '%fail%'
+                  OR tc.result LIKE '%exception%'
+               GROUP BY s.id
+               ORDER BY s.created_at DESC
+               LIMIT ?""",
+            (limit,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+# ---------------------------------------------------------------------------
 # Evolution page queries (Spec §11)
 # ---------------------------------------------------------------------------
 

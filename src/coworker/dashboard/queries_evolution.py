@@ -93,7 +93,7 @@ def query_evolution_skills(auto_train: bool = True, project: str = "", status: s
             if status != "all" and skill.get("state", "active") != status:
                 continue
             rows = conn.execute(
-                "SELECT DISTINCT session_id, ts FROM tool_calls WHERE tool = 'Skill' AND detail LIKE ? ORDER BY ts",
+                "SELECT DISTINCT session_id, ts FROM tool_calls WHERE tool = 'Skill' AND args LIKE ? ORDER BY ts",
                 (f"%{skill['name']}%",),
             ).fetchall()
             results.append({

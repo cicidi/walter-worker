@@ -1,6 +1,12 @@
 from __future__ import annotations
 from ..analytics.db import get_db
 
+
+def _get_db_conn():
+    """Return a fresh database connection (caller must close)."""
+    return get_db()
+
+
 # ---------------------------------------------------------------------------
 
 
