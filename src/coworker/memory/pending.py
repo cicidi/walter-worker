@@ -209,3 +209,28 @@ def expire_old_items(days: int = AUTO_EXPIRE_DAYS) -> int:
     if count:
         logger.info("Expired %d pending items", count)
     return count
+
+def record_patch(skill_name: str) -> None:
+    """Record a skill patch for tracking (PRD §5.3)."""
+    import json
+    from datetime import datetime, timezone
+    path = _pending_dir() / f"{skill_name}-patches.json"
+    patches = []
+    if path.exists():
+        try: patches = json.loads(path.read_text())
+        except: pass
+    patches.append({"timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "skill": skill_name})
+    path.write_text(json.dumps(patches, indent=2))
+
+def record_version(skill_name: str, version: int = 1) -> None:
+    """Record skill version for rollback (PRD §5.6, S-8)."""
+    import json
+    from datetime import datetime, timezone
+    path = _pending_dir() / f"{skill_name}-versions.json"
+    versions = []
+    if path.exists():
+        try: versions = json.loads(path.read_text())
+        except: pass
+    versions.append({"version": version, "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")})
+    if len(versions) > 5: versions = versions[-5:]  # keep last 5
+    path.write_text(json.dumps(versions, indent=2))

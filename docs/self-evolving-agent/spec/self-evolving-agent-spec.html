@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" style="--rec-label: '★ Recommended'">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>Self-Evolving Agent — Memory Platform Spec</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #FAFAF7; --surface: #FFFFFF; --surface-2: #F5F5F0; --surface-3: #EFEEE8; --text: #1A1A1A; --text-muted: #4A4A45; --text-subtle: #6B6B66; --accent: #D97757; --accent-hover: #C56843; --accent-soft: #FBEEE6; --accent-border: #F0D5C4; --accent-strong: #A85533; --border: #E5E4DC; --border-strong: #CDCDC4; --code-bg: #F5F2EC; --code-text: #2A2A2A; --info: #2563EB; --info-soft: #EFF6FF; --info-border: #BFDBFE; --warn: #B45309; --warn-soft: #FFFBEB; --warn-border: #FDE68A; --danger: #B91C1C; --danger-soft: #FEF2F2; --danger-border: #FECACA; --success: #047857; --success-soft: #ECFDF5; --success-border: #A7F3D0; --decision: #6D28D9; --decision-soft: #F5F3FF; --decision-border: #DDD6FE; --shadow-sm: 0 1px 2px rgba(20,14,8,0.04); --shadow: 0 1px 2px rgba(20,14,8,0.04),0 4px 12px rgba(20,14,8,0.06); --shadow-lg: 0 8px 24px rgba(20,14,8,0.10); --radius: 12px; --radius-sm: 8px; --radius-lg: 16px; --font-sans: 'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'PingFang SC','Microsoft YaHei','Noto Sans CJK SC',sans-serif; --font-mono: 'JetBrains Mono','SF Mono',Menlo,Consolas,monospace; --z-progress: 200; --z-topbar: 100; --z-drawer: 300; --z-backdrop: 250; }
+    [data-theme="dark"] { --bg: #1A1714; --surface: #221E1A; --surface-2: #2A2520; --surface-3: #322C26; --text: #F5F0E8; --text-muted: #C8C0B6; --text-subtle: #9A938A; --accent: #E89572; --accent-hover: #F2A87F; --accent-soft: #3A2A22; --accent-border: #5A3D2E; --accent-strong: #F5B493; --border: #2E2924; --border-strong: #463F38; --code-bg: #1E1B17; --code-text: #E8E2D8; --info: #93C5FD; --info-soft: #1E2A3D; --info-border: #2A4365; --warn: #FBBF24; --warn-soft: #332817; --warn-border: #5C4520; --danger: #FCA5A5; --danger-soft: #3A1F1F; --danger-border: #5C2A2A; --success: #6EE7B7; --success-soft: #1A3329; --success-border: #1F5C45; --decision: #C4B5FD; --decision-soft: #2A1F40; --decision-border: #4A3870; --shadow-sm: 0 1px 2px rgba(0,0,0,0.25); --shadow: 0 1px 2px rgba(0,0,0,0.25),0 4px 12px rgba(0,0,0,0.35); --shadow-lg: 0 8px 24px rgba(0,0,0,0.45); }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+    body { margin: 0; font-family: var(--font-sans); background: var(--bg); color: var(--text); line-height: 1.65; font-size: 16px; -webkit-font-smoothing: antialiased; transition: background-color 0.2s, color 0.2s; }
+    ::selection { background: var(--accent-soft); color: var(--accent-strong); }
+    .skip-link { position: absolute; top: -100px; left: 8px; padding: 10px 16px; background: var(--accent); color: #fff; text-decoration: none; border-radius: var(--radius-sm); font-weight: 500; z-index: 1000; transition: top 0.15s; }
+    .skip-link:focus { top: 8px; }
+    .icon-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+    .icon { display: inline-block; flex-shrink: 0; vertical-align: middle; stroke: currentColor; fill: none; }
+    .scroll-progress { position: fixed; top: 0; left: 0; height: 2px; width: 0; background: var(--accent); z-index: var(--z-progress); transition: width 0.05s linear; }
+    .topbar { position: sticky; top: 0; z-index: var(--z-topbar); background: rgba(250,250,247,0.85); backdrop-filter: saturate(180%) blur(12px); -webkit-backdrop-filter: saturate(180%) blur(12px); border-bottom: 1px solid var(--border); }
+    [data-theme="dark"] .topbar { background: rgba(26,23,20,0.85); }
+    .topbar-inner { max-width: 1280px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--text); font-size: 14px; }
+    .brand-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); animation: brand-pulse 2.8s ease-in-out infinite; }
+    @keyframes brand-pulse { 0%,100% { box-shadow: 0 0 0 4px var(--accent-soft); } 50% { box-shadow: 0 0 0 7px transparent; } }
+    .topbar-actions { display: flex; gap: 6px; align-items: center; }
+    .icon-btn { width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); border-radius: var(--radius-sm); cursor: pointer; transition: color 0.15s, border-color 0.15s, background-color 0.15s; padding: 0; }
+    .icon-btn .icon { width: 18px; height: 18px; stroke-width: 2; }
+    .layout { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: 260px 1fr; gap: 48px; padding: 32px 24px 96px; }
+    .content { min-width: 0; }
+    .toc { position: sticky; top: 80px; align-self: start; max-height: calc(100vh - 100px); overflow-y: auto; padding-right: 8px; }
+    .toc-head { display: flex; align-items: center; justify-content: space-between; padding: 0 12px 12px; }
+    .toc-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-subtle); margin: 0; }
+    .toc-close { display: none; }
+    .toc-nav { display: flex; flex-direction: column; gap: 2px; }
+    .toc-nav a { display: flex; align-items: center; min-height: 36px; padding: 8px 14px; color: var(--text-muted); text-decoration: none; font-size: 13.5px; border-left: 2px solid transparent; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; transition: color 0.15s, background-color 0.15s, border-color 0.15s; line-height: 1.4; }
+    .toc-nav a.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-soft); font-weight: 500; }
+    .toc-nav a.lvl-3 { padding-left: 26px; font-size: 12.5px; }
+    .toc-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: var(--z-backdrop); opacity: 0; transition: opacity 0.2s; }
+    .doc-header { margin-bottom: 40px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+    .doc-eyebrow { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: var(--accent-soft); color: var(--accent-strong); border: 1px solid var(--accent-border); border-radius: 999px; font-size: 12px; font-weight: 500; letter-spacing: 0.04em; margin-bottom: 16px; }
+    .doc-title { font-size: clamp(28px,3vw+16px,40px); font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 12px; color: var(--text); text-wrap: balance; }
+    .doc-subtitle { font-size: clamp(15px,0.6vw+13px,18px); color: var(--text-muted); line-height: 1.55; margin: 0 0 20px; max-width: 75ch; text-wrap: pretty; }
+    .doc-meta { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: var(--text-subtle); }
+    .doc-meta-item { display: inline-flex; align-items: center; gap: 6px; }
+    .doc-meta .icon { width: 14px; height: 14px; stroke-width: 2; }
+    .content h1, .content h2, .content h3, .content h4 { color: var(--text); line-height: 1.3; letter-spacing: -0.01em; scroll-margin-top: 80px; text-wrap: balance; }
+    .content h2 { font-size: 26px; font-weight: 600; margin: 56px 0 16px; padding-top: 8px; }
+    .content h3 { font-size: 19px; font-weight: 600; margin: 36px 0 12px; }
+    .content h4 { font-size: 13px; font-weight: 600; margin: 24px 0 8px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .content p, .content ul, .content ol, .content blockquote { max-width: 75ch; }
+    .content p { margin: 0 0 16px; text-wrap: pretty; overflow-wrap: anywhere; }
+    .content a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-border); }
+    .content ul, .content ol { padding-left: 24px; margin: 0 0 16px; }
+    .content li { margin: 4px 0; }
+    .content strong { color: var(--text); font-weight: 600; }
+    .content code { font-family: var(--font-mono); background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-size: 0.88em; color: var(--code-text); border: 1px solid var(--border); }
+    .content pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; overflow-x: auto; font-size: 13.5px; line-height: 1.6; margin: 16px 0; position: relative; }
+    .content pre code { background: none; padding: 0; border: none; color: var(--code-text); font-size: inherit; }
+    .copy-btn { position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; color: var(--text-subtle); opacity: 0; transition: opacity 0.15s, color 0.15s; padding: 0; }
+    .copy-btn .icon { width: 14px; height: 14px; stroke-width: 2; }
+    .copy-btn.copied { color: var(--success); border-color: var(--success-border); opacity: 1; }
+    .timeline { display: flex; flex-direction: column; gap: 8px; margin: 24px 0; position: relative; }
+    .timeline::before { content: ""; position: absolute; left: 19px; top: 20px; bottom: 20px; width: 2px; background: linear-gradient(180deg, var(--accent-border), var(--border)); }
+    .step { display: grid; grid-template-columns: 40px 1fr; gap: 16px; align-items: start; padding: 16px 4px; position: relative; border-radius: var(--radius); }
+    .step-num { width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; background: var(--surface); border: 2px solid var(--accent); color: var(--accent); border-radius: 50%; font-weight: 600; font-size: 14px; flex-shrink: 0; box-shadow: var(--shadow-sm); position: relative; z-index: 1; }
+    .step-body { padding-top: 6px; min-width: 0; }
+    .step-body h3 { margin: 0 0 6px; font-size: 16px; font-weight: 600; }
+    .step-body p { margin: 0 0 8px; color: var(--text-muted); font-size: 14.5px; max-width: 75ch; }
+    .callout { display: grid; grid-template-columns: 24px 1fr; gap: 14px; padding: 14px 18px; border-radius: var(--radius); border: 1px solid; margin: 20px 0; font-size: 14.5px; line-height: 1.6; max-width: 75ch; }
+    .callout-icon { width: 20px; height: 20px; margin-top: 2px; stroke-width: 2; }
+    .callout-body { min-width: 0; }
+    .callout-title { font-weight: 600; margin: 0 0 4px; font-size: 14px; }
+    .callout-body p:last-child { margin-bottom: 0; }
+    .callout-info     { background: var(--info-soft); border-color: var(--info-border); }
+    .callout-info     .callout-title, .callout-info     .callout-icon { color: var(--info); }
+    .callout-warn     { background: var(--warn-soft); border-color: var(--warn-border); }
+    .callout-warn     .callout-title, .callout-warn     .callout-icon { color: var(--warn); }
+    .callout-decision { background: var(--decision-soft); border-color: var(--decision-border); }
+    .callout-decision .callout-title, .callout-decision .callout-icon { color: var(--decision); }
+    .callout-success  { background: var(--success-soft); border-color: var(--success-border); }
+    .callout-success  .callout-title, .callout-success  .callout-icon { color: var(--success); }
+    .highlight { background: linear-gradient(135deg, var(--accent-soft), var(--surface-2)); border-left: 4px solid var(--accent); padding: 18px 22px; border-radius: 0 var(--radius) var(--radius) 0; margin: 24px 0; font-size: 16px; line-height: 1.65; max-width: 75ch; }
+    .highlight-label { display: inline-block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-strong); margin-bottom: 6px; }
+    .diagram { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin: 24px 0; box-shadow: var(--shadow-sm); overflow-x: auto; }
+    .diagram-caption { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); font-size: 13px; color: var(--text-subtle); text-align: center; }
+    .mermaid { text-align: center; min-height: 80px; }
+    .mermaid svg { max-width: 100%; height: auto; }
+    .mermaid:not([data-processed]) { opacity: 0.4; font-family: var(--font-mono); font-size: 12px; color: var(--text-subtle); white-space: pre-wrap; text-align: left; }
+    .proscons { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0; }
+    .proscons-col { padding: 16px 20px; border-radius: var(--radius); border: 1px solid; }
+    .proscons-col h4 { margin: 0 0 12px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; display: flex; align-items: center; gap: 8px; }
+    .proscons-col ul { margin: 0; padding-left: 18px; }
+    .pros { background: var(--success-soft); border-color: var(--success-border); }
+    .pros h4 { color: var(--success); }
+    .cons { background: var(--danger-soft); border-color: var(--danger-border); }
+    .cons h4 { color: var(--danger); }
+    .compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 24px 0; }
+    .compare-card { padding: 18px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); transition: border-color 0.18s, box-shadow 0.18s; position: relative; }
+    .compare-card.recommended { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .compare-card.recommended::before { content: var(--rec-label, "★ Recommended"); position: absolute; top: -10px; right: 14px; background: var(--accent); color: #fff; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .compare-card h4 { margin: 0 0 8px; font-size: 15px; color: var(--text); text-transform: none; letter-spacing: normal; }
+    .compare-card p { margin: 0; color: var(--text-muted); font-size: 14px; }
+    details.collapsible { border: 1px solid var(--border); border-radius: var(--radius); margin: 16px 0; background: var(--surface); overflow: hidden; }
+    details.collapsible > summary { cursor: pointer; padding: 14px 18px; font-weight: 500; color: var(--text); list-style: none; display: flex; align-items: center; gap: 10px; user-select: none; transition: background 0.15s; }
+    details.collapsible > summary::-webkit-details-marker { display: none; }
+    details.collapsible > summary::before { content: "›"; display: inline-block; transition: transform 0.18s; color: var(--accent); font-size: 18px; font-weight: 700; }
+    details.collapsible[open] > summary::before { transform: rotate(90deg); }
+    .collapsible-body { padding: 4px 18px 18px; border-top: 1px solid var(--border); }
+    .collapsible-body > *:first-child { margin-top: 12px; }
+    .table-wrap { overflow-x: auto; margin: 20px 0; border-radius: var(--radius); border: 1px solid var(--border); max-width: 100%; }
+    .content table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--surface); }
+    .content > table { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin: 20px 0; display: block; overflow-x: auto; }
+    .content th { background: var(--surface-2); color: var(--text); font-weight: 600; text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap; }
+    .content td { padding: 12px 14px; border-bottom: 1px solid var(--border); color: var(--text-muted); vertical-align: top; }
+    .content tr:last-child td { border-bottom: none; }
+    .content blockquote { margin: 20px 0; padding: 4px 20px; border-left: 3px solid var(--accent-border); color: var(--text-muted); font-style: italic; }
+    .doc-footer { margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-subtle); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    @media (max-width:900px) { .layout { grid-template-columns: 1fr; gap: 16px; padding: 20px 16px 80px; } .topbar-inner { padding: 8px 12px; } }
+    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+    @media print { .topbar,.toc,.toc-backdrop,.icon-btn,.copy-btn,.scroll-progress { display: none !important; } .layout { grid-template-columns: 1fr; padding: 0; } body { background: #fff; color: #000; } }
+    @media (hover:hover) { .icon-btn:hover { color: var(--accent); border-color: var(--accent-border); background: var(--accent-soft); } .toc-nav a:hover { color: var(--accent); background: var(--accent-soft); } .content a:hover { color: var(--accent-hover); } .content tr:hover td { background: var(--surface-2); } .content pre:hover .copy-btn { opacity: 1; } }
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to content</a>
+  <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+
+  <svg class="icon-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+    <symbol id="i-danger" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></symbol>
+    <symbol id="i-success" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol>
+    <symbol id="i-decision" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+    <symbol id="i-tip" viewBox="0 0 24 24"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14a5 5 0 1 0-6.18 0 4 4 0 0 1 1.59 2h2.99a4 4 0 0 1 1.6-2Z"/></symbol>
+    <symbol id="i-printer" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2m-13.66 5.66-1.41 1.41m13.73-13.73-1.41 1.41"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+  </svg>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <button class="icon-btn toc-mobile-trigger" onclick="openToc()" aria-label="Contents"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-menu"/></svg></button>
+        <span class="brand-dot" aria-hidden="true"></span><span>Spec</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn" onclick="window.print()" title="Print / Save PDF"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-printer"/></svg></button>
+        <button class="icon-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use id="theme-icon-use" href="#i-moon"/></svg></button>
+      </div>
+    </div>
+  </header>
+  <div class="toc-backdrop" onclick="closeToc()" aria-hidden="true"></div>
+
+  <div class="layout">
+    <aside class="toc" id="toc" aria-label="Contents">
+      <div class="toc-head"><p class="toc-title">Contents</p><button class="toc-close" onclick="closeToc()" aria-label="Close"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+      <nav class="toc-nav" id="toc-nav">
+        <a href="#architecture" class="lvl-2">Architecture Overview</a>
+        <a href="#mem0" class="lvl-2">Memory Substrate — mem0</a>
+        <a href="#capture" class="lvl-2">Dual-IDE Capture Layer</a>
+        <a href="#evolution" class="lvl-2">Self-Evolution Loop</a>
+        <a href="#injection" class="lvl-2">Context Injection &amp; Snapshot</a>
+        <a href="#pending" class="lvl-2">Pending Queue</a>
+        <a href="#metrics" class="lvl-2">Evolution Metrics</a>
+        <a href="#coverage" class="lvl-2">Dual-IDE Coverage</a>
+        <a href="#errors" class="lvl-2">Error Handling</a>
+        <a href="#open" class="lvl-2">Open Questions</a>
+      </nav>
+    </aside>
+
+    <main class="content" id="main">
+      <header class="doc-header">
+        <span class="doc-eyebrow">SPEC</span>
+        <h1 class="doc-title">Self-Evolving Agent — Memory Platform Spec</h1>
+        <p class="doc-subtitle">mem0 substrate, Hermes loop adaptation, dual-IDE capture, per-turn + session-end extraction, DeepSeek Flash everywhere</p>
+        <div class="doc-meta">
+          <span class="doc-meta-item"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-file"/></svg>self-evolving-agent-spec.md</span>
+          <span class="doc-meta-item"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-calendar"/></svg>2026-07-25</span>
+          <span class="doc-meta-item"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-clock"/></svg>~8 min read</span>
+        </div>
+      </header>
+
+      <!-- CONTENT_START -->
+
+      <aside class="callout callout-info">
+        <svg class="callout-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-info"/></svg>
+        <div class="callout-body">
+          <p class="callout-title">Context</p>
+          <p>This spec defines <strong>how</strong> the PRD's requirements (R1–R7) are satisfied. <strong>PRD = what/why.</strong> <strong>Spec = how.</strong> Three external anchors: <strong>mem0</strong> (memory substrate), <strong>Hermes Agent</strong> (loop patterns, re-hosted), and <strong>ai-coworker infra</strong> (analytics.db, hooks, templates).</p>
+        </div>
+      </aside>
+
+      <h2 id="architecture">§1 Architecture Overview</h2>
+
+      <figure class="diagram">
+        <pre class="mermaid">
+flowchart LR
+  subgraph IDEs["Claude Code / OpenCode"]
+    CC[Agent doing real work]
+  end
+  subgraph CAPTURE["Dual-IDE Capture Layer"]
+    PT[PostToolUse] --> ASYNC[async, non-blocking]
+    SS[SubagentStop] --> ASYNC2[async]
+    STP[Stop] --> RECON[session-end reconciliation]
+  end
+  subgraph LOOP["Self-Evolution Loop (Hermes adapted)"]
+    EX[Extract facts] --> MADD[mem0.add]
+    SA[Assess reusable] --> SC[skill-create]
+    PA[Patch outdated] --> SE[skill-edit]
+  end
+  subgraph STORAGE["Storage"]
+    MEM0[("mem0: Tier 3<br/>hybrid retrieval")]
+    STATE[("State files: Tier 2<br/>progress tracking")]
+    SNAP["CLAUDE.local.md<br/>frozen snapshot"]
+  end
+  CC --> PT & SS & STP
+  PT & SS -->|per-turn| EX
+  STP -->|session-end| RECON
+  RECON --> EX & SA
+  EX & SA --> MEM0
+  MEM0 -->|startup| SNAP
+  STP --> STATE
+        </pre>
+        <figcaption class="diagram-caption">End-to-end data flow: IDE hooks → capture → mem0/skills/state → snapshot injection at next session.</figcaption>
+      </figure>
+
+      <aside class="callout callout-decision">
+        <svg class="callout-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-decision"/></svg>
+        <div class="callout-body">
+          <p class="callout-title">Decision — LLM policy</p>
+          <p>Every component that needs an LLM uses <strong>DeepSeek Flash</strong>. Embeddings are <strong>not</strong> an LLM call → local embedder (fastembed, BAAI/bge-small, 384-dim). Fallback to Gemini/Claude Haiku on outage.</p>
+        </div>
+      </aside>
+
+      <h2 id="mem0">§2 Memory Substrate — mem0</h2>
+
+      <h3 id="mem0-why">Why mem0 + library mode</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th>PRD requirement</th><th>mem0 satisfies it how</th></tr></thead>
+        <tbody>
+          <tr><td><strong>R1</strong> (dual-IDE)</td><td>State in <code>~/.coworker/memory/</code> — shared, not IDE-locked</td></tr>
+          <tr><td><strong>R2</strong> (per-turn, no manual save)</td><td>Hooks call <code>memory.add()</code> after every tool call</td></tr>
+          <tr><td><strong>R3</strong> (exact + semantic)</td><td>Hybrid: semantic (vector) + BM25 (keyword) + entity matching, fused</td></tr>
+          <tr><td><strong>R7</strong> (no background server)</td><td><strong>Library mode</strong>: <code>pip install mem0ai</code>, in-process, no Docker</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="highlight">
+        <span class="highlight-label">Key point</span>
+        <p><strong>Resolved:</strong> earlier concern that mem0 implies a background server is false — library mode is in-process. Self-hosted/cloud modes exist but are not used.</p>
+      </div>
+
+      <div class="compare">
+        <div class="compare-card recommended">
+          <h4>mem0</h4>
+          <p>Library mode, hybrid retrieval (semantic + BM25 + entity), DeepSeek Flash extraction, local embedder. <strong>Replaces all prior storage plans</strong> (sqlite-vec, analytics.db knowledge table, FTS5).</p>
+        </div>
+        <div class="compare-card">
+          <h4>sqlite-vec (prior plan)</h4>
+          <p>KNN via vec0 + fastembed. Works but requires hand-rolled extraction, dedup, BM25 — mem0 bundles all three.</p>
+        </div>
+        <div class="compare-card">
+          <h4>Guild OSS (evaluated)</h4>
+          <p>Go binary, MCP server, Lore/Oath primitives. Fails R2, R7. Complementary v2 candidate for task coordination.</p>
+        </div>
+      </div>
+
+      <h3 id="mem0-entry">Memory entry schema</h3>
+<pre><code>{
+  "memory": "lesson text",
+  "user_id": "&lt;user&gt;",
+  "run_id": "&lt;session-id&gt;",
+  "metadata": {
+    "type": "lesson | state | convention | preference",
+    "project": "ai-coworker",
+    "topic": "mcp",
+    "problem": "first-request-403",
+    "provenance": "agent | hand-written",
+    "state": "active | stale | archived",
+    "use_count": 0
+  }
+}</code></pre>
+
+      <h2 id="capture">§3 Dual-IDE Capture Layer</h2>
+
+      <aside class="callout callout-warn">
+        <svg class="callout-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-warn"/></svg>
+        <div class="callout-body">
+          <p class="callout-title">Heads up — reliability</p>
+          <p>PostToolUse alone is unreliable (9 documented failure modes) and blind to subagents. This layer uses <strong>multi-trigger + audit + reconciliation</strong> to guarantee accuracy.</p>
+        </div>
+      </aside>
+
+      <h3>Reliability mechanisms</h3>
+      <div class="timeline">
+        <article class="step"><div class="step-num">1</div><div class="step-body">
+          <h3>Multi-trigger hooks</h3>
+          <p>claude: PostToolUse + SubagentStop + Stop. OpenCode: <code>tool.execute.after</code> + <code>session.end</code>. SubagentStop captures content-richest calls (previously invisible).</p>
+        </div></article>
+        <article class="step"><div class="step-num">2</div><div class="step-body">
+          <h3>Audit trail</h3>
+          <p>Every sync writes timestamped record to <code>audit.log</code>. Gaps → flagged for investigation.</p>
+        </div></article>
+        <article class="step"><div class="step-num">3</div><div class="step-body">
+          <h3>Reconciliation (session-end)</h3>
+          <p>Stop pass reads full transcript, compares against per-turn captures, back-fills misses.</p>
+        </div></article>
+        <article class="step"><div class="step-num">4</div><div class="step-body">
+          <h3>Source of truth</h3>
+          <p>Raw session transcript (analytics.db) is ground truth. mem0 entries are derived; corrupt → re-extract.</p>
+        </div></article>
+      </div>
+
+      <h3 id="per-turn">per-turn vs session-end — both, complementary</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th></th><th>per-turn</th><th>session-end</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Purpose</strong></td><td>Reliability — don't lose data if session killed</td><td>Quality — full-context reconciliation + dedup</td></tr>
+          <tr><td><strong>Input</strong></td><td>Tool event + 3-5 turn window + mem0 recall</td><td>Full session transcript</td></tr>
+          <tr><td><strong>Output</strong></td><td>0..N lessons + optional state_delta</td><td>Lessons + manual-capture backfill + skill-create trigger</td></tr>
+          <tr><td><strong>LLM cost</strong></td><td>One DeepSeek Flash call (~$0.0004)</td><td>One DeepSeek Flash call</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="highlight">
+        <span class="highlight-label">Key point</span>
+        <p><strong>Per-turn does NOT reprocess history.</strong> Each turn is extracted once when it happens. The recent window is just context. Full-history dedup + cross-pattern detection = session-end only.</p>
+      </div>
+
+      <h2 id="evolution">§4 Self-Evolution Loop (Hermes, re-hosted)</h2>
+
+      <p>We adopt Hermes's closed learning loop as a <strong>pattern</strong>, not as code. Hermes is a standalone agent; we re-host its loop on our hooks + mem0.</p>
+
+      <div class="compare">
+        <div class="compare-card">
+          <h4>Skill creation</h4>
+          <p>After <strong>10+</strong> tool calls (or session-end) → <code>skill-create</code> with full transcript as context. <strong>Dual trigger:</strong> in-session + post-session.</p>
+        </div>
+        <div class="compare-card">
+          <h4>Skill patching</h4>
+          <p>Skill used, found wrong → <code>skill-edit</code> (surgical <code>old_string → new_string</code>). <code>patch_count</code> feeds Curator.</p>
+        </div>
+        <div class="compare-card recommended">
+          <h4>Curator</h4>
+          <p>Every ~7d (idle): active → stale(30d) → archived(90d). Tracks use/view/patch counts + error_rate. Only touches agent-created content.</p>
+        </div>
+      </div>
+
+      <aside class="callout callout-decision">
+        <svg class="callout-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-decision"/></svg>
+        <div class="callout-body">
+          <p class="callout-title">Decision — Smart Approval System</p>
+          <p>Hermes calls this a "smart approval system that learns safe commands over time." We adopt the <strong>concept</strong>: staged review by default (<code>auto_approve: false</code>), per-domain opt-in to auto. Safety gates: circuit breaker (>3 skills/24h), sandbox, rollback.</p>
+        </div>
+      </aside>
+
+      <h2 id="injection">§5 Context Injection &amp; Snapshot</h2>
+      <p>At session start, mem0 snapshot → CLAUDE.local.md markers. Both IDEs read it at start — <strong>zero tool calls</strong> (satisfies R5). String replaced each session; human content guarded by <code>semantic_merge.py</code>.</p>
+
+      <aside class="callout callout-success">
+        <svg class="callout-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-success"/></svg>
+        <div class="callout-body">
+          <p class="callout-title">MEMORY.md — Read-only export (Decision B)</p>
+          <p>mem0 is source of truth. MEMORY.md becomes a <strong>curator-generated human-readable mirror</strong> — git-diffable, offline-readable, never written directly by per-turn sync.</p>
+        </div>
+      </aside>
+
+      <h2 id="pending">§6 Pending Queue (simple v1)</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Capability</th><th>v1 implementation</th></tr></thead>
+        <tbody>
+          <tr><td>Stage</td><td>Skills → <code>~/.coworker/pending/skills/&lt;id&gt;.json</code></td></tr>
+          <tr><td>Review</td><td><code>coworker skill pending</code>, <code>approve &lt;id&gt;</code>, <code>reject &lt;id&gt;</code></td></tr>
+          <tr><td>Batch</td><td><code>--approve-all --type lesson</code></td></tr>
+          <tr><td>Auto-expiry</td><td><strong>30 days untouched → auto-rejected</strong> (never silently promoted)</td></tr>
+          <tr><td>Quality score</td><td>Deferred to v2</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2 id="metrics">§7 Evolution Metrics</h2>
+
+      <h4>Effectiveness — "is it getting smarter?"</h4>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Metric</th><th>Signal</th><th>Target</th></tr></thead>
+        <tbody>
+          <tr><td><strong>skill_reuse_rate</strong></td><td>sessions invoking an auto-created skill</td><td>↑ rising</td></tr>
+          <tr><td><strong>user_correction_rate</strong></td><td>user overrides per task</td><td>↓ falling</td></tr>
+          <tr><td><strong>task_first_pass_rate</strong></td><td>tasks completed without rework</td><td>↑ rising</td></tr>
+          <tr><td><strong>memory_hit_rate</strong></td><td>searches returning useful entry</td><td>↑ rising</td></tr>
+        </tbody>
+      </table></div>
+
+      <h4>Safety — guardrail signals</h4>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Metric</th><th>Signal</th></tr></thead>
+        <tbody>
+          <tr><td><strong>refusal_rate</strong></td><td>should stay high (refusing unsafe)</td></tr>
+          <tr><td><strong>unsafe_output_rate</strong></td><td>should stay near 0</td></tr>
+          <tr><td><strong>circuit_breaker_trips</strong></td><td>runaway detection (>3 skills/24h)</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2 id="coverage">§8 Dual-IDE Coverage Matrix</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Concern</th><th>Claude Code</th><th>OpenCode</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Per-tool capture</td><td>PostToolUse (async)</td><td>tool.execute.after</td><td>OpenCode coverage TBD — spike needed</td></tr>
+          <tr><td>Subagent capture</td><td>SubagentStop</td><td><strong>no equivalent</strong></td><td>OpenCode gap → session-end backfill</td></tr>
+          <tr><td>Session end</td><td>Stop</td><td>session.end</td><td>both OK</td></tr>
+          <tr><td>Session ID source</td><td>stdin JSON</td><td>plugin context</td><td>OK</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2 id="errors">§9 Error Handling</h2>
+      <p>Philosophy: <strong>degrade, don't crash.</strong> DeepSeek Flash outage → Gemini Flash → Claude Haiku → defer. Raw transcript preserved (no data loss).</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Component</th><th>Failure</th><th>Degradation</th></tr></thead>
+        <tbody>
+          <tr><td>DeepSeek Flash</td><td>Rate-limited / down</td><td>→ Gemini → Claude Haiku → defer sync, transcript saved</td></tr>
+          <tr><td>mem0 store</td><td>Corrupt</td><td>Rebuild from raw transcripts (analytics.db) via re-extraction</td></tr>
+          <tr><td>PostToolUse hook</td><td>Fails to fire</td><td>SubagentStop + Stop reconciliation backfill; audit records gap</td></tr>
+          <tr><td>CLAUDE.local.md</td><td>Concurrent lock</td><td>fcntl, 3× retry, conflict file fallback</td></tr>
+          <tr><td>Circuit breaker</td><td>>3 skills / 24h</td><td>Halt evolution, keep pending, notify user</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2 id="open">§10 Open Questions</h2>
+
+      <details class="collapsible">
+        <summary>4 open questions (click to expand)</summary>
+        <div class="collapsible-body">
+          <ol>
+            <li><strong>mem0 exact config shape</strong> — provider/field names for DeepSeek-as-LLM, local embedder, embedded vector store. Task-0 spike.</li>
+            <li><strong>OpenCode coverage</strong> — does <code>tool.execute.after</code> fire for all tool types? Production-tier requires empirical validation.</li>
+            <li><strong>mem0 extraction quality</strong> — DeepSeek Flash on session content: accuracy baseline needed (feeds evolution metrics).</li>
+            <li><strong>GEPA/DSPy prompt evolution</strong> — deferred to v2 (out of MVP scope).</li>
+          </ol>
+        </div>
+      </details>
+
+      <!-- CONTENT_END -->
+
+      <footer class="doc-footer">
+        <span>Generated by <a href="https://github.com/haidang1810/md2html">md2html</a></span>
+        <span>Source: self-evolving-agent-spec.md</span>
+      </footer>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <script>
+    const SK="md2html-theme";
+    function ct(){return document.documentElement.dataset.theme||"light"}
+    (function(){const s=localStorage.getItem(SK);if(s)document.documentElement.dataset.theme=s})();
+    function applyIcon(){const u=document.getElementById("theme-icon-use");if(u)u.setAttribute("href",ct()==="dark"?"#i-sun":"#i-moon")}
+    function initMermaid(){const d=ct()==="dark";mermaid.initialize({startOnLoad:false,theme:d?"dark":"default",themeVariables:{primaryColor:d?"#3A2A22":"#FBEEE6",primaryTextColor:d?"#F5F0E8":"#1A1A1A",primaryBorderColor:d?"#E89572":"#D97757",lineColor:d?"#9A938A":"#6B6B66",secondaryColor:d?"#2A2520":"#F5F5F0",tertiaryColor:d?"#221E1A":"#FFFFFF",fontFamily:"Inter, system-ui, sans-serif"}})}
+    const ds=new Map();
+    async function renderMermaid(){initMermaid();document.querySelectorAll(".mermaid").forEach(e=>{if(!ds.has(e))ds.set(e,e.textContent.trim());e.textContent=ds.get(e);e.removeAttribute("data-processed")});try{await mermaid.run({nodes:document.querySelectorAll(".mermaid")})}catch(e){console.error(e)}}
+    function toggleTheme(){const n=ct()==="light"?"dark":"light";document.documentElement.dataset.theme=n;localStorage.setItem(SK,n);applyIcon();renderMermaid()}
+    function openToc(){document.body.classList.add("toc-open")}
+    function closeToc(){document.body.classList.remove("toc-open")}
+    document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.body.classList.contains("toc-open"))closeToc()});
+    function setupSpy(){const ls=document.querySelectorAll("#toc-nav a[href^='#']");if(!ls.length){const t=document.getElementById("toc");if(t)t.style.display="none";return}const m=new Map();ls.forEach(a=>{const id=a.getAttribute("href").slice(1),el=document.getElementById(id);if(el)m.set(el,a);a.addEventListener("click",()=>{if(window.matchMedia("(max-width:900px)").matches)closeToc()})});new IntersectionObserver(e=>{e.forEach(en=>{const l=m.get(en.target);if(l&&en.isIntersecting){ls.forEach(x=>x.classList.remove("active"));l.classList.add("active")}})}),{rootMargin:"-80px 0px -70% 0px",threshold:0}).observe||(m.forEach((_,el)=>new IntersectionObserver(e=>{e.forEach(en=>{const l=m.get(en.target);if(l&&en.isIntersecting){ls.forEach(x=>x.classList.remove("active"));l.classList.add("active")}})},{rootMargin:"-80px 0px -70% 0px",threshold:0}).observe(el))}
+    function injectAnchors(){document.querySelectorAll(".content h2[id], .content h3[id]").forEach(h=>{if(h.querySelector(".anchor"))return;const a=document.createElement("a");a.className="anchor";a.href="#"+h.id;a.setAttribute("aria-label","Permalink");a.innerHTML='<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-link"/></svg>';h.appendChild(a)})}
+    function injectCopy(){document.querySelectorAll(".content pre").forEach(pre=>{if(pre.classList.contains("mermaid")||pre.querySelector(".copy-btn"))return;const b=document.createElement("button");b.type="button";b.className="copy-btn";b.setAttribute("aria-label","Copy");b.innerHTML='<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-copy"/></svg>';b.addEventListener("click",async()=>{const c=pre.querySelector("code")?.textContent??pre.textContent;try{await navigator.clipboard.writeText(c);b.classList.add("copied");b.innerHTML='<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-check"/></svg>';setTimeout(()=>{b.classList.remove("copied");b.innerHTML='<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-copy"/></svg>'},1500)}catch(e){console.error(e)}});pre.appendChild(b)})}
+    function setupBar(){const bar=document.getElementById("scroll-progress");if(!bar)return;const f=()=>{const h=document.documentElement.scrollHeight-document.documentElement.clientHeight;bar.style.width=h>0?(document.documentElement.scrollTop/h*100)+"%":"0%"};window.addEventListener("scroll",f,{passive:true});f()}
+    document.addEventListener("DOMContentLoaded",()=>{applyIcon();injectAnchors();injectCopy();renderMermaid();setupSpy();setupBar()});
+  </script>
+</body>
+</html>

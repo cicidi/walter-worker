@@ -57,4 +57,4 @@ def register_analytics(main_group: click.Group) -> None:
         import uvicorn
         from .dashboard.app import app
         console.print(f"[green]Dashboard: http://localhost:{port}[/green]")
-        uvicorn.run(app, host="127.0.0.1", port=port, log_level="info")
+        uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")

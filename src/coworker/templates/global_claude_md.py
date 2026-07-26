@@ -81,6 +81,86 @@ Before implementing:
 - Analyze: is the issue in ai-coworker source code (not just usage/config)?
 - If yes: edit ai-coworker source files, run tests, commit, push, then invoke `ai-coworker-upgrade` to distribute.
 - Dogfood: the fix workflow applies ai-coworker's own tools to itself.
+## 0. Golden Rule: Think → Ask → Act
+
+**CRITICAL: Never start work immediately when given a prompt.**
+
+Before writing any code or making any change:
+1. **Think** — Analyze the problem, consider alternatives, identify unknowns.
+2. **Ask** — Ask at least 1-2 clarifying questions to confirm scope, intent, and tradeoffs.
+3. **Act** — Only after the user responds, begin implementation.
+
+This applies to EVERY prompt, even seemingly simple ones. The user would rather answer a question than have you redo work.
+
+## 0.5. Autonomous Job Guardrail: Research + Advocate Before Action
+
+**CRITICAL: Any autonomous/auto job (scheduled, hook-triggered, or loop-driven) MUST complete research and adversarial review before taking action.**
+
+An "auto job" is any work the agent initiates without the user actively driving — cron tasks, hook callbacks, `/qa-run`, `coworker run --loop`, continuous discovery, auto-fix pipelines.
+
+Before any action (code change, commit, config modification, file creation):
+
+1. **Research** — Gather and document:
+   - What exists now (code, tests, config, prior decisions)
+   - External references (official docs, best practices, similar OSS projects)
+   - Risks and trade-offs
+   - Output: research doc in `docs/<initiative>/research/`
+
+2. **Advocate** — Adversarial review:
+   - A separate review pass (can be same model in a different role, or a stronger model) must challenge the research conclusions
+   - Find holes, missing edge cases, conflicting prior decisions
+   - Output: advocate report with confirmed/refuted/amended findings
+
+3. **Only then act.**
+
+This applies regardless of perceived simplicity. Skip only when the user has explicitly said "skip research" or "just do it."
+
+## 11. Prompt De-Fluffing and Guide Words
+
+**Before acting on ANY user prompt, first rewrite it to be concise and clear.**
+
+1. **De-fluff** — Remove filler words, redundancies, and conversational noise.
+   Preserve ALL substantive requirements. The result should be shorter but lose
+   no meaning.
+
+2. **Guide Words** — When a concept, convention, or spec can be referenced by a
+   single memorable word or short phrase, use a **Guide Word** (tagged as
+   `[GuideWord]`). Guide Words act as compressed pointers to larger bodies of
+   context. Examples:
+   - `[MethodSize≤100]` — methods: data outside, logic only. Logic ≤100 lines, else split
+   - `[LocalOnly]` — review against local code, never remote
+   - `[DocSplit]` — md 500-1000 lines, split by chapter/topic
+
+3. **Highlight** — Guide Words MUST be formatted as `[CamelCase]` so they stand
+   out visually. When you spot a recurring pattern worth naming, propose a new
+   Guide Word.
+
+4. **Show the rewrite** — After de-fluffing, present the cleaned prompt back to
+   the user before acting, so they can confirm you understood correctly.
+
+## Cross-Project Awareness
+
+When asked to modify code that lives in a different project than the current
+working directory:
+
+1. **Identify the target project** — use `~/.coworker/project.yaml` (Project
+   Catalog) to find the project name and `local_path` from the file paths.
+
+2. **Read the target project's CLAUDE.md** (and `CLAUDE.local.md` if it exists)
+   BEFORE making any changes. Each project has its own conventions, guardrails,
+   and placement rules. You cannot infer them from the current project.
+
+3. **If the project has no CLAUDE.md**, check for `CONVENTIONS.md` or similar
+   governance files (e.g., skill-factory has `CONVENTIONS.md`).
+
+4. **If the target project is not in the Project Catalog**, ask the user which
+   project the code belongs to before proceeding.
+
+This applies regardless of which project you're currently in. Example:
+- Current directory: `~/project/deterministic-workflow`
+- Task: "add a skill to ai-coworker"
+- Action: Read `~/project/ai-coworker/CLAUDE.md` and `CLAUDE.local.md` first,
+  because the code being modified lives in ai-coworker.
 """
 
 

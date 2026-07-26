@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ai-coworker Technical Specification</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 960px; margin: 0 auto; padding: 20px 40px; background: #08090b; color: #e8eaed; line-height: 1.7; font-size: 14px; }
+  h1 { font-size: 28px; border-bottom: 2px solid #1e2230; padding-bottom: 12px; margin-top: 8px; color: #00bcd4; }
+  h2 { font-size: 20px; margin-top: 32px; color: #82aaff; border-bottom: 1px solid #1e2230; padding-bottom: 6px; }
+  h3 { font-size: 16px; margin-top: 24px; color: #c792ea; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+  th { background: #151820; text-align: left; padding: 8px 12px; color: #5c6173; font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid #1e2230; }
+  td { padding: 8px 12px; border-bottom: 1px solid rgba(30,34,48,0.6); }
+  pre { background: #0d0f14; border: 1px solid #1e2230; border-radius: 4px; padding: 14px 18px; overflow-x: auto; font-size: 12px; }
+  code { font-family: "SF Mono", "Fira Code", monospace; font-size: 12px; background: #151820; padding: 2px 6px; border-radius: 3px; }
+  pre code { background: none; padding: 0; }
+  a { color: #00bcd4; }
+  blockquote { border-left: 3px solid #ffc857; padding-left: 16px; color: #9aa0b0; margin-left: 0; }
+  hr { border: none; border-top: 1px solid #1e2230; margin: 24px 0; }
+  .change-log { font-size: 11px; color: #5c6173; }
+  .change-log table { font-size: 11px; }
+</style>
+</head>
+<body>
+<h2>Change Log</h2>
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Version</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-03-30</td>
+<td>0.1.0</td>
+<td>Initial commit – unified dev environment</td>
+</tr>
+<tr>
+<td>2026-05-06</td>
+<td>0.2.0</td>
+<td>Skills moved to public/skills/; meta-import</td>
+</tr>
+<tr>
+<td>2026-06-12</td>
+<td>0.3.0</td>
+<td>Analytics listener, SQLite DB, dashboard</td>
+</tr>
+<tr>
+<td>2026-06-23</td>
+<td>0.4.0</td>
+<td>Three-layer CLAUDE.md, auto-scan init, analytics daemon</td>
+</tr>
+<tr>
+<td>2026-07-08</td>
+<td>0.5.0</td>
+<td>Hermetic tests, polish loop, backup safety, MCP/CLI integration</td>
+</tr>
+<tr>
+<td>2026-07-17</td>
+<td>0.6.0</td>
+<td>Skills to ~/.claude/skills/; dual-format frontmatter; doc-organize</td>
+</tr>
+<tr>
+<td>2026-07-25</td>
+<td>0.7.0</td>
+<td>Memory subsystem (mem0+DeepSeek); auto-worker; dashboard expansion; 96% coverage</td>
+</tr>
+<tr>
+<td>2026-07-26</td>
+<td>0.8.0</td>
+<td>Cross-project decision extraction; evolution queries; wrong-history prevention</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1>ai-coworker Technical Specification</h1>
+<p><strong>Version:</strong> 1.2 (2026-07-25)<br />
+<strong>Status:</strong> Active Development – Waves 2–4 Memory, Self-Evolving Agent  </p>
+<hr />
+<h2>1. System Architecture</h2>
+<h3>1.1 High‑Level Component Diagram (ASCII)</h3>
+<div class="codehilite"><pre><span></span><code><span class="o">+------------------------------------------------------------------+</span>
+<span class="o">|</span><span class="w">                         </span><span class="n">USER</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">IDE</span><span class="w">                                 </span><span class="o">|</span>
+<span class="o">|</span><span class="w">  </span><span class="n">Claude</span><span class="w"> </span><span class="n">Code</span><span class="p">,</span><span class="w"> </span><span class="n">OpenAI</span><span class="w"> </span><span class="n">Codex</span><span class="p">,</span><span class="w"> </span><span class="n">Cursor</span><span class="p">,</span><span class="w"> </span><span class="n">OpenCode</span><span class="w">                      </span><span class="o">|</span>
+<span class="o">+------------------------------------------------------------------+</span>
+<span class="w">         </span><span class="o">|</span><span class="w">  </span><span class="n">CLI</span><span class="w"> </span><span class="n">commands</span><span class="w"> </span><span class="p">(</span><span class="n">ai</span><span class="o">-</span><span class="n">coworker</span><span class="w"> </span><span class="o">...</span><span class="p">)</span>
+<span class="w">         </span><span class="o">|</span><span class="w">  </span><span class="n">Hooks</span><span class="p">:</span><span class="w"> </span><span class="n">pre</span><span class="o">/</span><span class="n">post</span><span class="o">-</span><span class="n">session</span><span class="p">,</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="n">ops</span><span class="p">,</span><span class="w"> </span><span class="k">tool</span><span class="w"> </span><span class="n">calls</span>
+<span class="w">         </span><span class="n">v</span>
+<span class="o">+------------------------------------------------------------------+</span>
+<span class="o">|</span><span class="w">                    </span><span class="n">CLI</span><span class="w"> </span><span class="n">ENGINE</span><span class="w"> </span><span class="p">(</span><span class="n">coworker</span><span class="o">.</span><span class="n">cli</span><span class="p">)</span><span class="w">                       </span><span class="o">|</span>
+<span class="o">|</span><span class="w">  </span><span class="n">Parse</span><span class="w"> </span><span class="n">commands</span><span class="p">,</span><span class="w"> </span><span class="n">route</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">skill</span><span class="w"> </span><span class="n">manager</span><span class="p">,</span><span class="w"> </span><span class="n">invoke</span><span class="w"> </span><span class="n">skills</span><span class="w">            </span><span class="o">|</span>
+<span class="o">|</span><span class="w">  </span><span class="n">Orchestrates</span><span class="p">:</span><span class="w"> </span><span class="n">analytics</span><span class="w"> </span><span class="n">capture</span><span class="p">,</span><span class="w"> </span><span class="n">memory</span><span class="w"> </span><span class="n">injection</span><span class="p">,</span><span class="w"> </span><span class="n">auto</span><span class="o">-</span><span class="n">worker</span><span class="w">   </span><span class="o">|</span>
+<span class="o">+------------------------------------------------------------------+</span>
+<span class="w">         </span><span class="o">|</span>
+<span class="w">         </span><span class="o">+---------&gt;+-----------------------------------------------+</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">           </span><span class="n">SKILL</span><span class="w"> </span><span class="n">MANAGER</span><span class="w">                       </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">  </span><span class="p">(</span><span class="n">coworker</span><span class="o">.</span><span class="n">skills</span><span class="p">)</span><span class="w">                            </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">Install</span><span class="o">/</span><span class="n">upgrade</span><span class="w"> </span><span class="n">skills</span><span class="w"> </span><span class="n">from</span><span class="w"> </span><span class="n">registry</span><span class="w">       </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">Run</span><span class="w"> </span><span class="n">skill</span><span class="p">:</span><span class="w"> </span><span class="n">parse</span><span class="w"> </span><span class="n">frontmatter</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">execute</span><span class="w">     </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="mi">50</span><span class="o">+</span><span class="w"> </span><span class="n">skills</span><span class="p">:</span><span class="w"> </span><span class="n">coworker</span><span class="o">-</span><span class="p">{</span><span class="n">category</span><span class="p">}</span><span class="o">-</span><span class="p">{</span><span class="n">action</span><span class="p">}</span><span class="w">   </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">+-----------------------------------------------+</span>
+<span class="w">         </span><span class="o">|</span>
+<span class="w">         </span><span class="o">+---------&gt;+-----------------------------------------------+</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">         </span><span class="n">ANALYTICS</span><span class="w"> </span><span class="n">ENGINE</span><span class="w">                      </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">  </span><span class="p">(</span><span class="n">coworker</span><span class="o">.</span><span class="n">analytics</span><span class="p">)</span><span class="w">                         </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">Capture</span><span class="p">:</span><span class="w"> </span><span class="n">sessions</span><span class="p">,</span><span class="w"> </span><span class="n">messages</span><span class="p">,</span><span class="w"> </span><span class="n">tool_calls</span><span class="p">,</span><span class="w">   </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">    </span><span class="n">file_ops</span><span class="w"> </span><span class="p">(</span><span class="n">via</span><span class="w"> </span><span class="n">listener</span><span class="p">)</span><span class="w">                    </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">Import</span><span class="w"> </span><span class="n">pipeline</span><span class="p">:</span><span class="w"> </span><span class="n">parse</span><span class="w"> </span><span class="n">IDE</span><span class="w"> </span><span class="n">logs</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">SQLite</span><span class="w">   </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">Auto</span><span class="o">-</span><span class="n">import</span><span class="w"> </span><span class="n">watcher</span><span class="w"> </span><span class="p">(</span><span class="n">inotify</span><span class="w"> </span><span class="n">on</span><span class="w"> </span><span class="nb">log</span><span class="w"> </span><span class="n">dir</span><span class="p">)</span><span class="w">   </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">Knowledge</span><span class="w"> </span><span class="n">extraction</span><span class="w"> </span><span class="p">(</span><span class="n">LLM</span><span class="o">-</span><span class="n">assisted</span><span class="p">)</span><span class="w">        </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">+-----------------------------------------------+</span>
+<span class="w">         </span><span class="o">|</span>
+<span class="w">         </span><span class="o">+---------&gt;+-----------------------------------------------+</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">         </span><span class="n">MEMORY</span><span class="w"> </span><span class="n">SUBSTRATE</span><span class="w">                      </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">  </span><span class="p">(</span><span class="n">coworker</span><span class="o">.</span><span class="n">memory</span><span class="p">)</span><span class="w">                            </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">mem0</span><span class="w"> </span><span class="n">vector</span><span class="w"> </span><span class="n">store</span><span class="w"> </span><span class="p">(</span><span class="n">qdrant</span><span class="w"> </span><span class="n">backend</span><span class="p">)</span><span class="w">         </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">DeepSeek</span><span class="w"> </span><span class="n">LLM</span><span class="w"> </span><span class="n">client</span><span class="w">                        </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="n">layers</span><span class="p">:</span><span class="w"> </span><span class="n">capture</span><span class="p">,</span><span class="w"> </span><span class="n">engine</span><span class="p">,</span><span class="w"> </span><span class="n">injection</span><span class="p">,</span><span class="w">      </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">    </span><span class="n">curator</span><span class="p">,</span><span class="w"> </span><span class="n">training</span><span class="w">                          </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">Pending</span><span class="w"> </span><span class="n">queue</span><span class="p">,</span><span class="w"> </span><span class="n">safety</span><span class="w"> </span><span class="n">filter</span><span class="p">,</span><span class="w"> </span><span class="n">audit</span><span class="w"> </span><span class="nb">log</span><span class="w">    </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">+-----------------------------------------------+</span>
+<span class="w">         </span><span class="o">|</span>
+<span class="w">         </span><span class="o">+---------&gt;+-----------------------------------------------+</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">         </span><span class="n">SELF</span><span class="o">-</span><span class="n">EVOLUTION</span><span class="w"> </span><span class="n">AGENT</span><span class="w">                  </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">  </span><span class="p">(</span><span class="n">coworker</span><span class="o">.</span><span class="n">autoworker</span><span class="p">)</span><span class="w">                        </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">Auto</span><span class="o">-</span><span class="n">worker</span><span class="w"> </span><span class="n">engine</span><span class="w">                         </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">Self</span><span class="o">-</span><span class="n">improvement</span><span class="w"> </span><span class="n">loop</span><span class="p">:</span><span class="w"> </span><span class="n">analyze</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">propose</span><span class="w">   </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">    </span><span class="err">→</span><span class="w"> </span><span class="n">apply</span><span class="w"> </span><span class="n">changes</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">skill</span><span class="o">/</span><span class="n">codebase</span><span class="w">          </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">|</span><span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">CI</span><span class="o">/</span><span class="n">CD</span><span class="w"> </span><span class="n">hooks</span><span class="p">,</span><span class="w"> </span><span class="n">change</span><span class="w"> </span><span class="n">review</span><span class="w">                 </span><span class="o">|</span>
+<span class="w">         </span><span class="o">|</span><span class="w">          </span><span class="o">+-----------------------------------------------+</span>
+<span class="w">         </span><span class="o">|</span>
+<span class="w">         </span><span class="n">v</span>
+<span class="o">+------------------------------------------------------------------+</span>
+<span class="o">|</span><span class="w">                    </span><span class="n">CLAUDE</span><span class="o">.</span><span class="n">md</span><span class="w"> </span><span class="n">THREE</span><span class="o">-</span><span class="n">LAYER</span><span class="w"> </span><span class="n">SYSTEM</span><span class="w">                    </span><span class="o">|</span>
+<span class="o">|</span><span class="w">  </span><span class="mf">1.</span><span class="w"> </span><span class="n">Global</span><span class="w">  </span><span class="o">~/.</span><span class="n">claude</span><span class="o">/</span><span class="n">CLAUDE</span><span class="o">.</span><span class="n">md</span><span class="w">  </span><span class="p">(</span><span class="n">user</span><span class="o">-</span><span class="n">wide</span><span class="w"> </span><span class="n">preferences</span><span class="p">,</span><span class="w"> </span><span class="n">API</span><span class="w"> </span><span class="n">key</span><span class="p">)</span><span class="w"> </span><span class="o">|</span>
+<span class="o">|</span><span class="w">  </span><span class="mf">2.</span><span class="w"> </span><span class="n">Project</span><span class="w"> </span><span class="o">&lt;</span><span class="n">project</span><span class="o">&gt;/.</span><span class="n">claude</span><span class="o">/</span><span class="n">CLAUDE</span><span class="o">.</span><span class="n">md</span><span class="w"> </span><span class="p">(</span><span class="n">project</span><span class="w"> </span><span class="n">rules</span><span class="p">)</span><span class="w">           </span><span class="o">|</span>
+<span class="o">|</span><span class="w">  </span><span class="mf">3.</span><span class="w"> </span><span class="n">Local</span><span class="w">   </span><span class="o">&lt;</span><span class="n">project</span><span class="o">&gt;/.</span><span class="n">claude</span><span class="o">/</span><span class="n">session</span><span class="o">/</span><span class="n">CLAUDE</span><span class="o">.</span><span class="n">md</span><span class="w"> </span><span class="p">(</span><span class="n">task</span><span class="w"> </span><span class="n">context</span><span class="p">)</span><span class="w">    </span><span class="o">|</span>
+<span class="o">|</span><span class="w">  </span><span class="n">Every</span><span class="w"> </span><span class="n">CLI</span><span class="w"> </span><span class="n">invocation</span><span class="w"> </span><span class="n">syncs</span><span class="w"> </span><span class="n">layers</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">env</span><span class="w"> </span><span class="n">variables</span><span class="w">                </span><span class="o">|</span>
+<span class="o">+------------------------------------------------------------------+</span>
+</code></pre></div>
+
+<h3>1.2 Component Responsibilities</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CLI Engine</strong></td>
+<td>Parse <code>ai-coworker &lt;command&gt; [args]</code>; dispatch to skill manager or dashboard server; manage lifecycle (init, self-update).</td>
+</tr>
+<tr>
+<td><strong>Skill Manager</strong></td>
+<td>Install/upgrade skills from <code>skills/</code> directory (public registry); validate skill frontmatter; execute skill code with context.</td>
+</tr>
+<tr>
+<td><strong>Analytics Engine</strong></td>
+<td>Collect, store, query all IDE interactions: session metadata, chat messages, tool calls, file operations. Produce dashboards and insights.</td>
+</tr>
+<tr>
+<td><strong>Memory Substrate</strong></td>
+<td>Store and retrieve semantic knowledge using mem0 vector DB; LLM-based deduplication, summarization, and curation.</td>
+</tr>
+<tr>
+<td><strong>Self‑Evolution Agent</strong></td>
+<td>Periodically analyze analytics + memory; propose improvements to skills, CLAUDE.md files, or workflows; optionally auto‑apply with review.</td>
+</tr>
+<tr>
+<td><strong>CLAUDE.md System</strong></td>
+<td>Merge three levels of instructions (global, project, local) into a single context that is injected into every Claude Code session.</td>
+</tr>
+</tbody>
+</table>
+<h3>1.3 Data Flow</h3>
+<div class="codehilite"><pre><span></span><code><span class="n">IDE</span><span class="w"> </span><span class="n">Event</span><span class="w"> </span><span class="p">(</span><span class="n">tool_call</span><span class="p">,</span><span class="w"> </span><span class="n">message</span><span class="p">,</span><span class="w"> </span><span class="n">file_save</span><span class="p">)</span>
+<span class="w">   </span><span class="err">│</span>
+<span class="w">   </span><span class="err">▼</span>
+<span class="n">Analytics</span><span class="w"> </span><span class="n">Listener</span><span class="w"> </span><span class="p">(</span><span class="n">coworker</span><span class="o">.</span><span class="n">analytics</span><span class="o">.</span><span class="n">auto_import</span><span class="p">)</span><span class="w"> </span>
+<span class="w">   </span><span class="err">│</span><span class="w">  </span><span class="n">writes</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">SQLite</span><span class="w"> </span><span class="n">DB</span>
+<span class="w">   </span><span class="err">▼</span>
+<span class="n">Analytics</span><span class="w"> </span><span class="n">Queries</span><span class="w"> </span><span class="p">(</span><span class="n">coworker</span><span class="o">.</span><span class="n">dashboard</span><span class="p">)</span><span class="w"> </span>
+<span class="w">   </span><span class="err">│</span><span class="w">  </span><span class="n">exposes</span><span class="w"> </span><span class="n">REST</span><span class="w"> </span><span class="n">API</span>
+<span class="w">   </span><span class="err">▼</span>
+<span class="n">Web</span><span class="w"> </span><span class="n">Dashboard</span><span class="w"> </span><span class="p">(</span><span class="n">HTML</span><span class="o">/</span><span class="n">JS</span><span class="p">)</span><span class="w"> </span>
+<span class="w">   </span><span class="err">│</span>
+<span class="w">   </span><span class="err">▼</span>
+<span class="n">User</span><span class="w"> </span><span class="n">views</span><span class="w"> </span><span class="n">insights</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">optionally</span><span class="w"> </span><span class="n">triggers</span><span class="w"> </span><span class="n">Memory</span><span class="w"> </span><span class="n">Capture</span><span class="w"> </span><span class="p">(</span><span class="n">coworker</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">capture</span><span class="p">)</span>
+<span class="w">   </span><span class="err">│</span>
+<span class="w">   </span><span class="err">▼</span>
+<span class="n">LLM</span><span class="w"> </span><span class="n">processes</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">stores</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">mem0</span><span class="w"> </span><span class="n">vector</span><span class="w"> </span><span class="n">store</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="n">later</span><span class="w"> </span><span class="n">retrieved</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="n">Memory</span><span class="w"> </span><span class="n">Injection</span><span class="w"> </span><span class="p">(</span><span class="n">coworker</span><span class="o">.</span><span class="n">memory</span><span class="o">.</span><span class="n">inject</span><span class="p">)</span><span class="w"> </span>
+<span class="w">   </span><span class="err">│</span>
+<span class="w">   </span><span class="err">▼</span>
+<span class="n">Injected</span><span class="w"> </span><span class="n">into</span><span class="w"> </span><span class="n">Claude</span><span class="w"> </span><span class="n">Code</span><span class="w"> </span><span class="n">session</span><span class="w"> </span><span class="n">via</span><span class="w"> </span><span class="n">CLAUDE</span><span class="o">.</span><span class="n">md</span><span class="w"> </span><span class="n">local</span><span class="w"> </span><span class="n">layer</span><span class="o">.</span>
+</code></pre></div>
+
+<hr />
+<h2>2. API / Interface Specifications</h2>
+<h3>2.1 CLI Commands</h3>
+<p>All commands are invoked as <code>ai-coworker &lt;command&gt; [subcommand] [options]</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>init</code></td>
+<td>First‑run setup: create config <code>.local_config.yaml</code>, ask for DeepSeek API key, scaffold CLAUDE.md layers.</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>Show current project state: active session, installed skills, memory usage.</td>
+</tr>
+<tr>
+<td><code>analytics</code></td>
+<td>Launch analytics dashboard (<code>--port 8080</code>) or run ad‑hoc queries (<code>analytics query &lt;sql&gt;</code>).</td>
+</tr>
+<tr>
+<td><code>skills</code></td>
+<td>List, install, upgrade, or remove skills. Subcommands: <code>list</code>, <code>install &lt;name&gt;</code>, <code>upgrade &lt;name&gt;</code>, <code>remove &lt;name&gt;</code>.</td>
+</tr>
+<tr>
+<td><code>initiative</code></td>
+<td>Manage initiatives (project‑level goals). Subcommands: <code>list</code>, <code>create &lt;name&gt;</code>, <code>close &lt;id&gt;</code>.</td>
+</tr>
+<tr>
+<td><code>project</code></td>
+<td>Manage projects: <code>list</code>, <code>sync</code> (sync global→project CLAUDE.md).</td>
+</tr>
+<tr>
+<td><code>knowledge</code></td>
+<td>Query knowledge base (<code>knowledge search &lt;query&gt;</code>), add/remove entries (<code>knowledge add/remove</code>).</td>
+</tr>
+<tr>
+<td><code>session-memory</code></td>
+<td>Summarize current session, inspect memory (<code>session-memory show</code>), force capture.</td>
+</tr>
+<tr>
+<td><code>mcp</code></td>
+<td>Configure MCP (Model Context Protocol) block in IDE config (e.g., install.sh hook).</td>
+</tr>
+<tr>
+<td><code>self-evolve</code></td>
+<td>Trigger the auto‑worker analysis and proposal (<code>self-evolve run</code>), review pending changes (<code>self-evolve review</code>).</td>
+</tr>
+</tbody>
+</table>
+<h3>2.2 Dashboard REST API</h3>
+<p>The dashboard is a Flask web app (port 8080). All endpoints return JSON.</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/sessions</code></td>
+<td>List all sessions (paginated). Query params: <code>?limit=50&amp;offset=0&amp;project=xxx</code>.</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/overview</code></td>
+<td>Aggregate stats: total sessions, messages, tool calls, active projects.</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/skills</code></td>
+<td>List installed skills with metadata (version, description, usage count).</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/tools</code></td>
+<td>Tool call statistics: per‑tool frequency, success rate.</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/files</code></td>
+<td>File operation stats: most edited files, operations per project.</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/knowledge</code></td>
+<td>Query knowledge base entries. Supports text search via <code>?q=term</code>.</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/initiatives</code></td>
+<td>List initiatives, their progress and associated sessions.</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/evolution/*</code></td>
+<td>Self‑evolution agent endpoints: <code>/api/evolution/proposals</code>, <code>/api/evolution/apply</code>.</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/projects</code></td>
+<td>Per‑project breakdown: sessions, active skills, memory usage.</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/hotspots</code></td>
+<td>Hot files and error‑prone patterns (based on tool call and error history).</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/errors</code></td>
+<td>Error log: captured exceptions, failed tool calls, warnings.</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/memory-stats</code></td>
+<td>Vector store statistics: total documents, clusters, last capture time.</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/cost-analytics</code></td>
+<td>Cost estimation per session (token usage, LLM calls).</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/models</code></td>
+<td>Available LLM models (DeepSeek, Gemini, Claude) and their status.</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/model-usage</code></td>
+<td>Per‑model token consumption over time.</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/efficiency</code></td>
+<td>Speed metrics: time per tool call, session duration, wasted tool failures.</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/data-quality</code></td>
+<td>Knowledge quality scores: dedup ratio, freshness, completeness.</td>
+</tr>
+</tbody>
+</table>
+<h3>2.3 Skill Frontmatter Schema</h3>
+<p>Every skill (Python file in <code>skills/</code> directory) must contain a YAML frontmatter block.</p>
+<div class="codehilite"><pre><span></span><code><span class="nn">---</span>
+<span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">coworker-analytics-status</span>
+<span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.2.0</span>
+<span class="nt">description</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Display</span><span class="nv"> </span><span class="s">real‑time</span><span class="nv"> </span><span class="s">analytics</span><span class="nv"> </span><span class="s">overview&quot;</span>
+<span class="nt">category</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">analytics</span>
+<span class="nt">dependencies</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">flask&gt;=2.0</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sqlite3</span>
+<span class="nt">inputs</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">session_id</span>
+<span class="w">    </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">string</span>
+<span class="w">    </span><span class="nt">required</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="nt">outputs</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">JSON</span>
+<span class="w">    </span><span class="nt">schema</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;dashboard/overview&quot;</span>
+<span class="nt">tags</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dashboard</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">monitoring</span>
+<span class="nn">---</span>
+</code></pre></div>
+
+<h3>2.4 Memory API (coworker.memory)</h3>
+<p>Internal Python API exposed to other modules:</p>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>capture( session_id, content: str, metadata: dict )</code></td>
+<td>Send content to mem0 vector store after LLM dedup and safety check.</td>
+</tr>
+<tr>
+<td><code>inject( context: dict ) -&gt; str</code></td>
+<td>Retrieve relevant knowledge for current context (vector search + summarization).</td>
+</tr>
+<tr>
+<td><code>curate( limit=50 ) -&gt; list</code></td>
+<td>Review pending captures for quality (freshness, redundancy) and promote to long‑term memory.</td>
+</tr>
+<tr>
+<td><code>train( corpus: list[dict] ) -&gt; report</code></td>
+<td>Fine‑tune embedding model on curated knowledge (optional, Wave 4).</td>
+</tr>
+<tr>
+<td><code>validate( candidate: dict ) -&gt; bool</code></td>
+<td>Check that candidate memory does not violate safety rules.</td>
+</tr>
+<tr>
+<td><code>metrics() -&gt; dict</code></td>
+<td>Return memory substrate health: document count, avg embedding distance, last capture timestamp.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>3. Data Models</h2>
+<h3>3.1 Analytics Database Schema (SQLite)</h3>
+<p>File: <code>~/.ai-coworker/analytics.db</code></p>
+<div class="codehilite"><pre><span></span><code><span class="c1">-- Sessions table</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">sessions</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span><span class="w">                      </span><span class="c1">-- UUID or IDE session ID</span>
+<span class="w">    </span><span class="n">project</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">                    </span><span class="c1">-- project name derived from cwd</span>
+<span class="w">    </span><span class="n">start_time</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">                 </span><span class="c1">-- ISO 8601</span>
+<span class="w">    </span><span class="n">end_time</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">                            </span><span class="c1">-- ISO 8601</span>
+<span class="w">    </span><span class="n">session_type</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="s1">&#39;manual&#39;</span><span class="p">,</span><span class="w">       </span><span class="c1">-- &#39;manual&#39;, &#39;auto&#39;, &#39;background&#39;</span>
+<span class="w">    </span><span class="n">tags</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="s1">&#39;[]&#39;</span><span class="w">                    </span><span class="c1">-- JSON array of user tags</span>
+<span class="p">);</span>
+
+<span class="c1">-- Chat messages (turns)</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">messages</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">session_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">sessions</span><span class="p">(</span><span class="n">id</span><span class="p">),</span>
+<span class="w">    </span><span class="k">timestamp</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="k">role</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">CHECK</span><span class="p">(</span><span class="k">role</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">,</span><span class="s1">&#39;assistant&#39;</span><span class="p">,</span><span class="s1">&#39;system&#39;</span><span class="p">)),</span>
+<span class="w">    </span><span class="n">content</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">tokens</span><span class="w"> </span><span class="nb">INTEGER</span><span class="p">,</span>
+<span class="w">    </span><span class="n">cost</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">0</span><span class="p">.</span><span class="mi">0</span>
+<span class="p">);</span>
+
+<span class="c1">-- Tool calls (function calls by LLM)</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">tool_calls</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">session_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">sessions</span><span class="p">(</span><span class="n">id</span><span class="p">),</span>
+<span class="w">    </span><span class="k">timestamp</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">tool_name</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">arguments</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">                           </span><span class="c1">-- JSON</span>
+<span class="w">    </span><span class="k">result</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">                              </span><span class="c1">-- JSON or error</span>
+<span class="w">    </span><span class="n">duration_ms</span><span class="w"> </span><span class="nb">INTEGER</span><span class="p">,</span>
+<span class="w">    </span><span class="n">success</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">1</span><span class="w">                </span><span class="c1">-- 0 = failure</span>
+<span class="p">);</span>
+
+<span class="c1">-- File operations (read/write/create/delete)</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">file_ops</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">session_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">sessions</span><span class="p">(</span><span class="n">id</span><span class="p">),</span>
+<span class="w">    </span><span class="k">timestamp</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">op</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">                         </span><span class="c1">-- &#39;read&#39;,&#39;write&#39;,&#39;create&#39;,&#39;delete&#39;,&#39;move&#39;</span>
+<span class="w">    </span><span class="n">path</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">size_bytes</span><span class="w"> </span><span class="nb">INTEGER</span><span class="p">,</span>
+<span class="w">    </span><span class="n">checksum</span><span class="w"> </span><span class="nb">TEXT</span>
+<span class="p">);</span>
+
+<span class="c1">-- Pre‑computed session statistics (updated on session end)</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">session_stats</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">session_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">sessions</span><span class="p">(</span><span class="n">id</span><span class="p">),</span>
+<span class="w">    </span><span class="n">total_messages</span><span class="w"> </span><span class="nb">INTEGER</span><span class="p">,</span>
+<span class="w">    </span><span class="n">total_tool_calls</span><span class="w"> </span><span class="nb">INTEGER</span><span class="p">,</span>
+<span class="w">    </span><span class="n">total_file_ops</span><span class="w"> </span><span class="nb">INTEGER</span><span class="p">,</span>
+<span class="w">    </span><span class="n">total_tokens</span><span class="w"> </span><span class="nb">INTEGER</span><span class="p">,</span>
+<span class="w">    </span><span class="n">total_cost</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">duration_min</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">tool_failure_rate</span><span class="w"> </span><span class="nb">REAL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">unique_files_edited</span><span class="w"> </span><span class="nb">INTEGER</span>
+<span class="p">);</span>
+
+<span class="c1">-- Installed skills metadata</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">skills</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">name</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span>
+<span class="w">    </span><span class="k">version</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">description</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">category</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">install_time</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">upgrade_time</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">usage_count</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">0</span>
+<span class="p">);</span>
+
+<span class="c1">-- Knowledge entries (LLM-extracted facts)</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">knowledge</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">session_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">sessions</span><span class="p">(</span><span class="n">id</span><span class="p">),</span>
+<span class="w">    </span><span class="n">content</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="k">source</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">                              </span><span class="c1">-- e.g. &#39;file:src/main.py&#39;</span>
+<span class="w">    </span><span class="n">confidence</span><span class="w"> </span><span class="nb">REAL</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">0</span><span class="p">.</span><span class="mi">5</span><span class="p">,</span>
+<span class="w">    </span><span class="n">created_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="s1">&#39;now&#39;</span><span class="p">)),</span>
+<span class="w">    </span><span class="n">updated_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<span class="w">    </span><span class="n">tags</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="s1">&#39;[]&#39;</span>
+<span class="p">);</span>
+
+<span class="c1">-- Session summaries (generated after session end)</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">session_summaries</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">session_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="k">REFERENCES</span><span class="w"> </span><span class="n">sessions</span><span class="p">(</span><span class="n">id</span><span class="p">),</span>
+<span class="w">    </span><span class="n">summary</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<span class="w">    </span><span class="n">key_actions</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">                         </span><span class="c1">-- JSON list of actions taken</span>
+<span class="w">    </span><span class="n">key_decisions</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">                       </span><span class="c1">-- JSON list of decisions</span>
+<span class="w">    </span><span class="n">generated_by</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="s1">&#39;ai-coworker&#39;</span><span class="p">,</span>
+<span class="w">    </span><span class="n">created_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="s1">&#39;now&#39;</span><span class="p">))</span>
+<span class="p">);</span>
+</code></pre></div>
+
+<h3>3.2 Memory Substrate (mem0 / Qdrant)</h3>
+<div class="codehilite"><pre><span></span><code><span class="n">Collection</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ai-coworker-memory&quot;</span>
+<span class="w">  </span><span class="n">Vector</span><span class="w"> </span><span class="n">dimension</span><span class="p">:</span><span class="w"> </span><span class="mi">768</span><span class="w"> </span><span class="p">(</span><span class="n">text</span><span class="o">-</span><span class="n">embedding</span><span class="o">-</span><span class="n">ada</span><span class="o">-</span><span class="mi">002</span><span class="w"> </span><span class="n">compatible</span><span class="p">)</span>
+<span class="w">  </span><span class="n">Distance</span><span class="w"> </span><span class="n">metric</span><span class="p">:</span><span class="w"> </span><span class="n">Cosine</span>
+
+<span class="n">Document</span><span class="w"> </span><span class="n">payload</span><span class="w"> </span><span class="n">schema</span><span class="p">:</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="s2">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;uuid&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;text&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&lt;captured knowledge text&gt;&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;metadata&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="s2">&quot;session_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s2">&quot;project&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s2">&quot;layer&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;capture|curated|trained&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s2">&quot;source&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;analytics|manual|self-evolve&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s2">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ISO8601&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s2">&quot;llm_dedup_hash&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sha256 of text&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s2">&quot;tags&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;dev&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;architecture&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;decision&quot;</span><span class="p">],</span>
+<span class="w">      </span><span class="s2">&quot;confidence&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="o">..</span><span class="mf">1.0</span><span class="p">,</span>
+<span class="w">      </span><span class="s2">&quot;embedding_model&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;deepseek-embedding-v2&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="s2">&quot;score&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="n">Indexes</span><span class="p">:</span>
+<span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">payload</span><span class="p">[</span><span class="s2">&quot;project&quot;</span><span class="p">]</span><span class="w"> </span><span class="err">–</span><span class="w"> </span><span class="n">list</span><span class="w"> </span><span class="n">filter</span>
+<span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">payload</span><span class="p">[</span><span class="s2">&quot;timestamp&quot;</span><span class="p">]</span><span class="w"> </span><span class="err">–</span><span class="w"> </span><span class="nb">range</span><span class="w"> </span><span class="n">filter</span>
+<span class="w">  </span><span class="o">-</span><span class="w"> </span><span class="n">payload</span><span class="p">[</span><span class="s2">&quot;tags&quot;</span><span class="p">]</span><span class="w"> </span><span class="err">–</span><span class="w"> </span><span class="n">tag</span><span class="w"> </span><span class="n">filter</span>
+</code></pre></div>
+
+<h3>3.3 CLAUDE.md Three‑Layer Structure</h3>
+<p><strong>Global Layer</strong> (<code>~/.claude/CLAUDE.md</code>):</p>
+<div class="codehilite"><pre><span></span><code><span class="gh"># Global CLAUDE.md – ai-coworker User Global Preferences</span>
+<span class="k">-</span><span class="w"> </span>User: &lt;name&gt;
+<span class="k">-</span><span class="w"> </span>Preferred LLM: DeepSeek (fallback: Gemini, Claude)
+<span class="k">-</span><span class="w"> </span>Default memory_injection: true
+<span class="k">-</span><span class="w"> </span>Autoworker: enabled (review required)
+<span class="k">-</span><span class="w"> </span>Skills: all installed
+<span class="k">-</span><span class="w"> </span>API keys: stored in .local_config.yaml
+</code></pre></div>
+
+<p><strong>Project Layer</strong> (<code>&lt;project&gt;/.claude/CLAUDE.md</code>):</p>
+<div class="codehilite"><pre><span></span><code><span class="gh"># Project CLAUDE.md – &lt;project_name&gt;</span>
+<span class="k">-</span><span class="w"> </span>Project root: /path/to/project
+<span class="k">-</span><span class="w"> </span>Language: Python, TypeScript
+<span class="k">-</span><span class="w"> </span>Build tool: poetry, npm
+<span class="k">-</span><span class="w"> </span>Coding style: Google style, 2‑space indent
+<span class="k">-</span><span class="w"> </span>Excluded dirs: vendor, .cache
+<span class="k">-</span><span class="w"> </span>Memory injection: true (restricted to project scope)
+<span class="k">-</span><span class="w"> </span>Initiatives: [initiative_1, initiative_2]
+</code></pre></div>
+
+<p><strong>Local Layer</strong> (<code>&lt;project&gt;/.claude/session/CLAUDE.md</code> – auto‑generated per session):</p>
+<div class="codehilite"><pre><span></span><code><span class="gh"># Local CLAUDE.md – Session &lt;session_id&gt;</span>
+<span class="k">-</span><span class="w"> </span>Context: Current task (injected by ai-coworker from memory)
+<span class="k">-</span><span class="w"> </span>Relevant knowledge: &lt;summary of top‑3 memory entries&gt;
+<span class="k">-</span><span class="w"> </span>Recent changes: &lt;last 5 file ops&gt;
+<span class="k">-</span><span class="w"> </span>Active initiative: &lt;initiative_name&gt;
+<span class="k">-</span><span class="w"> </span>Session state: active
+</code></pre></div>
+
+<p>The three layers are merged at session start by the CLI engine, with local overriding project, and project overriding global.</p>
+<hr />
+<h2>4. Module Details</h2>
+<h3>4.1 <code>coworker.analytics</code></h3>
+<p><strong>Submodules:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Submodule</th>
+<th>Path</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>db</code></td>
+<td><code>coworker/analytics/db.py</code></td>
+<td>Database connection, schema creation, helper functions for INSERT/UPDATE/SELECT.</td>
+</tr>
+<tr>
+<td><code>import_data</code></td>
+<td><code>coworker/analytics/import_data.py</code></td>
+<td>Parse IDE log files (JSON Lines) and insert into analytics DB. Deduplication logic.</td>
+</tr>
+<tr>
+<td><code>auto_import</code></td>
+<td><code>coworker/analytics/auto_import.py</code></td>
+<td>File watcher (inotify) on IDE log directory; calls <code>import_data</code> on new log entries.</td>
+</tr>
+<tr>
+<td><code>knowledge</code></td>
+<td><code>coworker/analytics/knowledge.py</code></td>
+<td>Extract knowledge from session summaries using DeepSeek LLM. Upsert into <code>knowledge</code> table and memo.</td>
+</tr>
+</tbody>
+</table>
+<h3>4.2 <code>coworker.dashboard</code></h3>
+<table>
+<thead>
+<tr>
+<th>Submodule</th>
+<th>Path</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>app</code></td>
+<td><code>coworker/dashboard/app.py</code></td>
+<td>Flask application, route definitions, startup logic.</td>
+</tr>
+<tr>
+<td><code>queries</code></td>
+<td><code>coworker/dashboard/queries.py</code></td>
+<td>SQL query builders for each API endpoint, aggregation functions.</td>
+</tr>
+<tr>
+<td><code>static</code></td>
+<td><code>coworker/dashboard/static/</code></td>
+<td>HTML/CSS/JS files for the single‑page dashboard.</td>
+</tr>
+</tbody>
+</table>
+<h3>4.3 <code>coworker.memory</code></h3>
+<table>
+<thead>
+<tr>
+<th>Submodule</th>
+<th>Path</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mem0_client</code></td>
+<td><code>coworker/memory/mem0_client.py</code></td>
+<td>Wrapper for mem0 Python SDK (Qdrant backend).</td>
+</tr>
+<tr>
+<td><code>llm</code></td>
+<td><code>coworker/memory/llm.py</code></td>
+<td>DeepSeek LLM client with provider fallback chain.</td>
+</tr>
+<tr>
+<td><code>capture</code></td>
+<td><code>coworker/memory/capture.py</code></td>
+<td>Receives content → safety filter → LLM dedup → store to mem0.</td>
+</tr>
+<tr>
+<td><code>engine</code></td>
+<td><code>coworker/memory/engine.py</code></td>
+<td>Orchestrates capture, curation, training workflows.</td>
+</tr>
+<tr>
+<td><code>inject</code></td>
+<td><code>coworker/memory/inject.py</code></td>
+<td>Vector search → LLM summarization → context string for CLAUDE.md.</td>
+</tr>
+<tr>
+<td><code>curator</code></td>
+<td><code>coworker/memory/curator.py</code></td>
+<td>Periodically reviews pending captures, merges duplicates, promotes to long‑term.</td>
+</tr>
+<tr>
+<td><code>train</code></td>
+<td><code>coworker/memory/train.py</code></td>
+<td>Fine‑tuning pipeline (future: LORA‑style embedding adaptation).</td>
+</tr>
+<tr>
+<td><code>pending</code></td>
+<td><code>coworker/memory/pending.py</code></td>
+<td>Queue for incoming captures awaiting curation.</td>
+</tr>
+<tr>
+<td><code>safety</code></td>
+<td><code>coworker/memory/safety.py</code></td>
+<td>Blocklist, regex patterns, PII scanner.</td>
+</tr>
+<tr>
+<td><code>audit</code></td>
+<td><code>coworker/memory/audit.py</code></td>
+<td>Log every memory operation (capture, delete, promote) to audit table.</td>
+</tr>
+<tr>
+<td><code>metrics</code></td>
+<td><code>coworker/memory/metrics.py</code></td>
+<td>Collect vector store stats and LLM call statistics.</td>
+</tr>
+<tr>
+<td><code>validate</code></td>
+<td><code>coworker/memory/validate.py</code></td>
+<td>Ensure memory consistency (no orphan sessions, proper metadata).</td>
+</tr>
+</tbody>
+</table>
+<h3>4.4 <code>coworker.templates</code></h3>
+<table>
+<thead>
+<tr>
+<th>Submodule</th>
+<th>Path</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>global_claude_md</code></td>
+<td><code>coworker/templates/global_claude_md.py</code></td>
+<td>Generate the global CLAUDE.md content based on user config.</td>
+</tr>
+<tr>
+<td><code>local_claude_md</code></td>
+<td><code>coworker/templates/local_claude_md.py</code></td>
+<td>Generate the local session CLAUDE.md with memory injection.</td>
+</tr>
+</tbody>
+</table>
+<h3>4.5 <code>coworker.autoworker</code></h3>
+<table>
+<thead>
+<tr>
+<th>Submodule</th>
+<th>Path</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>engine</code></td>
+<td><code>coworker/autoworker/engine.py</code></td>
+<td>Main loop: collect analytics → propose improvements → apply changes. Sub‑modules for analysis, proposal, review, apply.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>5. Error Handling &amp; Resilience</h2>
+<h3>5.1 Circuit Breaker Pattern</h3>
+<p>Implemented in <code>coworker.memory.llm</code> and <code>coworker.autoworker.engine</code>.</p>
+<div class="codehilite"><pre><span></span><code><span class="nt">State</span><span class="w"> </span><span class="nt">machine</span><span class="o">:</span><span class="w"> </span><span class="nt">CLOSED</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="nt">OPEN</span><span class="w"> </span><span class="o">(</span><span class="nt">after</span><span class="w"> </span><span class="nt">N</span><span class="w"> </span><span class="nt">consecutive</span><span class="w"> </span><span class="nt">failures</span><span class="o">)</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="nt">HALF_OPEN</span><span class="w"> </span><span class="o">(</span><span class="nt">after</span><span class="w"> </span><span class="nt">timeout</span><span class="o">)</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="nt">CLOSED</span><span class="o">.</span>
+<span class="nt">-</span><span class="w"> </span><span class="nt">Threshold</span><span class="o">:</span><span class="w"> </span><span class="nt">5</span><span class="w"> </span><span class="nt">failures</span><span class="w"> </span><span class="nt">in</span><span class="w"> </span><span class="nt">60</span><span class="w"> </span><span class="nt">seconds</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="nt">trip</span><span class="w"> </span><span class="nt">breaker</span><span class="o">.</span>
+<span class="nt">-</span><span class="w"> </span><span class="nt">Timeout</span><span class="o">:</span><span class="w"> </span><span class="nt">30</span><span class="w"> </span><span class="nt">seconds</span><span class="w"> </span><span class="nt">before</span><span class="w"> </span><span class="nt">HALF_OPEN</span><span class="o">.</span>
+<span class="nt">-</span><span class="w"> </span><span class="nt">On</span><span class="w"> </span><span class="nt">HALF_OPEN</span><span class="o">:</span><span class="w"> </span><span class="nt">allow</span><span class="w"> </span><span class="nt">1</span><span class="w"> </span><span class="nt">request</span><span class="o">;</span><span class="w"> </span><span class="nt">if</span><span class="w"> </span><span class="nt">success</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="nt">CLOSED</span><span class="o">;</span><span class="w"> </span><span class="nt">if</span><span class="w"> </span><span class="nt">fail</span><span class="w"> </span><span class="err">→</span><span class="w"> </span><span class="nt">OPEN</span><span class="w"> </span><span class="nt">again</span><span class="o">.</span>
+<span class="nt">-</span><span class="w"> </span><span class="nt">Cooldown</span><span class="o">:</span><span class="w"> </span><span class="nt">exponential</span><span class="w"> </span><span class="nt">backoff</span><span class="w"> </span><span class="o">(</span><span class="nt">30s</span><span class="o">,</span><span class="w"> </span><span class="nt">60s</span><span class="o">,</span><span class="w"> </span><span class="nt">120s</span><span class="o">).</span>
+</code></pre></div>
+
+<h3>5.2 Provider Fallback Chain</h3>
+<p>Failover order for LLM calls:</p>
+<div class="codehilite"><pre><span></span><code>DeepSeek (primary) → Gemini (secondary) → Claude (tertiary) → fallback rule: use local heuristic/rule‑based response.
+</code></pre></div>
+
+<p>Each provider is wrapped with its own circuit breaker. If all three fail, the system falls back to a static response (“Unable to process request; please check network and API keys.”).</p>
+<h3>5.3 Audit Logging</h3>
+<p>All operations that change state (memory capture, skill install, auto‑worker apply) are logged to an audit table in analytics.db:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">audit_log</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">id</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="n">AUTOINCREMENT</span><span class="p">,</span>
+<span class="w">    </span><span class="k">timestamp</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="p">(</span><span class="n">datetime</span><span class="p">(</span><span class="s1">&#39;now&#39;</span><span class="p">)),</span>
+<span class="w">    </span><span class="n">action</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span><span class="w">                     </span><span class="c1">-- &#39;memory_capture&#39;, &#39;skill_install&#39;, &#39;autoworker_apply&#39;</span>
+<span class="w">    </span><span class="n">actor</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">                               </span><span class="c1">-- &#39;user&#39;, &#39;system&#39;, &#39;autoworker&#39;</span>
+<span class="w">    </span><span class="n">target</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">                              </span><span class="c1">-- ID or path</span>
+<span class="w">    </span><span class="n">details</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span><span class="w">                             </span><span class="c1">-- JSON with context</span>
+<span class="w">    </span><span class="n">success</span><span class="w"> </span><span class="nb">INTEGER</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">               </span><span class="c1">-- 0 = failure</span>
+<span class="w">    </span><span class="n">error_message</span><span class="w"> </span><span class="nb">TEXT</span>
+<span class="p">);</span>
+</code></pre></div>
+
+<h3>5.4 Wrong‑History Prevention Rules</h3>
+<p>To avoid injecting irrelevant or hallucinated knowledge:</p>
+<ol>
+<li><strong>Time decay</strong>: Memory entries older than 90 days are deprioritised (unless explicitly tagged “archived”).</li>
+<li><strong>Source trust</strong>: Only entries from validated sessions (where <code>session_type='auto'</code> or manual flag) are injected. Entries from test/fake sessions are discarded.</li>
+<li><strong>LLM dedup</strong>: Before capture, content is hashed and compared against existing documents (cosine similarity &gt; 0.92 triggers merge).</li>
+<li><strong>Keyword filter</strong>: Memory injection is blocked if injected context contains banned phrases from <code>safety.txt</code> (e.g., credential leakage, production credentials).</li>
+<li><strong>Manual override</strong>: Users can <code>ai-coworker knowledge block &lt;id&gt;</code> to suppress a specific memory entry.</li>
+</ol>
+<hr />
+<h2>6. Dependencies</h2>
+<h3>6.1 Python Packages</h3>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Version</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>click</code></td>
+<td>&gt;=8.1</td>
+<td>CLI framework</td>
+</tr>
+<tr>
+<td><code>pyyaml</code></td>
+<td>&gt;=6.0</td>
+<td>Frontmatter parsing</td>
+</tr>
+<tr>
+<td><code>flask</code></td>
+<td>&gt;=2.3</td>
+<td>Dashboard webserver</td>
+</tr>
+<tr>
+<td><code>werkzeug</code></td>
+<td>&gt;=2.3</td>
+<td>WSGI toolkit</td>
+</tr>
+<tr>
+<td><code>sqlite3</code></td>
+<td>(stdlib)</td>
+<td>Analytics database</td>
+</tr>
+<tr>
+<td><code>mem0</code></td>
+<td>&gt;=0.3.0</td>
+<td>Vector memory substrate</td>
+</tr>
+<tr>
+<td><code>qdrant-client</code></td>
+<td>&gt;=1.6</td>
+<td>Vector DB backend for mem0</td>
+</tr>
+<tr>
+<td><code>openai</code> (deep‑seek‑ compatible)</td>
+<td>&gt;=1.0</td>
+<td>DeepSeek API calls</td>
+</tr>
+<tr>
+<td><code>google-genai</code></td>
+<td>&gt;=0.2</td>
+<td>Gemini provider fallback</td>
+</tr>
+<tr>
+<td><code>anthropic</code></td>
+<td>&gt;=0.30</td>
+<td>Claude provider fallback</td>
+</tr>
+<tr>
+<td><code>aiofiles</code></td>
+<td>&gt;=23</td>
+<td>Async file reading (analytics watcher)</td>
+</tr>
+<tr>
+<td><code>watchdog</code></td>
+<td>&gt;=3.0</td>
+<td>Inotify‑based auto‑import</td>
+</tr>
+<tr>
+<td><code>requests</code></td>
+<td>&gt;=2.31</td>
+<td>HTTP client for dashboard tests</td>
+</tr>
+<tr>
+<td><code>pytest</code></td>
+<td>&gt;=7.4</td>
+<td>Testing framework</td>
+</tr>
+<tr>
+<td><code>black</code>, <code>isort</code>, <code>ruff</code></td>
+<td>latest</td>
+<td>Code formatting</td>
+</tr>
+</tbody>
+</table>
+<h3>6.2 External Services</h3>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Usage</th>
+<th>Authentication</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>DeepSeek API</strong></td>
+<td>Primary LLM for knowledge extraction, memory dedup, summarization.</td>
+<td>API key in <code>.local_config.yaml</code></td>
+</tr>
+<tr>
+<td><strong>Qdrant (self‑hosted or cloud)</strong></td>
+<td>Vector store for mem0.</td>
+<td>Optional: <code>QDRANT_URL</code>, <code>QDRANT_API_KEY</code></td>
+</tr>
+<tr>
+<td><strong>GitHub (optional)</strong></td>
+<td>Auto‑worker change proposals via PRs.</td>
+<td>GitHub token for repo operations</td>
+</tr>
+</tbody>
+</table>
+<h3>6.3 IDE Integrations</h3>
+<table>
+<thead>
+<tr>
+<th>IDE</th>
+<th>Integration Method</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Claude Code</strong></td>
+<td>Hook via <code>install.sh</code></td>
+<td>Wraps session start/end; injects CLAUDE.md; captures tool calls.</td>
+</tr>
+<tr>
+<td><strong>OpenCode / Continue</strong></td>
+<td>Separate MCP block in config</td>
+<td><code>ai-coworker mcp install</code> adds profile for model loader.</td>
+</tr>
+<tr>
+<td><strong>Cursor</strong></td>
+<td>Post‑session script</td>
+<td>Reads <code>.cursor/sessions/</code> logs; calls <code>analytics.import</code>.</td>
+</tr>
+<tr>
+<td><strong>VS Code (generic)</strong></td>
+<td>Extension (planned)</td>
+<td>Listens to <code>vscode‑debug</code> and file save events.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p>This specification documents all active architectural decisions as of 2026-07-25. For upcoming changes (Wave 4 memory training, self‑evolution UI), see <code>docs/roadmap.md</code>.</p>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Self-Evolving Agent — Dashboard</title>
+<style>
+:root{--bg:#f0f2f5;--card:#fff;--text:#1a1a2e;--text2:#555770;--blue:#4f46e5;--green:#059669;--amber:#d97706;--red:#dc2626;--purple:#7c3aed;--border:#e2e4ea;--shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);--radius:14px}
+*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;margin:0;background:var(--bg);color:var(--text);line-height:1.6}
+header{padding:32px 40px 24px;text-align:center}h1{font-size:2rem;margin:0}h1 span{color:var(--blue)}.muted{color:var(--text2);font-size:.95rem;max-width:600px;margin:8px auto 0}
+main{max-width:1280px;margin:0 auto;padding:0 24px 40px;display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow)}
+.card-header{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.card-badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.badge-prd{background:#e0e7ff;color:var(--blue)}.badge-spec{background:#ddd6fe;color:var(--purple)}.badge-design{background:#d1fae5;color:var(--green)}.badge-meta{background:#fef3c7;color:var(--amber)}
+h3{font-size:1.05rem;margin:0}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}.tag{font-size:.8rem;padding:4px 10px;border:1px solid var(--border);border-radius:8px;background:#f8f9fb;color:var(--text2)}
+.kpi{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0f3}
+.kpi:last-child{border-bottom:none}.kpi-val{font-size:1.6rem;font-weight:800;font-variant-numeric:tabular-nums}.kpi-up{color:var(--green)}.kpi-down{color:var(--red)}.kpi-label{color:var(--text2);font-size:.85rem}
+.req-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.req{background:#f8f9fb;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:.88rem}.req strong{color:var(--blue)}
+.warn-banner{background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px 16px;font-size:.88rem;color:var(--red);margin-top:12px}
+ul{margin:6px 0 0;padding-left:1.2em;font-size:.9rem;color:var(--text2)}ul li{margin:3px 0}
+.foot{grid-column:1/-1;text-align:center;color:var(--text2);font-size:.82rem;padding:20px 0 0}
+@media(max-width:640px){main{grid-template-columns:1fr;padding:0 12px 40px}header{padding:24px 16px 16px}h1{font-size:1.5rem}}
+</style></head>
+<body>
+<header>
+  <h1><span>Self-Evolving Agent</span> — Project Dashboard</h1>
+  <p class="muted">Auto-classified multi-doc overview: PRD v6 (requirements) + Spec v1.1 (solution). Source: <code>docs/self-evolving-agent/</code></p>
+</header>
+<main>
+
+<!-- STATUS OVERVIEW -->
+<div class="card">
+  <div class="card-header"><span class="card-badge badge-meta">Status</span><h3>Project Health</h3></div>
+  <div class="kpi"><span class="kpi-label">PRD version</span><span class="kpi-val kpi-up">v6</span></div>
+  <div class="kpi"><span class="kpi-label">Spec version</span><span class="kpi-val kpi-up">v1.1</span></div>
+  <div class="kpi"><span class="kpi-label">QA/auto-worker</span><span class="kpi-val" style="color:var(--amber);font-size:1.1rem">⚠ DEFERRED</span></div>
+  <div class="kpi"><span class="kpi-label">Review rounds</span><span class="kpi-val kpi-up">5</span></div>
+  <div class="kpi"><span class="kpi-label">Blocking issues</span><span class="kpi-val kpi-down">0</span></div>
+  <div class="kpi"><span class="kpi-label">Greenfield est.</span><span class="kpi-val" style="font-size:1.1rem">~2,290 lines</span></div>
+</div>
+
+<!-- DUAL IDE COVERAGE -->
+<div class="card">
+  <div class="card-header"><span class="card-badge badge-spec">Coverage</span><h3>Dual-IDE Matrix</h3></div>
+  <div class="kpi"><span class="kpi-label">Claude Code</span><span class="kpi-val kpi-up">✅</span></div>
+  <div class="kpi"><span class="kpi-label">OpenCode</span><span class="kpi-val" style="color:var(--amber);font-size:1.1rem">⚠ Spike needed</span></div>
+  <div class="kpi"><span class="kpi-label">Subagent capture (CC)</span><span class="kpi-val kpi-up">✅ SubagentStop</span></div>
+  <div class="kpi"><span class="kpi-label">Subagent capture (OC)</span><span class="kpi-val" style="color:var(--red);font-size:1.1rem">❌ No equivalent</span></div>
+  <div class="warn-banner">⚠ OpenCode <code>tool.execute.after</code> coverage unverified. Session-end backfill mitigates.</div>
+</div>
+
+<!-- MEMORY TIERS -->
+<div class="card">
+  <div class="card-header"><span class="card-badge badge-prd">Architecture</span><h3>Storage Decisions</h3></div>
+  <div class="kpi"><span class="kpi-label">Substrate</span><span class="kpi-val" style="color:var(--blue);font-size:1.1rem">mem0 (library)</span></div>
+  <div class="kpi"><span class="kpi-label">Loop patterns</span><span class="kpi-val" style="color:var(--purple);font-size:1.1rem">Hermes (adapted)</span></div>
+  <div class="kpi"><span class="kpi-label">Embedder</span><span class="kpi-val kpi-up">Local BGE</span></div>
+  <div class="kpi"><span class="kpi-label">LLM</span><span class="kpi-val">DeepSeek Flash</span></div>
+  <div class="kpi"><span class="kpi-label">MEMORY.md</span><span class="kpi-val" style="font-size:.95rem">Read-only export (B)</span></div>
+  <div class="kpi"><span class="kpi-label">R7 (no server)</span><span class="kpi-val kpi-up">✅ Library mode</span></div>
+</div>
+
+<!-- REQUIREMENTS -->
+<div class="card">
+  <div class="card-header"><span class="card-badge badge-prd">PRD §3.1</span><h3>R1–R7 Requirements</h3></div>
+  <div class="req-grid">
+    <div class="req"><strong>R1</strong> Dual-IDE</div>
+    <div class="req"><strong>R2</strong> Per-turn persistence</div>
+    <div class="req"><strong>R3</strong> Exact + semantic search</div>
+    <div class="req"><strong>R4</strong> Agent-managed notes</div>
+    <div class="req"><strong>R5</strong> Frozen snapshot</div>
+    <div class="req"><strong>R6</strong> Periodic cleanup</div>
+    <div class="req"><strong>R7</strong> No always-on server</div>
+    <div class="req"><strong>+</strong> Pending non-overflow</div>
+  </div>
+</div>
+
+<!-- EVOLUTION ENGINE -->
+<div class="card">
+  <div class="card-header"><span class="card-badge badge-spec">Engine</span><h3>Self-Evolution Loop</h3></div>
+  <div class="kpi"><span class="kpi-label">Skill create threshold</span><span class="kpi-val" style="font-size:1.1rem">10+ tool calls</span></div>
+  <div class="kpi"><span class="kpi-label">Approval default</span><span class="kpi-val" style="color:var(--amber)">Review mode</span></div>
+  <div class="kpi"><span class="kpi-label">Circuit breaker</span><span class="kpi-val" style="color:var(--red)">&gt;3 skills / 24h</span></div>
+  <div class="kpi"><span class="kpi-label">Curator schedule</span><span class="kpi-val">~7 days (idle)</span></div>
+  <div class="kpi"><span class="kpi-label">Stale threshold</span><span class="kpi-val">30d → 90d archived</span></div>
+  <div class="kpi"><span class="kpi-label">LLM default</span><span class="kpi-val">DeepSeek Flash</span></div>
+</div>
+
+<!-- EFFECTIVENESS METRICS -->
+<div class="card">
+  <div class="card-header"><span class="card-badge badge-prd">Metrics</span><h3>Effectiveness KPIs</h3></div>
+  <div class="kpi"><span class="kpi-label">skill_reuse_rate</span><span class="kpi-val kpi-up">↑ rising</span></div>
+  <div class="kpi"><span class="kpi-label">user_correction_rate</span><span class="kpi-val kpi-down">↓ falling</span></div>
+  <div class="kpi"><span class="kpi-label">task_first_pass_rate</span><span class="kpi-val kpi-up">↑ rising</span></div>
+  <div class="kpi"><span class="kpi-label">memory_hit_rate</span><span class="kpi-val kpi-up">↑ rising</span></div>
+  <div style="margin-top:10px;font-size:.82rem;color:var(--text2)">Safety: refusal_rate ↑ · unsafe_output ≈0 · breaker_trips ≈0</div>
+</div>
+
+<!-- OPEN QUESTIONS -->
+<div class="card">
+  <div class="card-header"><span class="card-badge badge-meta">Pending</span><h3>Open Questions (4)</h3></div>
+  <div class="row"><span class="tag">mem0 config spike</span><span class="tag">OpenCode coverage</span></div>
+  <div class="row"><span class="tag">Extraction quality baseline</span><span class="tag">GEPA/DSPy → v2</span></div>
+  <ul style="margin-top:12px">
+    <li><strong>Task-0:</strong> pip install mem0, verify DeepSeek as provider, local embedder, embedded vector store</li>
+    <li><strong>Task-0b:</strong> Install OpenCode, verify tool.execute.after coverage</li>
+    <li><strong>v2:</strong> Skill quality auto-detection · Stagnation threshold tuning</li>
+  </ul>
+</div>
+
+<!-- SCOPE -->
+<div class="card">
+  <div class="card-header"><span class="card-badge badge-design">Scope</span><h3>MVP In / Out</h3></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
+    <div>
+      <p style="font-weight:700;color:var(--green);margin:0 0 6px;font-size:.85rem">✅ IN</p>
+      <ul style="margin:0"><li>3-tier memory</li><li>Evolution engine</li><li>Dual-IDE</li><li>Safety architecture</li><li>Pending queue</li><li>Effectiveness metrics</li></ul>
+    </div>
+    <div>
+      <p style="font-weight:700;color:var(--text2);margin:0 0 6px;font-size:.85rem">⏸ OUT (v2)</p>
+      <ul style="margin:0"><li>Publish/transact</li><li>GEPA/DSPy</li><li>Multi-agent mesh</li><li>Guild integration</li><li>Semantic guards</li></ul>
+    </div>
+  </div>
+</div>
+
+<div class="foot">Auto-classified dashboard · PRD v6 + Spec v1.1 · 2026-07-25</div>
+</main>
+</body></html>

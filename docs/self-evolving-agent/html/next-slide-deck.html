@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Self-Evolving Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Newsreader:ital,opsz,wght@0,16..72,400;0,16..72,500;0,16..72,600;1,16..72,400&display=swap" rel="stylesheet">
+<style>
+/* ===========================================
+   INK-WASH EDITORIAL: DESIGN SYSTEM
+   Warm black + paper text + copper accents.
+   Asymmetric left-aligned, generous whitespace.
+   =========================================== */
+
+:root {
+  /* Palette — warm blacks, paper whites, copper accents */
+  --bg-primary: #121210;
+  --bg-surface: #1a1a17;
+  --bg-elevated: #22221e;
+  --text-primary: #e4ddd1;
+  --text-secondary: #a0988a;
+  --text-muted: #6b6560;
+  --accent: #c4814a;
+  --accent-dim: #8b5a35;
+  --accent-glow: rgba(196, 129, 74, 0.3);
+  --border-subtle: rgba(196, 129, 74, 0.12);
+  --border-medium: rgba(196, 129, 74, 0.25);
+  --danger: #c45a4a;
+  --success: #6b8b5a;
+
+  /* Typography — Cormorant Garamond for display, Newsreader for body */
+  --font-display: 'Cormorant Garamond', 'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', Georgia, serif;
+  --font-body: 'Newsreader', 'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', Georgia, serif;
+  --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+
+  /* Fluid typography scale */
+  --title-size: clamp(2.8rem, 6.5vw, 5.5rem);
+  --h2-size: clamp(1.8rem, 3.8vw, 3.2rem);
+  --h3-size: clamp(1.2rem, 2vw, 1.6rem);
+  --body-size: clamp(1rem, 1.6vw, 1.25rem);
+  --small-size: clamp(0.8rem, 1.2vw, 1rem);
+  --stat-size: clamp(3.5rem, 8vw, 6.5rem);
+  --eyebrow-size: clamp(0.7rem, 1vw, 0.85rem);
+
+  /* Spacing */
+  --slide-padding: clamp(1.5rem, 5vw, 5rem);
+  --content-gap: clamp(0.5rem, 2vw, 2rem);
+  --element-gap: clamp(0.25rem, 1vw, 1rem);
+  --section-gap: clamp(1rem, 3vw, 3rem);
+
+  /* Animation */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --duration-fast: 0.35s;
+  --duration-normal: 0.65s;
+  --duration-slow: 0.9s;
+}
+
+/* ===========================================
+   VIEWPORT FITTING: MANDATORY BASE STYLES
+   From viewport-base.css — included in full
+   =========================================== */
+
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+html {
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: var(--body-size);
+  font-weight: 400;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Each slide = exact viewport height */
+.slide {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Content container */
+.slide-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-height: 100%;
+  overflow: hidden;
+  padding: var(--slide-padding);
+}
+
+/* CJK typography */
+:lang(zh), :lang(zh-CN), :lang(zh-TW), :lang(ja), :lang(ko) {
+  line-height: 1.8;
+  overflow-wrap: break-word;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+p, li, blockquote {
+  overflow-wrap: break-word;
+}
+
+/* ===========================================
+   TYPOGRAPHY STYLES
+   =========================================== */
+
+.slide-title {
+  font-family: var(--font-display);
+  font-size: var(--title-size);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin: 0 0 var(--content-gap) 0;
+}
+
+.slide-heading {
+  font-family: var(--font-display);
+  font-size: var(--h2-size);
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--text-primary);
+  margin: 0 0 var(--section-gap) 0;
+  position: relative;
+  padding-bottom: var(--element-gap);
+}
+
+/* Accent underline for headings */
+.slide-heading::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: clamp(2rem, 5vw, 4rem);
+  height: 2px;
+  background: var(--accent);
+  transform-origin: left;
+  transition: transform 0.7s var(--ease-out-expo);
+}
+
+.slide:not(.visible) .slide-heading::after {
+  transform: scaleX(0);
+}
+
+.visible .slide-heading::after {
+  transform: scaleX(1);
+}
+
+.subtitle {
+  font-family: var(--font-body);
+  font-size: var(--h3-size);
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-secondary);
+  margin: 0 0 var(--content-gap) 0;
+  line-height: 1.4;
+}
+
+.tagline {
+  font-family: var(--font-body);
+  font-size: var(--body-size);
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.5;
+  max-width: 36em;
+}
+
+/* ===========================================
+   LAYOUT PATTERNS
+   =========================================== */
+
+/* Asymmetric: content lives on the left 60% */
+.content-left {
+  max-width: clamp(24em, 60%, 42em);
+  margin-right: auto;
+}
+
+/* Stat row — big numbers side by side */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(0.75rem, 2vw, 2rem);
+  width: 100%;
+  max-width: 100%;
+}
+
+.stat-item {
+  text-align: left;
+}
+
+.stat-number {
+  font-family: var(--font-display);
+  font-size: var(--stat-size);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--accent);
+  margin: 0 0 clamp(0.3rem, 0.8vw, 0.6rem) 0;
+}
+
+.stat-label {
+  font-family: var(--font-body);
+  font-size: var(--small-size);
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.stat-trend {
+  font-size: var(--eyebrow-size);
+  color: var(--success);
+  margin: clamp(0.15rem, 0.3vw, 0.3rem) 0 0 0;
+}
+
+/* Bullet list — clean, generous spacing */
+.bullet-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.6rem, 1.4vh, 1.2rem);
+}
+
+.bullet-list li {
+  font-size: var(--body-size);
+  line-height: 1.5;
+  color: var(--text-primary);
+  padding-left: clamp(1.2rem, 2.5vw, 2rem);
+  position: relative;
+}
+
+.bullet-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: clamp(0.4rem, 0.8vw, 0.6rem);
+  height: clamp(0.4rem, 0.8vw, 0.6rem);
+  background: var(--accent);
+  border-radius: 0;
+}
+
+.bullet-list li strong {
+  font-weight: 600;
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: calc(var(--body-size) * 1.05);
+}
+
+/* Two-column split */
+.split-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1rem, 3vw, 3rem);
+  width: 100%;
+  max-width: 100%;
+}
+
+.split-col h3 {
+  font-family: var(--font-display);
+  font-size: var(--h3-size);
+  font-weight: 600;
+  color: var(--accent);
+  margin: 0 0 var(--element-gap) 0;
+}
+
+/* Scope labels */
+.scope-in { color: var(--success); }
+.scope-out { color: var(--danger); }
+
+/* ===========================================
+   NUMBERED STEPS (for the loop)
+   =========================================== */
+
+.step-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.6rem, 1.2vh, 1rem);
+}
+
+.step-list li {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(0.5rem, 1.5vw, 1.5rem);
+  font-size: var(--body-size);
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.step-num {
+  font-family: var(--font-display);
+  font-size: calc(var(--h3-size) * 1.1);
+  font-weight: 700;
+  color: var(--accent);
+  min-width: clamp(1.5rem, 3vw, 2.5rem);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.step-text {
+  flex: 1;
+}
+
+.step-text strong {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.step-text span {
+  color: var(--text-secondary);
+  font-size: calc(var(--body-size) * 0.92);
+}
+
+/* ===========================================
+   FEATURE CARDS (for mechanisms, safety)
+   =========================================== */
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(0.75rem, 1.5vw, 1.5rem);
+  width: 100%;
+  max-width: 100%;
+}
+
+.feature-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  padding: clamp(0.8rem, 2vw, 1.5rem);
+  position: relative;
+  transition: border-color 0.3s ease;
+}
+
+.feature-card:hover {
+  border-color: var(--border-medium);
+}
+
+.feature-card h3 {
+  font-family: var(--font-display);
+  font-size: calc(var(--h3-size) * 0.9);
+  font-weight: 600;
+  color: var(--accent);
+  margin: 0 0 clamp(0.3rem, 0.6vw, 0.6rem) 0;
+}
+
+.feature-card p {
+  font-size: var(--body-size);
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ===========================================
+   TITLE SLIDE — large, dramatic
+   =========================================== */
+
+#slide-1 .slide-content {
+  justify-content: flex-end;
+  padding-bottom: clamp(3rem, 8vw, 6rem);
+}
+
+#slide-1 .title-accent-line {
+  width: clamp(3rem, 8vw, 6rem);
+  height: 3px;
+  background: var(--accent);
+  margin: 0 0 var(--content-gap) 0;
+}
+
+#slide-1 .section-label {
+  font-family: var(--font-body);
+  font-size: var(--eyebrow-size);
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin: 0;
+  position: absolute;
+  top: var(--slide-padding);
+  left: var(--slide-padding);
+}
+
+/* ===========================================
+   CLOSING SLIDE
+   =========================================== */
+
+#slide-9 .closing-accent {
+  width: clamp(2rem, 4vw, 3rem);
+  height: 2px;
+  background: var(--accent);
+  margin: var(--section-gap) 0 var(--content-gap) 0;
+}
+
+/* ===========================================
+   CHROME: Progress bar, nav dots, counter
+   =========================================== */
+
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: var(--accent);
+  z-index: 1000;
+  transition: width 0.3s var(--ease-out-expo);
+  pointer-events: none;
+}
+
+.slide-counter {
+  position: fixed;
+  bottom: clamp(1rem, 2.5vw, 2rem);
+  right: clamp(1rem, 2.5vw, 2rem);
+  font-family: var(--font-body);
+  font-size: var(--small-size);
+  color: var(--text-muted);
+  z-index: 1000;
+  font-variant-numeric: tabular-nums;
+}
+
+.nav-dots {
+  position: fixed;
+  right: clamp(0.5rem, 1.5vw, 1.5rem);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.35rem, 0.8vh, 0.6rem);
+  z-index: 1000;
+}
+
+.nav-dot {
+  width: clamp(6px, 0.6vw, 8px);
+  height: clamp(6px, 0.6vw, 8px);
+  border-radius: 0;
+  background: var(--text-muted);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.3s ease, transform 0.3s var(--ease-out-expo);
+  opacity: 0.5;
+}
+
+.nav-dot.active {
+  background: var(--accent);
+  opacity: 1;
+  transform: scale(1.4);
+}
+
+.nav-dot:hover {
+  background: var(--accent-dim);
+  opacity: 0.8;
+}
+
+.keyboard-hint {
+  position: fixed;
+  bottom: clamp(1rem, 2.5vw, 2rem);
+  left: clamp(1rem, 2.5vw, 2rem);
+  font-family: var(--font-body);
+  font-size: var(--eyebrow-size);
+  color: var(--text-muted);
+  opacity: 0.7;
+  z-index: 1000;
+}
+
+/* ===========================================
+   NOISE TEXTURE — ink-wash feel
+   =========================================== */
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ===========================================
+   ANIMATIONS — Editorial: mask reveals, staggered fade
+   =========================================== */
+
+/* Universal: fade + slide up */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.65s var(--ease-out-expo),
+              transform 0.65s var(--ease-out-expo);
+}
+.visible .reveal { opacity: 1; transform: translateY(0); }
+
+/* Staggered delays */
+.delay-1 { transition-delay: 0.05s; }
+.delay-2 { transition-delay: 0.12s; }
+.delay-3 { transition-delay: 0.19s; }
+.delay-4 { transition-delay: 0.26s; }
+.delay-5 { transition-delay: 0.33s; }
+.delay-6 { transition-delay: 0.40s; }
+
+/* Mask reveal for headings */
+.reveal-mask {
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 0.75s var(--ease-out-expo);
+}
+.visible .reveal-mask {
+  clip-path: inset(0 0 0 0);
+}
+
+/* Fade from left — for bullet text */
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-24px);
+  transition: opacity 0.55s var(--ease-out-expo),
+              transform 0.55s var(--ease-out-expo);
+}
+.visible .reveal-left { opacity: 1; transform: translateX(0); }
+
+/* Scale for stat numbers */
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.88);
+  transition: opacity 0.55s ease,
+              transform 0.65s var(--ease-out-expo);
+}
+.visible .reveal-scale { opacity: 1; transform: scale(1); }
+
+/* Card stagger */
+.reveal-card {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s var(--ease-out-expo),
+              transform 0.5s var(--ease-out-expo);
+}
+.visible .reveal-card { opacity: 1; transform: translateY(0); }
+
+/* ===========================================
+   RESPONSIVE BREAKPOINTS
+   =========================================== */
+
+@media (max-height: 700px) {
+  :root {
+    --slide-padding: clamp(0.75rem, 3vw, 2rem);
+    --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+    --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+    --h2-size: clamp(1rem, 3vw, 1.75rem);
+  }
+}
+
+@media (max-height: 600px) {
+  :root {
+    --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+    --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+    --title-size: clamp(1.1rem, 4vw, 2rem);
+    --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+  }
+  .nav-dots, .keyboard-hint { display: none; }
+}
+
+@media (max-height: 500px) {
+  :root {
+    --slide-padding: clamp(0.4rem, 2vw, 1rem);
+    --title-size: clamp(1rem, 3.5vw, 1.5rem);
+    --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+    --body-size: clamp(0.65rem, 1vw, 0.85rem);
+  }
+  .feature-grid { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 600px) {
+  :root {
+    --title-size: clamp(1.25rem, 7vw, 2.5rem);
+  }
+  .feature-grid { grid-template-columns: 1fr; }
+  .stat-row { grid-template-columns: repeat(2, 1fr); }
+  .split-col { grid-template-columns: 1fr; }
+  .slide-counter { display: none; }
+  .content-left { max-width: 100%; }
+}
+
+@media (max-width: 600px) and (min-height: 700px) {
+  :root {
+    --slide-padding: clamp(1.5rem, 6vw, 3rem);
+    --content-gap: clamp(1rem, 3vw, 2rem);
+  }
+}
+
+@media (min-width: 2000px) {
+  .slide-content { max-width: 1600px; margin: 0 auto; }
+}
+
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .feature-card { border-width: 0.5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.2s !important;
+    scroll-behavior: auto !important;
+  }
+  html { scroll-behavior: auto; scroll-snap-type: none; }
+  .reveal, .reveal-left, .reveal-scale, .reveal-card, .reveal-mask {
+    opacity: 0;
+    transform: none !important;
+    clip-path: none !important;
+    transition: opacity 0.2s ease !important;
+  }
+  .visible .reveal, .visible .reveal-left, .visible .reveal-scale,
+  .visible .reveal-card, .visible .reveal-mask {
+    opacity: 1;
+  }
+}
+
+@media print {
+  html { scroll-snap-type: none; }
+  .slide { height: auto; min-height: 100vh; overflow: visible; page-break-after: always; page-break-inside: avoid; }
+  .progress-bar, .nav-dots, .slide-counter { display: none !important; }
+  .reveal, [class*="reveal-"] {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- PROGRESS BAR -->
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- NAVIGATION DOTS -->
+<nav class="nav-dots" id="navDots" aria-label="Slide navigation"></nav>
+
+<!-- SLIDE COUNTER -->
+<div class="slide-counter" id="slideCounter">1 / 9</div>
+
+<!-- KEYBOARD HINT -->
+<div class="keyboard-hint" id="keyboardHint">&larr; &rarr; to navigate &middot; F fullscreen</div>
+
+<!-- ================================================================
+     SLIDE 1 — TITLE
+     ================================================================ -->
+<section class="slide visible" id="slide-1">
+  <div class="slide-content">
+    <span class="section-label reveal delay-1">Specification v1</span>
+    <div class="title-accent-line reveal delay-1"></div>
+    <h1 class="slide-title reveal-mask delay-1">Self-Evolving<br>Agent</h1>
+    <p class="subtitle reveal delay-2">Memory Platform + Self-Evolution Engine</p>
+    <p class="tagline reveal delay-3">An autonomous agent that captures every turn, builds long-term memory with mem0,<br>and evolves its own skills in a continuous closed learning loop.</p>
+  </div>
+</section>
+
+<!-- ================================================================
+     SLIDE 2 — HOW IT WORKS: THE 4-STEP LOOP
+     ================================================================ -->
+<section class="slide" id="slide-2">
+  <div class="slide-content">
+    <div class="content-left">
+      <h2 class="slide-heading reveal-mask">How It Works</h2>
+      <ol class="step-list">
+        <li class="reveal-left delay-1">
+          <span class="step-num">1</span>
+          <span class="step-text"><strong>Capture</strong> <span>&mdash; Dual-IDE hooks (PostToolUse, SubagentStop, Stop) fire on every tool call. OpenCode too.</span></span>
+        </li>
+        <li class="reveal-left delay-2">
+          <span class="step-num">2</span>
+          <span class="step-text"><strong>Extract</strong> <span>&mdash; DeepSeek Flash processes each turn: tool event + recent window + mem0 recall. Outputs 0..N lessons + optional state delta.</span></span>
+        </li>
+        <li class="reveal-left delay-3">
+          <span class="step-num">3</span>
+          <span class="step-text"><strong>Evolve</strong> <span>&mdash; Hermes loop patterns: create skills after 10+ tool calls, patch outdated skills, curator runs weekly to manage lifecycle.</span></span>
+        </li>
+        <li class="reveal-left delay-4">
+          <span class="step-num">4</span>
+          <span class="step-text"><strong>Inject</strong> <span>&mdash; Frozen memory snapshot written to CLAUDE.local.md at session start. Both IDEs read it with zero tool calls.</span></span>
+        </li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     SLIDE 3 — THREE-TIER MEMORY ARCHITECTURE
+     ================================================================ -->
+<section class="slide" id="slide-3">
+  <div class="slide-content">
+    <div class="content-left">
+      <h2 class="slide-heading reveal-mask">Three-Tier Memory Architecture</h2>
+      <ul class="bullet-list">
+        <li class="reveal-left delay-1">
+          <strong>Tier 1 &mdash; CLAUDE.local.md</strong><br>
+          Injected context snapshot. Frozen at session start. Both Claude Code and OpenCode read it automatically &mdash; zero tool calls. Mid-session mem0 writes do not refresh the active snapshot.
+        </li>
+        <li class="reveal-left delay-2">
+          <strong>Tier 2 &mdash; State Files</strong><br>
+          Per-turn progress tracking in <code style="font-family: var(--font-mono); font-size: calc(var(--body-size) * 0.9); color: var(--text-primary);">docs/&lt;init&gt;/state/</code>. State deltas appended incrementally. Human-readable, git-tracked.
+        </li>
+        <li class="reveal-left delay-3">
+          <strong>Tier 3 &mdash; mem0 Substrate</strong><br>
+          Long-term knowledge store. Hybrid retrieval: semantic (vector) + BM25 (keyword/exact) + entity matching. DeepSeek Flash extracts facts. Local embedder &mdash; no OpenAI dependency.
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     SLIDE 4 — REQUIREMENTS R1&ndash;R4
+     ================================================================ -->
+<section class="slide" id="slide-4">
+  <div class="slide-content">
+    <div class="content-left">
+      <h2 class="slide-heading reveal-mask">Requirements R1 &ndash; R4</h2>
+      <ul class="bullet-list">
+        <li class="reveal-left delay-1">
+          <strong>R1 &mdash; IDE-Agnostic</strong><br>
+          Works with both Claude Code and OpenCode as first-class citizens. mem0 state lives in <code style="font-family: var(--font-mono); font-size: calc(var(--body-size) * 0.9); color: var(--text-primary);">~/.coworker/memory/</code>, not any IDE's config directory.
+        </li>
+        <li class="reveal-left delay-2">
+          <strong>R2 &mdash; Per-Turn Persistence</strong><br>
+          No manual save required. Hooks call <code style="font-family: var(--font-mono); font-size: calc(var(--body-size) * 0.9); color: var(--text-primary);">memory.add()</code> automatically after every tool call. Multi-trigger + audit trail ensures data is never lost.
+        </li>
+        <li class="reveal-left delay-3">
+          <strong>R3 &mdash; Cross-Session Search</strong><br>
+          Exact + semantic hybrid retrieval via mem0. Find lessons by keyword, by meaning, or by structured metadata (project + topic + problem) &mdash; all in one query.
+        </li>
+        <li class="reveal-left delay-4">
+          <strong>R4 &mdash; Agent-Managed Notes</strong><br>
+          The agent writes, patches, and removes its own knowledge entries. Full CRUD: <code style="font-family: var(--font-mono); font-size: calc(var(--body-size) * 0.9); color: var(--text-primary);">memory.add / update / delete</code> via mem0 API.
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     SLIDE 5 — REQUIREMENTS R5&ndash;R7
+     ================================================================ -->
+<section class="slide" id="slide-5">
+  <div class="slide-content">
+    <div class="content-left">
+      <h2 class="slide-heading reveal-mask">Requirements R5 &ndash; R7</h2>
+      <ul class="bullet-list">
+        <li class="reveal-left delay-1">
+          <strong>R5 &mdash; Frozen Snapshot</strong><br>
+          Memory read from mem0 at session start and injected into CLAUDE.local.md between markers. Captured once; mid-session writes do not refresh it. Manual refresh available for sessions longer than 2 hours.
+        </li>
+        <li class="reveal-left delay-2">
+          <strong>R6 &mdash; Periodic Cleanup</strong><br>
+          Weekly curator run marks stale entries, archives entries untouched for 90 days. Entries carry <code style="font-family: var(--font-mono); font-size: calc(var(--body-size) * 0.9); color: var(--text-primary);">state</code> and <code style="font-family: var(--font-mono); font-size: calc(var(--body-size) * 0.9); color: var(--text-primary);">last_used</code> metadata. No cruft accumulation.
+        </li>
+        <li class="reveal-left delay-3">
+          <strong>R7 &mdash; No Background Server</strong><br>
+          mem0 runs in library mode (<code style="font-family: var(--font-mono); font-size: calc(var(--body-size) * 0.9); color: var(--text-primary);">pip install mem0ai</code>). In-process Qdrant vector store. No Docker. No always-on process. Zero infrastructure overhead.
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     SLIDE 6 — SELF-EVOLUTION ENGINE: 3 MECHANISMS
+     ================================================================ -->
+<section class="slide" id="slide-6">
+  <div class="slide-content">
+    <h2 class="slide-heading reveal-mask">Self-Evolution Engine</h2>
+    <div class="feature-grid">
+      <div class="feature-card reveal-card delay-1">
+        <h3>Skill Creation</h3>
+        <p>After 10+ tool calls in a session, assess the transcript for reusable workflows. Invoke <code style="font-family: var(--font-mono); font-size: calc(var(--body-size) * 0.88); color: var(--accent-dim);">skill-create</code> with session context. Two triggers: in-session (task complete) and post-session (Stop reconciliation pass). Staged to pending queue for review.</p>
+      </div>
+      <div class="feature-card reveal-card delay-2">
+        <h3>Skill Patching</h3>
+        <p>When a skill is invoked and found outdated or wrong, invoke <code style="font-family: var(--font-mono); font-size: calc(var(--body-size) * 0.88); color: var(--accent-dim);">skill-edit</code> with surgical <code style="font-family: var(--font-mono); font-size: calc(var(--body-size) * 0.88); color: var(--accent-dim);">old_string &rarr; new_string</code>. Patch count feeds the curator. Same staged approval model.</p>
+      </div>
+      <div class="feature-card reveal-card delay-3">
+        <h3>Curator</h3>
+        <p>Runs every 7 days after 2h+ idle. Lifecycle: active &rarr; stale (30 days) &rarr; archived (90 days). Tracks <code style="font-family: var(--font-mono); font-size: calc(var(--body-size) * 0.88); color: var(--accent-dim);">use_count, patch_count, error_rate</code>. Never touches hand-written or skill-factory bundled content. Recovery via unarchive.</p>
+      </div>
+      <div class="feature-card reveal-card delay-4">
+        <h3>Smart Approval</h3>
+        <p>Staged review by default. Per-domain opt-in to auto-approve only for low-risk operation types. Safety gates enforced: circuit breaker (&gt;3 skills / 24h), sandbox dry-run before promotion, rollback capability.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     SLIDE 7 — SAFETY ARCHITECTURE
+     ================================================================ -->
+<section class="slide" id="slide-7">
+  <div class="slide-content">
+    <div class="content-left">
+      <h2 class="slide-heading reveal-mask">Safety Architecture</h2>
+      <ul class="bullet-list">
+        <li class="reveal-left delay-1">
+          <strong>Circuit Breaker</strong><br>
+          More than 3 auto-created skills in any 24-hour window halts all auto-evolution. Pending queue is preserved. User must run <code style="font-family: var(--font-mono); font-size: calc(var(--body-size) * 0.9); color: var(--text-primary);">coworker skill resume</code> to re-enable.
+        </li>
+        <li class="reveal-left delay-2">
+          <strong>Staged Review Pipeline</strong><br>
+          All auto-created and auto-patched skills go to <code style="font-family: var(--font-mono); font-size: calc(var(--body-size) * 0.9); color: var(--text-primary);">~/.coworker/pending/skills/</code>. Batch approve or reject. Items untouched for 30 days are auto-rejected &mdash; never silently promoted.
+        </li>
+        <li class="reveal-left delay-3">
+          <strong>Sandbox + Rollback</strong><br>
+          Dry-run verification before any skill is promoted to active. <code style="font-family: var(--font-mono); font-size: calc(var(--body-size) * 0.9); color: var(--text-primary);">coworker skill unarchive</code> and <code style="font-family: var(--font-mono); font-size: calc(var(--body-size) * 0.9); color: var(--text-primary);">coworker memory unarchive</code> for one-command recovery.
+        </li>
+        <li class="reveal-left delay-4">
+          <strong>Source of Truth</strong><br>
+          Raw session transcripts in analytics.db are ground truth. mem0 is derived. If mem0 is corrupted, re-extract from transcripts &mdash; no data loss is possible.
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     SLIDE 8 — EFFECTIVENESS METRICS (4 KPIs)
+     ================================================================ -->
+<section class="slide" id="slide-8">
+  <div class="slide-content">
+    <h2 class="slide-heading reveal-mask">Effectiveness Metrics</h2>
+    <div class="stat-row">
+      <div class="stat-item reveal-scale delay-1">
+        <p class="stat-number">&uarr;</p>
+        <p class="stat-label">Skill Reuse Rate</p>
+        <p class="stat-trend">Rising over time</p>
+      </div>
+      <div class="stat-item reveal-scale delay-2">
+        <p class="stat-number">&darr;</p>
+        <p class="stat-label">User Correction Rate</p>
+        <p class="stat-trend">Falling over time</p>
+      </div>
+      <div class="stat-item reveal-scale delay-3">
+        <p class="stat-number">&uarr;</p>
+        <p class="stat-label">Task First-Pass Rate</p>
+        <p class="stat-trend">Rising over time</p>
+      </div>
+      <div class="stat-item reveal-scale delay-4">
+        <p class="stat-number">&uarr;</p>
+        <p class="stat-label">Memory Hit Rate</p>
+        <p class="stat-trend">Non-zero baseline</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     SLIDE 9 — SCOPE IN/OUT + CLOSING
+     ================================================================ -->
+<section class="slide" id="slide-9">
+  <div class="slide-content">
+    <div class="content-left">
+      <h2 class="slide-heading reveal-mask">Scope</h2>
+      <div class="split-col" style="margin-bottom: var(--section-gap);">
+        <div class="reveal-left delay-1">
+          <h3 class="scope-in">In Scope</h3>
+          <ul class="bullet-list">
+            <li>mem0 memory substrate (library mode)</li>
+            <li>Dual-IDE capture (Claude Code + OpenCode)</li>
+            <li>Self-evolution loop (Hermes patterns)</li>
+            <li>Simple pending queue (review + approve)</li>
+            <li>Evolution metrics (7 KPIs)</li>
+          </ul>
+        </div>
+        <div class="reveal-left delay-2">
+          <h3 class="scope-out">Out of Scope</h3>
+          <ul class="bullet-list">
+            <li>QA / auto-worker agent</li>
+            <li>GEPA / DSPy prompt evolution</li>
+            <li>Quality scoring v2</li>
+            <li>OpenCode subagent hook equivalent</li>
+            <li>Cloud / hosted mem0 server</li>
+          </ul>
+        </div>
+      </div>
+      <div class="closing-accent reveal delay-3"></div>
+      <p class="tagline reveal delay-3" style="font-style: italic;">
+        mem0 is the memory. Hermes is the loop. The agent evolves itself &mdash; one turn at a time.
+      </p>
+    </div>
+    <p style="font-family: var(--font-body); font-size: var(--small-size); color: var(--text-muted); margin: var(--section-gap) 0 0 0; opacity: 0.6;">
+      Made with Next Slide &middot; <a href="https://github.com/user/next-slide" style="color: inherit;">github.com/user/next-slide</a>
+    </p>
+  </div>
+</section>
+
+<!-- ================================================================
+     JAVASCRIPT — Navigation, observer, fullscreen
+     ================================================================ -->
+<script>
+(function() {
+  'use strict';
+
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let currentIndex = 0;
+  let isTransitioning = false;
+
+  // --- Build nav dots ---
+  const navDots = document.getElementById('navDots');
+  for (let i = 0; i < totalSlides; i++) {
+    const dot = document.createElement('button');
+    dot.className = 'nav-dot';
+    dot.setAttribute('aria-label', 'Slide ' + (i + 1));
+    dot.addEventListener('click', function() { go(i); });
+    navDots.appendChild(dot);
+  }
+  const dots = navDots.querySelectorAll('.nav-dot');
+
+  // --- Update chrome ---
+  function updateChrome(index) {
+    const pct = ((index) / (totalSlides - 1)) * 100;
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('slideCounter').textContent = (index + 1) + ' / ' + totalSlides;
+
+    dots.forEach(function(d, i) {
+      d.classList.toggle('active', i === index);
+    });
+  }
+
+  // --- Navigate ---
+  function go(index) {
+    if (index < 0 || index >= totalSlides || index === currentIndex || isTransitioning) return;
+    isTransitioning = true;
+    currentIndex = index;
+    slides[index].scrollIntoView({ behavior: 'smooth' });
+    updateChrome(index);
+    setTimeout(function() { isTransitioning = false; }, 500);
+  }
+
+  function next() { go(currentIndex + 1); }
+  function prev() { go(currentIndex - 1); }
+
+  // Expose for comparison page (Phase 7 support)
+  window.go = go;
+
+  // --- Intersection Observer for animations + chrome ---
+  const observerOptions = { threshold: 0.4 };
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        const idx = Array.from(slides).indexOf(entry.target);
+        if (idx !== -1 && idx !== currentIndex) {
+          currentIndex = idx;
+          updateChrome(idx);
+        }
+      }
+    });
+  }, observerOptions);
+
+  slides.forEach(function(slide) { observer.observe(slide); });
+
+  // --- Keyboard ---
+  document.addEventListener('keydown', function(e) {
+    // Don't capture if user is in an input
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+
+    switch (e.key) {
+      case 'ArrowRight': case 'ArrowDown': case ' ': e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'ArrowUp': e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End': e.preventDefault(); go(totalSlides - 1); break;
+      case 'f': case 'F':
+        if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+          e.preventDefault();
+          if (document.fullscreenElement) {
+            document.exitFullscreen();
+          } else {
+            document.documentElement.requestFullscreen();
+          }
+        }
+        break;
+    }
+  });
+
+  // --- Touch swipe ---
+  let touchStartY = 0;
+  document.addEventListener('touchstart', function(e) {
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+
+  document.addEventListener('touchend', function(e) {
+    var dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dy) > 50) {
+      if (dy < 0) next();
+      else prev();
+    }
+  });
+
+  // --- Mouse wheel (debounced) ---
+  let wheelTimeout;
+  document.addEventListener('wheel', function(e) {
+    if (wheelTimeout) return;
+    wheelTimeout = setTimeout(function() { wheelTimeout = null; }, 600);
+    if (e.deltaY > 0) next();
+    else if (e.deltaY < 0) prev();
+  }, { passive: true });
+
+  // --- Init ---
+  updateChrome(0);
+
+  // Hide keyboard hint after first interaction
+  function hideHint() {
+    var hint = document.getElementById('keyboardHint');
+    if (hint) {
+      hint.style.opacity = '0';
+      hint.style.transition = 'opacity 0.6s ease';
+      setTimeout(function() { if (hint) hint.remove(); }, 600);
+    }
+    document.removeEventListener('keydown', hideHint);
+    document.removeEventListener('wheel', hideHint);
+  }
+  document.addEventListener('keydown', hideHint, { once: true });
+  document.addEventListener('wheel', hideHint, { once: true });
+
+})();
+</script>
+
+</body>
+</html>

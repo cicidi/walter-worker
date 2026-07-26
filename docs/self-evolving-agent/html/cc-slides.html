@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Self-Evolving Agent — cc-skills/slides</title>
+<style>
+:root{--primary:#00d4aa;--secondary:#00a8cc;--accent:#667eea;--text:#fff;--text-muted:#888;--bg:#0a0a0a;--bg2:#1a1a2e;--bg3:#16213e;--card:rgba(255,255,255,.05);--border:rgba(255,255,255,.1);--danger:#ff5252;--warn:#ffc107;--success:#73bf69}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:var(--bg);color:var(--text);overflow:hidden;min-height:100vh}
+.progress-bar{position:fixed;top:0;left:0;height:4px;background:linear-gradient(90deg,var(--primary),var(--secondary));transition:width .3s;z-index:1000}
+.slide{display:none;width:100vw;height:100vh;padding:50px 70px;position:relative;background:linear-gradient(135deg,#0a0a0a 0%,#1a1a2e 100%)}
+.slide.active{display:flex;flex-direction:column;justify-content:center;animation:fadeIn .5s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.slide-num{position:absolute;bottom:30px;right:50px;color:var(--text-muted);font-size:.85rem}
+h1{font-size:3.2rem;font-weight:700;margin-bottom:16px;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+h2{font-size:2.2rem;font-weight:700;margin-bottom:20px;color:var(--primary)}
+.subtitle{font-size:1.3rem;color:var(--text-muted);margin-top:8px}
+.bullets{list-style:none;padding:0;max-width:800px}.bullets li{font-size:1.25rem;padding:12px 0;border-bottom:1px solid var(--border);color:var(--text-muted);display:flex;align-items:baseline;gap:12px}.bullets li::before{content:"▸";color:var(--primary)}
+.cards{display:flex;gap:24px;flex-wrap:wrap;max-width:1000px}.card{flex:1 1 240px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px}.card h3{font-size:1.2rem;color:var(--primary);margin-bottom:10px}.card p{color:var(--text-muted);font-size:.95rem;line-height:1.5}
+.kpi-row{display:flex;gap:32px;max-width:900px}.kpi{text-align:center;flex:1}.kpi-val{font-size:2.8rem;font-weight:800;color:var(--primary)}.kpi-label{color:var(--text-muted);font-size:.9rem;margin-top:4px}.kpi-trend{font-size:1.5rem;margin-bottom:8px}
+.nav-btn{position:fixed;bottom:30px;left:50px;display:flex;gap:12px;z-index:999}.nav-btn button{background:var(--card);border:1px solid var(--border);color:var(--text);padding:10px 24px;border-radius:8px;cursor:pointer;font-size:.95rem;transition:all .2s}.nav-btn button:hover{background:var(--primary);color:#000}
+.counter{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);color:var(--text-muted);font-size:.9rem;z-index:999}
+.chart-bar{display:flex;align-items:flex-end;gap:24px;height:200px;max-width:700px}
+.chart-bar .bar{flex:1;background:linear-gradient(180deg,var(--primary),var(--secondary));border-radius:8px 8px 0 0;text-align:center;padding-top:8px;font-weight:700;font-size:.85rem}
+.checklist{list-style:none;max-width:700px}.checklist li{font-size:1.15rem;padding:8px 0;display:flex;gap:12px;align-items:center}.checklist li.yes span{color:var(--success);font-size:1.3rem}.checklist li.no span{color:var(--danger)}
+</style></head>
+<body>
+<div class="progress-bar" id="bar"></div>
+
+<!-- Slide 1: Title -->
+<div class="slide active" id="s0"><div class="slide-num">1 / 9</div>
+  <h1>Self-Evolving Agent</h1>
+  <p class="subtitle">A Claude Code / OpenCode agent that gets smarter every time you use it.<br>Skills self-create · Memory persists · Behavior evolves</p>
+  <p style="margin-top:30px;color:var(--text-muted);font-size:.95rem">PRD v6 · 2026-07-25</p>
+</div>
+
+<!-- Slide 2: How It Works -->
+<div class="slide" id="s1"><div class="slide-num">2 / 9</div>
+  <h2>The Implicit Loop</h2>
+  <ul class="bullets">
+    <li>You work normally — Claude Code or OpenCode</li>
+    <li>Per-tool capture — state + memory synced in background</li>
+    <li>Session-end summarization — LLM extracts lessons + stages skills</li>
+    <li>Next session — richer context, better skills</li>
+  </ul>
+</div>
+
+<!-- Slide 3: Three-Tier Memory -->
+<div class="slide" id="s2"><div class="slide-num">3 / 9</div>
+  <h2>Three-Tier Memory Architecture</h2>
+  <div class="cards">
+    <div class="card"><h3>Tier 1</h3><p><strong>Session Memory</strong><br>What's happening NOW. Active context + frozen snapshot. Lifetime: session.</p></div>
+    <div class="card"><h3>Tier 3</h3><p><strong>Long-Term Memory</strong><br>Lessons, patterns, conventions. All projects, permanent, curated. Exact + semantic search.</p></div>
+    <div class="card"><h3>Tier 2</h3><p><strong>Project State</strong><br>Done / pending / blocked. Initiative lifetime. Key lessons promote to Tier 3 on completion.</p></div>
+  </div>
+</div>
+
+<!-- Slide 4: Requirements -->
+<div class="slide" id="s3"><div class="slide-num">4 / 9</div>
+  <h2>Requirements R1–R7</h2>
+  <div class="cards">
+    <div class="card"><h3>R1 · Dual-IDE</h3><p>Claude Code + OpenCode as first-class citizens</p></div>
+    <div class="card"><h3>R2 · Per-turn</h3><p>Every turn persisted, no manual save</p></div>
+    <div class="card"><h3>R3 · Search</h3><p>Exact key lookup + semantic search</p></div>
+    <div class="card"><h3>R4 · Agent notes</h3><p>Write, patch, remove own notes</p></div>
+    <div class="card"><h3>R5 · Snapshot</h3><p>Frozen baseline per session</p></div>
+    <div class="card"><h3>R6 · Cleanup</h3><p>Stale entries archived automatically</p></div>
+    <div class="card"><h3>R7 · Lightweight</h3><p>No mandatory always-on server</p></div>
+    <div class="card"><h3>+ · Pending</h3><p>Queue never grows unbounded</p></div>
+  </div>
+</div>
+
+<!-- Slide 5: Evolution Engine -->
+<div class="slide" id="s4"><div class="slide-num">5 / 9</div>
+  <h2>Self-Evolution Engine</h2>
+  <div class="cards">
+    <div class="card"><h3>Auto Skill Create</h3><p>10+ tool calls → reusable workflow → <code>skill-create</code>. Post-session trigger catches cross-task patterns.</p></div>
+    <div class="card"><h3>Auto Patching</h3><p>Skill used, found wrong → <code>skill-edit</code> (surgical edit). <code>patch_count</code> feeds curator.</p></div>
+    <div class="card"><h3>Post-Session Summary</h3><p>One LLM pass over full transcript: extract lessons + identify skills. The central mechanism.</p></div>
+  </div>
+</div>
+
+<!-- Slide 6: Safety -->
+<div class="slide" id="s5"><div class="slide-num">6 / 9</div>
+  <h2>Safety Architecture</h2>
+  <div class="checklist">
+    <li class="yes"><span>✓</span> Review mode by default — all evolution staged</li>
+    <li class="yes"><span>✓</span> Circuit breaker — >3 skills/24h → halt + notify</li>
+    <li class="yes"><span>✓</span> Sandbox dry-run before skill promotion</li>
+    <li class="yes"><span>✓</span> Auto-rollback if error rate regresses 50%+</li>
+    <li class="no"><span>⚠</span> Syntactic sandbox — semantic threats tracked as follow-up</li>
+  </div>
+</div>
+
+<!-- Slide 7: Metrics -->
+<div class="slide" id="s6"><div class="slide-num">7 / 9</div>
+  <h2>Effectiveness Metrics</h2>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-trend" style="color:var(--success)">↑</div><div class="kpi-val">-</div><div class="kpi-label">skill reuse rate</div></div>
+    <div class="kpi"><div class="kpi-trend" style="color:var(--danger)">↓</div><div class="kpi-val">-</div><div class="kpi-label">user corrections</div></div>
+    <div class="kpi"><div class="kpi-trend" style="color:var(--success)">↑</div><div class="kpi-val">-</div><div class="kpi-label">first-pass rate</div></div>
+    <div class="kpi"><div class="kpi-trend" style="color:var(--success)">↑</div><div class="kpi-val">-</div><div class="kpi-label">memory hit rate</div></div>
+  </div>
+  <p style="margin-top:30px;color:var(--text-muted);font-size:.9rem">Baselines TBD after dogfood · Safety: refusal ↑ / unsafe ≈0 / breaker ≈0</p>
+</div>
+
+<!-- Slide 8: Implementation -->
+<div class="slide" id="s7"><div class="slide-num">8 / 9</div>
+  <h2>Implementation Stack</h2>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-val" style="font-size:1.8rem">mem0</div><div class="kpi-label">Memory substrate<br>(library mode)</div></div>
+    <div class="kpi"><div class="kpi-val" style="font-size:1.8rem;color:var(--secondary)">Hermes</div><div class="kpi-label">Loop patterns<br>(adapted)</div></div>
+    <div class="kpi"><div class="kpi-val" style="font-size:1.8rem;color:var(--accent)">DeepSeek</div><div class="kpi-label">LLM everywhere<br>(Flash)</div></div>
+  </div>
+  <p style="margin-top:30px;color:var(--text-muted);font-size:.95rem">Dual-IDE capture · per-turn + session-end · MEMORY.md = curator export</p>
+</div>
+
+<!-- Slide 9: Scope -->
+<div class="slide" id="s8"><div class="slide-num">9 / 9</div>
+  <h2>Scope & Next Steps</h2>
+  <div style="display:flex;gap:40px;max-width:800px">
+    <div><h3 style="color:var(--success);margin-bottom:12px">✅ In (MVP)</h3>
+      <ul class="checklist"><li class="yes"><span>✓</span> 3-tier memory (mem0)</li>
+      <li class="yes"><span>✓</span> Evolution engine</li><li class="yes"><span>✓</span> Dual-IDE</li>
+      <li class="yes"><span>✓</span> Safety + metrics</li><li class="yes"><span>✓</span> Pending queue</li></ul></div>
+    <div><h3 style="color:var(--text-muted);margin-bottom:12px">⏸ Out (v2)</h3>
+      <ul class="checklist"><li class="no"><span>⏸</span> Publish / transact</li>
+      <li class="no"><span>⏸</span> GEPA / DSPy</li><li class="no"><span>⏸</span> Multi-agent mesh</li>
+      <li class="no"><span>⏸</span> Guild integration</li><li class="no"><span>⏸</span> Semantic guards</li></ul></div>
+  </div>
+  <p style="margin-top:30px;color:var(--primary);font-size:1.1rem;font-weight:700">Next: mem0 config spike · OpenCode coverage spike</p>
+</div>
+
+<div class="nav-btn"><button onclick="go(-1)">← Prev</button><button onclick="go(1)">Next →</button></div>
+<div class="counter" id="counter">1 / 9</div>
+
+<script>
+let cur=0,total=9;
+function go(d){document.getElementById("s"+cur).classList.remove("active");cur=(cur+d+total)%total;document.getElementById("s"+cur).classList.add("active");document.getElementById("bar").style.width=((cur+1)/total*100)+"%";document.getElementById("counter").textContent=(cur+1)+" / "+total}
+document.addEventListener("keydown",e=>{if(e.key==="ArrowRight"||e.key===" "||e.key==="Enter"){e.preventDefault();go(1)}if(e.key==="ArrowLeft"){e.preventDefault();go(-1)}if(e.key==="f")document.documentElement.requestFullscreen()})
+document.addEventListener("touchstart",e=>{let x=e.touches[0].clientX;document.tH=document.tH||{};document.tH.sx=x},false)
+document.addEventListener("touchend",e=>{let dx=(e.changedTouches[0].clientX-(document.tH?.sx||0));if(dx<-50)go(1);if(dx>50)go(-1)},false)
+</script>
+</body></html>

@@ -1,0 +1,649 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Self-Evolving Agent PRD v6</title><style>body{font-family:sans-serif;max-width:960px;margin:0 auto;padding:20px;line-height:1.6} table{border-collapse:collapse;width:100%} th,td{border:1px solid #ddd;padding:8px;text-align:left} th{background:#f5f5f5} code{background:#f0f0f0;padding:2px 4px;border-radius:3px} pre{background:#f5f5f5;padding:1em;overflow-x:auto} h1,h2,h3{border-bottom:1px solid #eee;padding-bottom:.3em}</style></head><body><h1>Self-Evolving Agent — PRD</h1>
+<blockquote>
+<p>Goal: Ship an autonomous agent that self-evolves in a continuous loop to achieve a goal. The agent is Claude Code (and OpenCode), harnessed by ai-coworker. The agent takes real action — monitor, orchestrate — grounded in real sources.</p>
+</blockquote>
+<h2>Status</h2>
+<table>
+<thead>
+<tr>
+<th>St</th>
+<th>Date</th>
+<th>Author</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>🚧 draft v6</td>
+<td>2026-07-25</td>
+<td>cicidi + Claude</td>
+</tr>
+</tbody>
+</table>
+<h2>Change Log</h2>
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2026-07-25</td>
+<td>v6: <strong>Requirements-only restructure.</strong> PRD now states <em>what/why</em> only; <em>how</em> (tech, storage, schemas, hook configs, cost, reuse analysis) moved to <a href="../spec/self-evolving-agent-spec.md">spec</a>. Specific changes: (1) Removed §1.4 Hermes-as-basis, §6 Architecture, §7 Integration &amp; Implementation, Appendix A Guild evaluation — all solution-level, now in spec. (2) Generalized tech-specific terms (DeepSeek/Hermes/sqlite-vec/hook names/storage paths) to tech-neutral requirement language. (3) Reversed §5.4 privacy model: default is now a <strong>remote</strong> background LLM (was: local-default). (4) MEMORY.md reclassified from Tier 3 storage to a read-only curator export (§3.5). (5) Vector/embedding memory moved <strong>back into scope</strong> (mem0) — removed from OOS. (6) Added requirements: evolution-effectiveness metrics (§5.7), pending-queue non-overflow (§5.1).</td>
+</tr>
+<tr>
+<td>2026-07-25</td>
+<td>v5: Fixed 3 blocking issues from adversarial review. (1) Added <code>async: true</code> to PostToolUse hook config — sync no longer blocks tool calls. (2) Corrected hook name to real Claude Code hook <code>Stop</code> (was <code>SessionEnd</code> which doesn't exist). (3) Added privacy model: transcript summarization defaults to local model (Ollama), remote API (DeepSeek) is opt-in. <em>(v6 reverses #3.)</em></td>
+</tr>
+<tr>
+<td>2026-07-25</td>
+<td>v4: Restructured memory to three-tier architecture (§3).</td>
+</tr>
+<tr>
+<td>2026-07-24</td>
+<td>v3: Reframed primary experience as Hook-embedded implicit evolution.</td>
+</tr>
+<tr>
+<td>2026-07-24</td>
+<td>v2/v1: safety architecture, loop state machine, hook mitigations, cost model, Guild evaluation.</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Companion spec:</strong> <a href="../spec/self-evolving-agent-spec.md"><code>../spec/self-evolving-agent-spec.md</code></a> — the authoritative <em>how</em> (mem0 substrate, Hermes loop adaptation, dual-IDE capture, schemas, error handling). PRD references requirements (R1–R7); spec satisfies them.</p>
+</blockquote>
+<hr />
+<h2>1. Overview</h2>
+<h3>1.1 Vision</h3>
+<p>A Claude Code / OpenCode agent that continuously improves itself by working on real tasks. Each session, each turn, each mistake feeds back into the system — skills are auto-created, memory persists, behaviors evolve. The agent gets smarter the more you use it.</p>
+<p><strong>How you experience it:</strong> You use Claude Code (or OpenCode) normally. Behind the scenes, the platform captures what happens, a background LLM extracts lessons, and the agent quietly builds skills and memory. Session by session, the agent accumulates knowledge — conventions you like, bugs you've hit, workflows that work. There's no separate "training mode." Evolution is embedded in everyday use.</p>
+<h3>1.2 Primary Experience: Hook-Embedded Implicit Evolution</h3>
+<pre><code>You use Claude Code / OpenCode naturally
+         │
+         ▼
+  After every tool call
+  ─────────────────────
+  The platform records state and syncs memory
+  in the background (does not block your work)
+         │
+         ▼
+  When the session ends
+  ─────────────────────
+  A background LLM reads the full transcript,
+  extracts lessons, identifies reusable workflows,
+  and stages skills for review
+         │
+         ▼
+  Next session: richer context, better skills,
+  smarter agent
+</code></pre>
+<p><strong>No separate command, no external driver.</strong> The agent evolves in the background while you work. This is the primary UX. The exact hook/event wiring per IDE is in the spec (§3).</p>
+<h3>1.3 SDK Mode</h3>
+<p>For programmatic use cases (CI/CD, batch processing, scheduled autonomous runs), an explicit state-machine-driven loop is exposed as a CLI for scripts and automation — not the primary human experience. See §2.2 for the loop behavior.</p>
+<h3>1.4 Implementation Choices</h3>
+<p>Implementation choices (memory substrate, skill-refinement patterns, hook wiring, LLM/embedder selection, cost) are <strong>not</strong> specified in this PRD. They live in the <a href="../spec/self-evolving-agent-spec.md">spec</a>. The PRD is intentionally tech-neutral so the substrate can be replaced without changing requirements.</p>
+<h3>1.5 Key Decisions</h3>
+<table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Choice</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Primary experience</td>
+<td><strong>Hook-embedded implicit evolution</strong> — you use the IDE, the platform does the rest</td>
+<td>Evolution shouldn't feel like a separate tool or mode</td>
+</tr>
+<tr>
+<td>SDK mode</td>
+<td>Explicit loop CLI for CI/CD, batch, headless automation</td>
+<td>Same infrastructure, CLI entry point for scripts</td>
+</tr>
+<tr>
+<td>Goal model</td>
+<td>Meta-goal: self-improvement as primary driver, real work as training ground</td>
+<td>The agent evolves through use</td>
+</tr>
+<tr>
+<td>Evolution scope</td>
+<td>Skills + Context + Code + Config (full scope)</td>
+<td>Everything the agent touches can improve</td>
+</tr>
+<tr>
+<td>Memory architecture</td>
+<td>Three-tier: Session → Project-State → Long-Term</td>
+<td>Per-turn sync, cross-IDE/cross-project search, semantic + exact retrieval, periodic cleanup</td>
+</tr>
+<tr>
+<td>Skill creation</td>
+<td>Reuse existing <code>skill-create</code> / <code>skill-edit</code></td>
+<td>Don't reinvent — trigger them automatically</td>
+</tr>
+<tr>
+<td>Orchestration</td>
+<td>The agent decides how to decompose tasks</td>
+<td>ai-coworker doesn't hardcode workflows</td>
+</tr>
+<tr>
+<td>Principles</td>
+<td>优先复用 → 不够改造 → 没轮子造轮子</td>
+<td>Pragmatic, not dogmatic</td>
+</tr>
+</tbody>
+</table>
+<h3>1.6 Knowledge Taxonomy</h3>
+<p>The agent generates three types of knowledge, each mapping to a memory tier:</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Definition</th>
+<th>Example</th>
+<th>Memory Tier</th>
+<th>Trigger</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>SOP</strong></td>
+<td>可重复的操作流程 — step-by-step procedure for a specific task</td>
+<td>"修复 lint 错误的标准流程"、"部署到 production 的检查清单"</td>
+<td>Skill store → promoted to skill-factory</td>
+<td>复杂任务完成后自动判断 → <code>skill-create</code></td>
+</tr>
+<tr>
+<td><strong>经验总结</strong></td>
+<td>对/错的教训、发现的模式、坑点 — lessons, patterns, pitfalls learned through experience</td>
+<td>"MCP 首次请求总是 403 超时，需重试"、"ruff E501 在这个项目被忽略"</td>
+<td><strong>Tier 3</strong> — Long-Term Memory store (cross-project, permanent)</td>
+<td>每 turn sync + session 结束 LLM 总结</td>
+</tr>
+<tr>
+<td><strong>State / 进度</strong></td>
+<td>当前状态 — what was done, what's right/wrong, what's done/pending, who's doing it, when it'll be done</td>
+<td>"Dashboard 5 页完成 2 页 pending，blocker 是数据源 API 未就绪"</td>
+<td><strong>Tier 2</strong> — State files (<code>docs/&lt;initiative&gt;/state/YYYY-MM-DD-state.md</code>)</td>
+<td>每 turn / 每个 phase 完成</td>
+</tr>
+</tbody>
+</table>
+<p><strong>SOP vs 经验 vs State：</strong> SOP 是"怎么做"（可复用流程，晋升到 skill-factory 共享），经验是"发生了什么/学到了什么"（长期记忆，跨项目持久化），State 是"当前在哪"（中期记忆，项目完成即归档）。</p>
+<hr />
+<h2>2. How Evolution Happens</h2>
+<h3>2.1 The Implicit Loop (Primary Experience)</h3>
+<p>Each session IS one evolution cycle. There's no separate "run" command — evolution happens automatically as you work:</p>
+<pre><code>Session N                            Session N+1
+┌──────────────────────┐            ┌──────────────────────┐
+│  You do real work    │            │  Smarter agent       │
+│  ──────────────────── │            │                       │
+│  After each tool call │            │  • Richer context     │
+│  → state recorded     │  ──────►   │    (snapshot has new  │
+│  → memory synced      │  Session   │     memory)           │
+│                       │   ends     │                       │
+│  On session end       │            │  • Better skills      │
+│  → lessons summarized │            │    (staged from last  │
+│  → skills staged      │            │     session)          │
+└──────────────────────┘            └──────────────────────┘
+</code></pre>
+<p><strong>What triggers what:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Trigger</th>
+<th>When</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Per-tool</strong></td>
+<td>After every tool call</td>
+<td>State recorded. Memory synced to the long-term store in the background. Subagent results also captured.</td>
+</tr>
+<tr>
+<td><strong>Session end</strong></td>
+<td>Session ends</td>
+<td>Full transcript → background LLM → extract lessons → long-term memory. Identify reusable workflows → stage skills for review. Update memory snapshot for next session.</td>
+</tr>
+<tr>
+<td><strong>Skill usage</strong></td>
+<td>During session</td>
+<td>Usage tracked. If a skill is wrong/outdated → the agent patches it.</td>
+</tr>
+<tr>
+<td><strong>Curator</strong></td>
+<td>Periodic (idle)</td>
+<td>Cleanup: archive stale entries, merge duplicates, generate report. Never touches hand-written content.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The key insight:</strong> Evolution isn't a separate mode. Every session where you do real work becomes training data. The more you use it, the more skills and memory accumulate.</p>
+<h3>2.2 SDK Mode</h3>
+<p>For programmatic use, the same infrastructure is exposed as a CLI with an explicit loop. Default max time: <strong>12 hours</strong>; the loop gracefully stops when time expires, saving state. Without the loop flag, one cycle runs and exits.</p>
+<p><strong>One cycle</strong> = Observe → Decide → Spawn agent → Record. Each cycle produces concrete output or a deliberate no-op.</p>
+<p><strong>Termination conditions</strong> (the loop stops when ANY is met):</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Condition</th>
+<th>Detection</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Goal achieved</strong></td>
+<td>User-provided success criteria evaluated true (e.g., <code>pytest --exitfirst</code> returns 0, <code>ruff check</code> returns 0)</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Stagnation</strong></td>
+<td>3 consecutive cycles produce no new changes (no code diff, no skill created/patched, no memory entry added)</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Time expired</strong></td>
+<td>Default 12h max time reached. Graceful stop: save state, run summarization, exit.</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Human halt</strong></td>
+<td>Human confirms "done" or "stop"</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Error recovery</strong> (degrade, don't crash):</p>
+<table>
+<thead>
+<tr>
+<th>Failure</th>
+<th>Recovery</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Agent session errors (API timeout, rate limit)</td>
+<td>Retry up to 3 times with exponential backoff; if all fail, record error in state and continue to next cycle</td>
+</tr>
+<tr>
+<td>Per-tool capture fails</td>
+<td>Session-end pass captures the full summary; audit trail records the gap</td>
+</tr>
+<tr>
+<td>Background LLM outage</td>
+<td>Fallback to secondary provider; if all down, defer sync to next cycle (no data loss — raw transcripts preserved)</td>
+</tr>
+<tr>
+<td>Search index corruption</td>
+<td>Auto-rebuild from the source of truth; log event</td>
+</tr>
+<tr>
+<td>Concurrent session conflict</td>
+<td>Lock the shared store; second session queues or skips</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>The detailed state-machine diagram and SDK internals are in the spec.</p>
+<p><strong>What gets auto-updated vs. what doesn't:</strong> Auto-evolution modifies only <strong>CLAUDE.local.md</strong> (personal, not committed), skills in the shared skill store, and memory in the long-term store. <strong>CLAUDE.md</strong> (shared, committed) is NEVER auto-modified — the self-evolution rules are written once by the human. This separation ensures the agent evolves its personal context without altering team-wide conventions.</p>
+</blockquote>
+<h3>2.3 No Publish / Transact (MVP)</h3>
+<ul>
+<li><code>publish</code> and <code>transact</code> are out of scope for MVP</li>
+<li><code>orchestrate</code> is delegated to the agent — ai-coworker doesn't hardcode task decomposition</li>
+</ul>
+<hr />
+<h2>3. Memory — Three-Tier Architecture</h2>
+<h3>3.1 Requirements</h3>
+<p>The agent must persist what it learns across sessions, projects, and IDEs:</p>
+<ul>
+<li><strong>R1 — IDE-agnostic (dual-IDE):</strong> Memory shared by <strong>both Claude Code and OpenCode</strong> as first-class. Every requirement in this section must have a working solution path for each IDE. Not locked to any single IDE's config directory.</li>
+<li><strong>R2 — Per-turn persistence:</strong> Every turn's key information persisted without the agent manually invoking a save command.</li>
+<li><strong>R3 — Cross-session search:</strong> Search across all past sessions, regardless of project or IDE. Must support both exact key-based lookup (find by project + topic) and fuzzy/semantic search (find conceptually similar content). Keyword search alone is insufficient.</li>
+<li><strong>R4 — Agent-managed notes:</strong> Agent can write, patch, and remove its own notes about the project (conventions, tool quirks, lessons) and user (preferences, workflow habits).</li>
+<li><strong>R5 — Frozen snapshot:</strong> Each session starts with a stable snapshot of accumulated knowledge. Mid-session writes go to disk but don't perturb the active session's context.</li>
+<li><strong>R6 — Periodic cleanup:</strong> Stale and unused entries are archived automatically. Hand-written entries are never touched.</li>
+<li><strong>R7 — Lightweight:</strong> No mandatory always-on background server process. The LLM is used for summarization/retrieval, not continuously running.</li>
+</ul>
+<h3>3.2 Three-Tier Memory Model</h3>
+<p>Memory is organized in three tiers, from short-lived to permanent:</p>
+<pre><code>┌─────────────────────────────────────────┐
+│  TIER 1 — Session Memory                │
+│  What's happening NOW                    │
+│  Lifetime: session duration              │
+└──────────┬──────────────────┬───────────┘
+           │ session ends     │ per-turn sync
+           ▼                  │
+┌──────────────────────────┐ │
+│   Session Transcript     │ │
+│   (raw, preserved)       │ │
+└──────────┬───────────────┘ │
+           │ LLM summarizes  │
+           ▼                  │
+┌──────────────────────────┐ │
+│  TIER 3 — Long-Term      │◄┘
+│  Memory (all projects,   │
+│  permanent)              │
+│  Lessons, patterns,      │
+│  conventions, prefs      │
+│  Search: exact + semantic│
+└──────────┬───────────────┘
+           │ snapshot at session start
+           ▼
+┌─────────────────────────────────────────┐
+│  TIER 2 — Project State Memory          │
+│  What was DONE / PENDING / BLOCKED       │
+│  Lifetime: initiative duration           │
+│  Key lessons promoted to Tier 3 on done  │
+└─────────────────────────────────────────┘
+</code></pre>
+<p><strong>Data flow:</strong>
+- <strong>Session → Tier 3 (primary):</strong> Session-end LLM summarizes transcripts into long-term memory. Main capture path — every session produces learning.
+- <strong>Session → Tier 2 (per-turn):</strong> State changes written to initiative state files throughout the session.
+- <strong>Tier 2 → Tier 3 (on completion):</strong> When an initiative completes, key lessons promote to long-term memory.
+- <strong>Tier 3 → Tier 1 (session start):</strong> Frozen snapshot of relevant long-term memory injected into new sessions.</p>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Scope</th>
+<th>Lifetime</th>
+<th>What It Stores</th>
+<th>Key Operations</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Session</strong></td>
+<td>Current session</td>
+<td>Session duration</td>
+<td>Active context, tool calls, conversation</td>
+<td>Auto-capture</td>
+</tr>
+<tr>
+<td><strong>Project State</strong></td>
+<td>Current initiative</td>
+<td>Initiative duration</td>
+<td>Progress, decisions, blockers, phase tracking</td>
+<td>Per-turn sync, phase snapshots</td>
+</tr>
+<tr>
+<td><strong>Long-Term</strong></td>
+<td>All projects</td>
+<td>Permanent (curated)</td>
+<td>Lessons, patterns, conventions, user preferences</td>
+<td>Session-end summarization, cross-session search, periodic curation</td>
+</tr>
+</tbody>
+</table>
+<h3>3.3 Tier 1 — Session Memory</h3>
+<p>The agent's working memory — what it "sees" during a session.</p>
+<ul>
+<li><strong>Content:</strong> The current conversation, tool-call history, and a frozen snapshot of long-term knowledge injected at session start (§3.8).</li>
+<li><strong>Capture:</strong> Automatic. No manual "save."</li>
+<li><strong>Lifetime:</strong> Session duration. When the session ends, raw content is preserved in transcripts; a background LLM extracts key lessons and promotes them to Tier 2 and Tier 3.</li>
+<li><strong>Constraint:</strong> Mid-session writes to long-term memory do NOT refresh the session's snapshot. A manual refresh is available for long-running sessions (&gt;2h).</li>
+</ul>
+<h3>3.4 Tier 2 — Project State Memory</h3>
+<p>Tracks "where we are" in the current initiative. Medium-term — detailed, project-specific, complete when the initiative finishes.</p>
+<ul>
+<li><strong>Content:</strong> Three dimensions — what was done (concrete output), what's right/wrong (lessons), and current status (done/not done/who/when/dependencies).</li>
+<li><strong>Storage:</strong> State files at <code>docs/&lt;initiative&gt;/state/YYYY-MM-DD-state.md</code>. Live documents updated continuously. Previous entries can be modified as status changes (e.g., <code>🚧 → ✅</code>).</li>
+<li><strong>Recording criteria:</strong> Record when any dimension changes. See §4.</li>
+<li><strong>Lifetime:</strong> Initiative duration. On completion, the state file becomes historical; key lessons promote to Tier 3.</li>
+</ul>
+<h3>3.5 Tier 3 — Long-Term Memory</h3>
+<p>Cross-project, cross-session knowledge that persists indefinitely. This is what makes the agent "smarter over time."</p>
+<ul>
+<li><strong>Content:</strong> Lessons learned, reusable patterns/workflows, project conventions, tool quirks, user preferences, distilled experience from completed initiatives.</li>
+<li><strong>Storage:</strong> A long-term memory store that MUST support:</li>
+<li><strong>Exact retrieval:</strong> Find entries by project, topic, or problem key.</li>
+<li><strong>Fuzzy/semantic search:</strong> Find conceptually similar entries across projects.</li>
+<li><strong>Human-readable export:</strong> A read-only, curator-generated mirror of the store for git-diffability and offline reading. (The store itself is the source of truth; the export is derived.)</li>
+<li><strong>Unified search scope:</strong> All projects, all sessions, both IDEs — one search surface.</li>
+<li><strong>Capture:</strong></li>
+<li><strong>Per-turn (secondary, reliability):</strong> Key information from each significant tool call is extracted and written incrementally. Best-effort — failures don't block the session.</li>
+<li><strong>Session-end summarization (primary, quality):</strong> When a session ends, a background LLM reads the full transcript, extracts lessons/patterns, identifies reusable workflows, and reconciles/dedups against per-turn captures. Every session produces learning.</li>
+<li><strong>Lifetime:</strong> Permanent, with automated maintenance (§3.7).</li>
+<li><strong>Retrieval:</strong> CLI for scripts and a skill for humans. The agent can proactively search memory when it encounters situations similar to past experience.</li>
+</ul>
+<h3>3.6 Memory Sync Flow</h3>
+<ul>
+<li><strong>Per-turn sync:</strong> After each significant tool call, key information is extracted to Tier 2 (state) and Tier 3 (long-term). Lightweight, non-blocking. Coverage gaps are mitigated by the end-of-session pass.</li>
+<li><strong>End-of-session sync:</strong> Full transcript summarized by a background LLM; lessons/patterns written to Tier 3. Captures what per-turn missed (subagent results, dropped output). Also triggers post-session summarization (§5.4).</li>
+<li><strong>Provider fallback:</strong> If the primary background LLM is unavailable, fall back to a secondary provider. Both fail → defer to next cycle. No data loss — raw transcripts are preserved.</li>
+<li><strong>Audit trail:</strong> Every sync writes a timestamped audit record, enabling gap detection.</li>
+<li><strong>Subagent content:</strong> Captured via a dedicated subagent-completion trigger, with session-end summarization as a secondary path.</li>
+</ul>
+<h3>3.7 Memory Maintenance (Curator)</h3>
+<p>Periodic maintenance keeps the long-term store healthy:</p>
+<ul>
+<li><strong>Trigger:</strong> Periodic, during agent idle time.</li>
+<li><strong>Actions:</strong> Track usage per entry; mark unused (30 days → <code>stale</code> → 90 days → <code>archived</code>); pin high-value entries; merge duplicates; generate reports; regenerate the human-readable export. Only touch agent-created entries — never hand-written.</li>
+<li><strong>Recovery:</strong> Archived entries can be restored.</li>
+</ul>
+<h3>3.8 Context Injection (Snapshot)</h3>
+<p>At session start, a frozen snapshot of relevant long-term memory is injected into the session context. Both Claude Code and OpenCode read the personal context file at session start, so the snapshot is available immediately — no tool call required.</p>
+<ul>
+<li><strong>Frozen at start:</strong> Captured once. Mid-session writes don't refresh the active snapshot.</li>
+<li><strong>Replaced each session:</strong> Old snapshot is entirely replaced on next session start, guarded by a merge layer so human content is never corrupted.</li>
+<li><strong>Mid-session refresh:</strong> A manual command reloads the snapshot from disk. Useful for long-running sessions (&gt;2h). Default behavior remains frozen.</li>
+<li><strong>Agent-managed, human-readable:</strong> Written by the agent, readable/editable by humans.</li>
+</ul>
+<hr />
+<h2>4. State Engine</h2>
+<h3>4.1 Trigger</h3>
+<p>Every turn → capture fires → the platform writes to the state file. No manual action needed — state recording is a side effect of using the IDE.</p>
+<h3>4.2 State File</h3>
+<pre><code>docs/&lt;initiative&gt;/state/YYYY-MM-DD-state.md
+</code></pre>
+<ul>
+<li>Live document, updated continuously (not just daily snapshot)</li>
+<li>Appends new events AND modifies previous entries (e.g., <code>🚧 → ✅</code>)</li>
+<li>Phase completion (PRD/spec/design/plan/test) forces a state update</li>
+</ul>
+<h3>4.3 Recording Criteria</h3>
+<p>Three dimensions — record if ANY one is met:</p>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>What it means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>做了什么</strong></td>
+<td>Concrete output: code, docs, config, research conclusion, external action, automation</td>
+</tr>
+<tr>
+<td><strong>对/错</strong></td>
+<td>Lessons: what worked, what didn't, bugs found, blind spots exposed, compaction risks</td>
+</tr>
+<tr>
+<td><strong>进度</strong></td>
+<td>Tracking: done/not done/who's doing it/when done/dependencies</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Always record:</strong> code/doc/config changes; system events (MCP setup, model config, backup/restore, compaction); research with conclusions; failed attempts; subagent conclusions.</p>
+<p><strong>Never record:</strong> instant queries (just looking); single-command atomic ops; pure chat/curiosity; transient status checks.</p>
+<hr />
+<h2>5. Self-Evolution Engine</h2>
+<h3>5.1 Auto Skill Creation</h3>
+<p><strong>Triggers (dual):</strong></p>
+<ol>
+<li><strong>Post-session trigger — PRIMARY:</strong> When the background LLM summarizes the session (§5.4), it also assesses whether any workflows/patterns are reusable. If yes → invokes <code>skill-create</code> with the full session transcript as context. Most powerful — it has the complete session picture.</li>
+<li><strong>In-session trigger — SECONDARY:</strong> Completing a task with a significant tool-call footprint (default threshold: 10+ tool calls). Configurable.</li>
+</ol>
+<p><strong>Rule in CLAUDE.md:</strong></p>
+<pre><code class="language-markdown">## Self-Evolution Rules
+When you complete a complex task using significant tool calls:
+1. Assess whether the workflow/pattern/knowledge is reusable
+2. If yes → invoke `skill-create` to generate SKILL.md automatically
+</code></pre>
+<p><strong>Approval model:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Review mode</strong> (<code>auto_approve: false</code>, DEFAULT)</td>
+<td>Skills staged to a pending queue — user reviews</td>
+</tr>
+<tr>
+<td><strong>Auto mode</strong> (<code>auto_approve: true</code>)</td>
+<td>Skills auto-created without prompting (opt-in)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Pending queue must not grow unbounded</strong> (requirement): the queue supports batch approve/reject and auto-expires items untouched for 30 days (auto-rejected, never silently promoted). The queue persists across restarts. <em>(Simple v1; quality scoring deferred.)</em></p>
+<ul>
+<li>Memory writes: lightweight, reviewed inline</li>
+<li>Skill writes: always staged (too large for inline preview)</li>
+<li><strong>Safety gates</strong> (see §5.6): circuit breaker, sandbox test, rollback.</li>
+</ul>
+<h3>5.2 Skill Lifecycle &amp; Promotion</h3>
+<p>Skills are created <strong>locally first</strong>, not directly in skill-factory. They earn their way up.</p>
+<p><strong>Rules:</strong>
+- <strong>0–9 uses:</strong> shared store, both IDEs can sync
+- <strong>10+ uses:</strong> auto-flag for promotion → copy to <code>skill-factory/personal-skills/</code> → human reviews and commits
+- <strong>Usage tracking:</strong> sidecar JSON with atomic writes. Failures are best-effort — a broken counter never blocks a skill invocation. Tracks use/view/patch counts, state, provenance.
+- <strong>Quality metrics:</strong> <code>error_rate</code>, <code>patch_frequency</code>, <code>user_override_rate</code>, regression detection (rollback if post-patch error rate exceeds pre-patch).
+- <strong>Lifecycle:</strong> active → stale (30d unused) → archived (90d). Pinned/high-history-use skills exempt.
+- <strong>Provenance:</strong> agent-created / bundled / skill-factory / hub. Curator only touches agent-created.</p>
+<h3>5.3 Auto Skill Patching</h3>
+<p><strong>Trigger:</strong> Using an existing skill and discovering it's outdated, incomplete, or wrong → invoke <code>skill-edit</code> (surgical: <code>old_string → new_string</code>). <code>patch_count</code> feeds the curator and promotion. Same approval model + safety gates as creation. Rollback available.</p>
+<h3>5.4 Post-Session Summarization (Central Evolution Mechanism)</h3>
+<p><strong>Trigger:</strong> Session ends.</p>
+<p>This is the primary mechanism for the implicit evolution experience. Every session produces two outputs in a single LLM pass over the full transcript:</p>
+<ol>
+<li><strong>Summarize experience</strong> → lessons/patterns/pitfalls to memory → indexed → next session's snapshot includes this knowledge.</li>
+<li><strong>Identify reusable workflows</strong> → assess whether any task patterns are worth capturing as skills → if yes, stage via <code>skill-create</code>.</li>
+</ol>
+<p>Using a single pass for both avoids extra API calls. The full transcript provides richer context for skill identification than any individual in-session trigger.</p>
+<p><strong>Privacy model:</strong> Session transcripts may contain proprietary code and credentials. By default, summarization sends session content to the configured <strong>remote</strong> background LLM (the project's chosen provider). Users who need local-only processing for sensitive content may opt in to a local model. The provider fallback chain (§3.6) applies when the configured provider is unavailable.</p>
+<blockquote>
+<p>v5 defaulted to local; v6 reverses this to remote-default per owner decision (the configured provider is used by default; local is opt-in for sensitive sessions).</p>
+</blockquote>
+<p><strong>This is what makes evolution feel automatic.</strong> You finish your work, close the IDE, and next time the agent has learned from your last session.</p>
+<h3>5.5 Curator</h3>
+<p><strong>Trigger:</strong> Periodic (idle). Index maintenance runs more frequently.</p>
+<p><strong>Actions:</strong> Track usage metrics; archive stale (30d → 90d); pin high-use; merge duplicates; generate report; regenerate the human-readable export; only touch agent-created entries. Restore via unarchive commands.</p>
+<h3>5.6 Safety &amp; Alignment Architecture</h3>
+<blockquote>
+<p><strong>Why this exists:</strong> Shanghai AI Lab research (2026) documented safety erosion across all four self-evolution pathways: model evolution raised phishing-risk triggers 18.2%→71.4%; memory evolution dropped malicious-code refusal 99.4%→54.4%; tool evolution showed 65.5% unsafe auto-created tools; workflow evolution collapsed malicious-request refusal 46.3%→6.3%. AgentWorm (Peking University, 2026) demonstrated 63% attack success against self-propagating agent vulnerabilities. A self-modifying autonomous agent without safety infrastructure is indefensible.</p>
+</blockquote>
+<p><strong>Defaults:</strong> All self-evolution defaults to <strong>review mode</strong>. Auto-approval is opt-in and scoped per operation type.</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Default</th>
+<th>Can opt-in to auto?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Skill creation</td>
+<td>Review (pending queue)</td>
+<td>Yes, per skill domain</td>
+</tr>
+<tr>
+<td>Skill patching</td>
+<td>Review (pending queue)</td>
+<td>Yes, per skill</td>
+</tr>
+<tr>
+<td>Memory writes</td>
+<td>Inline review</td>
+<td>N/A (lightweight)</td>
+</tr>
+<tr>
+<td>Background creation</td>
+<td>Always staged</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Circuit breaker:</strong> If &gt;3 skills are created or patched within 24 hours, halt all auto-evolution (suspend create/patch, keep pending queue, notify user, resume only after review).</p>
+<p><strong>Sandbox testing:</strong> Before a pending skill is promoted, dry-run it in a sandboxed session (no side effects) and verify minimal safety checks. Fail → stays pending with reason logged.</p>
+<p><strong>Rollback:</strong> Every auto-created/patched skill supports rollback to the last known-good version. Automatic if post-patch error rate exceeds pre-patch by 50%+. Version history retains last 5 versions.</p>
+<p><strong>Safety monitoring:</strong> Track <code>refusal_rate</code>, <code>unsafe_output_rate</code>, <code>skill_error_rate</code>, <code>circuit_breaker_trips</code> per session; feed into curator decisions.</p>
+<blockquote>
+<p><strong>Known gap (semantic threats):</strong> Sandbox checks are syntactic (e.g., dangerous shell patterns). The cited threats are semantic (phishing, refusal collapse). A semantic guard is a recognized need; tracked as a follow-up rather than an MVP blocker.</p>
+</blockquote>
+<h3>5.7 Effectiveness Metrics</h3>
+<p>The vision is "smarter over time." Beyond safety metrics (§5.6), the system MUST measure whether it is actually getting more useful. These are requirements:</p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Signal</th>
+<th>Target trend</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>skill_reuse_rate</code></td>
+<td>fraction of sessions invoking an auto-created skill</td>
+<td>rising</td>
+</tr>
+<tr>
+<td><code>user_correction_rate</code></td>
+<td>user overrides/corrects the agent per task</td>
+<td>falling</td>
+</tr>
+<tr>
+<td><code>task_first_pass_rate</code></td>
+<td>tasks completed without rework</td>
+<td>rising</td>
+</tr>
+<tr>
+<td><code>memory_hit_rate</code></td>
+<td>searches returning a useful entry</td>
+<td>rising; non-zero baseline means memory is used</td>
+</tr>
+</tbody>
+</table>
+<p>Collection is automatic per session and surfaced in curator reports. Exact formulas are an implementation detail (spec).</p>
+<hr />
+<h2>6. Implementation</h2>
+<p>Implementation (memory substrate, skill-refinement loop, hook/event wiring, schemas, error handling, cost model, reuse analysis of existing ai-coworker infrastructure) is specified in the <a href="../spec/self-evolving-agent-spec.md">spec</a>. This PRD intentionally omits <em>how</em> the requirements are met.</p>
+<hr />
+<h2>7. Out of Scope (MVP)</h2>
+<ul>
+<li>Publish / Transact operations</li>
+<li>GEPA/DSPy prompt evolution (v2)</li>
+<li>Multi-agent delegation mesh (v2)</li>
+<li>Guild Agent integration (evaluated — complementary task-coordination layer, v2 candidate; not a replacement for the memory architecture)</li>
+<li>Semantic safety guards beyond syntactic sandbox checks (follow-up; see §5.6)</li>
+</ul>
+<hr />
+<h2>8. Open Questions</h2>
+<h3>Resolved</h3>
+<ol>
+<li>✅ <strong>SDK loop termination:</strong> Three conditions (§2.2): goal criteria, stagnation (3 cycles), time expired (12h).</li>
+<li>✅ <strong>Search index rebuild:</strong> Incremental primary; full rebuild on integrity failure from source of truth.</li>
+<li>✅ <strong>Snapshot injection:</strong> Separate per-project snapshot blocks; mid-session refresh available.</li>
+<li>✅ <strong>Primary UX:</strong> Hook-embedded implicit evolution; SDK loop reserved for automation.</li>
+<li>✅ <strong>Vector/embedding memory:</strong> In scope (MVP). Substrate choice (mem0) in spec.</li>
+<li>✅ <strong>Privacy default:</strong> Remote background LLM by default; local opt-in (v6 reversal of v5).</li>
+<li>✅ <strong>Long-term store schema &amp; MEMORY.md role:</strong> Store is source of truth with a defined entry schema; MEMORY.md is a read-only curator export (spec §2.3, §5.2).</li>
+</ol>
+<h3>New (v2+)</h3>
+<ol>
+<li><strong>OpenCode capture coverage:</strong> Does OpenCode's per-tool event fire for all tool types, equivalent to Claude Code? Needs empirical validation before declaring dual-IDE production parity (spec §8 spike).</li>
+<li><strong>Skill quality auto-detection:</strong> Can skill degradation be auto-detected without waiting for user override signals?</li>
+<li><strong>Cross-project skill promotion:</strong> When should a project-local skill promote to skill-factory?</li>
+<li><strong>Loop stagnation sensitivity:</strong> Is 3 cycles the right SDK threshold? Needs real-run tuning.</li>
+</ol></body></html>

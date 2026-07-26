@@ -176,3 +176,34 @@ def run_training_pipeline(
     logger.info("Training report: %s", report_path)
 
     return stats
+
+def auto_generate_skills(mem0_client, llm_client, db, min_occurrences: int = 3) -> list[str]:
+    """Auto-generate skills from repeated task patterns (TR-1)."""
+    import json
+    from pathlib import Path
+    from datetime import datetime, timezone
+    lessons = []
+    try:
+        results = mem0_client.search(query=".", filters={"type": "lesson"}, top_k=200)
+        for r in results:
+            topic = r.get("metadata", {}).get("topic", "")
+            if topic:
+                lessons.append(topic)
+    except: pass
+    
+    from collections import Counter
+    freq = Counter(lessons)
+    generated = []
+    for topic, count in freq.most_common(10):
+        if count >= min_occurrences:
+            skill_id = topic.replace(" ", "-").lower()[:40]
+            pending_dir = Path.home() / ".coworker" / "pending" / "skills"
+            pending_dir.mkdir(parents=True, exist_ok=True)
+            payload = {
+                "name": skill_id, "description": f"Auto-generated from {count} repeated patterns",
+                "tool_call_count": count, "source": "auto-generation", "status": "pending",
+                "staged_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            }
+            (pending_dir / f"{skill_id}.json").write_text(json.dumps(payload, indent=2))
+            generated.append(skill_id)
+    return generated

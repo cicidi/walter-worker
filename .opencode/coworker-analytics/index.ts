@@ -3,6 +3,15 @@ import { createSession } from "./session"
 import { Recorder } from "./recorder"
 
 export default {
+
+  // Memory sync on tool execution (spec §3.2)
+  tool_execute_after: {
+    async event({ event }) {
+      const { exec } = await import("child_process");
+      exec.spawnSync('coworker', ['memory','sync','--ide','opencode','--trigger','posttooluse']);
+    }
+  },
+
   id: "coworker-analytics",
 
   server(input: PluginInput): Hooks {

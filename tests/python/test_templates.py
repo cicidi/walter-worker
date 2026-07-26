@@ -13,12 +13,12 @@ class TestGlobalTemplate:
     def test_exists(self):
         assert len(GLOBAL_CLAUDE_MD_TEMPLATE) > 0
 
-    def test_under_100_lines(self):
+    def test_under_200_lines(self):
         result = generate_global_claude_md()
         lines = result.strip().split("\n")
-        assert len(lines) < 100, f"{len(lines)} lines, must be <100"
+        assert len(lines) < 200, f"{len(lines)} lines, must be <200"
 
-    def test_contains_all_8_principles(self):
+    def test_contains_all_principles(self):
         result = generate_global_claude_md()
         for phrase in [
             "Ask and Confirm",
@@ -29,6 +29,10 @@ class TestGlobalTemplate:
             "Decompose Complex Tasks",
             "Plan and Track",
             "Model Upgrade",
+            "Golden Rule",
+            "Autonomous Job Guardrail",
+            "Prompt De-Fluffing",
+            "Cross-Project Awareness",
         ]:
             assert phrase in result, f"Missing: {phrase}"
 

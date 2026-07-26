@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Self-Evolving Agent — Memory Platform Spec (Brief)</title>
+<style>
+:root{--paper:#FAFAF5;--ink:#1A1A1A;--ink-muted:rgba(26,26,26,.65);--ink-subtle:rgba(26,26,26,.40);--signal:#D9430D;--signal-soft:rgba(217,67,13,.08);--hairline:rgba(26,26,26,.12);--font-serif:Georgia,'Times New Roman','Noto Serif CJK SC','Source Han Serif SC',serif;--font-mono:'JetBrains Mono','SF Mono',Menlo,Consolas,monospace;--font-sans:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif}
+*{box-sizing:border-box}
+body{max-width:720px;margin:0 auto;padding:48px 24px 96px;font-family:var(--font-sans);background:var(--paper);color:var(--ink);line-height:1.7;font-size:17px}
+.masthead{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid var(--hairline)}
+.kicker{font-family:var(--font-mono);font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--signal);margin:0 0 8px}
+h1{font-family:var(--font-serif);font-size:clamp(2.4rem,5vw,3.6rem);font-weight:700;line-height:1.15;margin:0 0 16px;letter-spacing:-.01em}
+.dek{font-size:1.15rem;color:var(--ink-muted);margin:0 0 20px;line-height:1.55;max-width:60ch}
+.meta{font-family:var(--font-mono);font-size:.8rem;color:var(--ink-subtle);display:flex;gap:20px}
+h2{font-family:var(--font-sans);font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-subtle);margin:56px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--hairline)}
+h3{font-size:1.25rem;font-weight:600;margin:32px 0 10px}
+p{max-width:60ch;margin:0 0 14px}
+code{font-family:var(--font-mono);background:rgba(0,0,0,.04);padding:1px 5px;border-radius:3px;font-size:.88em}
+pre{background:rgba(0,0,0,.03);border:1px solid var(--hairline);padding:16px 20px;overflow-x:auto;font-size:13px;line-height:1.55;margin:16px 0}
+pre code{background:none;padding:0}
+.highlight{background:var(--signal-soft);border-left:4px solid var(--signal);padding:16px 20px;margin:24px 0}
+.highlight .hl{font-family:var(--font-mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--signal);margin-bottom:6px}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin:24px 0}
+.metric{text-align:center;padding:20px 16px;border:1px solid var(--hairline)}
+.metric .val{font-family:var(--font-serif);font-size:2.2rem;color:var(--signal)}
+.metric .lbl{font-size:.8rem;color:var(--ink-muted);margin-top:4px}
+table{width:100%;border-collapse:collapse;margin:20px 0;font-size:.92rem}
+th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--hairline)}
+th{font-family:var(--font-mono);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-subtle);font-weight:600}
+.callout{padding:14px 18px;border-left:3px solid var(--signal);background:var(--signal-soft);margin:20px 0;font-size:.95rem}
+.lang-bar{display:flex;justify-content:flex-end;margin-bottom:32px}
+.lang-bar button{font-family:var(--font-mono);font-size:.78rem;padding:6px 14px;border:1px solid var(--hairline);background:var(--paper);color:var(--ink-muted);border-radius:20px;cursor:pointer}
+.lang-bar button:hover{color:var(--signal);border-color:var(--signal)}
+footer{margin-top:64px;padding-top:16px;border-top:1px solid var(--hairline);font-family:var(--font-mono);font-size:.75rem;color:var(--ink-subtle);display:flex;justify-content:space-between}
+ol,ul{margin:0 0 14px;padding-left:1.3em}
+li{margin:4px 0}
+@media(max-width:600px){body{padding:24px 16px 64px}h1{font-size:2rem}}
+@media print{body{max-width:100%}}
+</style>
+</head>
+<body>
+
+<!-- ENGLISH -->
+<div class="lang-en">
+<header class="masthead">
+  <p class="kicker">SPEC · v1.1 · 2026-07-25</p>
+  <h1>Self-Evolving Agent<br>Memory Platform Spec</h1>
+  <p class="dek">mem0 substrate, Hermes loop adaptation, dual-IDE capture, per-turn + session-end extraction. DeepSeek Flash everywhere. ~8 min read.</p>
+  <div class="meta"><span>~2,000 words</span><span>self-evolving-agent-spec.md</span></div>
+</header>
+
+<div class="lang-bar"><button id="lang-btn" onclick="toggleLang()">中文</button></div>
+
+<div class="highlight"><span class="hl">KEY POINT</span>
+  <p>The PRD defines <strong>what</strong> (R1–R7, three-tier model, safety). This spec defines <strong>how</strong>: mem0 = memory substrate (library mode), Hermes = loop patterns (re-hosted on our hooks), dual-IDE capture = multi-trigger + audit + reconciliation.</p>
+</div>
+
+<h2>1 · Architecture</h2>
+<ol>
+  <li>Claude Code / OpenCode → tool calls captured by hooks (PostToolUse + SubagentStop + Stop).</li>
+  <li>Per-turn: extract lessons → mem0.add (+ optional state_delta). Non-blocking.</li>
+  <li>Session-end: full transcript → DeepSeek Flash → reconciliation + skill-create assessment.</li>
+  <li>Session start: mem0 snapshot → CLAUDE.local.md (zero tool calls).</li>
+</ol>
+<p><strong>LLM policy:</strong> DeepSeek Flash everywhere. Embedder: local (fastembed/BGE). Fallback: Gemini → Claude Haiku.</p>
+
+<h2>2 · mem0 Substrate</h2>
+<div class="metrics">
+  <div class="metric"><div class="val">R1–R7</div><div class="lbl">All satisfied</div></div>
+  <div class="metric"><div class="val">Library</div><div class="lbl">In-process, no server</div></div>
+  <div class="metric"><div class="val">Hybrid</div><div class="lbl">Vector + BM25 + entity</div></div>
+</div>
+<p>mem0 library mode (<code>pip install mem0ai</code>) replaces sqlite-vec, analytics.db knowledge table, and Hermes FTS5. Every fact extracted is stored with structured metadata: type, project, topic, problem, provenance, state, use_count.</p>
+<p>Guild OSS was evaluated and rejected — fails R2, R7. Complementary v2 candidate for task coordination.</p>
+
+<h2>3 · Capture Layer</h2>
+<div class="callout"><strong>Heads up:</strong> PostToolUse alone is unreliable (9 failure modes) and blind to subagents. Multi-trigger: PostToolUse + SubagentStop + Stop, plus audit trail + session-end reconciliation.</div>
+<table>
+<tr><th></th><th>per-turn</th><th>session-end</th></tr>
+<tr><td>Purpose</td><td>Reliability — don't lose data</td><td>Quality — reconciliation + dedup</td></tr>
+<tr><td>Input</td><td>Tool event + 3-5 turn window</td><td>Full session transcript</td></tr>
+<tr><td>Output</td><td>0..N lessons + state_delta</td><td>Lessons + backfill + skill trigger</td></tr>
+<tr><td>Cost</td><td>~$0.0004 per call</td><td>One call</td></tr>
+</table>
+<div class="highlight"><span class="hl">KEY POINT</span>
+  <p>Per-turn does NOT reprocess history. Each turn extracted once. Cross-turn dedup + pattern detection = session-end only.</p>
+</div>
+
+<h2>4 · Self-Evolution Loop</h2>
+<table>
+<tr><th>Mechanism</th><th>Trigger</th><th>Action</th></tr>
+<tr><td>Skill creation</td><td>10+ tool calls OR session-end</td><td><code>skill-create</code> — staged for review</td></tr>
+<tr><td>Skill patching</td><td>Skill used, found wrong</td><td><code>skill-edit</code> surgical patch</td></tr>
+<tr><td>Curator</td><td>~7 days (idle)</td><td>active→stale→archived, merge, report</td></tr>
+</table>
+<p>Hermes pattern adapted: "smart approval system" → staged review by default (<code>auto_approve: false</code>). Safety: circuit breaker (>3 skills/24h), sandbox dry-run, rollback.</p>
+
+<h2>5 · Context Injection</h2>
+<p>Session start: mem0 snapshot → CLAUDE.local.md markers. Both IDEs read at start — zero tool calls (R5). MEMORY.md reclassified as <strong>curator-generated read-only export</strong> for git diffability.</p>
+
+<h2>6 · Pending Queue (v1)</h2>
+<p>Skills staged to <code>~/.coworker/pending/</code>. Batch approve/reject. <strong>30-day auto-expiry</strong> (never silently promoted). Quality scoring deferred to v2.</p>
+
+<h2>7 · Evolution Metrics</h2>
+<div class="metrics">
+  <div class="metric"><div class="val">↑</div><div class="lbl">skill_reuse_rate</div></div>
+  <div class="metric"><div class="val">↓</div><div class="lbl">user_correction_rate</div></div>
+  <div class="metric"><div class="val">↑</div><div class="lbl">task_first_pass_rate</div></div>
+  <div class="metric"><div class="val">↑</div><div class="lbl">memory_hit_rate</div></div>
+</div>
+
+<h2>8 · Dual-IDE Coverage</h2>
+<table>
+<tr><th>Concern</th><th>Claude Code</th><th>OpenCode</th></tr>
+<tr><td>Per-tool</td><td>PostToolUse ✅</td><td>tool.execute.after ⚠ TBD</td></tr>
+<tr><td>Subagent</td><td>SubagentStop ✅</td><td>⚠ No equivalent</td></tr>
+<tr><td>Session end</td><td>Stop ✅</td><td>session.end ✅</td></tr>
+</table>
+
+<h2>9 · Error Handling</h2>
+<p>Philosophy: <strong>degrade, don't crash.</strong></p>
+<table>
+<tr><th>Failure</th><th>Behavior</th></tr>
+<tr><td>DeepSeek down</td><td>→ Gemini → Claude Haiku → defer</td></tr>
+<tr><td>mem0 corrupt</td><td>Rebuild from raw transcripts</td></tr>
+<tr><td>Hook fails</td><td>Stop reconciliation backfill; audit records gap</td></tr>
+<tr><td>>3 skills/24h</td><td>Halt evolution, keep pending, notify</td></tr>
+</table>
+
+<h2>10 · Open Questions</h2>
+<ol>
+  <li><strong>mem0 config spike</strong> — verify DeepSeek as provider, local embedder, embedded vector store field names.</li>
+  <li><strong>OpenCode coverage</strong> — does <code>tool.execute.after</code> fire for all tool types?</li>
+  <li><strong>Extraction quality</strong> — DeepSeek Flash accuracy baseline on real sessions.</li>
+  <li><strong>GEPA/DSPy</strong> → v2 only.</li>
+</ol>
+</div>
+
+<!-- CHINESE placeholder -->
+<div class="lang-zh" style="display:none">
+<header class="masthead">
+  <p class="kicker">SPEC · v1.1 · 2026-07-25</p>
+  <h1>自演化智能体<br>记忆平台规格</h1>
+  <p class="dek">中文版本暂未生成。请切换到 English 阅读完整内容。</p>
+</header>
+<div class="callout">
+  <p>此文档目前仅有英文版本。英文版包含完整的架构图、mem0 配置、捕获层设计、Hermes 改造模式、双 IDE 覆盖矩阵和错误处理表。如需中文版，请运行 <code>/spec-to-demo</code> 并提供双语源文件（<code>spec.md</code> + <code>spec-zh.md</code>）。</p>
+</div>
+</div>
+
+<footer><span>Generated by spec-to-demo</span><span>Source: self-evolving-agent-spec.md</span></footer>
+
+<script>
+let l='en';
+(function(){const s=localStorage.getItem('spec-demo-lang');if(s){l=s;toggleLang()}})();
+function toggleLang(){l=l==='en'?'zh':'en';document.querySelectorAll('.lang-en').forEach(e=>e.style.display=l==='en'?'':'none');document.querySelectorAll('.lang-zh').forEach(e=>e.style.display=l==='zh'?'':'none');document.getElementById('lang-btn').textContent=l==='en'?'中文':'English';localStorage.setItem('spec-demo-lang',l)}
+</script>
+</body></html>

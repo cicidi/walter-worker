@@ -19,11 +19,16 @@ _(auto-discovered by `coworker init`)_
 
 _(initiative reference docs appear here when activated)_
 
+## Principles
+
+_(project-specific principles — add yours here)_
+
 ## Current Task
 
 Active task: _(none)_
 Goal: _(what this task is trying to achieve)_
 State: `docs/state/state-{taskname}.md`
+Docs convention: `docs/<initiative>/{prd,plan,spec}/`
 
 ## Current Workflow
 

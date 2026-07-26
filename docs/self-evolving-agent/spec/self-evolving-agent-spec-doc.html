@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Self-Evolving Agent — Memory Platform Spec</title>
+<style>
+:root{--bg:#FAFAF7;--surface:#FFF;--surface-2:#F5F5F0;--text:#1A1A1A;--text-muted:#4A4A45;--text-subtle:#6B6B66;--accent:#D97757;--accent-soft:#FBEEE6;--accent-border:#F0D5C4;--accent-strong:#A85533;--border:#E5E4DC;--code-bg:#F5F2EC;--info:#2563EB;--info-soft:#EFF6FF;--info-border:#BFDBFE;--warn:#B45309;--warn-soft:#FFFBEB;--warn-border:#FDE68A;--danger:#B91C1C;--danger-soft:#FEF2F2;--danger-border:#FECACA;--success:#047857;--success-soft:#ECFDF5;--success-border:#A7F3D0;--decision:#6D28D9;--decision-soft:#F5F3FF;--decision-border:#DDD6FE;--font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'PingFang SC','Microsoft YaHei','Noto Sans CJK SC',sans-serif;--font-mono:'SF Mono','JetBrains Mono',Menlo,Consolas,monospace;--radius:12px;--radius-sm:8px;--shadow-sm:0 1px 2px rgba(20,14,8,.04)}
+[data-theme="dark"]{--bg:#1A1714;--surface:#221E1A;--surface-2:#2A2520;--text:#F5F0E8;--text-muted:#C8C0B6;--text-subtle:#9A938A;--accent:#E89572;--accent-soft:#3A2A22;--accent-border:#5A3D2E;--accent-strong:#F5B493;--border:#2E2924;--code-bg:#1E1B17;--info:#93C5FD;--info-soft:#1E2A3D;--info-border:#2A4365;--warn:#FBBF24;--warn-soft:#332817;--warn-border:#5C4520;--danger:#FCA5A5;--danger-soft:#3A1F1F;--danger-border:#5C2A2A;--success:#6EE7B7;--success-soft:#1A3329;--success-border:#1F5C45;--decision:#C4B5FD;--decision-soft:#2A1F40;--decision-border:#4A3870}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--font-sans);background:var(--bg);color:var(--text);line-height:1.65;font-size:16px;transition:background-color .2s,color .2s}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(250,250,247,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;padding:10px 24px}
+[data-theme="dark"] .topbar{background:rgba(26,23,20,.88)}
+.brand{font-weight:600;font-size:14px;display:flex;align-items:center;gap:8px}
+.brand-dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.topbar-actions{display:flex;gap:8px}
+.topbar-btn{font-family:var(--font-mono);font-size:.78rem;padding:6px 14px;border:1px solid var(--border);background:var(--surface);color:var(--text-muted);border-radius:20px;cursor:pointer;transition:all .15s}
+.topbar-btn:hover{color:var(--accent);border-color:var(--accent-border)}
+.layout{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:240px 1fr;gap:48px;padding:32px 24px 96px}
+.content{min-width:0}
+.toc{position:sticky;top:70px;align-self:start;max-height:calc(100vh - 90px);overflow-y:auto;padding-right:8px}
+.toc-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-subtle);margin:0 0 10px;padding:0 12px}
+.toc-nav{display:flex;flex-direction:column;gap:1px}
+.toc-nav a{display:block;padding:7px 12px;color:var(--text-muted);text-decoration:none;font-size:13px;border-left:2px solid transparent;border-radius:0 var(--radius-sm) var(--radius-sm) 0;transition:all .15s}
+.toc-nav a:hover,.toc-nav a.active{color:var(--accent);border-left-color:var(--accent);background:var(--accent-soft)}
+.toc-nav a.lvl-3{padding-left:24px;font-size:12px}
+.doc-header{margin-bottom:40px;padding-bottom:24px;border-bottom:1px solid var(--border)}
+.eyebrow{display:inline-block;padding:4px 10px;background:var(--accent-soft);color:var(--accent-strong);border:1px solid var(--accent-border);border-radius:999px;font-size:12px;font-weight:600;letter-spacing:.04em;margin-bottom:14px}
+h1{font-size:clamp(28px,3vw+16px,38px);font-weight:700;line-height:1.15;letter-spacing:-.02em;margin:0 0 10px;text-wrap:balance}
+.subtitle{font-size:1.05rem;color:var(--text-muted);margin:0;max-width:70ch}
+h2{font-size:24px;font-weight:600;margin:52px 0 14px;scroll-margin-top:70px;padding-top:4px}
+h3{font-size:18px;font-weight:600;margin:32px 0 10px}
+p{max-width:72ch;margin:0 0 14px}
+code{font-family:var(--font-mono);background:var(--code-bg);padding:2px 6px;border-radius:4px;font-size:.88em;border:1px solid var(--border)}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;overflow-x:auto;font-size:13px;line-height:1.55;margin:16px 0}
+pre code{background:none;padding:0;border:none;font-size:inherit}
+.timeline{display:flex;flex-direction:column;gap:8px;margin:24px 0;position:relative}
+.timeline::before{content:"";position:absolute;left:19px;top:20px;bottom:20px;width:2px;background:linear-gradient(180deg,var(--accent-border),var(--border))}
+.step{display:grid;grid-template-columns:40px 1fr;gap:16px;padding:16px 4px}
+.step-num{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:var(--surface);border:2px solid var(--accent);color:var(--accent);border-radius:50%;font-weight:600;font-size:14px;z-index:2;flex-shrink:0}
+.step-body h3{margin:0 0 4px;font-size:15px}
+.step-body p{margin:0;color:var(--text-muted);font-size:14px}
+.callout{padding:14px 18px;border-radius:var(--radius);border:1px solid;margin:20px 0;font-size:14.5px;max-width:72ch}
+.callout-title{font-weight:600;margin:0 0 4px;font-size:13px}
+.callout p:last-child{margin:0}
+.callout-info{background:var(--info-soft);border-color:var(--info-border)}.callout-info .callout-title{color:var(--info)}
+.callout-warn{background:var(--warn-soft);border-color:var(--warn-border)}.callout-warn .callout-title{color:var(--warn)}
+.callout-danger{background:var(--danger-soft);border-color:var(--danger-border)}.callout-danger .callout-title{color:var(--danger)}
+.callout-success{background:var(--success-soft);border-color:var(--success-border)}.callout-success .callout-title{color:var(--success)}
+.callout-decision{background:var(--decision-soft);border-color:var(--decision-border)}.callout-decision .callout-title{color:var(--decision)}
+.highlight{background:linear-gradient(135deg,var(--accent-soft),var(--surface-2));border-left:4px solid var(--accent);padding:16px 20px;border-radius:0 var(--radius) var(--radius) 0;margin:24px 0;max-width:72ch}
+.highlight-label{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--accent-strong);margin-bottom:6px}
+.diagram{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin:24px 0;overflow-x:auto}
+.diagram-caption{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);font-size:12px;color:var(--text-subtle);text-align:center}
+.mermaid{text-align:center;min-height:60px}
+.mermaid svg{max-width:100%;height:auto}
+.compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:20px 0}
+.compare-card{padding:18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);position:relative}
+.compare-card.recommended{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.compare-card.recommended::before{content:"★ Recommended";position:absolute;top:-10px;right:14px;background:var(--accent);color:#fff;padding:2px 10px;border-radius:999px;font-size:10px;font-weight:700}
+.compare-card h4{margin:0 0 6px;font-size:15px}
+.compare-card p{margin:0;color:var(--text-muted);font-size:13.5px}
+.table-wrap{overflow-x:auto;margin:20px 0;border-radius:var(--radius);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;background:var(--surface)}
+th{background:var(--surface-2);font-weight:600;text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text-muted)}
+tr:last-child td{border-bottom:none}
+details.collapsible{border:1px solid var(--border);border-radius:var(--radius);margin:16px 0}
+details.collapsible>summary{cursor:pointer;padding:12px 16px;font-weight:600;list-style:none;display:flex;align-items:center;gap:8px}
+details.collapsible>summary::-webkit-details-marker{display:none}
+details.collapsible>summary::before{content:"›";display:inline-block;transition:transform .18s;color:var(--accent);font-size:18px;font-weight:700}
+details.collapsible[open]>summary::before{transform:rotate(90deg)}
+.collapsible-body{padding:4px 16px 16px;border-top:1px solid var(--border)}
+footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--border);font-size:12px;color:var(--text-subtle);display:flex;justify-content:space-between}
+@media(max-width:860px){.layout{grid-template-columns:1fr;gap:20px}.toc{position:static;max-height:none}}
+@media print{.topbar,.toc{display:none}.layout{grid-template-columns:1fr;padding:0}body{background:#fff;color:#000}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <span class="brand"><span class="brand-dot"></span> Spec</span>
+  <div class="topbar-actions">
+    <button onclick="toggleLang()" id="lang-btn" class="topbar-btn">中文</button>
+    <button onclick="toggleTheme()" class="topbar-btn" aria-label="Toggle theme">🌓</button>
+  </div>
+</header>
+<div class="layout">
+<aside class="toc">
+  <p class="toc-title">Contents</p>
+  <nav class="toc-nav" id="toc-nav">
+    <a href="#s1">Architecture Overview</a>
+    <a href="#s2">Memory Substrate — mem0</a>
+    <a href="#s3">Dual-IDE Capture Layer</a>
+    <a href="#s4">Self-Evolution Loop</a>
+    <a href="#s5">Context Injection</a>
+    <a href="#s6">Pending Queue</a>
+    <a href="#s7">Evolution Metrics</a>
+    <a href="#s8">Dual-IDE Coverage</a>
+    <a href="#s9">Error Handling</a>
+    <a href="#s10">Open Questions</a>
+  </nav>
+</aside>
+<main class="content">
+
+<!-- ENGLISH -->
+<div class="lang-en">
+<header class="doc-header">
+  <span class="eyebrow">SPEC · v1.1</span>
+  <h1>Self-Evolving Agent — Memory Platform Spec</h1>
+  <p class="subtitle">mem0 substrate, Hermes loop adaptation, dual-IDE capture, per-turn + session-end extraction, DeepSeek Flash everywhere</p>
+</header>
+
+<aside class="callout callout-info">
+  <p class="callout-title">Context — PRD ↔ Spec boundary</p>
+  <p>PRD = <strong>what/why</strong> (R1–R7, three-tier model, taxonomy, safety behavior). Spec = <strong>how</strong> — mem0 config, hook wiring, Hermes loop adaptation, schemas, error codes. Three external anchors: <strong>mem0</strong> (storage), <strong>Hermes</strong> (loop patterns, re-hosted), <strong>ai-coworker infra</strong> (hooks, analytics, templates).</p>
+</aside>
+
+<h2 id="s1">§1 Architecture Overview</h2>
+<figure class="diagram">
+<pre class="mermaid">
+flowchart TB
+  subgraph IDEs["Claude Code / OpenCode"]
+    A[Agent doing real work]
+  end
+  subgraph CAPTURE["Dual-IDE Capture Layer"]
+    B[PostToolUse] --> C[async, non-blocking]
+    D[SubagentStop] --> E[async]
+    F[Stop] --> G[session-end reconciliation]
+  end
+  subgraph LOOP["Self-Evolution Loop (Hermes)"]
+    H[Extract facts → mem0.add]
+    I[Assess reusable → skill-create]
+    J[Patch outdated → skill-edit]
+  end
+  subgraph STORE["Storage"]
+    K[(mem0: Tier 3)]
+    L[(State files: Tier 2)]
+    M[CLAUDE.local.md snapshot]
+  end
+  A-->B & D & F
+  B & D-->H
+  G-->H & I
+  H & I-->K
+  K-->|session start|M
+  F-->L
+</pre>
+<figcaption class="diagram-caption">End-to-end data flow: IDE hooks → capture → mem0/skills/state → snapshot injection.</figcaption>
+</figure>
+
+<aside class="callout callout-decision">
+  <p class="callout-title">Decision — LLM policy</p>
+  <p>Every component uses <strong>DeepSeek Flash</strong>. Embeddings are NOT an LLM call → local (fastembed, BAAI/bge-small, 384-dim). Fallback for outages: DeepSeek → Gemini → Claude Haiku.</p>
+</aside>
+
+<h2 id="s2">§2 Memory Substrate — mem0</h2>
+<h3>Why mem0 + library mode</h3>
+<div class="table-wrap"><table>
+<tr><th>PRD requirement</th><th>mem0 satisfies</th></tr>
+<tr><td><strong>R1</strong> (dual-IDE)</td><td>State in <code>~/.coworker/memory/</code> — shared, not IDE-locked</td></tr>
+<tr><td><strong>R2</strong> (per-turn, no save)</td><td>Hooks call <code>memory.add()</code> after every tool call</td></tr>
+<tr><td><strong>R3</strong> (exact + semantic)</td><td>Hybrid: semantic (vector) + BM25 (keyword) + entity matching, fused</td></tr>
+<tr><td><strong>R7</strong> (no background server)</td><td><strong>Library mode</strong>: <code>pip install mem0ai</code>, in-process, zero server</td></tr>
+</table></div>
+
+<div class="highlight">
+  <span class="highlight-label">Key point</span>
+  <p>mem0 library mode resolves the earlier R7 tension — in-process, no Docker, no always-on server. Self-hosted/cloud modes exist but are not used.</p>
+</div>
+
+<div class="compare">
+  <div class="compare-card recommended"><h4>mem0</h4><p>Library mode, hybrid retrieval (semantic + BM25 + entity), DeepSeek Flash extraction. Replaces all prior plans.</p></div>
+  <div class="compare-card"><h4>sqlite-vec (prior)</h4><p>vec0 KNN via fastembed. Works but requires hand-rolled extraction, dedup, BM25 — mem0 bundles all three.</p></div>
+  <div class="compare-card"><h4>Guild OSS (evaluated)</h4><p>Go binary, MCP server. Fails R2, R7. Complementary v2 candidate for task coordination.</p></div>
+</div>
+
+<h3>Memory entry schema</h3>
+<pre><code>memory.add(message, metadata={
+  "type": "lesson | state | convention | preference",
+  "project": "ai-coworker",
+  "topic": "mcp",
+  "problem": "first-request-403",
+  "provenance": "agent | hand-written",
+  "state": "active | stale | archived",
+  "use_count": 0
+})</code></pre>
+
+<h2 id="s3">§3 Dual-IDE Capture Layer</h2>
+<aside class="callout callout-warn">
+  <p class="callout-title">Heads up — Multi-trigger required</p>
+  <p>PostToolUse alone has 9 documented failure modes and is blind to subagents. This layer uses <strong>multi-trigger + audit + reconciliation</strong> to guarantee accuracy.</p>
+</aside>
+
+<div class="timeline">
+  <article class="step"><div class="step-num">1</div><div class="step-body"><h3>Multi-trigger hooks</h3><p>Claude Code: PostToolUse + SubagentStop + Stop. OpenCode: <code>tool.execute.after</code> + <code>session.end</code>.</p></div></article>
+  <article class="step"><div class="step-num">2</div><div class="step-body"><h3>Audit trail</h3><p>Every sync writes timestamped record to <code>audit.log</code>. Gaps → flagged for investigation.</p></div></article>
+  <article class="step"><div class="step-num">3</div><div class="step-body"><h3>Reconciliation (session-end)</h3><p>Stop pass reads full transcript, compares against per-turn captures, back-fills misses.</p></div></article>
+  <article class="step"><div class="step-num">4</div><div class="step-body"><h3>Source of truth</h3><p>Raw session transcript (analytics.db) is ground truth. mem0 entries are derived; corrupt → re-extract.</p></div></article>
+</div>
+
+<h3>per-turn vs session-end</h3>
+<div class="table-wrap"><table>
+<tr><th></th><th>per-turn</th><th>session-end</th></tr>
+<tr><td><strong>Purpose</strong></td><td>Reliability — don't lose data if session killed</td><td>Quality — full-context reconciliation + dedup</td></tr>
+<tr><td><strong>Input</strong></td><td>Tool event + 3-5 turn window + mem0 recall</td><td>Full session transcript</td></tr>
+<tr><td><strong>Output</strong></td><td>0..N lessons + optional state_delta</td><td>Lessons + backfill + skill-create trigger</td></tr>
+<tr><td><strong>LLM cost</strong></td><td>One DeepSeek Flash call (~$0.0004)</td><td>One DeepSeek Flash call</td></tr>
+</table></div>
+
+<div class="highlight">
+  <span class="highlight-label">Key point</span>
+  <p><strong>Per-turn does NOT reprocess history.</strong> Each turn extracted once when it happens. Full-history dedup + cross-pattern detection = session-end only.</p>
+</div>
+
+<h2 id="s4">§4 Self-Evolution Loop (Hermes, re-hosted)</h2>
+<div class="compare">
+  <div class="compare-card"><h4>Skill creation</h4><p>After <strong>10+</strong> tool calls (or session-end) → <code>skill-create</code>. Dual trigger: in-session + post-session.</p></div>
+  <div class="compare-card"><h4>Skill patching</h4><p>Skill used, found wrong → <code>skill-edit</code> (surgical). <code>patch_count</code> feeds Curator.</p></div>
+  <div class="compare-card recommended"><h4>Curator</h4><p>Every ~7d: active → stale(30d) → archived(90d). Tracks use/view/patch + error_rate.</p></div>
+</div>
+
+<aside class="callout callout-decision">
+  <p class="callout-title">Decision — Smart Approval System</p>
+  <p>Hermes pattern: "smart approval system that learns safe commands over time." We adopt the <strong>concept</strong>: staged review by default (<code>auto_approve: false</code>), per-domain opt-in to auto. Safety: circuit breaker (>3 skills/24h), sandbox, rollback.</p>
+</aside>
+
+<h2 id="s5">§5 Context Injection & Snapshot</h2>
+<p>Session start: mem0 snapshot → CLAUDE.local.md markers. Both IDEs read it at start — <strong>zero tool calls</strong> (R5). String replaced each session; human content guarded by <code>semantic_merge.py</code>.</p>
+
+<aside class="callout callout-success">
+  <p class="callout-title">Done — MEMORY.md = read-only export</p>
+  <p>mem0 is source of truth. MEMORY.md becomes a <strong>curator-generated human-readable mirror</strong> — git-diffable, offline-readable, never written directly by per-turn sync.</p>
+</aside>
+
+<h2 id="s6">§6 Pending Queue (simple v1)</h2>
+<div class="table-wrap"><table>
+<tr><th>Capability</th><th>v1 implementation</th></tr>
+<tr><td>Stage</td><td><code>~/.coworker/pending/skills/&lt;id&gt;.json</code></td></tr>
+<tr><td>Review</td><td><code>coworker skill pending</code>, <code>approve</code>, <code>reject</code></td></tr>
+<tr><td>Batch</td><td><code>--approve-all --type lesson</code></td></tr>
+<tr><td>Auto-expiry</td><td><strong>30 days untouched → auto-rejected</strong></td></tr>
+</table></div>
+
+<h2 id="s7">§7 Evolution Metrics</h2>
+<h3>Effectiveness — "is it getting smarter?"</h3>
+<div class="table-wrap"><table>
+<tr><th>Metric</th><th>Signal</th><th>Target</th></tr>
+<tr><td><strong>skill_reuse_rate</strong></td><td>Sessions invoking auto-created skill</td><td>↑ rising</td></tr>
+<tr><td><strong>user_correction_rate</strong></td><td>User overrides per task</td><td>↓ falling</td></tr>
+<tr><td><strong>task_first_pass_rate</strong></td><td>Tasks completed without rework</td><td>↑ rising</td></tr>
+<tr><td><strong>memory_hit_rate</strong></td><td>Searches returning useful entry</td><td>↑ rising</td></tr>
+</table></div>
+
+<h2 id="s8">§8 Dual-IDE Coverage Matrix</h2>
+<div class="table-wrap"><table>
+<tr><th>Concern</th><th>Claude Code</th><th>OpenCode</th><th>Status</th></tr>
+<tr><td>Per-tool capture</td><td>PostToolUse (async)</td><td>tool.execute.after</td><td>OC coverage TBD — spike needed</td></tr>
+<tr><td>Subagent capture</td><td>SubagentStop</td><td><strong>no equivalent</strong></td><td>OC gap → session-end backfill</td></tr>
+<tr><td>Session end</td><td>Stop</td><td>session.end</td><td>Both OK</td></tr>
+</table></div>
+
+<h2 id="s9">§9 Error Handling</h2>
+<p>Philosophy: <strong>degrade, don't crash.</strong> DeepSeek outage → Gemini → Claude Haiku → defer. Raw transcript preserved (no data loss).</p>
+<div class="table-wrap"><table>
+<tr><th>Component</th><th>Failure</th><th>Degradation</th></tr>
+<tr><td>DeepSeek Flash</td><td>Rate-limited / down</td><td>→ Gemini → Claude Haiku → defer</td></tr>
+<tr><td>mem0 store</td><td>Corrupt</td><td>Rebuild from raw transcripts</td></tr>
+<tr><td>PostToolUse hook</td><td>Fails to fire</td><td>Stop reconciliation backfill; audit records gap</td></tr>
+<tr><td>Circuit breaker</td><td>>3 skills / 24h</td><td>Halt evolution, keep pending, notify</td></tr>
+</table></div>
+
+<h2 id="s10">§10 Open Questions</h2>
+<details class="collapsible">
+  <summary>4 open questions</summary>
+  <div class="collapsible-body">
+    <ol><li><strong>mem0 exact config shape</strong> — provider/field names for DeepSeek, local embedder, vector store. Task-0 spike.</li>
+    <li><strong>OpenCode coverage</strong> — does <code>tool.execute.after</code> fire for all tool types? Production-tier needs validation.</li>
+    <li><strong>Extraction quality baseline</strong> — DeepSeek Flash accuracy on session content → feeds evolution metrics.</li>
+    <li><strong>GEPA/DSPy</strong> — deferred to v2 (out of MVP scope).</li></ol>
+  </div>
+</details>
+
+</div>
+
+<!-- CHINESE placeholder -->
+<div class="lang-zh" style="display:none">
+<header class="doc-header">
+  <span class="eyebrow">SPEC · v1.1</span>
+  <h1>自演化智能体 — 记忆平台规格</h1>
+  <p class="subtitle">中文版本暂未生成。请切换到 English 阅读完整内容。</p>
+</header>
+<aside class="callout callout-info">
+  <p class="callout-title">提示</p>
+  <p>此文档目前仅有英文版本。如需中文版，请运行 <code>coworker spec-to-demo --translate-zh</code> 或手动提供中文翻译。英文版包含完整的架构图、组件目录和错误处理表格。</p>
+</aside>
+</div>
+
+<footer><span>Generated by spec-to-demo</span><span>Source: self-evolving-agent-spec.md</span></footer>
+</main></div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+let lang='en';
+(function(){const s=localStorage.getItem('spec-demo-lang');if(s){lang=s;toggleLang()}})();
+function toggleLang(){lang=lang==='en'?'zh':'en';document.querySelectorAll('.lang-en').forEach(e=>e.style.display=lang==='en'?'':'none');document.querySelectorAll('.lang-zh').forEach(e=>e.style.display=lang==='zh'?'':'none');document.getElementById('lang-btn').textContent=lang==='en'?'中文':'English';localStorage.setItem('spec-demo-lang',lang)}
+function toggleTheme(){const d=document.documentElement.dataset.theme;document.documentElement.dataset.theme=d==='light'?'dark':'light';localStorage.setItem('spec-demo-theme',d==='light'?'dark':'light');const isDark=d!=='light';mermaid.initialize({startOnLoad:false,theme:isDark?'dark':'default',themeVariables:{primaryColor:isDark?'#3A2A22':'#FBEEE6',primaryTextColor:isDark?'#F5F0E8':'#1A1A1A',primaryBorderColor:isDark?'#E89572':'#D97757',lineColor:isDark?'#9A938A':'#6B6B66',secondaryColor:isDark?'#2A2520':'#F5F5F0',tertiaryColor:isDark?'#221E1A':'#FFFFFF',fontFamily:'system-ui, sans-serif'}});renderMermaid()}
+(function(){const s=localStorage.getItem('spec-demo-theme');if(s==='dark'){document.documentElement.dataset.theme='dark';setTimeout(()=>{mermaid.initialize({startOnLoad:false,theme:'dark',themeVariables:{primaryColor:'#3A2A22',primaryTextColor:'#F5F0E8',primaryBorderColor:'#E89572',lineColor:'#9A938A',secondaryColor:'#2A2520',tertiaryColor:'#221E1A',fontFamily:'system-ui, sans-serif'}});renderMermaid()},100)}})();
+const dm=new Map();
+async function renderMermaid(){mermaid.initialize({startOnLoad:false,theme:document.documentElement.dataset.theme==='dark'?'dark':'default'});document.querySelectorAll('.mermaid').forEach(e=>{if(!dm.has(e))dm.set(e,e.textContent.trim());e.textContent=dm.get(e);e.removeAttribute('data-processed')});try{await mermaid.run({nodes:document.querySelectorAll('.mermaid')})}catch(e){console.error(e)}}
+(function(){document.querySelectorAll('#toc-nav a[href^="#"]').forEach(a=>{const id=a.getAttribute('href').slice(1);const el=document.getElementById(id);if(!el)return;const o=new IntersectionObserver(e=>{if(e[0].isIntersecting){document.querySelectorAll('#toc-nav a').forEach(l=>l.classList.remove('active'));a.classList.add('active')}},{rootMargin:'-70px 0px -70% 0px'});o.observe(el)});renderMermaid()})();
+</script>
+</body></html>

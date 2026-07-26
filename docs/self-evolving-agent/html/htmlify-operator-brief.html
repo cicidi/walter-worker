@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Self-Evolving Agent PRD v6</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --paper: #faf7f0;
+      --surface: #ffffff;
+      --ink: #1c1a15;
+      --ink-2: #6e6759;
+      --rule: #d9d2c3;
+      --rule-strong: #1c1a15;
+      --signal: #e84b0f;
+      --signal-wash: #fbeae1;
+      --code-bg: #211e18;
+      --code-ink: #e8e2d4;
+      --code-meta: #a39a88;
+      --font-display: "Charter", "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+      --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --paper: #161410;
+        --surface: #1e1b16;
+        --ink: #ede8dc;
+        --ink-2: #a39a88;
+        --rule: #3a352b;
+        --rule-strong: #ede8dc;
+        --signal: #ff6b2c;
+        --signal-wash: #3a2114;
+        --code-bg: #0e0d0a;
+        --code-ink: #d8d2c4;
+        --code-meta: #6e6759;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font: 15.5px/1.6 var(--font-body);
+    }
+    body::before, body::after, .wrap::before, .wrap::after {
+      content: "";
+      position: fixed;
+      width: 14px;
+      height: 14px;
+      border-color: var(--rule);
+      border-style: solid;
+      pointer-events: none;
+    }
+    body::before { top: 10px; left: 10px; border-width: 1px 0 0 1px; }
+    body::after { top: 10px; right: 10px; border-width: 1px 1px 0 0; }
+    .wrap::before { bottom: 10px; left: 10px; border-width: 0 0 1px 1px; }
+    .wrap::after { bottom: 10px; right: 10px; border-width: 0 1px 1px 0; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 40px 28px 72px; }
+    .plate {
+      border: 2px solid var(--rule-strong);
+      margin-bottom: 36px;
+    }
+    .plate-head { display: flex; align-items: stretch; border-bottom: 1px solid var(--rule); }
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      background: var(--signal);
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 8px 14px;
+      white-space: nowrap;
+    }
+    .plate-title { padding: 14px 18px 12px; min-width: 0; }
+    h1 {
+      font-family: var(--font-display);
+      font-weight: 400;
+      font-size: clamp(26px, 4vw, 40px);
+      line-height: 1.08;
+      letter-spacing: -0.015em;
+      margin: 0;
+    }
+    .hero-excerpt { margin: 8px 0 0; color: var(--ink-2); font-size: 15px; line-height: 1.55; max-width: 72ch; }
+    .meta { display: flex; flex-wrap: wrap; }
+    .meta-chip {
+      flex: 1 1 auto;
+      padding: 8px 14px;
+      border-right: 1px solid var(--rule);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      color: var(--ink);
+    }
+    .meta-chip:last-child { border-right: 0; }
+    .meta-chip strong {
+      display: block;
+      font-weight: 400;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-2);
+      margin-bottom: 2px;
+    }
+    .meta-chip br { display: none; }
+    .main-grid { display: grid; gap: 32px; grid-template-columns: minmax(0, 1fr) 264px; align-items: start; }
+    .content { min-width: 0; }
+    .aside-stack { display: grid; gap: 20px; position: sticky; top: 24px; }
+    .aside-panel { border-top: 2px solid var(--rule-strong); padding-top: 10px; }
+    .aside-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-2);
+      margin-bottom: 10px;
+    }
+    .aside-copy { color: var(--ink-2); font-size: 13px; line-height: 1.55; }
+    .outline-list { list-style: none; margin: 0; padding: 0; counter-reset: idx; }
+    .outline-item {
+      counter-increment: idx;
+      font-size: 13px;
+      line-height: 1.4;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+    .outline-item::before {
+      content: counter(idx) ".0";
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      color: var(--ink-2);
+      margin-right: 9px;
+    }
+    .outline-level-2, .outline-level-3, .outline-level-4 { padding-left: 14px; color: var(--ink-2); }
+    .outline-level-2::before, .outline-level-3::before, .outline-level-4::before { content: "·"; margin-right: 9px; }
+    h2, h3, h4, h5, h6 {
+      font-family: var(--font-display);
+      font-weight: 400;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+      margin: 34px 0 10px;
+    }
+    h2 { font-size: 26px; border-top: 2px solid var(--rule-strong); padding-top: 12px; }
+    h3 { font-size: 21px; }
+    p, li { color: var(--ink); }
+    p { margin: 0 0 14px; }
+    .content a { color: var(--signal); text-decoration-color: var(--rule); }
+    .content a:hover { text-decoration-color: var(--signal); }
+    .content ul, .content ol { margin: 0 0 18px 22px; padding: 0; }
+    .content li { margin-bottom: 7px; }
+    .content code {
+      font-family: var(--font-mono);
+      font-size: 0.88em;
+      background: var(--surface);
+      border: 1px solid var(--rule);
+      border-radius: 2px;
+      padding: 0.1rem 0.34rem;
+    }
+    .code-block {
+      margin: 18px 0 22px;
+      border-radius: 2px;
+      background: var(--code-bg);
+      color: var(--code-ink);
+      overflow: hidden;
+    }
+    .code-meta {
+      padding: 9px 14px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--code-meta);
+      border-bottom: 1px solid rgba(163, 154, 136, 0.25);
+    }
+    .code-block code {
+      display: block;
+      padding: 16px;
+      border: 0;
+      background: transparent;
+      white-space: pre-wrap;
+      overflow-x: auto;
+      color: inherit;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+    }
+    .callout {
+      margin: 20px 0;
+      padding: 14px 16px;
+      border-left: 3px solid var(--signal);
+      background: var(--signal-wash);
+    }
+    .callout-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--signal);
+      margin-bottom: 6px;
+    }
+    .callout p { margin: 0; }
+    .table-wrap { overflow-x: auto; margin: 18px 0 22px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--rule-strong);
+    }
+    th, td {
+      padding: 10px 13px;
+      text-align: left;
+      border-bottom: 1px solid var(--rule);
+      vertical-align: top;
+      font-size: 14px;
+    }
+    th {
+      font-family: var(--font-mono);
+      font-weight: 400;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--ink-2);
+      border-bottom: 1px solid var(--rule-strong);
+    }
+    tr:last-child td { border-bottom: 0; }
+    @media (max-width: 960px) {
+      .main-grid { grid-template-columns: 1fr; }
+      .aside-stack { position: static; }
+      .plate-head { flex-direction: column; }
+      .eyebrow { justify-content: flex-start; }
+    }
+    @media print {
+      :root { --paper: #ffffff; }
+      .wrap { max-width: none; padding: 0; }
+      .main-grid { grid-template-columns: 1fr; }
+      .aside-stack { display: none; }
+      .plate { break-inside: avoid; }
+      .eyebrow { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      @page { margin: 14mm; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="plate">
+      <div class="plate-head">
+        <div class="eyebrow">htmlify export</div>
+        <div class="plate-title">
+          <h1>Self-Evolving Agent PRD v6</h1>
+          <p class="hero-excerpt">&gt; Goal: Ship an autonomous agent that self-evolves in a continuous loop to achieve a goal. The agent is Claude Code (and OpenCode), harnessed by ai-coworker. The agent takes real action — monitor, orchestrate — grounded in real sources.</p>
+        </div>
+      </div>
+      <div class="meta">
+        <div class="meta-chip"><strong>Exported</strong><br />7/25/2026, 5:24:38 PM</div>
+        <div class="meta-chip"><strong>Words</strong><br />4113</div>
+        <div class="meta-chip"><strong>Characters</strong><br />29052</div>
+        <div class="meta-chip"><strong>Mode</strong><br />operator-brief</div>
+      </div>
+    </header>
+    <section class="main-grid">
+      <article class="content">
+        <h2 data-commentable="true" data-block-id="b-1">Self-Evolving Agent — PRD</h2>
+<aside class="callout" data-commentable="true" data-block-id="b-2"><div class="callout-label">Callout</div><p data-commentable="true" data-block-id="b-3">Goal: Ship an autonomous agent that self-evolves in a continuous loop to achieve a goal. The agent is Claude Code (and OpenCode), harnessed by ai-coworker. The agent takes real action — monitor, orchestrate — grounded in real sources.</p></aside>
+<h3 data-commentable="true" data-block-id="b-4">Status</h3>
+<div class="table-wrap"><table data-commentable="true" data-block-id="b-5"><thead><tr><th>St</th><th>Date</th><th>Author</th></tr></thead><tbody><tr><td>🚧 draft v6</td><td>2026-07-25</td><td>cicidi + Claude</td></tr></tbody></table></div>
+<h3 data-commentable="true" data-block-id="b-6">Change Log</h3>
+<div class="table-wrap"><table data-commentable="true" data-block-id="b-7"><thead><tr><th>Date</th><th>Change</th></tr></thead><tbody><tr><td>2026-07-25</td><td>v6: <strong>Requirements-only restructure.</strong> PRD now states <em>what/why</em> only; <em>how</em> (tech, storage, schemas, hook configs, cost, reuse analysis) moved to [spec](../spec/self-evolving-agent-spec.md). Specific changes: (1) Removed §1.4 Hermes-as-basis, §6 Architecture, §7 Integration &amp; Implementation, Appendix A Guild evaluation — all solution-level, now in spec. (2) Generalized tech-specific terms (DeepSeek/Hermes/sqlite-vec/hook names/storage paths) to tech-neutral requirement language. (3) Reversed §5.4 privacy model: default is now a <strong>remote</strong> background LLM (was: local-default). (4) MEMORY.md reclassified from Tier 3 storage to a read-only curator export (§3.5). (5) Vector/embedding memory moved <strong>back into scope</strong> (mem0) — removed from OOS. (6) Added requirements: evolution-effectiveness metrics (§5.7), pending-queue non-overflow (§5.1).</td></tr><tr><td>2026-07-25</td><td>v5: Fixed 3 blocking issues from adversarial review. (1) Added <code>async: true</code> to PostToolUse hook config — sync no longer blocks tool calls. (2) Corrected hook name to real Claude Code hook <code>Stop</code> (was <code>SessionEnd</code> which doesn&#39;t exist). (3) Added privacy model: transcript summarization defaults to local model (Ollama), remote API (DeepSeek) is opt-in. <em>(v6 reverses #3.)</em></td></tr><tr><td>2026-07-25</td><td>v4: Restructured memory to three-tier architecture (§3).</td></tr><tr><td>2026-07-24</td><td>v3: Reframed primary experience as Hook-embedded implicit evolution.</td></tr><tr><td>2026-07-24</td><td>v2/v1: safety architecture, loop state machine, hook mitigations, cost model, Guild evaluation.</td></tr></tbody></table></div>
+<aside class="callout" data-commentable="true" data-block-id="b-8"><div class="callout-label">Callout</div><p data-commentable="true" data-block-id="b-9"><strong>Companion spec:</strong> [<code>../spec/self-evolving-agent-spec.md</code>](../spec/self-evolving-agent-spec.md) — the authoritative <em>how</em> (mem0 substrate, Hermes loop adaptation, dual-IDE capture, schemas, error handling). PRD references requirements (R1–R7); spec satisfies them.</p></aside>
+<p data-commentable="true" data-block-id="b-10">---</p>
+<h3 data-commentable="true" data-block-id="b-11">1. Overview</h3>
+<h4 data-commentable="true" data-block-id="b-12">1.1 Vision</h4>
+<p data-commentable="true" data-block-id="b-13">A Claude Code / OpenCode agent that continuously improves itself by working on real tasks. Each session, each turn, each mistake feeds back into the system — skills are auto-created, memory persists, behaviors evolve. The agent gets smarter the more you use it.</p>
+<p data-commentable="true" data-block-id="b-14"><strong>How you experience it:</strong> You use Claude Code (or OpenCode) normally. Behind the scenes, the platform captures what happens, a background LLM extracts lessons, and the agent quietly builds skills and memory. Session by session, the agent accumulates knowledge — conventions you like, bugs you&#39;ve hit, workflows that work. There&#39;s no separate &quot;training mode.&quot; Evolution is embedded in everyday use.</p>
+<h4 data-commentable="true" data-block-id="b-15">1.2 Primary Experience: Hook-Embedded Implicit Evolution</h4>
+<pre class="code-block" data-commentable="true" data-block-id="b-16"><div class="code-meta">code</div><code>You use Claude Code / OpenCode naturally
+         │
+         ▼
+  After every tool call
+  ─────────────────────
+  The platform records state and syncs memory
+  in the background (does not block your work)
+         │
+         ▼
+  When the session ends
+  ─────────────────────
+  A background LLM reads the full transcript,
+  extracts lessons, identifies reusable workflows,
+  and stages skills for review
+         │
+         ▼
+  Next session: richer context, better skills,
+  smarter agent</code></pre>
+<p data-commentable="true" data-block-id="b-17"><strong>No separate command, no external driver.</strong> The agent evolves in the background while you work. This is the primary UX. The exact hook/event wiring per IDE is in the spec (§3).</p>
+<h4 data-commentable="true" data-block-id="b-18">1.3 SDK Mode</h4>
+<p data-commentable="true" data-block-id="b-19">For programmatic use cases (CI/CD, batch processing, scheduled autonomous runs), an explicit state-machine-driven loop is exposed as a CLI for scripts and automation — not the primary human experience. See §2.2 for the loop behavior.</p>
+<h4 data-commentable="true" data-block-id="b-20">1.4 Implementation Choices</h4>
+<p data-commentable="true" data-block-id="b-21">Implementation choices (memory substrate, skill-refinement patterns, hook wiring, LLM/embedder selection, cost) are <strong>not</strong> specified in this PRD. They live in the [spec](../spec/self-evolving-agent-spec.md). The PRD is intentionally tech-neutral so the substrate can be replaced without changing requirements.</p>
+<h4 data-commentable="true" data-block-id="b-22">1.5 Key Decisions</h4>
+<div class="table-wrap"><table data-commentable="true" data-block-id="b-23"><thead><tr><th>Decision</th><th>Choice</th><th>Rationale</th></tr></thead><tbody><tr><td>Primary experience</td><td><strong>Hook-embedded implicit evolution</strong> — you use the IDE, the platform does the rest</td><td>Evolution shouldn&#39;t feel like a separate tool or mode</td></tr><tr><td>SDK mode</td><td>Explicit loop CLI for CI/CD, batch, headless automation</td><td>Same infrastructure, CLI entry point for scripts</td></tr><tr><td>Goal model</td><td>Meta-goal: self-improvement as primary driver, real work as training ground</td><td>The agent evolves through use</td></tr><tr><td>Evolution scope</td><td>Skills + Context + Code + Config (full scope)</td><td>Everything the agent touches can improve</td></tr><tr><td>Memory architecture</td><td>Three-tier: Session → Project-State → Long-Term</td><td>Per-turn sync, cross-IDE/cross-project search, semantic + exact retrieval, periodic cleanup</td></tr><tr><td>Skill creation</td><td>Reuse existing <code>skill-create</code> / <code>skill-edit</code></td><td>Don&#39;t reinvent — trigger them automatically</td></tr><tr><td>Orchestration</td><td>The agent decides how to decompose tasks</td><td>ai-coworker doesn&#39;t hardcode workflows</td></tr><tr><td>Principles</td><td>优先复用 → 不够改造 → 没轮子造轮子</td><td>Pragmatic, not dogmatic</td></tr></tbody></table></div>
+<h4 data-commentable="true" data-block-id="b-24">1.6 Knowledge Taxonomy</h4>
+<p data-commentable="true" data-block-id="b-25">The agent generates three types of knowledge, each mapping to a memory tier:</p>
+<div class="table-wrap"><table data-commentable="true" data-block-id="b-26"><thead><tr><th>Type</th><th>Definition</th><th>Example</th><th>Memory Tier</th><th>Trigger</th></tr></thead><tbody><tr><td><strong>SOP</strong></td><td>可重复的操作流程 — step-by-step procedure for a specific task</td><td>&quot;修复 lint 错误的标准流程&quot;、&quot;部署到 production 的检查清单&quot;</td><td>Skill store → promoted to skill-factory</td><td>复杂任务完成后自动判断 → <code>skill-create</code></td></tr><tr><td><strong>经验总结</strong></td><td>对/错的教训、发现的模式、坑点 — lessons, patterns, pitfalls learned through experience</td><td>&quot;MCP 首次请求总是 403 超时，需重试&quot;、&quot;ruff E501 在这个项目被忽略&quot;</td><td><strong>Tier 3</strong> — Long-Term Memory store (cross-project, permanent)</td><td>每 turn sync + session 结束 LLM 总结</td></tr><tr><td><strong>State / 进度</strong></td><td>当前状态 — what was done, what&#39;s right/wrong, what&#39;s done/pending, who&#39;s doing it, when it&#39;ll be done</td><td>&quot;Dashboard 5 页完成 2 页 pending，blocker 是数据源 API 未就绪&quot;</td><td><strong>Tier 2</strong> — State files (<code>docs/&lt;initiative&gt;/state/YYYY-MM-DD-state.md</code>)</td><td>每 turn / 每个 phase 完成</td></tr></tbody></table></div>
+<p data-commentable="true" data-block-id="b-27"><strong>SOP vs 经验 vs State：</strong> SOP 是&quot;怎么做&quot;（可复用流程，晋升到 skill-factory 共享），经验是&quot;发生了什么/学到了什么&quot;（长期记忆，跨项目持久化），State 是&quot;当前在哪&quot;（中期记忆，项目完成即归档）。</p>
+<p data-commentable="true" data-block-id="b-28">---</p>
+<h3 data-commentable="true" data-block-id="b-29">2. How Evolution Happens</h3>
+<h4 data-commentable="true" data-block-id="b-30">2.1 The Implicit Loop (Primary Experience)</h4>
+<p data-commentable="true" data-block-id="b-31">Each session IS one evolution cycle. There&#39;s no separate &quot;run&quot; command — evolution happens automatically as you work:</p>
+<pre class="code-block" data-commentable="true" data-block-id="b-32"><div class="code-meta">code</div><code>Session N                            Session N+1
+┌──────────────────────┐            ┌──────────────────────┐
+│  You do real work    │            │  Smarter agent       │
+│  ──────────────────── │            │                       │
+│  After each tool call │            │  • Richer context     │
+│  → state recorded     │  ──────►   │    (snapshot has new  │
+│  → memory synced      │  Session   │     memory)           │
+│                       │   ends     │                       │
+│  On session end       │            │  • Better skills      │
+│  → lessons summarized │            │    (staged from last  │
+│  → skills staged      │            │     session)          │
+└──────────────────────┘            └──────────────────────┘</code></pre>
+<p data-commentable="true" data-block-id="b-33"><strong>What triggers what:</strong></p>
+<div class="table-wrap"><table data-commentable="true" data-block-id="b-34"><thead><tr><th>Trigger</th><th>When</th><th>What happens</th></tr></thead><tbody><tr><td><strong>Per-tool</strong></td><td>After every tool call</td><td>State recorded. Memory synced to the long-term store in the background. Subagent results also captured.</td></tr><tr><td><strong>Session end</strong></td><td>Session ends</td><td>Full transcript → background LLM → extract lessons → long-term memory. Identify reusable workflows → stage skills for review. Update memory snapshot for next session.</td></tr><tr><td><strong>Skill usage</strong></td><td>During session</td><td>Usage tracked. If a skill is wrong/outdated → the agent patches it.</td></tr><tr><td><strong>Curator</strong></td><td>Periodic (idle)</td><td>Cleanup: archive stale entries, merge duplicates, generate report. Never touches hand-written content.</td></tr></tbody></table></div>
+<p data-commentable="true" data-block-id="b-35"><strong>The key insight:</strong> Evolution isn&#39;t a separate mode. Every session where you do real work becomes training data. The more you use it, the more skills and memory accumulate.</p>
+<h4 data-commentable="true" data-block-id="b-36">2.2 SDK Mode</h4>
+<p data-commentable="true" data-block-id="b-37">For programmatic use, the same infrastructure is exposed as a CLI with an explicit loop. Default max time: <strong>12 hours</strong>; the loop gracefully stops when time expires, saving state. Without the loop flag, one cycle runs and exits.</p>
+<p data-commentable="true" data-block-id="b-38"><strong>One cycle</strong> = Observe → Decide → Spawn agent → Record. Each cycle produces concrete output or a deliberate no-op.</p>
+<p data-commentable="true" data-block-id="b-39"><strong>Termination conditions</strong> (the loop stops when ANY is met):</p>
+<div class="table-wrap"><table data-commentable="true" data-block-id="b-40"><thead><tr><th>#</th><th>Condition</th><th>Detection</th></tr></thead><tbody><tr><td>1</td><td><strong>Goal achieved</strong></td><td>User-provided success criteria evaluated true (e.g., <code>pytest --exitfirst</code> returns 0, <code>ruff check</code> returns 0)</td></tr><tr><td>2</td><td><strong>Stagnation</strong></td><td>3 consecutive cycles produce no new changes (no code diff, no skill created/patched, no memory entry added)</td></tr><tr><td>3</td><td><strong>Time expired</strong></td><td>Default 12h max time reached. Graceful stop: save state, run summarization, exit.</td></tr><tr><td>4</td><td><strong>Human halt</strong></td><td>Human confirms &quot;done&quot; or &quot;stop&quot;</td></tr></tbody></table></div>
+<p data-commentable="true" data-block-id="b-41"><strong>Error recovery</strong> (degrade, don&#39;t crash):</p>
+<div class="table-wrap"><table data-commentable="true" data-block-id="b-42"><thead><tr><th>Failure</th><th>Recovery</th></tr></thead><tbody><tr><td>Agent session errors (API timeout, rate limit)</td><td>Retry up to 3 times with exponential backoff; if all fail, record error in state and continue to next cycle</td></tr><tr><td>Per-tool capture fails</td><td>Session-end pass captures the full summary; audit trail records the gap</td></tr><tr><td>Background LLM outage</td><td>Fallback to secondary provider; if all down, defer sync to next cycle (no data loss — raw transcripts preserved)</td></tr><tr><td>Search index corruption</td><td>Auto-rebuild from the source of truth; log event</td></tr><tr><td>Concurrent session conflict</td><td>Lock the shared store; second session queues or skips</td></tr></tbody></table></div>
+<aside class="callout" data-commentable="true" data-block-id="b-43"><div class="callout-label">Callout</div><p data-commentable="true" data-block-id="b-44">The detailed state-machine diagram and SDK internals are in the spec.</p></aside>
+<aside class="callout" data-commentable="true" data-block-id="b-45"><div class="callout-label">Callout</div><p data-commentable="true" data-block-id="b-46"><strong>What gets auto-updated vs. what doesn&#39;t:</strong> Auto-evolution modifies only <strong>CLAUDE.local.md</strong> (personal, not committed), skills in the shared skill store, and memory in the long-term store. <strong>CLAUDE.md</strong> (shared, committed) is NEVER auto-modified — the self-evolution rules are written once by the human. This separation ensures the agent evolves its personal context without altering team-wide conventions.</p></aside>
+<h4 data-commentable="true" data-block-id="b-47">2.3 No Publish / Transact (MVP)</h4>
+<ul><li data-commentable="true" data-block-id="b-48"><code>publish</code> and <code>transact</code> are out of scope for MVP</li><li data-commentable="true" data-block-id="b-49"><code>orchestrate</code> is delegated to the agent — ai-coworker doesn&#39;t hardcode task decomposition</li></ul>
+<p data-commentable="true" data-block-id="b-50">---</p>
+<h3 data-commentable="true" data-block-id="b-51">3. Memory — Three-Tier Architecture</h3>
+<h4 data-commentable="true" data-block-id="b-52">3.1 Requirements</h4>
+<p data-commentable="true" data-block-id="b-53">The agent must persist what it learns across sessions, projects, and IDEs:</p>
+<ul><li data-commentable="true" data-block-id="b-54"><strong>R1 — IDE-agnostic (dual-IDE):</strong> Memory shared by <strong>both Claude Code and OpenCode</strong> as first-class. Every requirement in this section must have a working solution path for each IDE. Not locked to any single IDE&#39;s config directory.</li><li data-commentable="true" data-block-id="b-55"><strong>R2 — Per-turn persistence:</strong> Every turn&#39;s key information persisted without the agent manually invoking a save command.</li><li data-commentable="true" data-block-id="b-56"><strong>R3 — Cross-session search:</strong> Search across all past sessions, regardless of project or IDE. Must support both exact key-based lookup (find by project + topic) and fuzzy/semantic search (find conceptually similar content). Keyword search alone is insufficient.</li><li data-commentable="true" data-block-id="b-57"><strong>R4 — Agent-managed notes:</strong> Agent can write, patch, and remove its own notes about the project (conventions, tool quirks, lessons) and user (preferences, workflow habits).</li><li data-commentable="true" data-block-id="b-58"><strong>R5 — Frozen snapshot:</strong> Each session starts with a stable snapshot of accumulated knowledge. Mid-session writes go to disk but don&#39;t perturb the active session&#39;s context.</li><li data-commentable="true" data-block-id="b-59"><strong>R6 — Periodic cleanup:</strong> Stale and unused entries are archived automatically. Hand-written entries are never touched.</li><li data-commentable="true" data-block-id="b-60"><strong>R7 — Lightweight:</strong> No mandatory always-on background server process. The LLM is used for summarization/retrieval, not continuously running.</li></ul>
+<h4 data-commentable="true" data-block-id="b-61">3.2 Three-Tier Memory Model</h4>
+<p data-commentable="true" data-block-id="b-62">Memory is organized in three tiers, from short-lived to permanent:</p>
+<pre class="code-block" data-commentable="true" data-block-id="b-63"><div class="code-meta">code</div><code>┌─────────────────────────────────────────┐
+│  TIER 1 — Session Memory                │
+│  What&#39;s happening NOW                    │
+│  Lifetime: session duration              │
+└──────────┬──────────────────┬───────────┘
+           │ session ends     │ per-turn sync
+           ▼                  │
+┌──────────────────────────┐ │
+│   Session Transcript     │ │
+│   (raw, preserved)       │ │
+└──────────┬───────────────┘ │
+           │ LLM summarizes  │
+           ▼                  │
+┌──────────────────────────┐ │
+│  TIER 3 — Long-Term      │◄┘
+│  Memory (all projects,   │
+│  permanent)              │
+│  Lessons, patterns,      │
+│  conventions, prefs      │
+│  Search: exact + semantic│
+└──────────┬───────────────┘
+           │ snapshot at session start
+           ▼
+┌─────────────────────────────────────────┐
+│  TIER 2 — Project State Memory          │
+│  What was DONE / PENDING / BLOCKED       │
+│  Lifetime: initiative duration           │
+│  Key lessons promoted to Tier 3 on done  │
+└─────────────────────────────────────────┘</code></pre>
+<p data-commentable="true" data-block-id="b-64"><strong>Data flow:</strong></p>
+<ul><li data-commentable="true" data-block-id="b-65"><strong>Session → Tier 3 (primary):</strong> Session-end LLM summarizes transcripts into long-term memory. Main capture path — every session produces learning.</li><li data-commentable="true" data-block-id="b-66"><strong>Session → Tier 2 (per-turn):</strong> State changes written to initiative state files throughout the session.</li><li data-commentable="true" data-block-id="b-67"><strong>Tier 2 → Tier 3 (on completion):</strong> When an initiative completes, key lessons promote to long-term memory.</li><li data-commentable="true" data-block-id="b-68"><strong>Tier 3 → Tier 1 (session start):</strong> Frozen snapshot of relevant long-term memory injected into new sessions.</li></ul>
+<div class="table-wrap"><table data-commentable="true" data-block-id="b-69"><thead><tr><th>Tier</th><th>Scope</th><th>Lifetime</th><th>What It Stores</th><th>Key Operations</th></tr></thead><tbody><tr><td><strong>Session</strong></td><td>Current session</td><td>Session duration</td><td>Active context, tool calls, conversation</td><td>Auto-capture</td></tr><tr><td><strong>Project State</strong></td><td>Current initiative</td><td>Initiative duration</td><td>Progress, decisions, blockers, phase tracking</td><td>Per-turn sync, phase snapshots</td></tr><tr><td><strong>Long-Term</strong></td><td>All projects</td><td>Permanent (curated)</td><td>Lessons, patterns, conventions, user preferences</td><td>Session-end summarization, cross-session search, periodic curation</td></tr></tbody></table></div>
+<h4 data-commentable="true" data-block-id="b-70">3.3 Tier 1 — Session Memory</h4>
+<p data-commentable="true" data-block-id="b-71">The agent&#39;s working memory — what it &quot;sees&quot; during a session.</p>
+<ul><li data-commentable="true" data-block-id="b-72"><strong>Content:</strong> The current conversation, tool-call history, and a frozen snapshot of long-term knowledge injected at session start (§3.8).</li><li data-commentable="true" data-block-id="b-73"><strong>Capture:</strong> Automatic. No manual &quot;save.&quot;</li><li data-commentable="true" data-block-id="b-74"><strong>Lifetime:</strong> Session duration. When the session ends, raw content is preserved in transcripts; a background LLM extracts key lessons and promotes them to Tier 2 and Tier 3.</li><li data-commentable="true" data-block-id="b-75"><strong>Constraint:</strong> Mid-session writes to long-term memory do NOT refresh the session&#39;s snapshot. A manual refresh is available for long-running sessions (&gt;2h).</li></ul>
+<h4 data-commentable="true" data-block-id="b-76">3.4 Tier 2 — Project State Memory</h4>
+<p data-commentable="true" data-block-id="b-77">Tracks &quot;where we are&quot; in the current initiative. Medium-term — detailed, project-specific, complete when the initiative finishes.</p>
+<ul><li data-commentable="true" data-block-id="b-78"><strong>Content:</strong> Three dimensions — what was done (concrete output), what&#39;s right/wrong (lessons), and current status (done/not done/who/when/dependencies).</li><li data-commentable="true" data-block-id="b-79"><strong>Storage:</strong> State files at <code>docs/&lt;initiative&gt;/state/YYYY-MM-DD-state.md</code>. Live documents updated continuously. Previous entries can be modified as status changes (e.g., <code>🚧 → ✅</code>).</li><li data-commentable="true" data-block-id="b-80"><strong>Recording criteria:</strong> Record when any dimension changes. See §4.</li><li data-commentable="true" data-block-id="b-81"><strong>Lifetime:</strong> Initiative duration. On completion, the state file becomes historical; key lessons promote to Tier 3.</li></ul>
+<h4 data-commentable="true" data-block-id="b-82">3.5 Tier 3 — Long-Term Memory</h4>
+<p data-commentable="true" data-block-id="b-83">Cross-project, cross-session knowledge that persists indefinitely. This is what makes the agent &quot;smarter over time.&quot;</p>
+<ul><li data-commentable="true" data-block-id="b-84"><strong>Content:</strong> Lessons learned, reusable patterns/workflows, project conventions, tool quirks, user preferences, distilled experience from completed initiatives.</li><li data-commentable="true" data-block-id="b-85"><strong>Storage:</strong> A long-term memory store that MUST support:</li><li data-commentable="true" data-block-id="b-86"><strong>Exact retrieval:</strong> Find entries by project, topic, or problem key.</li><li data-commentable="true" data-block-id="b-87"><strong>Fuzzy/semantic search:</strong> Find conceptually similar entries across projects.</li><li data-commentable="true" data-block-id="b-88"><strong>Human-readable export:</strong> A read-only, curator-generated mirror of the store for git-diffability and offline reading. (The store itself is the source of truth; the export is derived.)</li><li data-commentable="true" data-block-id="b-89"><strong>Unified search scope:</strong> All projects, all sessions, both IDEs — one search surface.</li><li data-commentable="true" data-block-id="b-90"><strong>Capture:</strong></li><li data-commentable="true" data-block-id="b-91"><strong>Per-turn (secondary, reliability):</strong> Key information from each significant tool call is extracted and written incrementally. Best-effort — failures don&#39;t block the session.</li><li data-commentable="true" data-block-id="b-92"><strong>Session-end summarization (primary, quality):</strong> When a session ends, a background LLM reads the full transcript, extracts lessons/patterns, identifies reusable workflows, and reconciles/dedups against per-turn captures. Every session produces learning.</li><li data-commentable="true" data-block-id="b-93"><strong>Lifetime:</strong> Permanent, with automated maintenance (§3.7).</li><li data-commentable="true" data-block-id="b-94"><strong>Retrieval:</strong> CLI for scripts and a skill for humans. The agent can proactively search memory when it encounters situations similar to past experience.</li></ul>
+<h4 data-commentable="true" data-block-id="b-95">3.6 Memory Sync Flow</h4>
+<ul><li data-commentable="true" data-block-id="b-96"><strong>Per-turn sync:</strong> After each significant tool call, key information is extracted to Tier 2 (state) and Tier 3 (long-term). Lightweight, non-blocking. Coverage gaps are mitigated by the end-of-session pass.</li><li data-commentable="true" data-block-id="b-97"><strong>End-of-session sync:</strong> Full transcript summarized by a background LLM; lessons/patterns written to Tier 3. Captures what per-turn missed (subagent results, dropped output). Also triggers post-session summarization (§5.4).</li><li data-commentable="true" data-block-id="b-98"><strong>Provider fallback:</strong> If the primary background LLM is unavailable, fall back to a secondary provider. Both fail → defer to next cycle. No data loss — raw transcripts are preserved.</li><li data-commentable="true" data-block-id="b-99"><strong>Audit trail:</strong> Every sync writes a timestamped audit record, enabling gap detection.</li><li data-commentable="true" data-block-id="b-100"><strong>Subagent content:</strong> Captured via a dedicated subagent-completion trigger, with session-end summarization as a secondary path.</li></ul>
+<h4 data-commentable="true" data-block-id="b-101">3.7 Memory Maintenance (Curator)</h4>
+<p data-commentable="true" data-block-id="b-102">Periodic maintenance keeps the long-term store healthy:</p>
+<ul><li data-commentable="true" data-block-id="b-103"><strong>Trigger:</strong> Periodic, during agent idle time.</li><li data-commentable="true" data-block-id="b-104"><strong>Actions:</strong> Track usage per entry; mark unused (30 days → <code>stale</code> → 90 days → <code>archived</code>); pin high-value entries; merge duplicates; generate reports; regenerate the human-readable export. Only touch agent-created entries — never hand-written.</li><li data-commentable="true" data-block-id="b-105"><strong>Recovery:</strong> Archived entries can be restored.</li></ul>
+<h4 data-commentable="true" data-block-id="b-106">3.8 Context Injection (Snapshot)</h4>
+<p data-commentable="true" data-block-id="b-107">At session start, a frozen snapshot of relevant long-term memory is injected into the session context. Both Claude Code and OpenCode read the personal context file at session start, so the snapshot is available immediately — no tool call required.</p>
+<ul><li data-commentable="true" data-block-id="b-108"><strong>Frozen at start:</strong> Captured once. Mid-session writes don&#39;t refresh the active snapshot.</li><li data-commentable="true" data-block-id="b-109"><strong>Replaced each session:</strong> Old snapshot is entirely replaced on next session start, guarded by a merge layer so human content is never corrupted.</li><li data-commentable="true" data-block-id="b-110"><strong>Mid-session refresh:</strong> A manual command reloads the snapshot from disk. Useful for long-running sessions (&gt;2h). Default behavior remains frozen.</li><li data-commentable="true" data-block-id="b-111"><strong>Agent-managed, human-readable:</strong> Written by the agent, readable/editable by humans.</li></ul>
+<p data-commentable="true" data-block-id="b-112">---</p>
+<h3 data-commentable="true" data-block-id="b-113">4. State Engine</h3>
+<h4 data-commentable="true" data-block-id="b-114">4.1 Trigger</h4>
+<p data-commentable="true" data-block-id="b-115">Every turn → capture fires → the platform writes to the state file. No manual action needed — state recording is a side effect of using the IDE.</p>
+<h4 data-commentable="true" data-block-id="b-116">4.2 State File</h4>
+<pre class="code-block" data-commentable="true" data-block-id="b-117"><div class="code-meta">code</div><code>docs/&lt;initiative&gt;/state/YYYY-MM-DD-state.md</code></pre>
+<ul><li data-commentable="true" data-block-id="b-118">Live document, updated continuously (not just daily snapshot)</li><li data-commentable="true" data-block-id="b-119">Appends new events AND modifies previous entries (e.g., <code>🚧 → ✅</code>)</li><li data-commentable="true" data-block-id="b-120">Phase completion (PRD/spec/design/plan/test) forces a state update</li></ul>
+<h4 data-commentable="true" data-block-id="b-121">4.3 Recording Criteria</h4>
+<p data-commentable="true" data-block-id="b-122">Three dimensions — record if ANY one is met:</p>
+<div class="table-wrap"><table data-commentable="true" data-block-id="b-123"><thead><tr><th>Dimension</th><th>What it means</th></tr></thead><tbody><tr><td><strong>做了什么</strong></td><td>Concrete output: code, docs, config, research conclusion, external action, automation</td></tr><tr><td><strong>对/错</strong></td><td>Lessons: what worked, what didn&#39;t, bugs found, blind spots exposed, compaction risks</td></tr><tr><td><strong>进度</strong></td><td>Tracking: done/not done/who&#39;s doing it/when done/dependencies</td></tr></tbody></table></div>
+<p data-commentable="true" data-block-id="b-124"><strong>Always record:</strong> code/doc/config changes; system events (MCP setup, model config, backup/restore, compaction); research with conclusions; failed attempts; subagent conclusions.</p>
+<p data-commentable="true" data-block-id="b-125"><strong>Never record:</strong> instant queries (just looking); single-command atomic ops; pure chat/curiosity; transient status checks.</p>
+<p data-commentable="true" data-block-id="b-126">---</p>
+<h3 data-commentable="true" data-block-id="b-127">5. Self-Evolution Engine</h3>
+<h4 data-commentable="true" data-block-id="b-128">5.1 Auto Skill Creation</h4>
+<p data-commentable="true" data-block-id="b-129"><strong>Triggers (dual):</strong></p>
+<ol><li data-commentable="true" data-block-id="b-130"><strong>Post-session trigger — PRIMARY:</strong> When the background LLM summarizes the session (§5.4), it also assesses whether any workflows/patterns are reusable. If yes → invokes <code>skill-create</code> with the full session transcript as context. Most powerful — it has the complete session picture.</li><li data-commentable="true" data-block-id="b-131"><strong>In-session trigger — SECONDARY:</strong> Completing a task with a significant tool-call footprint (default threshold: 10+ tool calls). Configurable.</li></ol>
+<p data-commentable="true" data-block-id="b-132"><strong>Rule in CLAUDE.md:</strong></p>
+<pre class="code-block" data-commentable="true" data-block-id="b-133"><div class="code-meta">markdown</div><code>## Self-Evolution Rules
+When you complete a complex task using significant tool calls:
+1. Assess whether the workflow/pattern/knowledge is reusable
+2. If yes → invoke `skill-create` to generate SKILL.md automatically</code></pre>
+<p data-commentable="true" data-block-id="b-134"><strong>Approval model:</strong></p>
+<div class="table-wrap"><table data-commentable="true" data-block-id="b-135"><thead><tr><th>Mode</th><th>Behavior</th></tr></thead><tbody><tr><td><strong>Review mode</strong> (<code>auto_approve: false</code>, DEFAULT)</td><td>Skills staged to a pending queue — user reviews</td></tr><tr><td><strong>Auto mode</strong> (<code>auto_approve: true</code>)</td><td>Skills auto-created without prompting (opt-in)</td></tr></tbody></table></div>
+<p data-commentable="true" data-block-id="b-136"><strong>Pending queue must not grow unbounded</strong> (requirement): the queue supports batch approve/reject and auto-expires items untouched for 30 days (auto-rejected, never silently promoted). The queue persists across restarts. <em>(Simple v1; quality scoring deferred.)</em></p>
+<ul><li data-commentable="true" data-block-id="b-137">Memory writes: lightweight, reviewed inline</li><li data-commentable="true" data-block-id="b-138">Skill writes: always staged (too large for inline preview)</li><li data-commentable="true" data-block-id="b-139"><strong>Safety gates</strong> (see §5.6): circuit breaker, sandbox test, rollback.</li></ul>
+<h4 data-commentable="true" data-block-id="b-140">5.2 Skill Lifecycle &amp; Promotion</h4>
+<p data-commentable="true" data-block-id="b-141">Skills are created <strong>locally first</strong>, not directly in skill-factory. They earn their way up.</p>
+<p data-commentable="true" data-block-id="b-142"><strong>Rules:</strong></p>
+<ul><li data-commentable="true" data-block-id="b-143"><strong>0–9 uses:</strong> shared store, both IDEs can sync</li><li data-commentable="true" data-block-id="b-144"><strong>10+ uses:</strong> auto-flag for promotion → copy to <code>skill-factory/personal-skills/</code> → human reviews and commits</li><li data-commentable="true" data-block-id="b-145"><strong>Usage tracking:</strong> sidecar JSON with atomic writes. Failures are best-effort — a broken counter never blocks a skill invocation. Tracks use/view/patch counts, state, provenance.</li><li data-commentable="true" data-block-id="b-146"><strong>Quality metrics:</strong> <code>error_rate</code>, <code>patch_frequency</code>, <code>user_override_rate</code>, regression detection (rollback if post-patch error rate exceeds pre-patch).</li><li data-commentable="true" data-block-id="b-147"><strong>Lifecycle:</strong> active → stale (30d unused) → archived (90d). Pinned/high-history-use skills exempt.</li><li data-commentable="true" data-block-id="b-148"><strong>Provenance:</strong> agent-created / bundled / skill-factory / hub. Curator only touches agent-created.</li></ul>
+<h4 data-commentable="true" data-block-id="b-149">5.3 Auto Skill Patching</h4>
+<p data-commentable="true" data-block-id="b-150"><strong>Trigger:</strong> Using an existing skill and discovering it&#39;s outdated, incomplete, or wrong → invoke <code>skill-edit</code> (surgical: <code>old_string → new_string</code>). <code>patch_count</code> feeds the curator and promotion. Same approval model + safety gates as creation. Rollback available.</p>
+<h4 data-commentable="true" data-block-id="b-151">5.4 Post-Session Summarization (Central Evolution Mechanism)</h4>
+<p data-commentable="true" data-block-id="b-152"><strong>Trigger:</strong> Session ends.</p>
+<p data-commentable="true" data-block-id="b-153">This is the primary mechanism for the implicit evolution experience. Every session produces two outputs in a single LLM pass over the full transcript:</p>
+<ol><li data-commentable="true" data-block-id="b-154"><strong>Summarize experience</strong> → lessons/patterns/pitfalls to memory → indexed → next session&#39;s snapshot includes this knowledge.</li><li data-commentable="true" data-block-id="b-155"><strong>Identify reusable workflows</strong> → assess whether any task patterns are worth capturing as skills → if yes, stage via <code>skill-create</code>.</li></ol>
+<p data-commentable="true" data-block-id="b-156">Using a single pass for both avoids extra API calls. The full transcript provides richer context for skill identification than any individual in-session trigger.</p>
+<p data-commentable="true" data-block-id="b-157"><strong>Privacy model:</strong> Session transcripts may contain proprietary code and credentials. By default, summarization sends session content to the configured <strong>remote</strong> background LLM (the project&#39;s chosen provider). Users who need local-only processing for sensitive content may opt in to a local model. The provider fallback chain (§3.6) applies when the configured provider is unavailable.</p>
+<aside class="callout" data-commentable="true" data-block-id="b-158"><div class="callout-label">Callout</div><p data-commentable="true" data-block-id="b-159">v5 defaulted to local; v6 reverses this to remote-default per owner decision (the configured provider is used by default; local is opt-in for sensitive sessions).</p></aside>
+<p data-commentable="true" data-block-id="b-160"><strong>This is what makes evolution feel automatic.</strong> You finish your work, close the IDE, and next time the agent has learned from your last session.</p>
+<h4 data-commentable="true" data-block-id="b-161">5.5 Curator</h4>
+<p data-commentable="true" data-block-id="b-162"><strong>Trigger:</strong> Periodic (idle). Index maintenance runs more frequently.</p>
+<p data-commentable="true" data-block-id="b-163"><strong>Actions:</strong> Track usage metrics; archive stale (30d → 90d); pin high-use; merge duplicates; generate report; regenerate the human-readable export; only touch agent-created entries. Restore via unarchive commands.</p>
+<h4 data-commentable="true" data-block-id="b-164">5.6 Safety &amp; Alignment Architecture</h4>
+<aside class="callout" data-commentable="true" data-block-id="b-165"><div class="callout-label">Callout</div><p data-commentable="true" data-block-id="b-166"><strong>Why this exists:</strong> Shanghai AI Lab research (2026) documented safety erosion across all four self-evolution pathways: model evolution raised phishing-risk triggers 18.2%→71.4%; memory evolution dropped malicious-code refusal 99.4%→54.4%; tool evolution showed 65.5% unsafe auto-created tools; workflow evolution collapsed malicious-request refusal 46.3%→6.3%. AgentWorm (Peking University, 2026) demonstrated 63% attack success against self-propagating agent vulnerabilities. A self-modifying autonomous agent without safety infrastructure is indefensible.</p></aside>
+<p data-commentable="true" data-block-id="b-167"><strong>Defaults:</strong> All self-evolution defaults to <strong>review mode</strong>. Auto-approval is opt-in and scoped per operation type.</p>
+<div class="table-wrap"><table data-commentable="true" data-block-id="b-168"><thead><tr><th>Operation</th><th>Default</th><th>Can opt-in to auto?</th></tr></thead><tbody><tr><td>Skill creation</td><td>Review (pending queue)</td><td>Yes, per skill domain</td></tr><tr><td>Skill patching</td><td>Review (pending queue)</td><td>Yes, per skill</td></tr><tr><td>Memory writes</td><td>Inline review</td><td>N/A (lightweight)</td></tr><tr><td>Background creation</td><td>Always staged</td><td>No</td></tr></tbody></table></div>
+<p data-commentable="true" data-block-id="b-169"><strong>Circuit breaker:</strong> If &gt;3 skills are created or patched within 24 hours, halt all auto-evolution (suspend create/patch, keep pending queue, notify user, resume only after review).</p>
+<p data-commentable="true" data-block-id="b-170"><strong>Sandbox testing:</strong> Before a pending skill is promoted, dry-run it in a sandboxed session (no side effects) and verify minimal safety checks. Fail → stays pending with reason logged.</p>
+<p data-commentable="true" data-block-id="b-171"><strong>Rollback:</strong> Every auto-created/patched skill supports rollback to the last known-good version. Automatic if post-patch error rate exceeds pre-patch by 50%+. Version history retains last 5 versions.</p>
+<p data-commentable="true" data-block-id="b-172"><strong>Safety monitoring:</strong> Track <code>refusal_rate</code>, <code>unsafe_output_rate</code>, <code>skill_error_rate</code>, <code>circuit_breaker_trips</code> per session; feed into curator decisions.</p>
+<aside class="callout" data-commentable="true" data-block-id="b-173"><div class="callout-label">Callout</div><p data-commentable="true" data-block-id="b-174"><strong>Known gap (semantic threats):</strong> Sandbox checks are syntactic (e.g., dangerous shell patterns). The cited threats are semantic (phishing, refusal collapse). A semantic guard is a recognized need; tracked as a follow-up rather than an MVP blocker.</p></aside>
+<h4 data-commentable="true" data-block-id="b-175">5.7 Effectiveness Metrics</h4>
+<p data-commentable="true" data-block-id="b-176">The vision is &quot;smarter over time.&quot; Beyond safety metrics (§5.6), the system MUST measure whether it is actually getting more useful. These are requirements:</p>
+<div class="table-wrap"><table data-commentable="true" data-block-id="b-177"><thead><tr><th>Metric</th><th>Signal</th><th>Target trend</th></tr></thead><tbody><tr><td><code>skill_reuse_rate</code></td><td>fraction of sessions invoking an auto-created skill</td><td>rising</td></tr><tr><td><code>user_correction_rate</code></td><td>user overrides/corrects the agent per task</td><td>falling</td></tr><tr><td><code>task_first_pass_rate</code></td><td>tasks completed without rework</td><td>rising</td></tr><tr><td><code>memory_hit_rate</code></td><td>searches returning a useful entry</td><td>rising; non-zero baseline means memory is used</td></tr></tbody></table></div>
+<p data-commentable="true" data-block-id="b-178">Collection is automatic per session and surfaced in curator reports. Exact formulas are an implementation detail (spec).</p>
+<p data-commentable="true" data-block-id="b-179">---</p>
+<h3 data-commentable="true" data-block-id="b-180">6. Implementation</h3>
+<p data-commentable="true" data-block-id="b-181">Implementation (memory substrate, skill-refinement loop, hook/event wiring, schemas, error handling, cost model, reuse analysis of existing ai-coworker infrastructure) is specified in the [spec](../spec/self-evolving-agent-spec.md). This PRD intentionally omits <em>how</em> the requirements are met.</p>
+<p data-commentable="true" data-block-id="b-182">---</p>
+<h3 data-commentable="true" data-block-id="b-183">7. Out of Scope (MVP)</h3>
+<ul><li data-commentable="true" data-block-id="b-184">Publish / Transact operations</li><li data-commentable="true" data-block-id="b-185">GEPA/DSPy prompt evolution (v2)</li><li data-commentable="true" data-block-id="b-186">Multi-agent delegation mesh (v2)</li><li data-commentable="true" data-block-id="b-187">Guild Agent integration (evaluated — complementary task-coordination layer, v2 candidate; not a replacement for the memory architecture)</li><li data-commentable="true" data-block-id="b-188">Semantic safety guards beyond syntactic sandbox checks (follow-up; see §5.6)</li></ul>
+<p data-commentable="true" data-block-id="b-189">---</p>
+<h3 data-commentable="true" data-block-id="b-190">8. Open Questions</h3>
+<h4 data-commentable="true" data-block-id="b-191">Resolved</h4>
+<ol><li data-commentable="true" data-block-id="b-192">✅ <strong>SDK loop termination:</strong> Three conditions (§2.2): goal criteria, stagnation (3 cycles), time expired (12h).</li><li data-commentable="true" data-block-id="b-193">✅ <strong>Search index rebuild:</strong> Incremental primary; full rebuild on integrity failure from source of truth.</li><li data-commentable="true" data-block-id="b-194">✅ <strong>Snapshot injection:</strong> Separate per-project snapshot blocks; mid-session refresh available.</li><li data-commentable="true" data-block-id="b-195">✅ <strong>Primary UX:</strong> Hook-embedded implicit evolution; SDK loop reserved for automation.</li><li data-commentable="true" data-block-id="b-196">✅ <strong>Vector/embedding memory:</strong> In scope (MVP). Substrate choice (mem0) in spec.</li><li data-commentable="true" data-block-id="b-197">✅ <strong>Privacy default:</strong> Remote background LLM by default; local opt-in (v6 reversal of v5).</li><li data-commentable="true" data-block-id="b-198">✅ <strong>Long-term store schema &amp; MEMORY.md role:</strong> Store is source of truth with a defined entry schema; MEMORY.md is a read-only curator export (spec §2.3, §5.2).</li></ol>
+<h4 data-commentable="true" data-block-id="b-199">New (v2+)</h4>
+<ol><li data-commentable="true" data-block-id="b-200"><strong>OpenCode capture coverage:</strong> Does OpenCode&#39;s per-tool event fire for all tool types, equivalent to Claude Code? Needs empirical validation before declaring dual-IDE production parity (spec §8 spike).</li><li data-commentable="true" data-block-id="b-201"><strong>Skill quality auto-detection:</strong> Can skill degradation be auto-detected without waiting for user override signals?</li><li data-commentable="true" data-block-id="b-202"><strong>Cross-project skill promotion:</strong> When should a project-local skill promote to skill-factory?</li><li data-commentable="true" data-block-id="b-203"><strong>Loop stagnation sensitivity:</strong> Is 3 cycles the right SDK threshold? Needs real-run tuning.</li></ol>
+      </article>
+      <aside class="aside-stack">
+        <div class="aside-panel"><div class="aside-label">Index</div><ul class="outline-list"><li class="outline-item outline-level-1">Self-Evolving Agent — PRD</li><li class="outline-item outline-level-2">Status</li><li class="outline-item outline-level-2">Change Log</li><li class="outline-item outline-level-2">1. Overview</li><li class="outline-item outline-level-3">1.1 Vision</li><li class="outline-item outline-level-3">1.2 Primary Experience: Hook-Embedded Implicit Evolution</li><li class="outline-item outline-level-3">1.3 SDK Mode</li><li class="outline-item outline-level-3">1.4 Implementation Choices</li><li class="outline-item outline-level-3">1.5 Key Decisions</li><li class="outline-item outline-level-3">1.6 Knowledge Taxonomy</li><li class="outline-item outline-level-2">2. How Evolution Happens</li><li class="outline-item outline-level-3">2.1 The Implicit Loop (Primary Experience)</li><li class="outline-item outline-level-3">2.2 SDK Mode</li><li class="outline-item outline-level-3">2.3 No Publish / Transact (MVP)</li><li class="outline-item outline-level-2">3. Memory — Three-Tier Architecture</li><li class="outline-item outline-level-3">3.1 Requirements</li><li class="outline-item outline-level-3">3.2 Three-Tier Memory Model</li><li class="outline-item outline-level-3">3.3 Tier 1 — Session Memory</li><li class="outline-item outline-level-3">3.4 Tier 2 — Project State Memory</li><li class="outline-item outline-level-3">3.5 Tier 3 — Long-Term Memory</li><li class="outline-item outline-level-3">3.6 Memory Sync Flow</li><li class="outline-item outline-level-3">3.7 Memory Maintenance (Curator)</li><li class="outline-item outline-level-3">3.8 Context Injection (Snapshot)</li><li class="outline-item outline-level-2">4. State Engine</li><li class="outline-item outline-level-3">4.1 Trigger</li><li class="outline-item outline-level-3">4.2 State File</li><li class="outline-item outline-level-3">4.3 Recording Criteria</li><li class="outline-item outline-level-2">5. Self-Evolution Engine</li><li class="outline-item outline-level-3">5.1 Auto Skill Creation</li><li class="outline-item outline-level-2">Self-Evolution Rules</li><li class="outline-item outline-level-3">5.2 Skill Lifecycle &amp; Promotion</li><li class="outline-item outline-level-3">5.3 Auto Skill Patching</li><li class="outline-item outline-level-3">5.4 Post-Session Summarization (Central Evolution Mechanism)</li><li class="outline-item outline-level-3">5.5 Curator</li><li class="outline-item outline-level-3">5.6 Safety &amp; Alignment Architecture</li><li class="outline-item outline-level-3">5.7 Effectiveness Metrics</li><li class="outline-item outline-level-2">6. Implementation</li><li class="outline-item outline-level-2">7. Out of Scope (MVP)</li><li class="outline-item outline-level-2">8. Open Questions</li><li class="outline-item outline-level-3">Resolved</li><li class="outline-item outline-level-3">New (v2+)</li></ul></div>
+        <div class="aside-panel">
+          <div class="aside-label">Export mode</div>
+          <div class="aside-copy">
+            Designed render produced from a richer HTML generation pass.
+          </div>
+        </div>
+      </aside>
+    </section>
+  </main>
+<!-- htmlify trusted annotation layer -->
+<style>
+  :root { --hla-paper: #faf7f0; --hla-ink: #1c1a15; --hla-ink-2: #6e6759; --hla-rule: #d9d2c3; --hla-signal: #e84b0f; --hla-wash: #fbeae1; }
+  @media (prefers-color-scheme: dark) {
+    :root { --hla-paper: #1e1b16; --hla-ink: #ede8dc; --hla-ink-2: #a39a88; --hla-rule: #3a352b; --hla-signal: #ff6b2c; --hla-wash: #3a2114; }
+  }
+  .hla-comment-bar { position: fixed; right: 18px; bottom: 18px; z-index: 99999; display: flex; gap: 8px; flex-wrap: wrap; max-width: min(420px, calc(100vw - 36px)); font: 11px/1.4 ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  .hla-comment-bar button, .hla-comment-panel button { font: inherit; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; border: 1.5px solid var(--hla-ink); background: var(--hla-paper); color: var(--hla-ink); border-radius: 2px; padding: 6px 10px; cursor: pointer; }
+  .hla-comment-bar button:hover, .hla-comment-panel button:hover { border-color: var(--hla-signal); color: var(--hla-signal); }
+  .hla-comment-panel { position: fixed; top: 16px; right: 16px; bottom: 72px; z-index: 99998; width: min(390px, calc(100vw - 32px)); overflow: auto; background: var(--hla-paper); color: var(--hla-ink); border: 2px solid var(--hla-ink); border-radius: 2px; padding: 16px; font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .hla-comment-panel[hidden] { display: none; }
+  .hla-comment-panel h2 { margin: 0 0 10px; font-family: Charter, "Bitstream Charter", Cambria, Georgia, serif; font-weight: 400; font-size: 19px; line-height: 1.2; }
+  .hla-comment-panel textarea { width: 100%; min-height: 90px; resize: vertical; border: 1px solid var(--hla-rule); border-radius: 2px; padding: 10px; font: inherit; color: inherit; background: var(--hla-paper); }
+  .hla-comment-list { display: grid; gap: 10px; margin-top: 12px; }
+  .hla-comment-card { border: 1px solid var(--hla-rule); border-radius: 2px; padding: 10px; background: var(--hla-paper); }
+  .hla-comment-card blockquote { margin: 0 0 8px; padding: 8px 10px; border-left: 3px solid var(--hla-signal); color: var(--hla-ink-2); background: var(--hla-wash); }
+  .hla-highlight { background: var(--hla-wash); border-radius: 2px; }
+  .hla-comment-target { outline: 2px solid var(--hla-signal); outline-offset: 3px; }
+</style>
+<section class="hla-comment-panel" id="hla-comment-panel" hidden aria-label="HTML export comments">
+  <h2>HTML comments</h2>
+  <p>Select text in the export, then add a comment. Copy Markdown for the agent or download JSON.</p>
+  <textarea id="hla-comment-input" placeholder="Comment on the selected text"></textarea>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+    <button type="button" id="hla-save-comment">Save comment</button>
+    <button type="button" id="hla-copy-md">Copy Markdown</button>
+    <button type="button" id="hla-download-json">Download JSON</button>
+  </div>
+  <div class="hla-comment-list" id="hla-comment-list"></div>
+</section>
+<div class="hla-comment-bar">
+  <button type="button" id="hla-open-comments">Comments</button>
+  <button type="button" id="hla-add-comment">Comment on selection</button>
+</div>
+<script>
+(() => {
+  const meta = { version: 1, sourceId: "f995cf1a12705c33ec6da956f35f97ead5b73807", title: "Self-Evolving Agent PRD v6", exportUrl: location.href };
+  const key = "htmlify-comments:" + (meta.sourceId || location.pathname);
+  const panel = document.getElementById("hla-comment-panel");
+  const input = document.getElementById("hla-comment-input");
+  const list = document.getElementById("hla-comment-list");
+  let pending = null;
+  let comments = [];
+  try { comments = JSON.parse(localStorage.getItem(key) || "[]"); } catch (_) { comments = []; }
+  function closestBlock(node) {
+    const el = node && (node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement);
+    return el ? el.closest("[data-commentable], p, li, h1, h2, h3, h4, h5, h6, pre, table, blockquote, aside") : null;
+  }
+  function contextFor(block, selected) {
+    const text = (block ? block.textContent : document.body.textContent || "").replace(/\s+/g, " ").trim();
+    const needle = String(selected || "").replace(/\s+/g, " ").trim();
+    const at = needle ? text.indexOf(needle) : -1;
+    return {
+      prefix: at >= 0 ? text.slice(Math.max(0, at - 180), at) : text.slice(0, 180),
+      suffix: at >= 0 ? text.slice(at + needle.length, at + needle.length + 180) : "",
+    };
+  }
+  function persist() { localStorage.setItem(key, JSON.stringify(comments)); render(); }
+  function bundle() { return { version: meta.version, sourceId: meta.sourceId, title: meta.title, exportUrl: meta.exportUrl, exportedAt: new Date().toISOString(), comments }; }
+  function markdown() {
+    const data = bundle();
+    const lines = ["I reviewed the HTML export and left comments.", "", "Source: " + data.title, "Source ID: " + data.sourceId, ""];
+    data.comments.forEach((comment, index) => {
+      lines.push("## Comment " + (index + 1), "", "Selected text:", "> " + comment.selectedText.replace(/\n/g, "\n> "), "", "Nearby context:", "> " + (comment.prefix || "") + " [" + comment.selectedText + "] " + (comment.suffix || ""), "", "Comment:", comment.comment, "");
+    });
+    return lines.join("\n");
+  }
+  function render() {
+    list.innerHTML = "";
+    comments.forEach((comment, index) => {
+      const card = document.createElement("div");
+      card.className = "hla-comment-card";
+      const quote = document.createElement("blockquote");
+      quote.textContent = comment.selectedText;
+      const body = document.createElement("div");
+      body.textContent = comment.comment;
+      const jump = document.createElement("button");
+      jump.type = "button";
+      jump.textContent = "Jump";
+      jump.onclick = () => {
+        const target = comment.blockId ? document.querySelector('[data-block-id="' + CSS.escape(comment.blockId) + '"]') : null;
+        if (target) { target.scrollIntoView({ behavior: "smooth", block: "center" }); target.classList.add("hla-comment-target"); setTimeout(() => target.classList.remove("hla-comment-target"), 1800); }
+      };
+      const del = document.createElement("button");
+      del.type = "button";
+      del.textContent = "Delete";
+      del.onclick = () => { comments.splice(index, 1); persist(); };
+      card.append(quote, body, jump, del);
+      list.appendChild(card);
+    });
+  }
+  document.getElementById("hla-open-comments").onclick = () => { panel.hidden = !panel.hidden; render(); };
+  document.getElementById("hla-add-comment").onclick = () => {
+    const selection = getSelection();
+    const selectedText = selection ? String(selection).trim() : "";
+    if (!selectedText) { alert("Select text in the export first."); return; }
+    const block = closestBlock(selection.anchorNode) || closestBlock(selection.focusNode);
+    const ctx = contextFor(block, selectedText);
+    pending = { selectedText, blockId: block ? (block.dataset.blockId || "") : "", prefix: ctx.prefix, suffix: ctx.suffix };
+    input.value = "";
+    panel.hidden = false;
+    input.focus();
+  };
+  document.getElementById("hla-save-comment").onclick = () => {
+    if (!pending) { alert("Select text and click Comment on selection first."); return; }
+    const text = input.value.trim();
+    if (!text) { alert("Write a comment first."); return; }
+    comments.push({ id: "cmt_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8), sourceId: meta.sourceId, blockId: pending.blockId, selectedText: pending.selectedText, prefix: pending.prefix, suffix: pending.suffix, comment: text, createdAt: new Date().toISOString() });
+    pending = null;
+    input.value = "";
+    persist();
+  };
+  document.getElementById("hla-copy-md").onclick = async () => {
+    const text = markdown();
+    if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(text);
+    else prompt("Copy comments for the agent:", text);
+  };
+  document.getElementById("hla-download-json").onclick = () => {
+    const blob = new Blob([JSON.stringify(bundle(), null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "html-comments-" + (meta.sourceId || "export").slice(0, 12) + ".json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+  render();
+})();
+</script>
+</body>
+</html>
