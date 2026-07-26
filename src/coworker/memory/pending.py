@@ -22,6 +22,42 @@ def _pending_dir() -> Path:
     return Path(DEFAULT_PENDING_DIR).expanduser()
 
 
+def _sandbox_check(data: dict) -> list[str]:
+    """Basic sandbox validation before skill promotion (PRD §5.6).
+
+    Checks:
+    1. Skill name is non-empty and valid
+    2. No dangerous shell patterns in description
+    3. Source session is valid
+    Returns list of issue strings (empty = safe to promote).
+    """
+    issues = []
+    name = data.get("name", "")
+    desc = data.get("description", "")
+
+    # Check 1: Valid name
+    if not name or len(name) < 3:
+        issues.append("Skill name too short (<3 chars)")
+    if any(c in name for c in ("$", "`", "|", ";", "&", ">", "<")):
+        issues.append("Skill name contains dangerous shell characters")
+
+    # Check 2: No dangerous shell patterns
+    dangerous_patterns = [
+        "rm -rf", "sudo ", "chmod 777", "curl", "wget",
+        "eval ", "exec(", "__import__", "subprocess",
+        "/etc/passwd", "/etc/shadow", "~/.ssh",
+    ]
+    for pattern in dangerous_patterns:
+        if pattern in desc.lower():
+            issues.append(f"Description contains dangerous pattern: '{pattern}'")
+
+    # Check 3: Source session present
+    if not data.get("source_session"):
+        issues.append("Missing source_session in skill metadata")
+
+    return issues
+
+
 def _promote_to_active(data: dict) -> None:
     """Copy an approved pending skill to the active skills directory."""
     skill_name = data.get("name", "")
@@ -103,6 +139,17 @@ def approve(skill_id: str) -> bool:
     data["approved_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     path.write_text(json.dumps(data, indent=2))
     logger.info("Approved skill: %s", skill_id)
+
+    # Sandbox basic check (S-7, PRD §5.6)
+    issues = _sandbox_check(data)
+    if issues:
+        logger.warning("Sandbox check failed for %s: %s", skill_id, issues)
+        data["sandbox_failures"] = issues
+        data["status"] = "rejected"
+        data["rejected_reason"] = "; ".join(issues)
+        path.write_text(json.dumps(data, indent=2))
+        return False
+
     # Promote: copy pending skill to active skills directory
     _promote_to_active(data)
     return True
