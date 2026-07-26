@@ -156,6 +156,8 @@ def memory_refresh():
 
 @memory.command("train")
 @click.option("--limit", default=None, type=int, help="Max sessions to process")
+@click.option("--target-skills", default=10, type=int, help="Target skills to stage")
+@click.option("--target-experiences", default=10, type=int, help="Target experiences to store")
 @click.option("--skip-existing/--no-skip-existing", default=True, help="Skip sessions with existing entries")
 def memory_train(limit, skip_existing):
     """Batch-train mem0 from all past sessions in analytics.db."""
@@ -185,7 +187,7 @@ def memory_train(limit, skip_existing):
 @memory.command("validate")
 @click.argument("task", required=False)
 @click.option("--task-file", default=None, type=click.Path(exists=True), help="Path to file containing task definition")
-@click.option("--compare-baseline", is_flag=True, default=True, help="Run A/B comparison")
+@click.option("--compare-baseline/--no-compare-baseline", is_flag=True, default=False, help="Run A/B comparison")
 def memory_validate(task, task_file, compare_baseline):
     """Run Claude SDK validation harness — A/B comparison of baseline vs memory-augmented agent."""
     if not task and not task_file:
