@@ -265,3 +265,7 @@
 - 3 previously untested modules now have test coverage
 - Health: Dashboard OK, Circuit OK, Frontend 566l/443l OK
 - Progress: 32 found → 19 fixed → 13 remaining
+## Round 11 — 2026-07-26T08:07:00Z
+- Tests: 119/119 (+5 wrong_history tests)
+- Fixed: T-5 (wrong_history.py tests)
+- Progress: 32 found → 20 fixed → 12 remaining
