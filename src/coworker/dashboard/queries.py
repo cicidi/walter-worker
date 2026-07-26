@@ -668,3 +668,161 @@ def query_models():
         return [dict(r) for r in rows]
     finally:
         conn.close()
+
+
+# ═══════════════════════════════════════════════════════
+# Restored original queries (required by dashboard.js)
+# ═══════════════════════════════════════════════════════
+
+def query_daily_sessions(days: int = 14):
+    conn = _get_db_conn()
+    try:
+        rows = conn.execute(
+            """SELECT substr(created_at, 1, 10) as day, COUNT(*) as c, s.ide
+               FROM sessions s WHERE created_at IS NOT NULL
+               GROUP BY day ORDER BY day DESC LIMIT ?""",
+            (days,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def query_session_messages(session_id: str):
+    conn = _get_db_conn()
+    try:
+        rows = conn.execute(
+            "SELECT * FROM messages WHERE session_id = ? ORDER BY seq", (session_id,)
+        ).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def query_skill_detail(name: str = None, days: int = 1):
+    conn = _get_db_conn()
+    try:
+        params = []
+        sql = """SELECT tc.tool as skill_name, tc.session_id, s.project, s.created_at,
+                        tc.duration_ms, tc.args, tc.result
+                 FROM tool_calls tc JOIN sessions s ON tc.session_id = s.id
+                 WHERE tc.tool = 'Skill'"""
+        if name:
+            sql += " AND tc.tool = ?"
+            params.append(name)
+        sql += " ORDER BY s.created_at DESC LIMIT 500"
+        rows = conn.execute(sql, params).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def query_skill_timeline(name: str, days: int = 1):
+    conn = _get_db_conn()
+    try:
+        rows = conn.execute(
+            """SELECT tc.session_id, s.created_at, tc.duration_ms
+               FROM tool_calls tc JOIN sessions s ON tc.session_id = s.id
+               WHERE tc.tool = ? ORDER BY s.created_at DESC LIMIT 200""",
+            (name,),
+        ).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def query_tool_detail(tool: str = None):
+    conn = _get_db_conn()
+    try:
+        params = []
+        sql = """SELECT tool, tool_type, server_name, COUNT(*) as calls,
+                        ROUND(AVG(duration_ms), 1) as avg_ms, MAX(duration_ms) as max_ms,
+                        COUNT(DISTINCT session_id) as sessions
+                 FROM tool_calls"""
+        if tool:
+            sql += " WHERE tool = ?"
+            params.append(tool)
+        sql += " GROUP BY tool, tool_type ORDER BY calls DESC LIMIT 50"
+        rows = conn.execute(sql, params).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def query_tool_sessions(tool: str, limit: int = 50):
+    conn = _get_db_conn()
+    try:
+        rows = conn.execute(
+            """SELECT tc.session_id, s.project, s.created_at, COUNT(*) as invocations
+               FROM tool_calls tc JOIN sessions s ON tc.session_id = s.id
+               WHERE tc.tool = ? GROUP BY tc.session_id
+               ORDER BY s.created_at DESC LIMIT ?""",
+            (tool, limit),
+        ).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def query_file_detail(file_path: str = None, project: str = None, limit: int = 200):
+    conn = _get_db_conn()
+    try:
+        params = []
+        sql = "SELECT * FROM file_ops WHERE 1=1"
+        if file_path:
+            sql += " AND path = ?"
+            params.append(file_path)
+        if project:
+            sql += " AND project = ?"
+            params.append(project)
+        sql += " ORDER BY ts DESC LIMIT ?"
+        params.append(limit)
+        rows = conn.execute(sql, params).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def query_knowledge_sessions(knowledge_id: int):
+    conn = _get_db_conn()
+    try:
+        rows = conn.execute(
+            "SELECT * FROM knowledge_sessions WHERE knowledge_id = ?", (knowledge_id,)
+        ).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def query_projects():
+    """Original project query format — used by original dashboard.js loadProjects()."""
+    conn = _get_db_conn()
+    try:
+        rows = conn.execute(
+            """SELECT COALESCE(NULLIF(s.project,''), COALESCE(ss2.cwd_proj,'root')) as project_name,
+                      COUNT(*) as session_count,
+                      SUM(ss.message_count) as total_messages,
+                      SUM(ss.tool_count) as total_tools,
+                      SUM(COALESCE(ss.tokens_input,0)) as total_tokens_in,
+                      SUM(COALESCE(ss.tokens_output,0)) as total_tokens_out,
+                      MAX(s.created_at) as last_session,
+                      GROUP_CONCAT(DISTINCT s.ide) as ide_list
+               FROM sessions s
+               LEFT JOIN session_stats ss ON s.id = ss.session_id
+               LEFT JOIN (SELECT id, TRIM(REPLACE(cwd,'/home/cicidi/project/',''),'/')||'/' as cwd_proj FROM sessions) ss2 ON s.id = ss2.id
+               GROUP BY project_name
+               ORDER BY session_count DESC"""
+        ).fetchall()
+        result = []
+        for r in rows:
+            d = dict(r)
+            ides = {}
+            if d.get('ide_list'):
+                for ide in d['ide_list'].split(','):
+                    ide = ide.strip()
+                    if ide: ides[ide] = ides.get(ide, 0) + d['session_count']
+            d['ides'] = ides
+            result.append(d)
+        return result
+    finally:
+        conn.close()

@@ -237,7 +237,78 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception:
         logger.exception("WebSocket error")
 
+# ═══════════════════════════════════════════════════════
+# Restored original endpoints (required by dashboard.js)
+# ═══════════════════════════════════════════════════════
+
+@app.get("/api/sessions/{session_id}/messages")
+def api_session_messages(session_id: str):
+    return queries.query_session_messages(session_id)
+
+
+@app.get("/api/skill-detail")
+def api_skill_detail(name: str = None, days: int = 1):
+    return queries.query_skill_detail(name, days)
+
+
+@app.get("/api/skill-timeline")
+def api_skill_timeline(name: str, days: int = 1):
+    return queries.query_skill_timeline(name, days)
+
+
+@app.get("/api/tool-detail")
+def api_tool_detail(tool: str = None):
+    return queries.query_tool_detail(tool)
+
+
+@app.get("/api/tool-sessions")
+def api_tool_sessions(tool: str, limit: int = 50):
+    return queries.query_tool_sessions(tool, limit)
+
+
+@app.get("/api/file-detail")
+def api_file_detail(file_path: str = None, project: str = None, limit: int = 200):
+    return queries.query_file_detail(file_path, project, limit)
+
+
+@app.get("/api/daily-sessions")
+def api_daily_sessions(days: int = 14):
+    return queries.query_daily_sessions(days)
+
+
+@app.get("/api/skill-session-ids")
+def api_skill_session_ids(name: str):
+    conn = queries._get_db_conn()
+    try:
+        rows = conn.execute(
+            "SELECT DISTINCT session_id FROM tool_calls WHERE tool = 'Skill' AND tool = ?",
+            (name,),
+        ).fetchall()
+        return [r[0] for r in rows]
+    finally:
+        conn.close()
+
+
+@app.get("/api/skill-mentions")
+def api_skill_mentions(name: str):
+    conn = queries._get_db_conn()
+    try:
+        rows = conn.execute(
+            "SELECT DISTINCT session_id FROM tool_calls WHERE tool = 'Skill' AND (tool = ? OR args LIKE ?)",
+            (name, f"%{name}%"),
+        ).fetchall()
+        return [r[0] for r in rows]
+    finally:
+        conn.close()
+
+
+@app.get("/api/knowledge/{knowledge_id}/sessions")
+def api_knowledge_sessions(knowledge_id: int):
+    return queries.query_knowledge_sessions(knowledge_id)
+
 
 static_dir = resource_files("coworker.dashboard") / "static"
 if static_dir.is_dir():
     app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")
+
+
