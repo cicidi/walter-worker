@@ -25,6 +25,15 @@ def import_session(session_dir: Path, conn_or_path=None):
     info = parse_session_yaml(session_dir)
     session_id = info.get("session_id", session_dir.name)
 
+    # Auto-detect initiative from branch if not explicitly set
+    initiative = info.get("initiative", "")
+    branch = info.get("branch", "")
+    if not initiative and branch:
+        # e.g., "feat/self-evolving-agent" → "self-evolving-agent"
+        if branch.startswith("feat/") or branch.startswith("fix/") or branch.startswith("feature/"):
+            initiative = branch.split("/", 1)[1] if "/" in branch else branch
+            info["initiative"] = initiative
+
     conn.execute(
         """INSERT OR REPLACE INTO sessions (id, ide, project, cwd, model, initiative, branch, created_at, closed_at)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
