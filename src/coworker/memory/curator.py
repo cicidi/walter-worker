@@ -57,6 +57,12 @@ def run_curator(mem0_client, skills_dir: str | None = None, export_path: str | N
     except Exception as exc:
         stats["errors"].append(f"pending_expire: {exc}")
 
+    # 5. Score memories by recency + frequency (W-8)
+    try:
+        stats["scored"] = _score_memories(mem0_client)
+    except Exception as exc:
+        stats["errors"].append(f"score: {exc}")
+
     logger.info("Curator run complete: %s", stats)
     return stats
 
@@ -89,7 +95,7 @@ def _archive_old(mem0_client) -> int:
     count = 0
     try:
         results = mem0_client.search(
-            query="",
+            query=".",
             filters={"state": "stale"},
             top_k=200,
         )
@@ -157,6 +163,54 @@ def export_memory_md(mem0_client, export_path: str) -> int:
     path.write_text("\n".join(lines))
     logger.info("Exported %d entries to %s", len(results), export_path)
     return len(results)
+
+
+def _score_memories(mem0_client) -> int:
+    """Score active memories by recency + frequency. Higher score = more useful.
+
+    Uses a simple decay model: score = use_count * recency_weight.
+    Recent (used <7d ago): weight 1.0, Medium (7-30d): 0.5, Old (>30d): 0.1.
+    Memories with score=0 and last_used > 60d are auto-marked stale.
+    """
+    try:
+        results = mem0_client.search(query=".", filters={"state": "active"}, top_k=500)
+    except Exception:
+        return 0
+
+    now = datetime.now(timezone.utc)
+    scored = 0
+    for entry in results:
+        meta = entry.get("metadata", {})
+        use_count = int(meta.get("use_count", 0))
+        last_used_str = meta.get("last_used", "")
+        score = 0
+
+        if last_used_str:
+            try:
+                last_used = datetime.strptime(last_used_str, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+                days_since = (now - last_used).days
+                if days_since < 7:
+                    score = use_count * 1.0
+                elif days_since < 30:
+                    score = use_count * 0.5
+                elif days_since < 60:
+                    score = use_count * 0.1
+                # >60 days: score stays 0 → will be marked stale below
+            except ValueError:
+                pass
+
+        # Update metadata with score
+        try:
+            mem0_client.update(entry["id"], metadata={
+                "score": score,
+                "scored_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            })
+            scored += 1
+        except Exception:
+            pass
+
+    logger.info("Scored %d active memories by recency+frequency", scored)
+    return scored
 
 
 def generate_report(mem0_client, export_dir: str) -> Path:

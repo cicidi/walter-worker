@@ -245,3 +245,8 @@
 - Verified: 16 capture/engine tests pass
 - Remaining HIGH: S-2 (validate harness), S-3 (skill patching), W-6 (benchmark)
 - Total progress: 20 found, 11 fixed, 9 remaining
+## Round 8 — 2026-07-26T07:27:00Z
+- Tests: 100/100 | Dashboard: OK | Circuit: OK | Frontend: 566l/443l
+- Fixed: W-8 (recency-weighted memory scoring in curator)
+- Fixed: C-3 (all empty queries in curator → '.')
+- Progress: 20 found → 13 fixed → 7 remaining
