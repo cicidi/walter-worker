@@ -23,6 +23,10 @@ function renderSidebar() {
     {id:'hotspots',label:'Hotspots',icon:'◫',section:'Analytics'},
     {id:'errors',label:'Errors',icon:'⚠',section:'Monitoring'},
     {id:'memory',label:'Memory',icon:'◎',section:'Control'},
+    {id:'cost',label:'Cost & Tokens',icon:'💰',section:'Analytics'},
+    {id:'models',label:'Models & IDE',icon:'🖥',section:'Analytics'},
+    {id:'efficiency',label:'Efficiency',icon:'📊',section:'Analytics'},
+    {id:'quality',label:'Data Quality',icon:'🔍',section:'Control'},
   ];
   let html='<div class="sidebar-header"><span class="icon">⧩</span> Coworker</div>';
   let lastSection='';
@@ -40,7 +44,7 @@ function navigate(view) {
   currentView = view;
   renderSidebar();
   document.getElementById('main').innerHTML='<div class="content"><div class="loading">Loading...</div></div>';
-  const loaders={overview:loadOverview,sessions:loadSessions,skills:loadSkills,monitor:loadMonitor,tools:loadTools,files:loadFiles,knowledge:loadKnowledge,initiatives:loadInitiatives,evolution:loadEvolution,projects:loadProjects,hotspots:loadHotspots,errors:loadErrors,memory:loadMemory};
+  const loaders={overview:loadOverview,sessions:loadSessions,skills:loadSkills,monitor:loadMonitor,tools:loadTools,files:loadFiles,knowledge:loadKnowledge,initiatives:loadInitiatives,evolution:loadEvolution,projects:loadProjects,hotspots:loadHotspots,errors:loadErrors,memory:loadMemory,cost:loadCost,models:loadModels,efficiency:loadEfficiency,quality:loadQuality};
   (loaders[view]||loadOverview)();
 }
 
@@ -401,6 +405,110 @@ async function memoryAction(action) {
     alert(`${action}: ${data.status}`);
     loadMemory();
   } catch(e) { alert(`Failed: ${e.message}`); }
+}
+
+async function loadCost() {
+  try {
+    const data = await fetchJSON(`${API}/cost-analytics`);
+    const fmt = n => (n||0).toLocaleString();
+    document.getElementById('main').innerHTML = `
+      <div class="content">
+        <div class="page-title">💰 Cost & Token Analytics</div>
+        <div class="page-subtitle">Token consumption and cost per model, per day</div>
+        <div class="stat-grid">
+          ${data.model_stats?.map(m=>`<div class="stat-card"><div class="label">${m.model||'unknown'}</div><div class="value blue">$${m.total_cost||0}</div><div class="sub">${fmt(m.total_input)}→${fmt(m.total_output)} tokens | ${m.sessions} sessions</div></div>`).join('')||'<div class="stat-card"><div class="label">No data</div></div>'}
+        </div>
+        <div class="panel"><div class="panel-header">Daily Token Usage (30 days)</div>
+          <div class="panel-body" style="max-height:400px;overflow-y:auto"><table>
+            <tr><th>Day</th><th>Sessions</th><th>Input Tokens</th><th>Output Tokens</th><th>Total</th></tr>
+            ${(data.daily_tokens||[]).map(d=>`<tr><td>${d.day}</td><td>${d.sessions}</td><td>${fmt(d.input_tokens)}</td><td>${fmt(d.output_tokens)}</td><td><strong>${fmt((d.input_tokens||0)+(d.output_tokens||0))}</strong></td></tr>`).join('')||'<tr><td colspan="5" class="text-muted">No token data (sessions without stats)</td></tr>'}
+          </table></div></div>
+      </div>`;
+  } catch(e) { document.getElementById('main').innerHTML=`<div class="content"><div class="error">Failed: ${e.message}</div></div>`; }
+}
+
+async function loadModels() {
+  try {
+    const data = await fetchJSON(`${API}/model-usage`);
+    document.getElementById('main').innerHTML = `
+      <div class="content">
+        <div class="page-title">🖥 Models & IDE Usage</div>
+        <div class="page-subtitle">Which IDEs and models are being used</div>
+        <div class="grid-2 mb-lg">
+          <div class="panel"><div class="panel-header">IDE Distribution</div>
+            <div class="panel-body"><table>
+              <tr><th>IDE</th><th>Sessions</th><th>Projects</th></tr>
+              ${(data.ide_stats||[]).map(i=>`<tr><td><strong>${i.ide_name}</strong></td><td>${i.sessions}</td><td>${i.projects}</td></tr>`).join('')||'<tr><td colspan="3" class="text-muted">No IDE data</td></tr>'}
+            </table></div></div>
+          <div class="panel"><div class="panel-header">Model Trend (recent)</div>
+            <div class="panel-body" style="max-height:400px;overflow-y:auto"><table>
+              <tr><th>Day</th><th>Model</th><th>Sessions</th></tr>
+              ${(data.model_trend||[]).slice(0,30).map(m=>`<tr><td>${m.day}</td><td>${(m.model||'').slice(0,40)}</td><td>${m.count}</td></tr>`).join('')||'<tr><td colspan="3" class="text-muted">No model data</td></tr>'}
+            </table></div></div>
+        </div>
+      </div>`;
+  } catch(e) { document.getElementById('main').innerHTML=`<div class="content"><div class="error">Failed: ${e.message}</div></div>`; }
+}
+
+async function loadEfficiency() {
+  try {
+    const data = await fetchJSON(`${API}/efficiency`);
+    document.getElementById('main').innerHTML = `
+      <div class="content">
+        <div class="page-title">📊 Efficiency Insights</div>
+        <div class="page-subtitle">Session efficiency scores and bottlenecks (${data.total_summaries||0} summarized)</div>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="label">Avg Efficiency</div><div class="value ${(data.avg_efficiency||0)>=7?'green':(data.avg_efficiency||0)>=5?'yellow':'red'}">${data.avg_efficiency||0}/10</div></div>
+          <div class="stat-card"><div class="label">Think/Action Ratio</div><div class="value">${data.avg_think_action||0}</div></div>
+          <div class="stat-card"><div class="label">Edit Redundancy</div><div class="value">${data.avg_edit_redundancy||0}</div></div>
+          <div class="stat-card"><div class="label">Total Analyzed</div><div class="value blue">${data.total_summaries||0}</div><div class="sub">sessions</div></div>
+        </div>
+        <div class="grid-2 mb-lg">
+          <div class="panel"><div class="panel-header">Top Bottlenecks</div>
+            <div class="panel-body"><table>
+              <tr><th>Bottleneck</th><th>Occurrences</th></tr>
+              ${(data.bottlenecks||[]).map(b=>`<tr><td>${b.bottlenecks}</td><td><span class="tag tag-warning">${b.count}</span></td></tr>`).join('')||'<tr><td colspan="2" class="text-muted">No bottleneck data</td></tr>'}
+            </table></div></div>
+          <div class="panel"><div class="panel-header">Recent Summaries</div>
+            <div class="panel-body" style="max-height:400px;overflow-y:auto">
+              ${(data.recent||[]).map(s=>`<div style="padding:8px 12px;border-bottom:1px solid var(--border);font-size:11px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                  <span class="tag tag-active">Score: ${s.efficiency_score||'?'}/10</span>
+                  <span class="text-xs text-muted">${s.session_id?.slice(0,16)||'?'}</span>
+                </div>
+                ${s.bottlenecks?`<div class="text-xs" style="color:var(--yellow)">⚠ ${s.bottlenecks}</div>`:''}
+                ${s.efficiency_tip?`<div class="text-xs" style="color:var(--green)">💡 ${s.efficiency_tip}</div>`:''}
+              </div>`).join('')||'<div class="text-muted" style="padding:12px">No summaries yet. Run knowledge-skill to generate.</div>'}
+            </div></div>
+        </div>
+      </div>`;
+  } catch(e) { document.getElementById('main').innerHTML=`<div class="content"><div class="error">Failed: ${e.message}</div></div>`; }
+}
+
+async function loadQuality() {
+  try {
+    const data = await fetchJSON(`${API}/data-quality`);
+    const bar = (pct) => `<div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:6px;background:var(--bg-tertiary);border-radius:3px"><div style="width:${pct}%;height:6px;background:${pct>80?'var(--green)':pct>40?'var(--yellow)':'var(--red)'};border-radius:3px"></div></div><span style="font-size:10px;color:${pct>80?'var(--green)':pct>40?'var(--yellow)':'var(--red)'}">${pct}%</span></div>`;
+    document.getElementById('main').innerHTML = `
+      <div class="content">
+        <div class="page-title">🔍 Data Quality</div>
+        <div class="page-subtitle">Coverage rates for ${data.total_sessions||0} total sessions</div>
+        <div class="panel"><div class="panel-header">Coverage Metrics</div>
+          <div class="panel-body" style="padding:16px">
+            <table>
+              <tr><th>Metric</th><th>Covered</th><th>Missing</th><th>Rate</th></tr>
+              <tr><td>Project Attribution</td><td>${data.project?.covered||0}</td><td>${data.project?.missing||0}</td><td>${bar(data.project?.pct||0)}</td></tr>
+              <tr><td>Initiative Tagging</td><td>${data.initiative?.covered||0}</td><td>${data.initiative?.missing||0}</td><td>${bar(data.initiative?.pct||0)}</td></tr>
+              <tr><td>Session Close Tracking</td><td>${data.closed?.covered||0}</td><td>${data.closed?.missing||0}</td><td>${bar(data.closed?.pct||0)}</td></tr>
+              <tr><td>Token Data</td><td>${data.tokens?.covered||0}</td><td>${data.tokens?.missing||0}</td><td>${bar(data.tokens?.pct||0)}</td></tr>
+              <tr><td>Session Summaries</td><td>${data.summaries?.covered||0}</td><td>${data.summaries?.missing||0}</td><td>${bar(data.summaries?.pct||0)}</td></tr>
+            </table>
+          </div></div>
+        <div class="text-xs text-muted mt-sm" style="padding:8px 16px">
+          💡 Low project coverage means most sessions are not attributed to a project. Consider adding project detection to session import. Low summary coverage means the knowledge-skill is not running regularly — run <code>coworker memory train</code> to backfill.
+        </div>
+      </div>`;
+  } catch(e) { document.getElementById('main').innerHTML=`<div class="content"><div class="error">Failed: ${e.message}</div></div>`; }
 }
 
 renderSidebar();

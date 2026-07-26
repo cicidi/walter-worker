@@ -201,6 +201,26 @@ def api_session_errors(limit: int = 20):
     return queries.query_session_errors(limit)
 
 
+@app.get("/api/cost-analytics")
+def api_cost_analytics():
+    return queries.query_cost_analytics()
+
+
+@app.get("/api/model-usage")
+def api_model_usage():
+    return queries.query_model_usage()
+
+
+@app.get("/api/efficiency")
+def api_efficiency():
+    return queries.query_efficiency_insights()
+
+
+@app.get("/api/data-quality")
+def api_data_quality():
+    return queries.query_data_quality()
+
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()

@@ -271,7 +271,7 @@ def query_evolution_overview():
         skills = _list_skills(provenance="agent")
         total_sessions = conn.execute("SELECT COUNT(*) FROM sessions").fetchone()[0]
         sessions_with_auto = conn.execute(
-            "SELECT COUNT(DISTINCT session_id) FROM tool_calls WHERE tool = 'Skill'"
+            "SELECT COUNT(DISTINCT session_id) FROM tool_calls WHERE LOWER(tool) = 'skill'"
         ).fetchone()[0]
     finally:
         conn.close()
@@ -300,7 +300,7 @@ def query_evolution_skills(auto_train: bool = True, project: str = "", status: s
                 continue
 
             rows = conn.execute(
-                "SELECT DISTINCT session_id, ts FROM tool_calls WHERE tool = 'Skill' AND detail LIKE ? ORDER BY ts",
+                "SELECT DISTINCT session_id, ts FROM tool_calls WHERE LOWER(tool) = 'skill' AND args LIKE ? ORDER BY ts",
                 (f"%{skill['name']}%",),
             ).fetchall()
 
@@ -527,5 +527,116 @@ def query_session_errors(limit: int = 20):
             (limit,),
         ).fetchall()
         return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+# ---------------------------------------------------------------------------
+# Cost, Model, Efficiency, Data Quality
+# ---------------------------------------------------------------------------
+
+
+def query_cost_analytics():
+    """Token consumption and cost per model, per day."""
+    conn = _get_db_conn()
+    try:
+        model_stats = conn.execute(
+            """SELECT s.model,
+                      COUNT(DISTINCT s.id) as sessions,
+                      COALESCE(SUM(ss.tokens_input),0) as total_input,
+                      COALESCE(SUM(ss.tokens_output),0) as total_output,
+                      COALESCE(SUM(ss.tokens_reasoning),0) as total_reasoning,
+                      COALESCE(ROUND(SUM(ss.cost),4),0) as total_cost,
+                      COALESCE(ROUND(AVG(ss.cost),4),0) as avg_cost_per_session
+               FROM sessions s
+               LEFT JOIN session_stats ss ON s.id = ss.session_id
+               WHERE ss.tokens_input > 0
+               GROUP BY s.model
+               ORDER BY total_cost DESC"""
+        ).fetchall()
+        daily = conn.execute(
+            """SELECT substr(s.created_at,1,10) as day,
+                      COALESCE(SUM(ss.tokens_input),0) as input_tokens,
+                      COALESCE(SUM(ss.tokens_output),0) as output_tokens,
+                      COUNT(DISTINCT s.id) as sessions
+               FROM sessions s
+               LEFT JOIN session_stats ss ON s.id = ss.session_id
+               WHERE s.created_at IS NOT NULL
+               GROUP BY day ORDER BY day DESC LIMIT 30"""
+        ).fetchall()
+        return {"model_stats": [dict(r) for r in model_stats], "daily_tokens": [dict(r) for r in daily]}
+    finally:
+        conn.close()
+
+
+def query_model_usage():
+    """Model and IDE distribution across sessions."""
+    conn = _get_db_conn()
+    try:
+        ide_stats = conn.execute(
+            """SELECT CASE WHEN ide LIKE '%claude%' THEN 'Claude Code' ELSE COALESCE(ide,'unknown') END as ide_name,
+                      COUNT(*) as sessions, COUNT(DISTINCT project) as projects
+               FROM sessions WHERE ide IS NOT NULL AND ide != ''
+               GROUP BY ide_name ORDER BY sessions DESC"""
+        ).fetchall()
+        model_trend = conn.execute(
+            """SELECT substr(created_at,1,10) as day, model, COUNT(*) as count
+               FROM sessions WHERE model IS NOT NULL AND created_at IS NOT NULL
+               GROUP BY day, model ORDER BY day DESC LIMIT 50"""
+        ).fetchall()
+        return {"ide_stats": [dict(r) for r in ide_stats], "model_trend": [dict(r) for r in model_trend]}
+    finally:
+        conn.close()
+
+
+def query_efficiency_insights():
+    """Efficiency metrics from session_summaries."""
+    conn = _get_db_conn()
+    try:
+        summaries = conn.execute(
+            """SELECT session_id, efficiency_score, think_action_ratio,
+                      edit_redundancy, loop_count, user_wait_minutes,
+                      bottlenecks, efficiency_tip, generated_at
+               FROM session_summaries WHERE efficiency_score IS NOT NULL
+               ORDER BY generated_at DESC"""
+        ).fetchall()
+        all_scores = [s[1] for s in summaries if s[1] is not None]
+        avg_score = round(sum(all_scores) / len(all_scores), 1) if all_scores else 0
+        bottlenecks = conn.execute(
+            """SELECT bottlenecks, COUNT(*) as count
+               FROM session_summaries WHERE bottlenecks IS NOT NULL AND bottlenecks != ''
+               GROUP BY bottlenecks ORDER BY count DESC LIMIT 10"""
+        ).fetchall()
+        return {
+            "total_summaries": len(summaries),
+            "avg_efficiency": avg_score,
+            "avg_think_action": round(sum(s[2] for s in summaries if s[2] is not None) / max(len(summaries), 1), 2),
+            "avg_edit_redundancy": round(sum(s[3] for s in summaries if s[3] is not None) / max(len(summaries), 1), 1),
+            "bottlenecks": [dict(r) for r in bottlenecks],
+            "recent": [dict(r) for r in summaries[:10]],
+        }
+    finally:
+        conn.close()
+
+
+def query_data_quality():
+    """Data quality metrics — NULL rates, coverage gaps."""
+    conn = _get_db_conn()
+    try:
+        total = conn.execute("SELECT COUNT(*) FROM sessions").fetchone()[0]
+        def pct(n): return round(n / max(total, 1) * 100, 1)
+        with_project = conn.execute("SELECT COUNT(*) FROM sessions WHERE project IS NOT NULL AND project != ''").fetchone()[0]
+        with_initiative = conn.execute("SELECT COUNT(*) FROM sessions WHERE initiative IS NOT NULL AND initiative != ''").fetchone()[0]
+        with_closed = conn.execute("SELECT COUNT(*) FROM sessions WHERE closed_at IS NOT NULL AND closed_at != ''").fetchone()[0]
+        with_tokens = conn.execute("""SELECT COUNT(DISTINCT s.id) FROM sessions s JOIN session_stats ss ON s.id = ss.session_id WHERE ss.tokens_input > 0""").fetchone()[0]
+        with_summaries = conn.execute("SELECT COUNT(*) FROM session_summaries").fetchone()[0]
+        return {
+            "total_sessions": total,
+            "project": {"covered": with_project, "missing": total - with_project, "pct": pct(with_project)},
+            "initiative": {"covered": with_initiative, "missing": total - with_initiative, "pct": pct(with_initiative)},
+            "closed": {"covered": with_closed, "missing": total - with_closed, "pct": pct(with_closed)},
+            "tokens": {"covered": with_tokens, "missing": total - with_tokens, "pct": pct(with_tokens)},
+            "summaries": {"covered": with_summaries, "missing": total - with_summaries, "pct": pct(with_summaries)},
+        }
     finally:
         conn.close()
