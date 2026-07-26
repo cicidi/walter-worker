@@ -1119,23 +1119,35 @@ def memory_search(query, project, limit):
 
 @memory.command("refresh")
 def memory_refresh():
-    """Refresh the CLAUDE.local.md memory snapshot."""
+    """Refresh the CLAUDE.local.md memory snapshot + wrong-history rules."""
     from .memory.inject import build_snapshot, inject_into_local_md
     from .memory.mem0_client import Mem0Client
-
-    try:
-        mem0 = Mem0Client.from_config()
-    except Exception as e:
-        console.print(f"[red]mem0 unavailable: {e}[/red]")
-        return
+    from .memory.wrong_history import build_snapshot as build_wh_snapshot, inject_into_local_md as inject_wh
 
     local_md = os.path.expanduser("~/CLAUDE.local.md")
-    snapshot = build_snapshot(mem0)
-    changed = inject_into_local_md(str(local_md), snapshot)
-    if changed:
-        console.print("[green]CLAUDE.local.md memory snapshot refreshed.[/green]")
-    else:
-        console.print("[dim]Snapshot unchanged.[/dim]")
+    changed = False
+
+    # Memory snapshot
+    try:
+        mem0 = Mem0Client.from_config()
+        snapshot = build_snapshot(mem0)
+        if inject_into_local_md(str(local_md), snapshot):
+            changed = True
+            console.print("[green]Memory snapshot refreshed.[/green]")
+    except Exception as e:
+        console.print(f"[yellow]Memory snapshot skipped (mem0 unavailable): {e}[/yellow]")
+
+    # Wrong-history rules
+    try:
+        wh_snapshot = build_wh_snapshot()
+        if inject_wh(str(local_md), wh_snapshot):
+            changed = True
+            console.print("[green]Wrong-history rules injected.[/green]")
+    except Exception as e:
+        console.print(f"[yellow]Wrong-history injection failed: {e}[/yellow]")
+
+    if not changed:
+        console.print("[dim]Both snapshots unchanged.[/dim]")
 
 
 @memory.command("train")

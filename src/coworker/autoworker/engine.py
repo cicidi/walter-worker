@@ -100,6 +100,23 @@ class AutoWorkerAgent:
         self.work_dir = work_dir
         self.state_dir.mkdir(parents=True, exist_ok=True)
 
+    def _inject_wrong_history(self) -> None:
+        """Inject wrong-history prevention rules into CLAUDE.local.md."""
+        try:
+            from coworker.memory.wrong_history import extract_rules, inject_into_local_md, build_snapshot
+            rules = extract_rules()
+            critical = [r for r in rules if r["severity"] == "critical"]
+            if critical:
+                import os
+                local_md = os.path.expanduser("~/CLAUDE.local.md")
+                snapshot = build_snapshot()
+                inject_into_local_md(local_md, snapshot)
+                logger.info("Injected %d critical wrong-history rules into CLAUDE.local.md", len(critical))
+            else:
+                logger.debug("No critical wrong-history rules to inject")
+        except Exception as exc:
+            logger.warning("Wrong-history injection failed: %s", exc)
+
     # ------------------------------------------------------------------
     # Agent execution
     # ------------------------------------------------------------------
@@ -115,6 +132,9 @@ class AutoWorkerAgent:
         round_num = 0
         total_fixed = total_asked = 0
         session_log: list[dict] = []
+
+        # Inject wrong-history rules into Claude context BEFORE anything else
+        self._inject_wrong_history()
 
         # Build the initial agent prompt from context
         base_prompt = self._build_base_prompt(task)
