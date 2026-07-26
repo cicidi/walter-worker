@@ -29,11 +29,38 @@ def import_session(session_dir: Path, conn_or_path=None):
     if not info.get("project"):
         cwd = info.get("cwd", "")
         if "/project/" in cwd:
-            info["project"] = cwd.split("/project/")[-1].split("/")[0].split()[-1]
+            info["project"] = cwd.split("/project/")[-1].split("/")[0]
 
-    # Auto-detect initiative from branch if not explicitly set
-    initiative = info.get("initiative", "")
+    # Auto-detect branch from git if not in YAML (Claude Code doesn't write it)
     branch = info.get("branch", "")
+    if not branch:
+        cwd = info.get("cwd", "")
+        try:
+            import subprocess
+            r = subprocess.run(
+                ["git", "branch", "--show-current"],
+                capture_output=True, text=True, cwd=cwd if cwd else None, timeout=5,
+            )
+            if r.returncode == 0 and r.stdout.strip():
+                branch = r.stdout.strip()
+                info["branch"] = branch
+        except Exception:
+            pass
+
+    # Auto-detect initiative from CLAUDE.local.md if not set
+    initiative = info.get("initiative", "")
+    if not initiative:
+        try:
+            local_md = Path(info.get("cwd", "")) / "CLAUDE.local.md"
+            if local_md.exists():
+                import re
+                content = local_md.read_text()
+                m = re.search(r'## Active Initiative:\s*(\S+)', content)
+                if m:
+                    initiative = m.group(1)
+                    info["initiative"] = initiative
+        except Exception:
+            pass
     if not initiative and branch:
         # e.g., "feat/self-evolving-agent" → "self-evolving-agent"
         if branch.startswith("feat/") or branch.startswith("fix/") or branch.startswith("feature/"):
