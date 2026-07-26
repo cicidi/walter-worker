@@ -26,6 +26,11 @@ coworker = "coworker.cli:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.pytest.ini_options]
+markers = [
+    "real: tests that require real API keys (DEEPSEEK_API_KEY) and external services",
+]
+
 [tool.setuptools.package-data]
 coworker = []
 "coworker.dashboard" = ["static/**/*"]
