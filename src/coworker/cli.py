@@ -528,6 +528,55 @@ Describe when the AI should invoke this skill.
     console.print(f"  skills:\n    - name: {name}\n      path: skills/{name}")
 
 
+@skill.command("pending")
+@click.option("--approve-all", is_flag=True, help="Approve all pending items")
+@click.option("--type", "item_type", default=None, help="Filter by type (lesson, convention, preference)")
+def skill_pending(approve_all, item_type):
+    """List or approve pending skill review items."""
+    from .memory.pending import list_pending, batch_approve, approve
+
+    if approve_all:
+        count = batch_approve(item_type)
+        console.print(f"[green]Approved {count} pending items[/green]")
+        return
+
+    items = list_pending()
+    if not items:
+        console.print("[dim]No pending items.[/dim]")
+        return
+
+    for item in items:
+        status_color = "yellow" if item.get("status") == "pending" else "green" if item.get("status") == "approved" else "red"
+        console.print(
+            f"[bold]{item['name']}[/bold] "
+            f"[{status_color}]{item.get('status', '?')}[/{status_color}] "
+            f"[dim](calls: {item.get('tool_call_count', 0)}, "
+            f"staged: {item.get('staged_at', '?')[:10]})[/dim]"
+        )
+
+
+@skill.command("approve")
+@click.argument("skill_id")
+def skill_approve(skill_id):
+    """Approve a pending skill for promotion."""
+    from .memory.pending import approve
+    if approve(skill_id):
+        console.print(f"[green]Approved: {skill_id}[/green]")
+    else:
+        console.print(f"[red]Not found: {skill_id}[/red]")
+
+
+@skill.command("reject")
+@click.argument("skill_id")
+def skill_reject(skill_id):
+    """Reject a pending skill."""
+    from .memory.pending import reject
+    if reject(skill_id):
+        console.print(f"[yellow]Rejected: {skill_id}[/yellow]")
+    else:
+        console.print(f"[red]Not found: {skill_id}[/red]")
+
+
 # ── Project Catalog ───────────────────────────────────────────────────────
 
 
@@ -1115,6 +1164,32 @@ def memory_train(limit, skip_existing):
     )
     if stats["errors"]:
         console.print(f"[yellow]{len(stats['errors'])} errors[/yellow]")
+
+
+@memory.command("validate")
+@click.argument("task", required=False)
+@click.option("--task-file", default=None, help="Path to file containing task definition")
+@click.option("--compare-baseline", is_flag=True, default=True, help="Run A/B comparison")
+def memory_validate(task, task_file, compare_baseline):
+    """Run Claude SDK validation harness — A/B comparison of baseline vs memory-augmented agent."""
+    if not task and not task_file:
+        console.print("[red]Provide a task description or --task-file[/red]")
+        return
+
+    from .memory.validate import run_validation
+
+    console.print("[bold]Running validation harness...[/bold]")
+    report = run_validation(task or "", task_file=task_file)
+    console.print(f"\n[bold]Results:[/bold]")
+    console.print(f"  Baseline tool calls:     {report['baseline']['tool_calls']}")
+    console.print(f"  Memory-augmented calls:  {report['with_memory']['tool_calls']}")
+    console.print(f"  Tool call reduction:     {report['tool_call_reduction']}")
+    console.print(f"  Baseline assumptions:    {report['baseline']['incorrect_assumptions']} incorrect")
+    console.print(f"  Memory assumptions:      {report['with_memory']['incorrect_assumptions']} incorrect")
+    console.print(f"  Skills invoked:          {', '.join(report['with_memory']['skills_invoked']) or 'none'}")
+    console.print(f"  Experiences retrieved:   {', '.join(report['with_memory']['experiences_retrieved']) or 'none'}")
+    console.print(f"  [bold]Verdict: {report['verdict'].upper()}[/bold]")
+    console.print(f"  Elapsed: {report['elapsed_seconds']}s")
 
 
 # ---------------------------------------------------------------------------

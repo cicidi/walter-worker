@@ -10,6 +10,10 @@ Public API:
     pending — Pending queue for staged skill review.
     curator — Periodic maintenance (archive, merge, export).
     train — Batch training pipeline.
+    validate — Claude SDK validation harness (A/B comparison).
+    safety — Circuit breaker, sandbox, rollback gates.
+    errors — Namespaced error codes (MEM_E0xx, SYNC_E0xx, SKILL_E0xx, AUTO_E0xx).
+    metrics — Evolution metrics collection and scoring.
 """
 
 from coworker.memory.llm import LLMClient, LLMResponse
