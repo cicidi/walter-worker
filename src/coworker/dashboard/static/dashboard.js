@@ -278,12 +278,16 @@ async function loadDR(d){$$('.range-btn').forEach(b=>b.classList.toggle('active'
 
 // PROJECTS
 async function loadProjects(){
-  const d=await fetchJSON(API+'/projects');const mS=Math.max(...d.map(x=>x.session_count),1);
-  $('#main').innerHTML='<div class="content"><div class="page-title">Projects</div><div class="page-subtitle">Work across projects with worktree merging</div>'
-  +'<div class="stat-grid mb-lg"><div class="stat-card"><div class="label">Projects</div><div class="value blue">'+d.length+'</div></div><div class="stat-card"><div class="label">Sessions</div><div class="value">'+d.reduce((a,x)=>a+x.session_count,0)+'</div></div><div class="stat-card"><div class="label">Tools</div><div class="value green">'+fmtNum(d.reduce((a,x)=>a+(x.total_tools||0),0))+'</div></div></div>'
-  +'<div class="panel"><div class="panel-body"><table><tr><th>Project</th><th>IDE</th><th class="text-right">Sessions</th><th class="text-right">Tools</th><th class="text-right">Msg</th><th class="text-right">Tokens</th><th>Last</th><th></th></tr>'
-  +d.map(x=>expRow('<td><span class="tag '+(x.project_name==='root'?'tag-skill':'tag-file')+'">'+x.project_name+'</span></td><td>'+ideTags(x.ides)+'</td><td class="text-right">'+x.session_count+'</td><td class="text-right">'+(x.total_tools||0)+'</td><td class="text-right">'+(x.total_messages||0)+'</td><td class="text-right">'+((x.total_tokens_in||0)+(x.total_tokens_out||0))+'</td><td class="text-sm text-muted">'+fmtTime(x.last_session)+'</td>','<div class="loading" style="padding:20px"><div class="spinner"></div><span>Loading sessions...</span></div>','project:'+x.project_name)).join('')
-  +'</table></div></div></div>';
+  try {
+    const d=await fetchJSON(API+'/projects');
+    if(!d||d.length===0){$('#main').innerHTML='<div class="content"><div class="page-title">Projects</div><div class="panel"><div class="panel-body" style="padding:24px;text-align:center;color:var(--text-muted)">No projects data. Sessions need project attribution.</div></div></div>';return;}
+    const mS=Math.max(...d.map(x=>x.sessions||0),1);
+    $('#main').innerHTML='<div class="content"><div class="page-title">Projects</div><div class="page-subtitle">Cross-project metrics comparison</div>'
+    +'<div class="stat-grid mb-lg"><div class="stat-card"><div class="label">Projects</div><div class="value blue">'+d.length+'</div></div><div class="stat-card"><div class="label">Sessions</div><div class="value">'+d.reduce((a,x)=>a+(x.sessions||0),0)+'</div></div><div class="stat-card"><div class="label">Tools</div><div class="value green">'+fmtNum(d.reduce((a,x)=>a+(x.tool_calls||0),0))+'</div></div></div>'
+    +'<div class="panel"><div class="panel-body"><table><tr><th>Project</th><th class="text-right">Sessions</th><th class="text-right">Messages</th><th class="text-right">Tool Calls</th><th class="text-right">Skills</th><th class="text-right">Avg Dur</th><th>Last Active</th></tr>'
+    +d.map(x=>'<tr><td><span class="tag '+(x.project==='root'?'tag-skill':'tag-file')+'">'+(x.project||'unknown')+'</span></td><td class="text-right">'+fmtNum(x.sessions)+'</td><td class="text-right">'+fmtNum(x.messages)+'</td><td class="text-right">'+fmtNum(x.tool_calls)+'</td><td class="text-right">'+fmtNum(x.skills_used)+'</td><td class="text-right">'+(x.avg_duration_min||0)+'m</td><td class="text-sm text-muted">'+(x.last_active||'').slice(0,16)+'</td></tr>').join('')
+    +'</table></div></div></div>';
+  } catch(e) { $('#main').innerHTML='<div class="content"><div class="page-title">Projects</div><div class="error">Failed to load: '+e.message+'</div></div>'; }
 }
 
 // SESSIONS

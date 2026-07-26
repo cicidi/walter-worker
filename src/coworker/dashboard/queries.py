@@ -640,3 +640,31 @@ def query_data_quality():
         }
     finally:
         conn.close()
+
+
+def query_models():
+    """Model stats in format expected by original dashboard.js loadModels()."""
+    conn = _get_db_conn()
+    try:
+        rows = conn.execute(
+            """SELECT COALESCE(s.model,'unknown') as model_group,
+                      COUNT(DISTINCT s.id) as session_count,
+                      COUNT(DISTINCT tc.call_id) as request_count,
+                      COALESCE(SUM(ss.tokens_input),0) as total_tokens_in,
+                      COALESCE(SUM(ss.tokens_output),0) as total_tokens_out,
+                      COALESCE(SUM(ss.tokens_reasoning),0) as total_tokens_reasoning,
+                      COALESCE(SUM(ss.tokens_cache_read),0) as total_tokens_cache_read,
+                      COALESCE(SUM(ss.tokens_cache_write),0) as total_tokens_cache_write,
+                      COALESCE(ROUND(SUM(ss.cost),6),0) as total_cost,
+                      COALESCE(ROUND(AVG(ss.duration_min*60000),0),0) as avg_duration_ms,
+                      COALESCE(ROUND(MAX(ss.duration_min*60000),0),0) as max_duration_ms
+               FROM sessions s
+               LEFT JOIN session_stats ss ON s.id = ss.session_id
+               LEFT JOIN tool_calls tc ON s.id = tc.session_id
+               WHERE s.model IS NOT NULL
+               GROUP BY s.model
+               ORDER BY total_cost DESC"""
+        ).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()

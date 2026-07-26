@@ -206,6 +206,11 @@ def api_cost_analytics():
     return queries.query_cost_analytics()
 
 
+@app.get("/api/models")
+def api_models():
+    return queries.query_models()
+
+
 @app.get("/api/model-usage")
 def api_model_usage():
     return queries.query_model_usage()
