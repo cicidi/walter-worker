@@ -25,6 +25,12 @@ def import_session(session_dir: Path, conn_or_path=None):
     info = parse_session_yaml(session_dir)
     session_id = info.get("session_id", session_dir.name)
 
+    # Auto-detect project from cwd if not set
+    if not info.get("project"):
+        cwd = info.get("cwd", "")
+        if "/project/" in cwd:
+            info["project"] = cwd.split("/project/")[-1].split("/")[0].split()[-1]
+
     # Auto-detect initiative from branch if not explicitly set
     initiative = info.get("initiative", "")
     branch = info.get("branch", "")
