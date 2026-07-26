@@ -121,5 +121,5 @@ coworker memory refresh               # Refresh CLAUDE.local.md snapshots
 ## Sources
 
 - Spec: `docs/self-evolving-agent/spec/self-evolving-agent-spec.md` §12
-- Engine: `src/coworker/autoworker/engine.py`
+- Engine: `src/coworker/autoworker/engine.py` (AutoWorkerAgent)\n- CLI: `src/coworker/cli_autoworker.py` (register_autoworker)
 - Rules: `src/coworker/autoworker/rules.py`

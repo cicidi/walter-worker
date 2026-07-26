@@ -19,6 +19,7 @@ METRICS_PATH = "~/.coworker/memory/metrics.json"
 def _load_metrics() -> dict:
     path = Path(METRICS_PATH).expanduser()
     if not path.exists():
+        logger.debug("Metrics file not found at %s; returning defaults. Run 'coworker memory train' to populate.", path)
         return {
             "skill_reuse_rate": [],
             "user_correction_rate": [],

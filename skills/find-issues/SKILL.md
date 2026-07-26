@@ -117,7 +117,7 @@ Write findings to `docs/self-evolving-agent/state/issues-found-YYYY-MM-DD.md`:
 
 ```bash
 # Run a full inspection
-coworker find-issues --project ai-coworker --phases all
+coworker find-issues run --project ai-coworker --phases all
 
 # Run specific phases
 coworker find-issues --phases prd,spec,web
