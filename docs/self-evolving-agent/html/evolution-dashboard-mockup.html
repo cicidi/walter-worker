@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coworker — Evolution Dashboard (Mockup)</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg-primary:#0b0c0e;
+  --bg-secondary:#141619;
+  --bg-tertiary:#1e1f24;
+  --bg-hover:#25262b;
+  --border:#2c2d33;
+  --text-primary:#e4e5e7;
+  --text-secondary:#9a9da3;
+  --text-muted:#5f6268;
+  --accent:#3d71d9;
+  --accent-hover:#5b8def;
+  --green:#3eb97f;
+  --green-bg:#1a3a2a;
+  --red:#e84d59;
+  --red-bg:#3b1d21;
+  --yellow:#ebb434;
+  --yellow-bg:#3d351a;
+  --purple:#a97fe6;
+  --purple-bg:#2d2440;
+  --blue:#5ea1f0;
+  --blue-bg:#1c2940;
+  --radius:4px;
+}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg-primary);
+  color:var(--text-primary);
+  height:100vh;overflow:hidden;
+  font-size:13px;line-height:1.5;
+}
+#app{display:flex;height:100vh}
+.sidebar{
+  width:220px;min-width:220px;
+  background:var(--bg-secondary);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  padding:0 0 12px 0;
+}
+.sidebar-header{
+  padding:16px 16px 12px;
+  font-size:14px;font-weight:700;
+  color:var(--text-primary);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;
+}
+.sidebar-header .icon{font-size:18px}
+.nav-section{padding:8px 0}
+.nav-label{
+  padding:4px 16px 8px;
+  font-size:10px;font-weight:600;text-transform:uppercase;
+  color:var(--text-muted);letter-spacing:.5px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:6px 16px;font-size:12px;
+  color:var(--text-secondary);cursor:pointer;
+  border-left:3px solid transparent;
+  transition:all .15s;
+}
+.nav-item:hover{background:var(--bg-hover);color:var(--text-primary)}
+.nav-item.active{
+  color:var(--accent-hover);background:rgba(61,113,217,.1);
+  border-left-color:var(--accent);
+}
+.nav-item .badge{
+  margin-left:auto;font-size:10px;
+  background:var(--bg-tertiary);color:var(--text-muted);
+  padding:1px 7px;border-radius:10px;
+}
+.main{flex:1;overflow-y:auto;overflow-x:hidden}
+.content{padding:24px}
+.page-title{font-size:20px;font-weight:600;margin-bottom:4px}
+.page-subtitle{font-size:12px;color:var(--text-secondary);margin-bottom:24px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px}
+.stat-card{
+  background:var(--bg-secondary);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px;
+  transition:border-color .2s;
+}
+.stat-card:hover{border-color:var(--accent)}
+.stat-card .label{font-size:11px;color:var(--text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.stat-card .value{font-size:28px;font-weight:700;line-height:1.2}
+.stat-card .sub{font-size:11px;color:var(--text-secondary);margin-top:4px}
+.value.green{color:var(--green)}.value.red{color:var(--red)}.value.yellow{color:var(--yellow)}.value.blue{color:var(--blue)}.value.purple{color:var(--purple)}
+.panel{
+  background:var(--bg-secondary);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  margin-bottom:16px;
+  overflow:hidden;
+}
+.panel-header{
+  padding:12px 16px;
+  border-bottom:1px solid var(--border);
+  font-size:13px;font-weight:600;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.panel-header .count{font-size:11px;color:var(--text-muted)}
+.panel-body{padding:0}
+table{width:100%;border-collapse:collapse}
+th{
+  text-align:left;padding:8px 16px;
+  background:var(--bg-tertiary);
+  font-size:10px;font-weight:600;text-transform:uppercase;
+  color:var(--text-secondary);letter-spacing:.5px;
+  border-bottom:1px solid var(--border);
+}
+td{padding:8px 16px;border-bottom:1px solid rgba(44,45,51,.5);font-size:12px}
+tr:hover td{background:var(--bg-hover)}
+.clickable{color:var(--accent-hover);cursor:pointer}
+.clickable:hover{text-decoration:underline}
+.bar{height:6px;background:var(--bg-tertiary);border-radius:3px;overflow:hidden;min-width:40px}
+.bar-fill{height:100%;border-radius:3px;transition:width .3s}
+.tag{
+  display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;margin:1px 2px;
+  border:1px solid;font-weight:500;white-space:nowrap;
+}
+.tag-session{border-color:var(--yellow);color:var(--yellow)}
+.tag-skill{border-color:var(--red);color:var(--red)}
+.tag-tool{border-color:var(--blue);color:var(--blue)}
+.tag-file{border-color:var(--green);color:var(--green)}
+.tag-knowledge{border-color:var(--purple);color:var(--purple)}
+.tag-evolution{border-color:var(--accent);color:var(--accent)}
+.tag-auto{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.tag-manual{background:var(--bg-tertiary);border-color:var(--text-muted);color:var(--text-muted)}
+.tag-bundled{background:var(--blue-bg);border-color:var(--blue);color:var(--blue)}
+.tag-pending{background:var(--yellow-bg);border-color:var(--yellow);color:var(--yellow)}
+.tag-stale{background:var(--yellow-bg);border-color:var(--yellow);color:var(--yellow)}
+.tag-active{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.tag-archived{background:var(--bg-tertiary);border-color:var(--text-muted);color:var(--text-muted)}
+.flex{display:flex;align-items:center;gap:8px}
+.flex-between{justify-content:space-between}
+.gap-sm{gap:4px}.gap-md{gap:12px}
+.mb-sm{margin-bottom:8px}.mb-md{margin-bottom:16px}.mb-lg{margin-bottom:24px}
+.text-sm{font-size:11px}.text-xs{font-size:10px}
+.text-muted{color:var(--text-secondary)}
+.text-monospace{font-family:"SF Mono","Fira Code","Cascadia Code",monospace;font-size:11px}
+.filters{
+  display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center;
+}
+.filter-group{
+  display:flex;align-items:center;gap:6px;
+  background:var(--bg-secondary);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:6px 12px;
+  font-size:11px;
+}
+.filter-group select{
+  background:transparent;border:none;color:var(--text-primary);
+  font-size:11px;outline:none;cursor:pointer;
+}
+.filter-group select option{background:var(--bg-tertiary)}
+.filter-group label{color:var(--text-muted);font-size:10px;text-transform:uppercase}
+.toggle-switch{
+  position:relative;display:inline-block;width:36px;height:20px;
+}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{
+  position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;
+  background:var(--bg-tertiary);border:1px solid var(--border);
+  border-radius:20px;transition:.2s;
+}
+.toggle-slider:before{
+  content:"";position:absolute;height:14px;width:14px;left:2px;bottom:2px;
+  background:var(--text-muted);border-radius:50%;transition:.2s;
+}
+input:checked+.toggle-slider{background:var(--accent);border-color:var(--accent)}
+input:checked+.toggle-slider:before{transform:translateX(16px);background:white}
+.expand-row{display:none}
+.expand-row.show{display:table-row}
+.expand-row td{
+  background:var(--bg-tertiary);
+  padding:16px 24px;
+  font-size:11px;color:var(--text-secondary);
+}
+.expand-label{color:var(--text-muted);font-size:10px;text-transform:uppercase;margin-bottom:4px}
+.metric-trend{display:flex;align-items:center;gap:4px;font-size:10px}
+.metric-up{color:var(--green)}.metric-down{color:var(--red)}.metric-flat{color:var(--text-muted)}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text-muted)}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Sidebar (matches existing dashboard) -->
+  <nav class="sidebar">
+    <div class="sidebar-header"><span class="icon">⧩</span> Coworker</div>
+    <div class="nav-section">
+      <div class="nav-label">Analytics</div>
+      <div class="nav-item">◉ Overview</div>
+      <div class="nav-item">☰ Sessions</div>
+      <div class="nav-item">◎ Knowledge</div>
+      <div class="nav-item">◈ Initiatives</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Monitoring</div>
+      <div class="nav-item">◉ Monitor</div>
+      <div class="nav-item">◆ Skills</div>
+      <div class="nav-item active">◉ Evolution <span class="badge">new</span></div>
+      <div class="nav-item">⚙ Tools</div>
+      <div class="nav-item">◫ Files</div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main">
+    <div class="content">
+
+      <!-- Page Header -->
+      <div class="page-title">Evolution</div>
+      <div class="page-subtitle">Auto-trained skills &amp; experiences — traceability, reuse, and evolution metrics</div>
+
+      <!-- Stat Cards -->
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="label">Auto-Trained Skills</div>
+          <div class="value blue">12</div>
+          <div class="sub"><span class="metric-up">↑3</span> this week · 4 pending review</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Experiences (Lessons)</div>
+          <div class="value purple">47</div>
+          <div class="sub"><span class="metric-up">↑8</span> this week · across 3 projects</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Skill Reuse Rate</div>
+          <div class="value green">38%</div>
+          <div class="sub"><span class="metric-up">↑5%</span> vs last week · target: rising</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Evolution Score</div>
+          <div class="value green">72/100</div>
+          <div class="sub">Composite: reuse ↑ · corrections ↓ · memory hits ↑</div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="filters">
+        <div class="filter-group">
+          <label>Auto-Train</label>
+          <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+          <span style="color:var(--text-muted)">auto-train only</span>
+        </div>
+        <div class="filter-group">
+          <label>Project</label>
+          <select>
+            <option>All Projects</option>
+            <option selected>ai-coworker</option>
+            <option>skill-factory</option>
+            <option>deterministic-workflow</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Status</label>
+          <select>
+            <option selected>Active</option>
+            <option>All</option>
+            <option>Stale</option>
+            <option>Archived</option>
+            <option>Pinned</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Date</label>
+          <select>
+            <option selected>Last 30 days</option>
+            <option>Last 7 days</option>
+            <option>Last 90 days</option>
+            <option>All time</option>
+          </select>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <div class="filter-group" style="cursor:pointer">
+            <span>📋 Approve All Pending</span>
+          </div>
+          <div class="filter-group" style="cursor:pointer">
+            <span>⬇ Export CSV</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skills Table -->
+      <div class="panel">
+        <div class="panel-header">
+          <span>🟢 Auto-Trained Skills</span>
+          <span class="count">12 skills · 10 auto-trained · 2 bundled</span>
+        </div>
+        <div class="panel-body">
+          <table>
+            <thead>
+              <tr>
+                <th>Skill</th>
+                <th>Source</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Sessions</th>
+                <th>Calls</th>
+                <th>Reuse</th>
+                <th>Last Used</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Row 1: Auto-train, active, high reuse -->
+              <tr class="clickable" onclick="toggleExpand('skill-1')">
+                <td><span style="color:var(--accent-hover)">▶</span> <span class="tag tag-skill">add-cli-command</span></td>
+                <td><span class="tag tag-auto">🟢 Auto</span></td>
+                <td><span class="tag tag-active">● active</span></td>
+                <td class="text-xs text-muted">2026-07-20</td>
+                <td>8</td>
+                <td>23</td>
+                <td>
+                  <div class="flex"><div class="bar" style="width:80px"><div class="bar-fill" style="width:40%;background:var(--green)"></div></div><span class="text-xs" style="margin-left:6px">40%</span></div>
+                </td>
+                <td class="text-xs text-muted">2026-07-25</td>
+              </tr>
+              <tr id="skill-1" class="expand-row">
+                <td colspan="8">
+                  <div class="expand-label">Sessions that invoked this skill</div>
+                  <div class="flex gap-sm mb-sm">
+                    <span class="tag tag-session">sess_a1b2</span>
+                    <span class="tag tag-session">sess_c3d4</span>
+                    <span class="tag tag-session">sess_e5f6</span>
+                    <span class="tag tag-session">sess_g7h8</span>
+                    <span class="tag tag-session">sess_i9j0</span>
+                    <span class="tag tag-session">sess_k1l2</span>
+                    <span class="tag tag-session">sess_m3n4</span>
+                    <span class="tag tag-session">sess_o5p6</span>
+                  </div>
+                  <div class="expand-label">Description</div>
+                  <div>Standard workflow for adding a new Click CLI command to ai-coworker. Covers CLI registration, help text, and test file creation.</div>
+                </td>
+              </tr>
+
+              <!-- Row 2: Auto-train, active, medium reuse -->
+              <tr class="clickable" onclick="toggleExpand('skill-2')">
+                <td><span style="color:var(--accent-hover)">▶</span> <span class="tag tag-skill">fix-lint-errors</span></td>
+                <td><span class="tag tag-auto">🟢 Auto</span></td>
+                <td><span class="tag tag-active">● active</span></td>
+                <td class="text-xs text-muted">2026-07-18</td>
+                <td>6</td>
+                <td>15</td>
+                <td>
+                  <div class="flex"><div class="bar" style="width:80px"><div class="bar-fill" style="width:30%;background:var(--green)"></div></div><span class="text-xs" style="margin-left:6px">30%</span></div>
+                </td>
+                <td class="text-xs text-muted">2026-07-24</td>
+              </tr>
+              <tr id="skill-2" class="expand-row">
+                <td colspan="8">
+                  <div class="expand-label">Sessions that invoked this skill</div>
+                  <div class="flex gap-sm mb-sm">
+                    <span class="tag tag-session">sess_a1b2</span>
+                    <span class="tag tag-session">sess_c3d4</span>
+                    <span class="tag tag-session">sess_e5f6</span>
+                    <span class="tag tag-session">sess_g7h8</span>
+                    <span class="tag tag-session">sess_i9j0</span>
+                    <span class="tag tag-session">sess_k1l2</span>
+                  </div>
+                  <div class="expand-label">Description</div>
+                  <div>Run ruff check, categorize errors, fix each category in batch. Knows which rules are project-ignored (E501, F401 in tests).</div>
+                </td>
+              </tr>
+
+              <!-- Row 3: Auto-train, stale — never reused -->
+              <tr class="clickable" onclick="toggleExpand('skill-3')">
+                <td><span style="color:var(--accent-hover)">▶</span> <span class="tag tag-skill">setup-mcp-server</span></td>
+                <td><span class="tag tag-auto">🟢 Auto</span></td>
+                <td><span class="tag tag-stale">◉ stale</span></td>
+                <td class="text-xs text-muted">2026-07-10</td>
+                <td>1</td>
+                <td>1</td>
+                <td>
+                  <div class="flex"><div class="bar" style="width:80px"><div class="bar-fill" style="width:5%;background:var(--yellow)"></div></div><span class="text-xs" style="margin-left:6px">5%</span></div>
+                </td>
+                <td class="text-xs text-muted">2026-07-10</td>
+              </tr>
+              <tr id="skill-3" class="expand-row">
+                <td colspan="8">
+                  <div class="expand-label">Sessions that invoked this skill</div>
+                  <div class="flex gap-sm mb-sm">
+                    <span class="tag tag-session">sess_x1y2</span>
+                  </div>
+                  <div class="expand-label">Description</div>
+                  <div>Scaffold a new MCP server configuration. Only used once — candidate for archival after 30 days stale.</div>
+                </td>
+              </tr>
+
+              <!-- Row 4: Bundled skill for comparison -->
+              <tr class="clickable" onclick="toggleExpand('skill-4')">
+                <td><span style="color:var(--accent-hover)">▶</span> <span class="tag tag-skill">skill-create</span></td>
+                <td><span class="tag tag-bundled">🔵 Bundled</span></td>
+                <td><span class="tag tag-active">● active</span></td>
+                <td class="text-xs text-muted">2026-06-01</td>
+                <td>14</td>
+                <td>31</td>
+                <td>
+                  <div class="flex"><div class="bar" style="width:80px"><div class="bar-fill" style="width:70%;background:var(--blue)"></div></div><span class="text-xs" style="margin-left:6px">70%</span></div>
+                </td>
+                <td class="text-xs text-muted">2026-07-25</td>
+              </tr>
+              <tr id="skill-4" class="expand-row">
+                <td colspan="8">
+                  <div class="expand-label">Sessions that invoked this skill</div>
+                  <div class="flex gap-sm mb-sm">
+                    <span class="tag tag-session">sess_a1b2</span><span class="tag tag-session">sess_c3d4</span><span class="tag tag-session">sess_e5f6</span><span class="tag tag-session">sess_g7h8</span>
+                    <span class="tag tag-session">sess_i9j0</span><span class="tag tag-session">sess_k1l2</span><span class="tag tag-session">sess_m3n4</span><span class="tag tag-session">sess_o5p6</span>
+                    <span class="tag tag-session">sess_q7r8</span><span class="tag tag-session">sess_s9t0</span><span class="tag tag-session">sess_u1v2</span><span class="tag tag-session">sess_w3x4</span>
+                    <span class="tag tag-session">sess_y5z6</span><span class="tag tag-session">sess_a7b8</span>
+                  </div>
+                  <div class="expand-label">Description</div>
+                  <div>Bundled skill from skill-factory. Creates new skills from reusable workflows. NOT auto-train generated.</div>
+                </td>
+              </tr>
+
+              <!-- Row 5: Pending review -->
+              <tr>
+                <td><span class="tag tag-skill">auto-deploy-check</span></td>
+                <td><span class="tag tag-pending">⏳ Pending</span></td>
+                <td><span class="tag tag-pending">⏳ review</span></td>
+                <td class="text-xs text-muted">2026-07-25</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>
+                  <span class="clickable" style="font-size:10px">Approve</span>
+                  <span class="text-muted" style="margin:0 4px">|</span>
+                  <span class="clickable" style="font-size:10px;color:var(--red)">Reject</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Experiences Table -->
+      <div class="panel">
+        <div class="panel-header">
+          <span>💡 Auto-Trained Experiences</span>
+          <span class="count">47 experiences · 42 auto-trained · 5 hand-written</span>
+        </div>
+        <div class="panel-body">
+          <table>
+            <thead>
+              <tr>
+                <th>Summary</th>
+                <th>Source</th>
+                <th>Topic</th>
+                <th>Project</th>
+                <th>Session</th>
+                <th>Retrieved</th>
+                <th>Last Retrieved</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Row 1: High reuse -->
+              <tr class="clickable" onclick="toggleExpand('exp-1')">
+                <td><span style="color:var(--accent-hover)">▶</span> MCP first request always 403-times-out; retry once before failing</td>
+                <td><span class="tag tag-auto">🟢 Auto</span></td>
+                <td><span class="tag tag-tool">mcp</span></td>
+                <td>ai-coworker</td>
+                <td><span class="text-xs text-monospace">sess_a1b2</span></td>
+                <td><span style="color:var(--green)">12×</span></td>
+                <td class="text-xs text-muted">2026-07-25</td>
+                <td><span class="tag tag-active">● active</span></td>
+              </tr>
+              <tr id="exp-1" class="expand-row">
+                <td colspan="8">
+                  <div class="expand-label">Full Memory Text</div>
+                  <div class="mb-sm">MCP server first request after startup consistently returns HTTP 403 with a timeout. The workaround is to always retry once before reporting failure. This has been observed across multiple MCP servers (GitHub, Slack, Playwright). Root cause appears to be an auth token warm-up delay in the MCP proxy layer.</div>
+                  <div class="expand-label">Sessions that retrieved this</div>
+                  <div class="flex gap-sm">
+                    <span class="tag tag-session">sess_c3d4</span><span class="tag tag-session">sess_e5f6</span><span class="tag tag-session">sess_g7h8</span>
+                    <span class="tag tag-session">sess_i9j0</span><span class="tag tag-session">sess_k1l2</span><span class="tag tag-session">sess_m3n4</span>
+                    <span class="text-xs text-muted">+6 more</span>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 2: Medium reuse -->
+              <tr class="clickable" onclick="toggleExpand('exp-2')">
+                <td><span style="color:var(--accent-hover)">▶</span> Ruff E501 (line too long) is project-ignored in ai-coworker; never fix it</td>
+                <td><span class="tag tag-auto">🟢 Auto</span></td>
+                <td><span class="tag tag-tool">lint</span></td>
+                <td>ai-coworker</td>
+                <td><span class="text-xs text-monospace">sess_c3d4</span></td>
+                <td><span style="color:var(--green)">9×</span></td>
+                <td class="text-xs text-muted">2026-07-24</td>
+                <td><span class="tag tag-active">● active</span></td>
+              </tr>
+              <tr id="exp-2" class="expand-row">
+                <td colspan="8">
+                  <div class="expand-label">Full Memory Text</div>
+                  <div class="mb-sm">The project pyproject.toml explicitly ignores ruff E501 (line length). This is intentional — some template strings and CLI help text naturally exceed 88 chars. Never suggest fixing line length issues.</div>
+                  <div class="expand-label">Sessions that retrieved this</div>
+                  <div class="flex gap-sm">
+                    <span class="tag tag-session">sess_e5f6</span><span class="tag tag-session">sess_g7h8</span><span class="tag tag-session">sess_i9j0</span>
+                    <span class="tag tag-session">sess_k1l2</span><span class="tag tag-session">sess_m3n4</span>
+                    <span class="text-xs text-muted">+4 more</span>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Row 3: Hand-written for comparison -->
+              <tr>
+                <td>Prefer Chinese for discussion, English for code and commits</td>
+                <td><span class="tag tag-manual">⚪ Manual</span></td>
+                <td><span class="tag tag-knowledge">preference</span></td>
+                <td>ai-coworker</td>
+                <td>—</td>
+                <td><span style="color:var(--green)">15×</span></td>
+                <td class="text-xs text-muted">2026-07-25</td>
+                <td><span class="tag tag-active">● active</span></td>
+              </tr>
+
+              <!-- Row 4: Auto, stale -->
+              <tr>
+                <td>Gemini Flash API returns empty response on first cold-start call; warm-up needed</td>
+                <td><span class="tag tag-auto">🟢 Auto</span></td>
+                <td><span class="tag tag-tool">api</span></td>
+                <td>ai-coworker</td>
+                <td><span class="text-xs text-monospace">sess_g7h8</span></td>
+                <td><span>3×</span></td>
+                <td class="text-xs text-muted">2026-07-15</td>
+                <td><span class="tag tag-stale">◉ stale</span></td>
+              </tr>
+
+              <!-- Row 5: High reuse, pinned -->
+              <tr>
+                <td>When creating a new CLI command, always register it in cli.py AND add a test in tests/python/</td>
+                <td><span class="tag tag-auto">🟢 Auto</span></td>
+                <td><span class="tag tag-skill">cli</span></td>
+                <td>ai-coworker</td>
+                <td><span class="text-xs text-monospace">sess_a1b2</span></td>
+                <td><span style="color:var(--green)">18×</span></td>
+                <td class="text-xs text-muted">2026-07-25</td>
+                <td><span class="tag tag-active">● pinned</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<script>
+function toggleExpand(id) {
+  const row = document.getElementById(id);
+  row.classList.toggle('show');
+  // Toggle arrow
+  const trigger = row.previousElementSibling;
+  if (trigger) {
+    const arrow = trigger.querySelector('span');
+    if (arrow) arrow.textContent = row.classList.contains('show') ? '▼' : '▶';
+  }
+}
+</script>
+</body>
+</html>
