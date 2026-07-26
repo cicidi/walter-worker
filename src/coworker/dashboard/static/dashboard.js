@@ -18,6 +18,7 @@ function renderSidebar() {
     {id:'files',label:'Files',icon:'◫',section:'Monitoring'},
     {id:'knowledge',label:'Knowledge',icon:'◎',section:'Analytics'},
     {id:'initiatives',label:'Initiatives',icon:'◈',section:'Analytics'},
+    {id:'evolution',label:'Evolution',icon:'⬡',section:'Monitoring'},
   ];
   let html='<div class="sidebar-header"><span class="icon">⧩</span> Coworker</div>';
   let lastSection='';
@@ -35,7 +36,7 @@ function navigate(view) {
   currentView = view;
   renderSidebar();
   document.getElementById('main').innerHTML='<div class="content"><div class="loading">Loading...</div></div>';
-  const loaders={overview:loadOverview,sessions:loadSessions,skills:loadSkills,monitor:loadMonitor,tools:loadTools,files:loadFiles,knowledge:loadKnowledge,initiatives:loadInitiatives};
+  const loaders={overview:loadOverview,sessions:loadSessions,skills:loadSkills,monitor:loadMonitor,tools:loadTools,files:loadFiles,knowledge:loadKnowledge,initiatives:loadInitiatives,evolution:loadEvolution};
   (loaders[view]||loadOverview)();
 }
 
@@ -192,6 +193,80 @@ async function viewSession(id) {
           return `<div style="padding:4px 16px;border-bottom:1px solid var(--border);font-size:12px;display:flex;align-items:center;gap:8px"><span style="width:40px;text-align:center">${icon}</span><span class="tag ${cls}">${e.tool||e.subtype||e.kind}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-secondary)">${detail}</span><span class="text-xs text-muted">${time}</span></div>`;
         }).join('')||'<div style="padding:24px;text-align:center;color:var(--text-muted)">No timeline events recorded.</div>'}</div></div>
     </div>`;
+}
+
+async function loadEvolution() {
+  try {
+    const overview = await fetchJSON(`${API}/evolution/overview`);
+    const skills = await fetchJSON(`${API}/evolution/skills?status=all`);
+    const experiences = await fetchJSON(`${API}/evolution/experiences?status=all`);
+
+    const scoreColor = overview.evolution_score >= 50 ? 'green' : overview.evolution_score >= 30 ? 'yellow' : 'red';
+    document.getElementById('main').innerHTML = `
+      <div class="content">
+        <div class="page-title">⬡ Evolution Monitor</div>
+        <div class="page-subtitle">Self-evolving agent metrics — skills, experiences, and pending review</div>
+
+        <div class="stat-grid">
+          <div class="stat-card"><div class="label">Evolution Score</div><div class="value ${scoreColor}">${overview.evolution_score}</div><div class="sub">/100 target ≥50</div></div>
+          <div class="stat-card"><div class="label">Auto-Trained Skills</div><div class="value green">${overview.auto_trained_skills}</div></div>
+          <div class="stat-card"><div class="label">Experiences</div><div class="value blue">${overview.auto_trained_experiences}</div></div>
+          <div class="stat-card"><div class="label">Skill Reuse Rate</div><div class="value">${Math.round(overview.skill_reuse_rate*100)}%</div></div>
+          <div class="stat-card"><div class="label">Pending Review</div><div class="value ${overview.pending_review>0?'yellow':'green'}">${overview.pending_review}</div></div>
+        </div>
+
+        <div class="grid-2 mb-lg">
+          <div class="panel">
+            <div class="panel-header">Skills<span class="count">${skills.length}</span></div>
+            <div class="panel-body" style="max-height:400px;overflow-y:auto">
+              <table><tr><th>Name</th><th>Source</th><th>Health</th><th>Calls</th><th>Sessions</th><th>Reuse</th></tr>
+              ${skills.map(s=>`<tr>
+                <td><span class="clickable" onclick="viewEvolutionSkill('${s.name}')">${s.name}</span></td>
+                <td><span class="tag ${s.provenance==='agent'?'tag-auto':s.provenance==='bundled'?'tag-bundled':'tag-manual'}">${s.provenance}</span></td>
+                <td><span class="tag ${s.state==='active'?'tag-active':s.state==='stale'?'tag-stale':'tag-archived'}">${s.state}</span></td>
+                <td>${s.total_calls}</td>
+                <td>${s.sessions_invoked}</td>
+                <td>${Math.round(s.reuse_rate*100)}%</td>
+              </tr>`).join('')||'<tr><td colspan="6" class="text-muted">No skills found</td></tr>'}
+              </table>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">Experiences<span class="count">${experiences.length}</span></div>
+            <div class="panel-body" style="max-height:400px;overflow-y:auto">
+              ${experiences.slice(0,50).map(e=>`<div style="padding:8px 12px;border-bottom:1px solid var(--border);font-size:11px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+                  <span class="tag tag-${e.state||'active'}">${e.state||'active'}</span>
+                  <span class="tag tag-auto text-xs">${e.topic||''}</span>
+                </div>
+                <div style="color:var(--text-secondary);line-height:1.4">${(e.memory||'').slice(0,200)}</div>
+                <div style="margin-top:4px;display:flex;gap:8px;font-size:10px;color:var(--text-muted)">
+                  <span>📊 ${e.use_count||0} uses</span>
+                  <span>📁 ${e.project||''}</span>
+                  ${e.last_used?`<span>🕐 ${e.last_used.slice(0,10)}</span>`:''}
+                </div>
+              </div>`).join('')||'<div style="padding:24px;text-align:center;color:var(--text-muted)">No experiences stored yet.</div>'}
+            </div>
+          </div>
+        </div>
+      </div>`;
+  } catch(e) {
+    document.getElementById('main').innerHTML=`<div class="content"><div class="page-title">Evolution</div><div class="error">Failed to load: ${e.message}. Ensure mem0 is configured (DEEPSEEK_API_KEY).</div></div>`;
+  }
+}
+
+function viewEvolutionSkill(name) {
+  fetchJSON(`${API}/evolution/skills/${name}`).then(skill => {
+    alert(`Skill: ${skill.name}
+Provenance: ${skill.provenance}
+State: ${skill.state}
+Total Calls: ${skill.total_calls}
+Sessions Invoked: ${skill.sessions_invoked}
+Reuse Rate: ${Math.round(skill.reuse_rate*100)}%
+Created: ${skill.created_at||'N/A'}
+Last Used: ${skill.last_used||'N/A'}
+Sessions: ${(skill.session_ids||[]).slice(0,10).join(', ')}`);
+  }).catch(() => alert('Skill not found'));
 }
 
 renderSidebar();

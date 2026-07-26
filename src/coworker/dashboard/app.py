@@ -2,7 +2,7 @@ import json
 import logging
 from importlib.resources import files as resource_files
 
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 
@@ -71,6 +71,69 @@ def api_top_files(limit: int = 50):
 @app.get("/api/file-stats")
 def api_file_stats():
     return queries.query_file_stats()
+
+
+# ---------------------------------------------------------------------------
+# Evolution page endpoints (Spec §11.1)
+# ---------------------------------------------------------------------------
+
+
+@app.get("/api/evolution/overview")
+def api_evolution_overview():
+    return queries.query_evolution_overview()
+
+
+@app.get("/api/evolution/skills")
+def api_evolution_skills(auto_train: bool = True, project: str = "", status: str = "active"):
+    return queries.query_evolution_skills(auto_train=auto_train, project=project, status=status)
+
+
+@app.get("/api/evolution/skills/{name}")
+def api_evolution_skill_detail(name: str):
+    skills = queries.query_evolution_skills(auto_train=False, status="all")
+    for s in skills:
+        if s["name"] == name:
+            return s
+    raise HTTPException(status_code=404, detail=f"Skill '{name}' not found")
+
+
+@app.get("/api/evolution/experiences")
+def api_evolution_experiences(auto_train: bool = True, project: str = "", status: str = "active"):
+    return queries.query_evolution_experiences(auto_train=auto_train, project=project, status=status)
+
+
+@app.get("/api/evolution/experiences/{exp_id}")
+def api_evolution_experience_detail(exp_id: str):
+    try:
+        from coworker.memory.mem0_client import Mem0Client
+        mem0 = Mem0Client.from_config()
+        entry = mem0.get(exp_id)
+        return {"id": exp_id, "memory": entry.get("memory", ""), "metadata": entry.get("metadata", {})}
+    except Exception:
+        raise HTTPException(status_code=404, detail=f"Experience '{exp_id}' not found")
+
+
+@app.get("/api/evolution/pending")
+def api_evolution_pending():
+    return queries.query_evolution_pending()
+
+
+@app.post("/api/evolution/approve/{item_id}")
+def api_evolution_approve(item_id: str):
+    from coworker.memory.pending import approve
+    ok = approve(item_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail=f"Pending item '{item_id}' not found")
+    return {"status": "approved", "id": item_id}
+
+
+@app.post("/api/evolution/reject/{item_id}")
+def api_evolution_reject(item_id: str):
+    from coworker.memory.pending import reject
+    ok = reject(item_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail=f"Pending item '{item_id}' not found")
+    return {"status": "rejected", "id": item_id}
 
 
 @app.websocket("/ws")
