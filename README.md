@@ -6,6 +6,18 @@ AI Coworker keeps your IDE (Claude Code, OpenCode, Gemini) aware of your project
 
 It also records your AI sessions (SQLite-backed) — tracking which skills get used, how often, and what patterns emerge — building the data foundation for an autonomous coding agent.
 
+## Self-Evolving Agent (new in feat/self-evolving-agent)
+
+The **self-evolving agent** learns from every session and gets smarter over time:
+
+- **🧠 Cross-session memory** — mem0-powered vector store remembers lessons, patterns, and conventions across sessions
+- **📊 Analytics dashboard** — 16-tab web UI with Projects, Models, Cost/Token, Efficiency, Evolution, and Data Quality views
+- **🔍 Auto-inspection** — `coworker find-issues` audits code against PRD/spec and finds gaps
+- **🔧 Auto-repair** — `coworker run --loop` continuously fixes bugs, runs tests, and maintains health
+- **⚡ Per-turn capture** — PostToolUse hooks extract lessons in real-time ($0.0004/turn)
+- **🔒 Safety gates** — Circuit breaker prevents runaway auto-evolution (>3 skills/24h)
+- **📝 Wrong-history** — Records mistakes so the agent never repeats them
+
 | IDE | Support |
 |-----|---------|
 | Claude Code | Full — config sync, skills, context injection, analytics |
