@@ -1,0 +1,29 @@
+# Protected: never read into Claude Code context
+.env
+.env.*
+*.pem
+*.key
+credentials/
+secrets.yaml
+secrets.yml
+**/secrets/**
+*.token
+*.secret
+
+# Dependencies (avoid bloating context)
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Git
+.git/
+.gitignore
+
+# Large data files
+*.db
+*.sqlite
+*.sqlite3
+.coverage
+.pytest_cache/

@@ -1181,7 +1181,7 @@ def memory_train(limit, skip_existing):
 
 @memory.command("validate")
 @click.argument("task", required=False)
-@click.option("--task-file", default=None, help="Path to file containing task definition")
+@click.option("--task-file", default=None, type=click.Path(exists=True), help="Path to file containing task definition")
 @click.option("--compare-baseline", is_flag=True, default=True, help="Run A/B comparison")
 def memory_validate(task, task_file, compare_baseline):
     """Run Claude SDK validation harness — A/B comparison of baseline vs memory-augmented agent."""
@@ -1239,7 +1239,5 @@ def run(loop, max_hours, project):
     stats = run_autoworker_loop(mem0, llm, db, max_hours=max_hours, project=project)
     console.print(
         f"[green]Auto-worker complete: {stats['rounds']} rounds, "
-        f"{stats['findings']} findings, {stats['elapsed_minutes']} min[/green]"
+        f"{stats['fixed']} fixed, {stats['elapsed_minutes']} min[/green]"
     )
-    if stats["errors"]:
-        console.print(f"[yellow]{len(stats['errors'])} errors[/yellow]")

@@ -105,11 +105,24 @@ class LLMClient:
     # ------------------------------------------------------------------
 
     def _build_provider_list(self) -> list[dict[str, str]]:
-        """Return the ordered list of provider configs to try."""
+        """Return the ordered list of provider configs to try.
+
+        Supports COWORKER_LLM_MODELS env var override:
+        e.g. COWORKER_LLM_MODELS="deepseek-v4-flash,gemini-2.5-flash"
+        """
         providers: list[dict[str, str]] = []
+
+        # Allow env var override of model names
+        override = os.environ.get("COWORKER_LLM_MODELS", "")
+        model_overrides = [m.strip() for m in override.split(",") if m.strip()] if override else []
+
         if self._primary.get("api_key"):
-            providers.append(self._primary)
-        for cfg in FALLBACK_CHAIN:
+            primary = dict(self._primary)
+            if model_overrides:
+                primary["model"] = model_overrides[0]
+            providers.append(primary)
+
+        for i, cfg in enumerate(FALLBACK_CHAIN):
             api_key = cfg.get("api_key") or os.environ.get(str(cfg["api_key_env"]), "")
             if api_key:
                 providers.append({**cfg, "api_key": api_key})
