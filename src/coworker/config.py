@@ -135,36 +135,29 @@ def _parse_skill_frontmatter(skill_md: Path) -> tuple[str | None, str | None]:
     return fm.get("name"), fm.get("description")
 
 
-def register_skills_in_config(config_path: Path, skills: list) -> bool:
-    """Add skills to a coworker.yaml config file, skipping duplicates.
-    Returns True if any skills were added."""
-    from .models import Skill
-
+def install_project_skills(project_root: Path) -> int:
+    """Install project skills from skills/ to .claude/commands/.
+    Claude Code loads custom slash commands from .claude/commands/.
+    Returns the number of skills installed."""
+    commands_dir = project_root / ".claude" / "commands"
+    skills = discover_project_skills(project_root)
     if not skills:
-        return False
+        return 0
 
-    with open(config_path) as f:
-        data = yaml.safe_load(f) or {}
-
-    existing = {s.get("name") for s in data.get("skills", [])}
-    added = 0
+    commands_dir.mkdir(parents=True, exist_ok=True)
+    installed = 0
     for skill in skills:
-        if skill.name not in existing:
-            data.setdefault("skills", []).append({
-                "name": skill.name,
-                "path": skill.path,
-                "description": skill.description,
-                "enabled": True,
-            })
-            existing.add(skill.name)
-            added += 1
+        src = project_root / skill.path / "SKILL.md"
+        dst = commands_dir / f"{skill.name}.md"
+        if not src.exists():
+            continue
+        if dst.exists():
+            continue  # already installed, skip
+        dst.write_text(src.read_text())
+        installed += 1
+        logger.info("Installed skill: %s → .claude/commands/", skill.name)
 
-    if added:
-        with open(config_path, "w") as f:
-            yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
-        logger.info("Registered %d new skills in %s", added, config_path)
-
-    return added > 0
+    return installed
 
 
 # ── Project Catalog ─────────────────────────────────────────────────────────

@@ -242,15 +242,13 @@ def init(is_global, is_project):
         project_config.parent.mkdir(parents=True, exist_ok=True)
         project_config.write_text(PROJECT_CONFIG_TEMPLATE)
 
-        # Auto-discover project skills from skills/ directory
-        from .config import discover_project_skills, register_skills_in_config
-        skills = discover_project_skills(Path.cwd())
-        if skills:
-            registered = register_skills_in_config(project_config, skills)
-            if registered:
-                console.print(
-                    f"[green]Registered {len(skills)} project skills[/green]"
-                )
+        # Install project skills to .claude/commands/
+        from .config import install_project_skills
+        installed = install_project_skills(Path.cwd())
+        if installed:
+            console.print(
+                f"[green]Installed {installed} project skills to .claude/commands/[/green]"
+            )
 
         console.print(f"[green]Created:[/green] {project_config}")
 
