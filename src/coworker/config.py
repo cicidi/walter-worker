@@ -1,9 +1,12 @@
 from __future__ import annotations
+import logging
 import os
 import re
 from pathlib import Path
 import yaml
 from .models import CoworkerConfig
+
+logger = logging.getLogger(__name__)
 
 GLOBAL_DIR = Path.home() / ".coworker"
 GLOBAL_CONFIG = GLOBAL_DIR / "coworker.yaml"
@@ -79,6 +82,89 @@ def save_config(config: CoworkerConfig, path: Path) -> None:
     data = config.model_dump(exclude_none=True)
     with open(path, "w") as f:
         yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
+
+
+# ── Skill Discovery ──────────────────────────────────────────────────────────
+
+
+def discover_project_skills(project_root: Path) -> list:
+    """Scan project_root/skills/*/SKILL.md and return Skill objects."""
+    from .models import Skill
+
+    skills_dir = project_root / "skills"
+    if not skills_dir.is_dir():
+        return []
+
+    found: list[Skill] = []
+    for skill_dir in sorted(skills_dir.iterdir()):
+        if not skill_dir.is_dir():
+            continue
+        skill_md = skill_dir / "SKILL.md"
+        if not skill_md.is_file():
+            continue
+        try:
+            name, description = _parse_skill_frontmatter(skill_md)
+            if name:
+                found.append(Skill(
+                    name=name,
+                    path=f"skills/{skill_dir.name}",
+                    description=description or f"Project skill: {name}",
+                    enabled=True,
+                ))
+        except Exception:
+            logger.warning("Failed to parse skill: %s", skill_md, exc_info=True)
+
+    return found
+
+
+def _parse_skill_frontmatter(skill_md: Path) -> tuple[str | None, str | None]:
+    """Parse name and description from SKILL.md YAML frontmatter."""
+    content = skill_md.read_text()
+    # Extract YAML frontmatter between --- markers
+    if not content.startswith("---"):
+        return None, None
+    end = content.find("---", 3)
+    if end == -1:
+        return None, None
+    try:
+        fm = yaml.safe_load(content[3:end])
+    except yaml.YAMLError:
+        return None, None
+    if not isinstance(fm, dict):
+        return None, None
+    return fm.get("name"), fm.get("description")
+
+
+def register_skills_in_config(config_path: Path, skills: list) -> bool:
+    """Add skills to a coworker.yaml config file, skipping duplicates.
+    Returns True if any skills were added."""
+    from .models import Skill
+
+    if not skills:
+        return False
+
+    with open(config_path) as f:
+        data = yaml.safe_load(f) or {}
+
+    existing = {s.get("name") for s in data.get("skills", [])}
+    added = 0
+    for skill in skills:
+        if skill.name not in existing:
+            data.setdefault("skills", []).append({
+                "name": skill.name,
+                "path": skill.path,
+                "description": skill.description,
+                "enabled": True,
+            })
+            existing.add(skill.name)
+            added += 1
+
+    if added:
+        with open(config_path, "w") as f:
+            yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
+        logger.info("Registered %d new skills in %s", added, config_path)
+
+    return added > 0
 
 
 # ── Project Catalog ─────────────────────────────────────────────────────────
