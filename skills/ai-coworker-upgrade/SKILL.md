@@ -390,6 +390,27 @@ install_one_skill() {
 }
 ```
 
+Step 6 — Register project skills in coworker.yaml:
+
+```bash
+cd "$COWORKER_ROOT" && python3 -c "
+from pathlib import Path
+import sys; sys.path.insert(0, 'src')
+from coworker.config import discover_project_skills, register_skills_in_config
+project_yaml = Path('$COWORKER_ROOT') / '.coworker' / 'coworker.yaml'
+if project_yaml.exists():
+    skills = discover_project_skills(Path('$COWORKER_ROOT'))
+    if skills:
+        registered = register_skills_in_config(project_yaml, skills)
+        if registered:
+            print(f'Registered {len(skills)} project skills in coworker.yaml')
+        else:
+            print('All project skills already registered')
+else:
+    print('No project coworker.yaml found — run cowoker init first')
+"
+```
+
 Report install summary:
 
 ```
@@ -398,6 +419,7 @@ Skills installed:
   ✅ 5 NEW from skill-factory
   ✅ 1 UPDATED
   ⏭  8 skipped (current)
+  📋 Project skills synced to coworker.yaml
 ```
 
 ### Phase 5: Re-run install (analytics + hooks)
