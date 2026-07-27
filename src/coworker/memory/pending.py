@@ -89,7 +89,33 @@ def _promote_to_active(data: dict) -> None:
         "source_session": data.get("source_session", ""),
     }
     (active_dir / "usage.json").write_text(json.dumps(usage, indent=2))
+
+    # Also register in global coworker.yaml so the skill is loaded
+    _register_in_yaml(
+        name=skill_id,
+        path=f"skills/{skill_id}",
+        description=data.get("description", "Auto-generated skill"),
+    )
+
     logger.info("Promoted skill %s to active skills directory", skill_id)
+
+
+def _register_in_yaml(name: str, path: str, description: str) -> None:
+    """Register a skill in the global coworker.yaml if not already present."""
+    try:
+        from coworker.config import GLOBAL_CONFIG, load_config, save_config
+        from coworker.models import Skill
+
+        cfg = load_config(GLOBAL_CONFIG)
+        existing = {s.name for s in cfg.skills}
+        if name in existing:
+            return  # already registered
+
+        cfg.skills.append(Skill(name=name, path=path, description=description))
+        save_config(cfg, GLOBAL_CONFIG)
+        logger.info("Registered skill %s in coworker.yaml", name)
+    except Exception as e:
+        logger.warning("Failed to register skill %s in coworker.yaml: %s", name, e)
 
 
 def stage_skill(name: str, description: str, tool_call_count: int, session_id: str) -> str:
