@@ -553,7 +553,28 @@ async function viewSession(id){const[det,time]=await Promise.all([fetchJSON(API+
   +(time.length===0?'<div class="empty-state"><div class="icon">📊</div>No timeline events recorded</div>':time.map(e=>{const ic={message:{u:'💬',a:'🤖'},tool_call:{Task:'🔧',Bash:'💻',Read:'📖',Write:'✏️',Edit:'🖊',Skill:'⚡',Grep:'🔎',default:'🔧'},file_op:{read:'📖',write:'✏️',edit:'🖊',delete:'🗑',default:'📄'}};let icon='•',cls='';if(e.kind==='message'){icon=ic.message[e.subtype]||'💬';cls=e.subtype==='user'?'tag-skill':'tag-tool';}else if(e.kind==='tool_call'){icon=ic.tool_call[e.tool]||ic.tool_call.default;cls='tag-tool';}else if(e.kind==='file_op'){icon=ic.file_op[e.subtype]||ic.file_op.default;cls='tag-file';}
   const dt=e.detail||'';const ti='te'+(''+Math.random()).slice(2,8);
 return '<div class="flex flex-between" style="padding:6px 18px;border-bottom:1px solid rgba(30,34,48,0.3);cursor:pointer" onclick="toggleTl(\''+ti+'\')"><div class="flex gap-sm" style="flex:1;min-width:0"><span>'+icon+'</span><span class="tag '+cls+'">'+(e.tool||e.subtype||e.kind)+'</span><span class="text-sm text-muted" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="'+ti+'s">'+trunc(dt,120)+'</span><span class="text-sm text-muted" id="'+ti+'f" style="display:none;white-space:pre-wrap;word-break:break-word">'+escHtml(dt)+'</span></div><span class="text-xs text-muted">'+((e.ts||'').slice(11,19))+'</span></div>';}).join(''))
-  +'</div></div></div>';
+  +'</div></div><div class="panel"><div class="panel-header">Session Log <span class="count">chronological</span></div><div class="panel-body" id="session-log" style="max-height:600px;overflow-y:auto;font-family:monospace;font-size:11px;line-height:1.6;padding:8px 12px;background:var(--bg-primary)"><div class="loading" style="padding:20px"><div class="spinner"></div><span>Loading log...</span></div></div></div></div>';
+  loadSessionLog(id);
+}
+
+
+async function loadSessionLog(sid){
+  const el=document.getElementById('session-log');if(!el)return;
+  try{
+    const[msgs,tools]=await Promise.all([
+      fetchJSON(API+'/sessions/'+sid+'/messages').catch(()=>[]),
+      fetchJSON(API+'/sessions/'+sid+'/timeline').catch(()=>[])
+    ]);
+    let entries=[];
+    (msgs||[]).forEach(m=>entries.push({ts:m.ts,type:'msg',role:m.type,content:m.content}));
+    (tools||[]).forEach(t=>{if(t.kind==='tool_call')entries.push({ts:t.ts,type:'tool',tool:t.tool,detail:t.detail})});
+    entries.sort((a,b)=>(a.ts||'').localeCompare(b.ts||''));
+    if(!entries.length){el.innerHTML='<div class="empty-state" style="padding:16px;text-align:center;color:var(--text-muted)">No log data — messages and tool calls not imported for this session.</div>';return;}
+    el.innerHTML=entries.map(e=>e.type==='msg'
+      ?'<div style="padding:1px 0;color:'+(e.role==='user'?'var(--accent)':'var(--green)')+'">'+(e.role==='user'?'👤':'🤖')+' <span style="color:var(--text-muted);font-size:10px">'+(e.ts||'').slice(11,19)+'</span> '+escHtml((e.content||'').slice(0,400))+'</div>'
+      :'<div style="padding:1px 0"><span style="color:var(--yellow)">⚡</span> <span style="color:var(--text-muted);font-size:10px">'+(e.ts||'').slice(11,19)+'</span> <b style="color:var(--text-primary)">'+escHtml(e.tool||'?')+'</b> <span style="color:var(--text-secondary)">'+escHtml((e.detail||'').slice(0,200))+'</span></div>'
+    ).join('');
+  }catch(e){el.innerHTML='<div class="empty-state" style="padding:16px">Error: '+escHtml(e.message)+'</div>';}
 }
 
 
