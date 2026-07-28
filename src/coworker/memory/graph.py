@@ -57,6 +57,7 @@ RelationType = Literal[
     "contradicts",
     "verifies",
     "discusses",
+    "contains",
 ]
 
 ConfidenceTier = Literal["EXTRACTED", "INFERRED", "AMBIGUOUS", "WEAK"]

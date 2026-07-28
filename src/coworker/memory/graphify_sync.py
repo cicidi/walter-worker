@@ -72,7 +72,7 @@ def sync_graphify_skeleton(graph: Graph, graphify_data: dict) -> int:
             for existing in graph.nodes:
                 if existing.id == node_id:
                     existing.label = raw_node.get("label", node_id)
-                    existing.community = raw_node.get("community")
+                    existing.community = str(raw_node.get("community")) if raw_node.get("community") is not None else None
                     # Keep existing source_file if the new one is empty
                     if raw_node.get("source_file"):
                         existing.source_file = raw_node.get("source_file")
@@ -85,7 +85,7 @@ def sync_graphify_skeleton(graph: Graph, graphify_data: dict) -> int:
                 provenance="graphify",
                 label=raw_node.get("label", node_id),
                 source_file=raw_node.get("source_file", raw_node.get("file_path")),
-                community=raw_node.get("community"),
+                community=str(raw_node.get("community")) if raw_node.get("community") is not None else None,
                 metadata=raw_node.get("metadata", {}),
             ))
             added += 1
@@ -95,6 +95,10 @@ def sync_graphify_skeleton(graph: Graph, graphify_data: dict) -> int:
         source = link["source"]
         target = link["target"]
         relation = link.get("relation", "references")
+        # Map Graphify relation types to our allowed set
+        VALID_RELATIONS = {"calls","imports","implements","references","depends_on","tried","pivoted_to","modifies","contradicts","verifies","discusses","contains"}
+        if relation not in VALID_RELATIONS:
+            relation = "references"  # fallback for unknown relations like "defines", "has", etc.
         key = (source, target, relation)
 
         if key in existing_edge_keys:
