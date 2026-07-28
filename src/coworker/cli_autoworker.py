@@ -94,10 +94,12 @@ def register_autoworker(main_group: click.Group) -> None:
                 ["python3", "-m", "pytest", "tests/python/", "-q", "--tb=no"],
                 capture_output=True,
                 text=True,
-                timeout=120,
+                timeout=600,  # full suite takes ~5-6 min
             )
             test_status = "PASS" if r.returncode == 0 else "FAIL"
-            findings.append(f"## Code Audit: Tests {test_status}")
+            # Extract pass/fail counts from pytest output
+            last_line = r.stdout.strip().split("\n")[-1] if r.stdout.strip() else ""
+            findings.append(f"## Code Audit: Tests {test_status} — {last_line}")
             r = subprocess.run(
                 ["git", "status", "--short"], capture_output=True, text=True
             )
