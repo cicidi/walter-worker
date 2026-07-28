@@ -176,19 +176,24 @@ def import_claude_hooks(session_dir: Path, conn):
                 k, _, v = line.partition(":")
                 info[k.strip()] = v.strip().strip('"')
 
-    conn.execute(
-        """INSERT OR REPLACE INTO sessions (id, ide, project, cwd, model, created_at)
-           VALUES (?, 'claude-code', ?, ?, ?, ?)""",
-        (sid, info.get("project", ""), info.get("cwd", ""), info.get("model", ""), info.get("created", "")),
-    )
-
-    conn.execute(
-        """INSERT OR REPLACE INTO session_stats
-           (session_id, message_count, tool_count, updated_at)
-           VALUES (?, ?, ?, ?)""",
-        (sid, msg_count, tool_count, datetime.now().isoformat()),
-    )
-    conn.commit()
+    # Delegate to full import_session for complete data (initiative, branch, tokens, messages, tool_calls)
+    from .import_data import import_session as full_import
+    try:
+        full_import(session_dir, conn)
+    except Exception:
+        # Fallback: minimal metadata import if full import fails
+        conn.execute(
+            """INSERT OR REPLACE INTO sessions (id, ide, project, cwd, model, created_at)
+               VALUES (?, 'claude-code', ?, ?, ?, ?)""",
+            (sid, info.get("project", ""), info.get("cwd", ""), info.get("model", ""), info.get("created", "")),
+        )
+        conn.execute(
+            """INSERT OR REPLACE INTO session_stats
+               (session_id, message_count, tool_count, updated_at)
+               VALUES (?, ?, ?, ?)""",
+            (sid, msg_count, tool_count, datetime.now().isoformat()),
+        )
+        conn.commit()
 
 
 def import_opencode_meta(conn):
