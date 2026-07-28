@@ -471,7 +471,18 @@ def query_projects():
                       GROUP_CONCAT(DISTINCT s.ide) as ide_list
                FROM sessions s
                LEFT JOIN session_stats ss ON s.id = ss.session_id
-               LEFT JOIN (SELECT id, TRIM(REPLACE(cwd,'/home/cicidi/project/',''),'/')||'/' as cwd_proj FROM sessions) ss2 ON s.id = ss2.id
+               LEFT JOIN (
+                   SELECT id,
+                     -- Normalize cwd to project name:
+                     -- ~/project/<name>/... → <name>
+                     -- ~/ → home
+                     CASE
+                       WHEN cwd GLOB '*/project/*' THEN
+                         REPLACE(SUBSTR(cwd, INSTR(cwd, '/project/') + 9), '/', '')
+                       ELSE cwd
+                     END as cwd_proj
+                   FROM sessions
+               ) ss2 ON s.id = ss2.id
                GROUP BY project_name
                ORDER BY session_count DESC"""
         ).fetchall()

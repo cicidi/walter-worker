@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS sessions (
     initiative    TEXT,
     branch        TEXT,
     created_at    TEXT NOT NULL,
-    closed_at     TEXT
+    closed_at     TEXT,
+    graph_enabled INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS messages (
@@ -120,6 +121,18 @@ CREATE TABLE IF NOT EXISTS session_summaries (
     memory_keywords        TEXT,
     generated_at           TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS graph_queries (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id      TEXT REFERENCES sessions(id),
+    query           TEXT NOT NULL,
+    graph_hits      INTEGER DEFAULT 0,
+    graph_useful    INTEGER DEFAULT 0,
+    avoided_tools   TEXT,
+    graph_misses    TEXT,
+    ts              TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_gq_session ON graph_queries(session_id);
 """
 
 
@@ -134,8 +147,19 @@ def get_db(db_path: str | Path | None = None) -> sqlite3.Connection:
     # import/dashboard) works on a fresh DB without an explicit create-db first.
     # Every statement in SCHEMA is CREATE ... IF NOT EXISTS, so this is safe to repeat.
     conn.executescript(SCHEMA)
+    # Migration: add graph_enabled column to existing databases (spec §9.5)
+    _migrate_add_graph_enabled(conn)
     conn.commit()
     return conn
+
+
+def _migrate_add_graph_enabled(conn: sqlite3.Connection) -> None:
+    """Add graph_enabled column if it doesn't exist (pre-v1 databases)."""
+    try:
+        conn.execute("SELECT graph_enabled FROM sessions LIMIT 0")
+    except sqlite3.OperationalError:
+        conn.execute("ALTER TABLE sessions ADD COLUMN graph_enabled INTEGER DEFAULT 0")
+        conn.commit()
 
 
 def init_db(db_path: str | Path | None = None) -> sqlite3.Connection:

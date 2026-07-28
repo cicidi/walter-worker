@@ -3,6 +3,27 @@ let currentView = 'overview';
 let viewHistory = [];
 
 async function fetchJSON(url) { const r=await fetch(url); if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }
+
+// ── Panel Dispatcher ──
+// Each panel loads independently: skeleton → fetch (10s timeout) → render OR error+retry
+function fetchWithTimeout(url, ms=10000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, {signal: ctrl.signal}).then(r => { clearTimeout(timer); if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); });
+}
+
+async function mountPanel(containerId, fetchFn, renderFn, errorLabel) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = '<div class="sk-panel"><div class="sk-bar w60"></div><div class="sk-bar w80"></div><div class="sk-bar w40"></div></div>';
+  try {
+    const data = await fetchFn();
+    el.innerHTML = renderFn(data);
+  } catch (e) {
+    el.innerHTML = '<div class="panel-error"><div class="err-icon">⚠</div><div class="err-msg">' + escHtml(errorLabel || 'Failed to load') + '</div><div class="err-detail">' + escHtml(e.message) + '</div><button class="retry-btn" onclick="mountPanel(\'' + containerId + '\', arguments[1], arguments[2], \'' + escHtml(errorLabel || '') + '\')">↻ Retry</button></div>';
+    console.warn('Panel ' + containerId + ':', e.message);
+  }
+}
 function $(s) { return document.querySelector(s); }
 function $$(s) { return document.querySelectorAll(s); }
 
@@ -560,7 +581,41 @@ function startAR(view,ms){if(ri)clearInterval(ri);ri=setInterval(()=>{if(documen
 const _n=navigate;navigate=function(view,ph){if(ri)clearInterval(ri);_n(view,ph);if(view==='summary')startAR(view,15000);};
 
 // ── Evolution (self-evolving-agent initiative) ──
-async function loadEvolution(){try{const o=await fetchJSON(API+'/evolution/overview');const sk=await fetchJSON(API+'/evolution/skills?status=all');const ex=await fetchJSON(API+'/evolution/experiences?status=all');const sc=o.evolution_score>=50?'green':o.evolution_score>=30?'yellow':'red';$('#main').innerHTML='<div class="content"><div class="page-title">⬡ Evolution Monitor</div><div class="page-subtitle">Self-evolving agent metrics — skills, experiences, and pending review</div><div class="stat-grid"><div class="stat-card"><div class="label">Evolution Score</div><div class="value '+sc+'">'+o.evolution_score+'</div><div class="sub">/100 target ≥50</div></div><div class="stat-card"><div class="label">Auto-Trained Skills</div><div class="value green">'+o.auto_trained_skills+'</div></div><div class="stat-card"><div class="label">Experiences</div><div class="value blue">'+o.auto_trained_experiences+'</div></div><div class="stat-card"><div class="label">Skill Reuse Rate</div><div class="value">'+Math.round(o.skill_reuse_rate*100)+'%</div></div><div class="stat-card"><div class="label">Pending Review</div><div class="value '+(o.pending_review>0?'yellow':'green')+'">'+o.pending_review+'</div></div></div><div class="grid-2 mb-lg"><div class="panel"><div class="panel-header">Skills<span class="count">'+sk.length+'</span></div><div class="panel-body" style="max-height:400px;overflow-y:auto"><table><tr><th>Name</th><th>Source</th><th>Health</th><th>Calls</th><th>Sessions</th><th>Reuse</th></tr>'+(sk.length?sk.map(s=>'<tr><td><span class="clickable" onclick="viewEvolutionSkill(\''+escHtml(s.name)+'\')">'+escHtml(s.name)+'</span></td><td><span class="tag '+((s.provenance||'')==='agent'?'tag-ide-claude':(s.provenance||'')==='bundled'?'tag-ide-gemini':'tag-tool')+'">'+escHtml(s.provenance||'?')+'</span></td><td><span class="tag '+((s.state||'')==='active'?'tag-knowledge':(s.state||'')==='stale'?'tag-skill':'tag-tool')+'">'+escHtml(s.state||'?')+'</span></td><td>'+fmtNum(s.total_calls)+'</td><td>'+fmtNum(s.sessions_invoked)+'</td><td>'+Math.round(s.reuse_rate*100)+'%</td></tr>').join(''):'<tr><td colspan="6" class="text-muted">No skills</td></tr>')+'</table></div></div><div class="panel"><div class="panel-header">Experiences<span class="count">'+ex.length+'</span></div><div class="panel-body" style="max-height:400px;overflow-y:auto">'+(ex.length?ex.slice(0,50).map(e=>'<div style="padding:8px 12px;border-bottom:1px solid var(--border);font-size:11px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span class="tag tag-skill">'+escHtml(e.state||'active')+'</span><span class="tag tag-tool text-xs">'+escHtml(e.topic||'')+'</span></div><div style="color:var(--text-secondary);line-height:1.4">'+escHtml((e.memory||'').slice(0,200))+'</div><div style="margin-top:4px;display:flex;gap:8px;font-size:10px;color:var(--text-muted)"><span>📊 '+fmtNum(e.use_count)+' uses</span><span>📁 '+escHtml(e.project||'')+'</span>'+(e.last_used?'<span>🕐 '+e.last_used.slice(0,10)+'</span>':'')+'</div></div>').join(''):'<div style="padding:24px;text-align:center;color:var(--text-muted)">No experiences stored yet.</div>')+'</div></div></div></div>'}catch(e){$('#main').innerHTML='<div class="content"><div class="page-title">Evolution</div><div class="error">Failed: '+e.message+'. Ensure mem0 is configured (DEEPSEEK_API_KEY).</div></div>'}}
+async function loadEvolution(){
+  // Layout renders immediately — panels load independently
+  $('#main').innerHTML='<div class="content"><div class="page-title">⬡ Evolution Monitor</div><div class="page-subtitle">Self-evolving agent metrics — skills, experiences, pending review. Each panel loads independently.</div>'
+    +'<div class="stat-grid mb-lg" id="evo-overview"></div>'
+    +'<div class="grid-2 mb-lg">'
+    +'<div class="panel"><div class="panel-header">Skills <span class="count" id="evo-skills-count"></span></div><div class="panel-body" id="evo-skills" style="max-height:400px;overflow-y:auto"></div></div>'
+    +'<div class="panel"><div class="panel-header">Experiences <span class="count" id="evo-ex-count"></span></div><div class="panel-body" id="evo-experiences" style="max-height:400px;overflow-y:auto"></div></div>'
+    +'</div></div>';
+
+  // Panel 1: Overview stats (fast, no mem0 dependency)
+  mountPanel('evo-overview',
+    () => fetchWithTimeout(API+'/evolution/overview', 8000),
+    (o) => { const sc=o.evolution_score>=50?'green':o.evolution_score>=30?'yellow':'red';
+      return '<div class="stat-card"><div class="label">Evolution Score</div><div class="value '+sc+'">'+o.evolution_score+'</div><div class="sub">/100 target ≥50</div></div>'
+      +'<div class="stat-card"><div class="label">Auto-Trained Skills</div><div class="value green">'+o.auto_trained_skills+'</div></div>'
+      +'<div class="stat-card"><div class="label">Experiences</div><div class="value blue">'+o.auto_trained_experiences+'</div></div>'
+      +'<div class="stat-card"><div class="label">Skill Reuse Rate</div><div class="value">'+Math.round(o.skill_reuse_rate*100)+'%</div></div>'
+      +'<div class="stat-card"><div class="label">Pending Review</div><div class="value '+(o.pending_review>0?'yellow':'green')+'">'+o.pending_review+'</div></div>'; },
+    'Evolution overview unavailable');
+
+  // Panel 2: Skills list
+  mountPanel('evo-skills',
+    () => fetchWithTimeout(API+'/evolution/skills?status=all', 8000),
+    (sk) => { document.getElementById('evo-skills-count').textContent = sk.length;
+      return '<table><tr><th>Name</th><th>Source</th><th>Health</th><th>Calls</th><th>Sessions</th><th>Reuse</th></tr>'
+      +(sk.length?sk.map(s=>'<tr><td><span class="clickable" onclick="viewEvolutionSkill(\''+escHtml(s.name)+'\')">'+escHtml(s.name)+'</span></td><td><span class="tag '+((s.provenance||'')==='agent'?'tag-ide-claude':(s.provenance||'')==='bundled'?'tag-ide-gemini':'tag-tool')+'">'+escHtml(s.provenance||'?')+'</span></td><td><span class="tag '+((s.state||'')==='active'?'tag-knowledge':(s.state||'')==='stale'?'tag-skill':'tag-tool')+'">'+escHtml(s.state||'?')+'</span></td><td>'+fmtNum(s.total_calls)+'</td><td>'+fmtNum(s.sessions_invoked)+'</td><td>'+Math.round(s.reuse_rate*100)+'%</td></tr>').join(''):'<tr><td colspan="6" class="text-muted">No skills</td></tr>')+'</table>'; },
+    'Skills data unavailable');
+
+  // Panel 3: Experiences (depends on mem0 — isolated, won't break other panels)
+  mountPanel('evo-experiences',
+    () => fetchWithTimeout(API+'/evolution/experiences?status=all', 6000),
+    (ex) => { document.getElementById('evo-ex-count').textContent = ex.length;
+      return ex.length?ex.slice(0,50).map(e=>'<div style="padding:8px 12px;border-bottom:1px solid var(--border);font-size:11px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span class="tag tag-skill">'+escHtml(e.state||'active')+'</span><span class="tag tag-tool text-xs">'+escHtml(e.topic||'')+'</span></div><div style="color:var(--text-secondary);line-height:1.4">'+escHtml((e.memory||'').slice(0,200))+'</div><div style="margin-top:4px;display:flex;gap:8px;font-size:10px;color:var(--text-muted)"><span>📊 '+fmtNum(e.use_count)+' uses</span><span>📁 '+escHtml(e.project||'')+'</span>'+(e.last_used?'<span>🕐 '+e.last_used.slice(0,10)+'</span>':'')+'</div></div>').join(''):'<div style="padding:24px;text-align:center;color:var(--text-muted)">No experiences stored yet. Run <code>coworker memory train</code> to populate.</div>'; },
+    'Experiences unavailable — mem0 may be offline');
+}
 function renderMd(t){if(!t)return'';return t.split('\n').map(l=>{if(l.startsWith('# '))return'<h1 style=\"margin:16px 0 8px;font-size:18px\">'+escHtml(l.slice(2))+'</h1>';if(l.startsWith('## '))return'<h3 style=\"margin:14px 0 6px;font-size:14px;color:var(--text-primary)\">'+escHtml(l.slice(3))+'</h3>';if(l.startsWith('### '))return'<h4 style=\"margin:10px 0 4px;font-size:13px\">'+escHtml(l.slice(4))+'</h4>';if(l.match(/^\d+\.\s/))return'<li style=\"margin:2px 0 2px 16px\">'+escHtml(l.replace(/^\d+\.\s/,''))+'</li>';if(l.startsWith('- '))return'<li style=\"margin:2px 0 2px 16px\">'+escHtml(l.slice(2))+'</li>';if(l.startsWith('**')&&l.endsWith('**'))return'<p style=\"margin:4px 0;font-weight:600\">'+escHtml(l.slice(2,-2))+'</p>';if(l.trim()==='')return'<br>';return escHtml(l)+'<br>';}).join('')}
 function viewEvolutionSkill(name){fetchJSON(API+'/evolution/skills/'+encodeURIComponent(name)).then(s=>{const desc=s.description||'';const content=s.content||'';const whenUse=s.when_to_use||'';const isPending=s.state==='pending';const sidList=(s.session_ids||[]).slice(0,10).map(id=>'<span class=\"tag tag-tool text-xs\">'+escHtml(id).slice(0,20)+'</span>').join(' ')||'none';const provCls=s.provenance==='agent'?'tag-ide-claude':s.provenance==='bundled'?'tag-ide-gemini':'tag-tool';const stateCls=s.state==='active'?'tag-knowledge':s.state==='stale'?'tag-skill':'tag-tool';const approveBtns=isPending?'<div class=\"flex gap-sm mt-md\" style=\"padding:12px 16px\"><button class=\"btn btn-primary\" onclick=\"approveSkill(\"'+escHtml(s.name)+'\")\"> Approve</button><button class=\"btn btn-warning\" onclick=\"rejectSkill(\"'+escHtml(s.name)+'\")\"> Reject</button></div>':'';$('#main').innerHTML='<div class=\"content\"><div class=\"page-title\" style=\"cursor:pointer\" onclick=\"navigate(\"evolution\")\">← ⬡ Skill: '+escHtml(s.name)+'</div><div class=\"stat-grid mb-lg\"><div class=\"stat-card\"><div class=\"label\">Source</div><div class=\"value\" style=\"font-size:14px\"><span class=\"tag '+provCls+'\">'+escHtml(s.provenance||'?')+'</span></div></div><div class=\"stat-card\"><div class=\"label\">Status</div><div class=\"value\" style=\"font-size:14px\"><span class=\"tag '+stateCls+'\">'+escHtml(s.state||'?')+'</span></div></div><div class=\"stat-card\"><div class=\"label\">Total Calls</div><div class=\"value blue\">'+fmtNum(s.total_calls)+'</div></div><div class=\"stat-card\"><div class=\"label\">Sessions</div><div class=\"value green\">'+fmtNum(s.sessions_invoked)+'</div></div><div class=\"stat-card\"><div class=\"label\">Reuse Rate</div><div class=\"value\">'+Math.round(s.reuse_rate*100)+'%</div></div></div>'+(desc?'<div class=\"panel mb-lg\"><div class=\"panel-header\">Description</div><div class=\"panel-body\" style=\"padding:16px;line-height:1.6;color:var(--text-secondary)\">'+escHtml(desc)+'</div></div>':'')+(whenUse?'<div class=\"panel mb-lg\"><div class=\"panel-header\">When to Use</div><div class=\"panel-body\" style=\"padding:16px;line-height:1.6;color:var(--text-secondary)\">'+escHtml(whenUse)+'</div></div>':'')+(content?'<div class=\"panel mb-lg\"><div class=\"panel-header\">Skill Content</div><div class=\"panel-body\" style=\"padding:16px;max-height:600px;overflow-y:auto;font-size:13px;line-height:1.7;color:var(--text-primary)\">'+renderMd(content)+'</div></div>':'')+approveBtns+'<div class=\"panel mb-lg\"><div class=\"panel-header\">Sessions</div><div class=\"panel-body\" style=\"padding:12px 16px\">'+sidList+'</div></div><div class=\"panel\"><div class=\"panel-header\">Details</div><div class=\"panel-body\" style=\"font-size:11px;color:var(--text-muted);padding:12px 16px\"><div>Created: '+(s.created_at||'N/A')+'</div><div>Last Used: '+(s.last_used||'N/A')+'</div></div></div></div>'}).catch(()=>{alert('Skill not found');navigate('evolution')})}
 async function approveSkill(name){try{const r=await fetch(API+'/evolution/approve/'+encodeURIComponent(name),{method:'POST'});const d=await r.json();alert('Approved: '+d.status);viewEvolutionSkill(name)}catch(e){alert('Failed: '+e.message)}}

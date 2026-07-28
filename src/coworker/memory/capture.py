@@ -58,10 +58,22 @@ Read the full session transcript and produce:
    - A skill-worthy task must involve >= 10 tool calls.
    - Include: skill name, one-line description, tool call count.
 
+3. Graph nodes — key entities this session touched (files, concepts, decisions).
+   - id format: session_<date>_<seq>::<short_label>
+   - type: session | decision_point | concept
+   - Use past lessons (mem0) and wrong-history as reference for what to recognize.
+
+4. Graph edges — relationships discovered in this session.
+   - relation: tried | pivoted_to | modifies | implements | verifies | contradicts | discusses
+   - confidence: EXTRACTED (certain from transcript) | INFERRED (likely) | AMBIGUOUS (guess)
+   - Always link to corresponding Graphify code/document nodes when known.
+
 Respond with JSON:
 {{
   "lessons": [{{"memory": "...", "type": "lesson|convention|preference", "topic": "...", "problem": "..."}}],
-  "skill_candidates": [{{"name": "...", "description": "...", "tool_call_count": N}}]
+  "skill_candidates": [{{"name": "...", "description": "...", "tool_call_count": N}}],
+  "session_nodes": [{{"id": "session_20260727_001::tried_bearer_auth", "type": "decision_point", "label": "Tried bearer token auth on auth.py", "related_file": "src/auth.py"}}],
+  "session_edges": [{{"source": "session_20260727_001::tried_bearer_auth", "target": "src/auth.py::authenticate", "relation": "modifies", "confidence": "EXTRACTED"}}]
 }}
 """
 
@@ -87,6 +99,8 @@ class SessionEndResult:
     reconciled: int = 0
     lessons: list[dict] = field(default_factory=list)
     skills_staged: list[str] = field(default_factory=list)
+    graph_nodes: int = 0
+    graph_edges: int = 0
     error: str | None = None
 
 
@@ -278,10 +292,30 @@ def process_session_end(
             except Exception as exc:
                 logger.error("Failed to stage skill %s: %s", candidate.get("name"), exc)
 
+        # Write graph nodes + edges to pending queue (spec §4.2)
+        session_nodes = data.get("session_nodes", [])
+        session_edges = data.get("session_edges", [])
+        graph_nodes_count = 0
+        graph_edges_count = 0
+        if session_nodes or session_edges:
+            try:
+                from coworker.memory.merge_worker import write_session_pending
+                write_session_pending(session_id, session_nodes, session_edges)
+                graph_nodes_count = len(session_nodes)
+                graph_edges_count = len(session_edges)
+            except Exception as exc:
+                logger.error("Failed to write session graph data: %s", exc)
+
         if audit_path:
             write_audit_record(audit_path, "stop", session_id, "session-end", stored, ms, "ok")
 
-        return SessionEndResult(reconciled=stored, lessons=lessons, skills_staged=skills_staged)
+        return SessionEndResult(
+            reconciled=stored,
+            lessons=lessons,
+            skills_staged=skills_staged,
+            graph_nodes=graph_nodes_count,
+            graph_edges=graph_edges_count,
+        )
 
     except Exception as exc:
         ms = int((time.time() - start) * 1000)

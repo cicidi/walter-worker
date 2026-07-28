@@ -294,6 +294,26 @@
 ### Actions: None (no new auto-fixable issues)
 ### Status: 101 found / 46 fixed. System stable.
 
+## Round (auto-worker skill) — 2026-07-27T02:00:00Z
+
+### Fixed (1)
+- ✅ **P-3**: Auto-worker now auto-creates wrong-history entries after fixes
+  - `wrong_history.py`: added `record_entry()` + `_rebuild_index()`
+  - `cli_memory.py`: added `coworker memory wrong-history record` CLI
+  - `engine.py`: agents instructed to record after each fix
+  - `INDEX.md`: fixed stale count (3 entries now correctly counted)
+
+### Health
+- ✅ APIs: 7/7 → 200 | Dashboard: up | Frontend: 54 funcs
+- ✅ Imports: all clean | Tests: running (bg)
+- ⚠️ Summaries: 9.3% | Skills gap: 0 (49 commands = 35 disk + 14 external)
+
+### Found (not auto-fixable)
+- Memory-graph spec v1.0 + test plan exist but 0 implementation code
+- P-4: training pipeline needs running on all 568 sessions
+
+### Progress: 101 found / 47 fixed (+1 P-3)
+
 ## Round 9 — 2026-07-26T07:37:00Z — All healthy, no new auto-fixable issues. 20 found/13 fixed/7 remaining (design-level).
 
 ## Summary

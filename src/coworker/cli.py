@@ -31,9 +31,9 @@ from . import backup
 from .semantic_merge import classify_sections, apply_merge, verify_protected
 from .constants import DOCS_DISCIPLINES, STATE_DIR
 from .templates.global_claude_md import generate_global_claude_md
-from .cli_analytics import register_analytics
-from .cli_autoworker import register_autoworker
-from .cli_memory import register_memory_commands
+from .memory.cli_memory import register_memory_commands
+# from .cli_analytics import register_analytics      # TODO: not yet implemented
+# from .cli_autoworker import register_autoworker    # TODO: not yet implemented
 
 console = Console()
 
@@ -970,5 +970,5 @@ def initiative_remove(name, proj_dir, force):
 
 # Register sub-command groups from split-out modules
 register_memory_commands(main)
-register_analytics(main)
-register_autoworker(main)
+# register_analytics(main)    # TODO: implement analytics CLI module
+# register_autoworker(main)   # TODO: implement autoworker CLI module
