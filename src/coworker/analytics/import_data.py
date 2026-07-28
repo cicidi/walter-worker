@@ -84,19 +84,70 @@ def import_session(session_dir: Path, conn_or_path=None):
          info.get("created", ""), info.get("closed", "")),
     )
 
-    msgs_file = session_dir / "messages.jsonl"
-    if msgs_file.exists():
-        for line in msgs_file.read_text().strip().split("\n"):
-            if not line.strip():
-                continue
+    # Import from raw Claude Code JSONL for full message content (hooks truncate content)
+    raw_imported = False
+    cwd = info.get("cwd", "")
+    if cwd:
+        raw_jsonl_dir = Path.home() / ".claude" / "projects" / ("-" + cwd.lstrip("/").replace("/", "-"))
+        raw_jsonl = raw_jsonl_dir / f"{session_id}.jsonl"
+        if raw_jsonl.exists():
             try:
-                m = json.loads(line)
-                conn.execute(
-                    "INSERT OR IGNORE INTO messages (session_id, seq, type, content, ts) VALUES (?, ?, ?, ?, ?)",
-                    (session_id, m.get("seq", 0), m.get("type", ""), m.get("content", ""), m.get("ts", "")),
-                )
-            except json.JSONDecodeError:
-                continue
+                seq = 0
+                for line in raw_jsonl.read_text().strip().split("\n"):
+                    if not line.strip(): continue
+                    try:
+                        d = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    t = d.get("type", "")
+                    ts = d.get("timestamp", "")
+                    msg = d.get("message", {})
+                    content = msg.get("content", "")
+                    # Flatten content array into text
+                    if isinstance(content, list):
+                        parts = []
+                        for block in content:
+                            if isinstance(block, dict):
+                                btype = block.get("type", "")
+                                if btype == "text":
+                                    parts.append(str(block.get("text", "")))
+                                elif btype == "tool_use":
+                                    parts.append(f"[tool:{block.get('name','?')}]")
+                                elif btype == "thinking":
+                                    txt = str(block.get("text", ""))
+                                    if txt.strip():
+                                        parts.append(f"[thinking]\n{txt}\n[/thinking]")
+                            elif isinstance(block, str):
+                                parts.append(block)
+                        content = "\n".join(parts)
+                    elif not isinstance(content, str):
+                        content = ""
+                    if t in ("user", "assistant") and content.strip():
+                        seq += 1
+                        conn.execute(
+                            "INSERT OR REPLACE INTO messages (session_id, seq, type, content, ts) VALUES (?, ?, ?, ?, ?)",
+                            (session_id, seq, t, content[:10000], ts),
+                        )
+                if seq > 0:
+                    raw_imported = True
+            except Exception:
+                pass  # fall through to hook-based messages below
+
+    # Fallback: hook-captured messages (if raw JSONL not available)
+    if not raw_imported:
+        msgs_file = session_dir / "messages.jsonl"
+        if msgs_file.exists():
+            for line in msgs_file.read_text().strip().split("\n"):
+                if not line.strip():
+                    continue
+                try:
+                    m = json.loads(line)
+                    conn.execute(
+                        "INSERT OR IGNORE INTO messages (session_id, seq, type, content, ts) VALUES (?, ?, ?, ?, ?)",
+                        (session_id, m.get("seq", 0), m.get("type", ""), m.get("content", ""), m.get("ts", "")),
+                    )
+                except json.JSONDecodeError:
+                    continue
 
     pre_calls = {}
     post_calls = {}
