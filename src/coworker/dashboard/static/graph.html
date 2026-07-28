@@ -1,46 +1,111 @@
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8"><style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0d1117;overflow:hidden;font-family:system-ui,sans-serif}
+body{background:#0d1117;overflow:hidden;font-family:system-ui,sans-serif;display:flex}
+#canvas-wrap{flex:1;position:relative}
 canvas{display:block}
-#info{position:fixed;bottom:16px;left:16px;color:#8b949e;font-size:11px;pointer-events:none}
-#tooltip{position:fixed;display:none;background:#161b22;border:1px solid #30363d;border-radius:6px;padding:8px 12px;font-size:11px;color:#c9d1d9;pointer-events:none;max-width:300px;z-index:10}
+#info{position:absolute;bottom:12px;left:12px;color:#8b949e;font-size:10px;background:#0d1117cc;padding:4px 10px;border-radius:4px;border:1px solid #21262d;pointer-events:none}
+#panel{width:320px;background:#161b22;border-left:1px solid #30363d;overflow-y:auto;color:#c9d1d9;font-size:11px;display:flex;flex-direction:column}
+#panel h2{font-size:13px;padding:12px;margin:0;border-bottom:1px solid #21262d;color:#f0f6fc;position:sticky;top:0;background:#161b22;z-index:1}
+#panel .section{padding:8px 12px;border-bottom:1px solid #21262d}
+#panel .kv{display:flex;justify-content:space-between;padding:3px 0}
+#panel .kv .k{color:#8b949e}
+#panel .kv .v{color:#c9d1d9;text-align:right;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#panel .edge-row{padding:4px 0;font-size:10px;border-bottom:1px solid #21262d22}
+#panel .edge-rel{color:#f0883e}
+#panel .edge-w{color:#8b949e;float:right}
+#panel .empty{padding:40px 20px;text-align:center;color:#484f58;font-size:12px}
+.tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;margin-right:4px}
+.tag-code{background:#1f6feb33;color:#58a6ff}
+.tag-doc{background:#23863633;color:#3fb950}
+.tag-session{background:#8957e533;color:#d2a8ff}
+.tag-concept{background:#db61a233;color:#f778ba}
+#legend{position:absolute;top:12px;right:12px;color:#c9d1d9;font-size:10px;background:#161b22ee;padding:8px 10px;border-radius:6px;border:1px solid #30363d;line-height:1.7;pointer-events:none;max-width:200px}
+.leg-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px}
 </style></head><body>
-<canvas id="c"></canvas>
-<div id="info">Loading graph…</div>
-<div id="tooltip"></div>
+<div id="canvas-wrap"><canvas id="c"></canvas><div id="info"></div><div id="legend"></div></div>
+<div id="panel"><div class="empty">Click a node to see details</div></div>
 <script>
-const COLORS={code:'#58a6ff',document:'#3fb950',session:'#d2a8ff',decision_point:'#f0883e',concept:'#f778ba',default:'#8b949e'};
-const TYPE_NAMES={code:'Code',document:'Doc',session:'Session',decision_point:'Decision',concept:'Concept'};
+const COLORS=['#58a6ff','#3fb950','#d2a8ff','#f0883e','#f778ba','#79c0ff','#56d364','#a5d6ff','#ffa657','#db61a2','#7ee787','#bc8cff','#ff7b72','#e3b341','#a371f7','#39d353','#d29922','#6cb6ff','#c690ff','#fd8c73'];
+const TYPE_TAG={code:'tag-code',document:'tag-doc',session:'tag-session',concept:'tag-concept'};
 
-let nodes=[],edges=[],cx=0,cy=0,scale=1,dragging=null,hovered=null;
-let canvas,ctx,W,H;
+let nodes=[],edges=[],cx=0,cy=0,scale=0.12,dragging=null,hovered=null,selected=null,canvas,ctx,W,H;
+
+function showPanel(n){
+selected=n;
+const p=document.getElementById('panel');
+if(!n){p.innerHTML='<div class="empty">Click a node to see details</div>';return}
+const connEdges=edges.filter(e=>e.source===n||e.target===n).sort((a,b)=>b.weight-a.weight);
+const tagCls=TYPE_TAG[n.type]||'';
+p.innerHTML=
+'<h2>'+n.label+'</h2>'+
+'<div class="section"><div class="kv"><span class="k">Type</span><span class="v"><span class="tag '+tagCls+'">'+n.type+'</span></span></div>'+
+'<div class="kv"><span class="k">Community</span><span class="v">'+n.community+'</span></div>'+
+'<div class="kv"><span class="k">Color</span><span class="v"><span class="leg-dot" style="background:'+n.color+'"></span></span></div>'+
+'</div>'+
+'<div class="section"><b>Connections</b> ('+connEdges.length+' edges)<br>'+
+connEdges.slice(0,50).map(e=>{
+const other=e.source===n?e.target:e.source;
+return'<div class="edge-row"><span class="edge-rel">'+(e.relation||'?')+'</span> → <span style="color:#58a6ff">'+other.label+'</span><span class="edge-w">w:'+(e.weight||0).toFixed(2)+'</span></div>';
+}).join('')+
+(connEdges.length>50?'<div style="color:#8b949e;padding:4px">... and '+(connEdges.length-50)+' more</div>':'')+
+'</div>';
+}
 
 async function load(){
-const r=await fetch('/api/graph');
-const g=await r.json();
-nodes=(g.nodes||[]).slice(0,500).map((n,i)=>({
-id:n.id,label:n.label||n.id,type:n.type||'default',
-x:Math.random()*800-400,y:Math.random()*800-400,
-vx:0,vy:0,community:n.community,radius:3+Math.min((n.session_count||1),20)*0.3
-}));
+const r=await fetch('/api/graph');const g=await r.json();
+const all=g.nodes||[];
+const commCounts={};all.forEach(n=>{const c=n.community||'?';commCounts[c]=(commCounts[c]||0)+1});
+const sortedComms=Object.entries(commCounts).sort((a,b)=>b[1]-a[1]).slice(0,20);
+const commIdx={};sortedComms.forEach(([c],i)=>{commIdx[c]=i});
+
+nodes=all.map((n,i)=>{
+const ci=commIdx[n.community||'?']??20;
+const angle=(ci/sortedComms.length)*Math.PI*2;
+const cr=Math.min(W,H)*0.8;
+const ccx=Math.cos(angle)*cr,ccy=Math.sin(angle)*cr;
+const r=Math.sqrt(Math.random())*180;
+const a=Math.random()*Math.PI*2;
+return{id:n.id,label:(n.label||n.id).slice(0,30),type:n.type||'default',
+x:ccx+Math.cos(a)*r,y:ccy+Math.sin(a)*r,vx:0,vy:0,
+community:n.community||'?',color:COLORS[Math.min(ci,19)],
+session_count:n.session_count||0,
+radius:Math.max(1.5,Math.log((n.session_count||1)+2)*1.3)};
+});
+
 const nodeIds=new Set(nodes.map(n=>n.id));
 const nodeMap={};nodes.forEach(n=>nodeMap[n.id]=n);
-edges=(g.edges||[]).filter(e=>nodeIds.has(e.source)&&nodeIds.has(e.target)).slice(0,1500).map(e=>({
+edges=(g.edges||[]).filter(e=>nodeIds.has(e.source)&&nodeIds.has(e.target)).map(e=>({
 source:nodeMap[e.source],target:nodeMap[e.target],
-relation:e.relation,weight:e.effective_weight||0.5
-}));
-document.getElementById('info').textContent=nodes.length+' nodes · '+edges.length+' edges · drag nodes · scroll zoom · right-drag pan';
+weight:e.effective_weight||0.5,relation:e.relation||'?',
+confidence:e.confidence||'INFERRED'}));
+
+let leg='<b>'+nodes.length+' nodes</b><br>'+edges.length+' edges<br><br>';
+sortedComms.slice(0,10).forEach(([c,sz],i)=>{
+leg+='<span class="leg-dot" style="background:'+COLORS[i]+'"></span> '+c.slice(0,18)+' ('+sz+')<br>';
+});
+document.getElementById('legend').innerHTML=leg;
+document.getElementById('info').textContent='scroll zoom · drag to pan · click node for details · hover for edges';
 requestAnimationFrame(loop);
 }
 
+const CELL=80;
+function gridKey(x,y){return Math.floor(x/CELL)+','+Math.floor(y/CELL)}
 function forces(){
-const repel=500,attract=0.005,damp=0.85,maxV=8;
+const repel=300,attract=0.002,damp=0.8,maxV=5;
 for(const n of nodes){n.vx*=damp;n.vy*=damp}
-for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
-const a=nodes[i],b=nodes[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.max(Math.sqrt(dx*dx+dy*dy),1);
-const f=repel/(d*d),fx=dx/d*f,fy=dy/d*f;
-a.vx-=fx;a.vy-=fy;b.vx+=fx;b.vy+=fy;
+const grid=new Map();
+nodes.forEach(n=>{const k=gridKey(n.x,n.y);if(!grid.has(k))grid.set(k,[]);grid.get(k).push(n)});
+for(const n of nodes){
+const gx=Math.floor(n.x/CELL),gy=Math.floor(n.y/CELL);
+for(let dx=-1;dx<=1;dx++)for(let dy=-1;dy<=1;dy++){
+const cell=grid.get((gx+dx)+','+(gy+dy));if(!cell)continue;
+for(const o of cell){
+if(o===n)continue;
+const dx2=o.x-n.x,dy2=o.y-n.y,d=Math.max(Math.sqrt(dx2*dx2+dy2*dy2),1);
+if(d<CELL){const f=repel/(d*d+1),fx=dx2/d*f,fy=dy2/d*f;n.vx-=fx;n.vy-=fy}
+}
+}
 }
 for(const e of edges){
 const dx=e.target.x-e.source.x,dy=e.target.y-e.source.y,d=Math.max(Math.sqrt(dx*dx+dy*dy),1);
@@ -57,49 +122,103 @@ function screenToWorld(sx,sy){return[(sx-W/2)/scale-cx,(sy-H/2)/scale-cy]}
 
 function findNode(sx,sy){
 const[wx,wy]=screenToWorld(sx,sy);
-for(let i=nodes.length-1;i>=0;i--){
-const n=nodes[i],r=n.radius+4;
-if(Math.abs(n.x-wx)<r&&Math.abs(n.y-wy)<r)return n;
-}return null;}
+const r=12/scale;
+let best=null,bestD=r*r;
+for(const n of nodes){const dx=n.x-wx,dy=n.y-wy;const d2=dx*dx+dy*dy;if(d2<bestD){bestD=d2;best=n}}
+return best;
+}
 
 function render(){
 ctx.clearRect(0,0,W,H);
 ctx.save();ctx.translate(W/2,H/2);ctx.scale(scale,scale);ctx.translate(cx,cy);
-ctx.strokeStyle='rgba(48,54,61,0.4)';ctx.lineWidth=0.5/scale;
-for(const e of edges){ctx.beginPath();ctx.moveTo(e.source.x,e.source.y);ctx.lineTo(e.target.x,e.target.y);ctx.stroke()}
-ctx.strokeStyle='rgba(88,166,255,0.3)';ctx.lineWidth=1.5/scale;
-for(const e of edges){if(e.weight>0.7){ctx.beginPath();ctx.moveTo(e.source.x,e.source.y);ctx.lineTo(e.target.x,e.target.y);ctx.stroke()}}
+
+// Edges
+if(scale>0.06||edges.length<2000){
+for(const e of edges){
+const alpha=0.04+e.weight*0.2;
+if(e.weight>0.7){ctx.strokeStyle='rgba(88,166,255,'+alpha+')';ctx.lineWidth=2/scale}
+else{ctx.strokeStyle='rgba(48,54,61,'+alpha+')';ctx.lineWidth=0.3/scale}
+ctx.beginPath();ctx.moveTo(e.source.x,e.source.y);ctx.lineTo(e.target.x,e.target.y);ctx.stroke();
+}
+}
+// Selected node edges
+if(selected){
+const ses=edges.filter(e=>e.source===selected||e.target===selected).slice(0,100);
+ctx.strokeStyle='rgba(240,136,62,0.5)';ctx.lineWidth=2.5/scale;
+for(const e of ses){ctx.beginPath();ctx.moveTo(e.source.x,e.source.y);ctx.lineTo(e.target.x,e.target.y);ctx.stroke()}
+}
+// Hover edges
+if(hovered&&hovered!==selected){
+const hes=edges.filter(e=>e.source===hovered||e.target===hovered).slice(0,30);
+ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=2/scale;
+for(const e of hes){ctx.beginPath();ctx.moveTo(e.source.x,e.source.y);ctx.lineTo(e.target.x,e.target.y);ctx.stroke()}
+}
+
+// Nodes
 for(const n of nodes){
-const r=n.radius,color=COLORS[n.type]||COLORS.default;
-ctx.fillStyle=color;ctx.strokeStyle=n===hovered?'#fff':color;ctx.lineWidth=(n===hovered?3:1)/scale;
-ctx.beginPath();ctx.arc(n.x,n.y,r,0,Math.PI*2);ctx.fill();ctx.stroke();
-if(scale>0.3||n===hovered){ctx.fillStyle='#c9d1d9';ctx.font=Math.max(8,10/scale)+'px system-ui';ctx.fillText(n.label.slice(0,20),n.x+r+3,n.y+4)}
-}ctx.restore();}
+ctx.fillStyle=n.color;ctx.globalAlpha=0.85;
+ctx.beginPath();ctx.arc(n.x,n.y,n.radius,0,Math.PI*2);ctx.fill();
+}
+ctx.globalAlpha=1;
+
+// Selected/hovered highlight
+if(selected){
+ctx.strokeStyle='#f0883e';ctx.lineWidth=4/scale;
+ctx.beginPath();ctx.arc(selected.x,selected.y,selected.radius+3/scale,0,Math.PI*2);ctx.stroke();
+}
+if(hovered&&hovered!==selected){
+ctx.strokeStyle='#fff';ctx.lineWidth=2.5/scale;
+ctx.beginPath();ctx.arc(hovered.x,hovered.y,hovered.radius+2/scale,0,Math.PI*2);ctx.stroke();
+}
+
+// Labels when zoomed
+if(scale>0.18){
+for(const n of nodes){
+const fs=Math.max(7,Math.min(11,10/scale));
+ctx.fillStyle='#c9d1d9';ctx.font=fs+'px system-ui';
+ctx.fillText(n.label,n.x+n.radius+2,n.y+3);
+}
+}
+if(hovered){
+ctx.fillStyle='#fff';ctx.font='bold '+Math.max(9,12/scale)+'px system-ui';
+ctx.fillText(hovered.label,hovered.x+hovered.radius+3,hovered.y+4);
+}
+ctx.restore();
+}
 
 let lastTime=0;
-function loop(t){const dt=t-lastTime;lastTime=t;if(dt>16)for(let i=0;i<3;i++)forces();else forces();render();requestAnimationFrame(loop)}
+function loop(t){
+lastTime=t;
+forces();
+render();
+requestAnimationFrame(loop);
+}
 
 canvas=document.getElementById('c');ctx=canvas.getContext('2d');
-function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+function resize(){
+const wrap=document.getElementById('canvas-wrap');
+W=canvas.width=wrap.clientWidth;H=canvas.height=window.innerHeight;
+}
 resize();window.addEventListener('resize',resize);
 
 let lastX=0,lastY=0,panning=false;
 canvas.addEventListener('mousedown',e=>{
 const n=findNode(e.offsetX,e.offsetY);
-if(n){dragging=n;n.vx=0;n.vy=0;return}
+if(n){dragging=n;n.vx=0;n.vy=0;showPanel(n);return}
 panning=true;lastX=e.offsetX;lastY=e.offsetY;
 });
 canvas.addEventListener('mousemove',e=>{
 if(dragging){const[wx,wy]=screenToWorld(e.offsetX,e.offsetY);dragging.x=wx;dragging.y=wy;return}
 if(panning){cx+=(e.offsetX-lastX)/scale;cy+=(e.offsetY-lastY)/scale;lastX=e.offsetX;lastY=e.offsetY;return}
 hovered=findNode(e.offsetX,e.offsetY);
-const tip=document.getElementById('tooltip');
-if(hovered){tip.style.display='block';tip.style.left=(e.offsetX+16)+'px';tip.style.top=(e.offsetY-16)+'px';
-tip.innerHTML='<b>'+hovered.label+'</b><br><span style="color:#8b949e">'+(TYPE_NAMES[hovered.type]||hovered.type)+' · community '+((hovered.community)||'?')+'</span>'}
-else{tip.style.display='none'}
+canvas.style.cursor=hovered?'pointer':panning?'grabbing':'grab';
 });
 canvas.addEventListener('mouseup',()=>{dragging=null;panning=false});
-canvas.addEventListener('wheel',e=>{e.preventDefault();const ds=e.deltaY>0?0.9:1.1;scale=Math.max(0.05,Math.min(5,scale*ds))});
+canvas.addEventListener('wheel',e=>{e.preventDefault();const ds=e.deltaY>0?0.85:1.18;scale=Math.max(0.03,Math.min(3,scale*ds))});
+canvas.addEventListener('click',e=>{
+// If clicked empty space, deselect
+if(!dragging&&!findNode(e.offsetX,e.offsetY)){selected=null;showPanel(null)}
+});
 
 load();
 </script></body></html>
