@@ -97,7 +97,7 @@ async function loadSessionExpand(id,sid){
   if(sid.startsWith('project:')){
     const pn=sid.slice(8);
     try{
-      const sessions=await fetchJSON(API+'/sessions?limit=500');
+      const sessions=await fetchJSON(API+'/sessions?limit=2000');
       const projSessions=sessions.filter(s=>{
         if(pn==='root')return !s.project||s.project===''||s.project==='root';
         const sp=(s.project||s.cwd||'').toLowerCase();
@@ -113,7 +113,7 @@ async function loadSessionExpand(id,sid){
     const sn=sid.slice(6);
     try{
       const [sessions,detail,skillsData,sessionIds,mentions]=await Promise.all([
-        fetchJSON(API+'/sessions?limit=500'),
+        fetchJSON(API+'/sessions?limit=2000'),
         fetchJSON(API+'/skill-detail?name='+encodeURIComponent(sn)+'&days=3650'),
         fetchJSON(API+'/skills'),
         fetchJSON(API+'/skill-session-ids?name='+encodeURIComponent(sn)).catch(()=>[]),
@@ -169,7 +169,7 @@ async function loadSessionExpand(id,sid){
   if(sid.startsWith('tool:')){
     const tn=sid.slice(5);
     try{
-      const [sessions,detail]=await Promise.all([fetchJSON(API+'/sessions?limit=500'),fetchJSON(API+'/tool-detail?tool='+encodeURIComponent(tn))]);
+      const [sessions,detail]=await Promise.all([fetchJSON(API+'/sessions?limit=2000'),fetchJSON(API+'/tool-detail?tool='+encodeURIComponent(tn))]);
       const sids=new Set(detail.map(d=>d.session_id));
       const filtered=sessions.filter(s=>sids.has(s.id));
       c.innerHTML=renderSessionTable(filtered,30);
@@ -181,7 +181,7 @@ async function loadSessionExpand(id,sid){
   if(sid.startsWith('initiative:')){
     const initName=sid.slice(11);
     try{
-      const sessions=await fetchJSON(API+'/sessions?limit=500');
+      const sessions=await fetchJSON(API+'/sessions?limit=2000');
       const filtered=sessions.filter(s=>s.initiative===initName);
       c.innerHTML=renderSessionTable(filtered,30);
     }catch(e){c.innerHTML='<div class="text-sm text-muted" style="padding:12px">Error: '+e.message+'</div>';}
@@ -439,7 +439,7 @@ function togFE(id, path) {
 async function loadFE(id, path) {
   const c = document.getElementById(id + '-c'); if (!c || c.dataset.loaded) return; c.dataset.loaded = '1';
   try {
-    const data = await fetchJSON(API + '/file-detail?file_path=' + encodeURIComponent(path) + '&limit=100');
+    const data = await fetchJSON(API + '/file-detail?file_path=' + encodeURIComponent(path) + '&limit=500');
     if (!data.length) { c.innerHTML = '<div class="text-xs text-muted" style="padding:8px">No ops</div>'; return; }
     c.innerHTML = '<div class="text-xs text-muted mb-sm">' + data.length + ' ops</div>'
       + data.slice(0, 50).map(x => '<div class="flex gap-md" style="padding:3px 0;font-size:11px;border-bottom:1px solid rgba(30,34,48,0.3)">'
@@ -488,7 +488,7 @@ async function _loadKnowledgeSessions(id, kid){
   try{
     const [kSess,sessions,allK]=await Promise.all([
       fetchJSON(API+'/knowledge/'+kid+'/sessions'),
-      fetchJSON(API+'/sessions?limit=500'),
+      fetchJSON(API+'/sessions?limit=2000'),
       fetchJSON(API+'/knowledge')
     ]);
     // Find this knowledge card
@@ -591,7 +591,7 @@ const SUBNAV={activity:[{id:'summary',label:'Summary',icon:'◉',load:loadOvervi
 const LOAD_MAP={};Object.values(SUBNAV).forEach(v=>v.forEach(i=>LOAD_MAP[i.id]=i.load));
 let currentTab='activity';
 
-function renderTopbar(){document.getElementById('topbar').innerHTML='<div class="topbar-tabs" id="topbar-tabs">'+TABS.map(t=>'<span class="tab'+(t.id==='activity'?' active':'')+'" data-tab="'+t.id+'" onclick="switchTab(\''+t.id+'\')">'+t.icon+' '+t.label+'</span>').join('')+'</div><div class="topbar-status"><span class="status-dot"></span><span class="status-text">Connected</span><span class="topbar-sdk">v2.0</span></div>';}
+function renderTopbar(){document.getElementById('topbar').innerHTML='<div class="topbar-tabs" id="topbar-tabs">'+TABS.map(t=>'<span class="tab'+(t.id==='activity'?' active':'')+'" data-tab="'+t.id+'" onclick="switchTab(\''+t.id+'\')">'+t.icon+' '+t.label+'</span>').join('')+'</div><div class="topbar-status"><span class="status-dot"></span><span class="status-text">Connected</span><span class="topbar-sdk" id="topbar-ver"></span></div>';}
 function switchTab(t){if(t===currentTab)return;currentTab=t;navigate(SUBNAV[t][0].id);}
 function safeLoad(fn){return async function(){try{await fn();}catch(e){const c=document.querySelector('#main .content');if(c)c.innerHTML='<div class="panel-error"><div class="err-icon">⚠</div><div class="err-msg">'+escHtml(e.message)+'</div><button class="retry-btn" onclick="navigate(\''+currentView+'\')">↻ Retry</button></div>';}}}
 
@@ -661,7 +661,7 @@ async function approveSkill(name){try{const r=await fetch(API+'/evolution/approv
 async function rejectSkill(name){try{const r=await fetch(API+'/evolution/reject/'+encodeURIComponent(name),{method:'POST'});const d=await r.json();alert('Rejected: '+d.status);navigate('evolution')}catch(e){alert('Failed: '+e.message)}}
 
 // ── Hotspots ──
-async function loadHotspots(){try{const d=await fetchJSON(API+'/hotspots?limit=50');const mw=Math.max(...d.map(x=>x.writes||0),1);$('#main').innerHTML='<div class="content"><div class="page-title">🔥 File Hotspots</div><div class="page-subtitle">Most frequently modified files with churn breakdown</div><div class="panel"><div class="panel-header">Files<span class="count">'+d.length+'</span></div><div class="panel-body"><table><tr><th>File</th><th>Reads</th><th>Writes</th><th>Deletes</th><th>Sessions</th><th>Projects</th><th>Churn</th><th>Last</th></tr>'+d.map(f=>'<tr><td class="text-xs">'+escHtml((f.path||f.file_path||'').split('/').slice(-2).join('/'))+'</td><td>'+fmtNum(f.reads)+'</td><td><strong>'+fmtNum(f.writes)+'</strong></td><td>'+fmtNum(f.deletes)+'</td><td>'+fmtNum(f.sessions_touched)+'</td><td>'+fmtNum(f.projects)+'</td><td><div style="width:'+Math.round((f.writes||0)/mw*100)+'px;height:4px;background:var(--accent);border-radius:2px"></div></td><td class="text-xs text-muted">'+(f.last_touched||'').slice(0,10)+'</td></tr>').join('')||'<tr><td colspan="8" class="text-muted">No file data</td></tr>'+'</table></div></div></div>'}catch(e){$('#main').innerHTML='<div class="content"><div class="error">Failed: '+e.message+'</div></div>'}}
+async function loadHotspots(){try{const d=await fetchJSON(API+'/hotspots?limit=200');const mw=Math.max(...d.map(x=>x.writes||0),1);$('#main').innerHTML='<div class="content"><div class="page-title">🔥 File Hotspots</div><div class="page-subtitle">Most frequently modified files with churn breakdown</div><div class="panel"><div class="panel-header">Files<span class="count">'+d.length+'</span></div><div class="panel-body"><table><tr><th>File</th><th>Reads</th><th>Writes</th><th>Deletes</th><th>Sessions</th><th>Projects</th><th>Churn</th><th>Last</th></tr>'+d.map(f=>'<tr><td class="text-xs">'+escHtml((f.path||f.file_path||'').split('/').slice(-2).join('/'))+'</td><td>'+fmtNum(f.reads)+'</td><td><strong>'+fmtNum(f.writes)+'</strong></td><td>'+fmtNum(f.deletes)+'</td><td>'+fmtNum(f.sessions_touched)+'</td><td>'+fmtNum(f.projects)+'</td><td><div style="width:'+Math.round((f.writes||0)/mw*100)+'px;height:4px;background:var(--accent);border-radius:2px"></div></td><td class="text-xs text-muted">'+(f.last_touched||'').slice(0,10)+'</td></tr>').join('')||'<tr><td colspan="8" class="text-muted">No file data</td></tr>'+'</table></div></div></div>'}catch(e){$('#main').innerHTML='<div class="content"><div class="error">Failed: '+e.message+'</div></div>'}}
 
 // ── Errors ──
 async function loadErrors(){try{const d=await fetchJSON(API+'/errors');const se=d.session_errors||[];const te=d.tool_errors||[];$('#main').innerHTML='<div class="content"><div class="page-title">⚠ Error Tracking</div><div class="page-subtitle">Tool errors and problematic sessions</div><div class="grid-2 mb-lg"><div class="panel"><div class="panel-header">Tool Errors<span class="count">'+te.length+'</span></div><div class="panel-body" style="max-height:400px;overflow-y:auto"><table><tr><th>Tool</th><th>Errors</th></tr>'+(te.map(e=>'<tr><td><span class="tag tag-tool">'+escHtml(e.tool)+'</span></td><td><span class="value red">'+fmtNum(e.error_count)+'</span></td></tr>').join('')||'<tr><td colspan="2" class="text-muted">No errors detected</td></tr>')+'</table></div></div><div class="panel"><div class="panel-header">Error-Prone Sessions<span class="count">'+se.length+'</span></div><div class="panel-body" style="max-height:400px;overflow-y:auto"><table><tr><th>Session</th><th>Project</th><th>Errors</th><th>Date</th></tr>'+se.map(s=>'<tr><td><span class="clickable text-xs" onclick="viewSession(\''+escHtml(s.id)+'\')">'+shortId(s.id,16)+'</span></td><td>'+escHtml(s.project||'-')+'</td><td><span class="value red">'+fmtNum(s.error_count||0)+'</span></td><td class="text-xs text-muted">'+(s.created_at||'').slice(0,10)+'</td></tr>').join('')||'<tr><td colspan="4" class="text-muted">No error-prone sessions</td></tr>'+'</table></div></div></div></div>'}catch(e){$('#main').innerHTML='<div class="content"><div class="error">Failed: '+e.message+'</div></div>'}}
