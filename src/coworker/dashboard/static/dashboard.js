@@ -84,9 +84,9 @@ async function loadSessionExpand(id,sid){
   function renderSessionTable(sessions, maxRows, label){
     if(!sessions||sessions.length===0)return'<div class="text-sm text-muted" style="padding:20px;text-align:center">No sessions</div>';
     const slice=sessions.slice(0,maxRows||30);
-    let html='<div class="text-xs text-muted mb-sm" style="padding:4px 0">'+(label||sessions.length+' sessions')+'</div><table style="width:100%"><tr><th>ID</th><th>IDE</th><th>Project</th><th>Initiative</th><th class="text-right">Msgs</th><th class="text-right">Tools</th><th>Started</th></tr>';
+    let html='<div class="text-xs text-muted mb-sm" style="padding:4px 0">'+(label||sessions.length+' sessions')+'</div><table style="width:100%"><tr><th>ID</th><th>IDE</th><th>Project</th><th>Init</th><th class="text-right">Msgs</th><th class="text-right">Tools</th><th class="text-right">Dur</th><th>Started</th></tr>';
     slice.forEach(s=>{
-      html+=`<tr style="cursor:pointer" onclick="viewSession('${s.id}')"><td class="text-monospace text-xs">${shortId(s.id,20)}</td><td>${ideIconHtml(s.ide)}</td><td class="text-xs">${s.project||'-'}</td><td>${s.initiative?`<span class="tag tag-session" style="font-size:9px">${s.initiative}</span>`:'-'}</td><td class="text-right">${s.message_count||0}</td><td class="text-right">${s.tool_count||0}</td><td class="text-xs text-muted">${fmtTime(s.created_at)}</td></tr>`;
+      html+=`<tr style="cursor:pointer" onclick="viewSession('${s.id}')"><td class="text-monospace text-xs">${shortId(s.id,20)}</td><td>${ideIconHtml(s.ide)}</td><td class="text-xs">${s.project||'-'}</td><td>${s.initiative?`<span class="tag tag-session" style="font-size:9px">${s.initiative}</span>`:'-'}</td><td class="text-right">${s.message_count||0}</td><td class="text-right">${s.tool_count||0}</td><td class="text-right">${s.duration_min?s.duration_min+'m':'-'}</td><td class="text-xs text-muted">${fmtTime(s.created_at)}</td></tr>`;
     });
     html+='</table>';
     if(sessions.length>maxRows)html+=`<div class="text-xs text-muted" style="padding:8px;text-align:center">… and ${sessions.length-maxRows} more</div>`;
@@ -281,8 +281,8 @@ async function loadOverview(){
   +'<div class="panel"><div class="panel-header">Tools <span class="count">top 10</span></div><div class="panel-body" style="padding:10px 18px">'
   +td.map(x=>{const p=(x.c/mT)*100;return '<div class="flex flex-between mb-sm" onclick="navigate(\'tools\')" style="cursor:pointer"><span class="tag tag-tool">'+x.tool+'</span><div style="flex:1;margin:0 10px"><div class="bar"><div class="bar-fill accent" style="width:'+p+'%"></div></div></div><span class="text-sm text-muted">'+x.c+'</span></div>';}).join('')
   +'<div class="text-xs text-muted" style="text-align:center;margin-top:8px;cursor:pointer" onclick="navigate(\'tools\')">View all tools →</div></div></div></div>'
-  +'<div class="panel"><div class="panel-header">Recent Sessions <span class="count">latest 10</span></div><div class="panel-body"><table><tr><th>Session</th><th>IDE</th><th>Project</th><th>Initiative</th><th class="text-right">Msgs</th><th class="text-right">Tools</th><th>Started</th><th></th></tr>'
-  +rs.map(x=>expRow('<td><span class="clickable" onclick="event.stopPropagation();viewSession(\''+x.id+'\')">'+shortId(x.id,22)+'</span></td><td>'+ideIconHtml(x.ide)+'</td><td>'+(x.project||'-')+'</td><td>'+(x.initiative?'<span class="tag tag-session">'+x.initiative+'</span>':'-')+'</td><td class="text-right">'+(x.message_count||0)+'</td><td class="text-right">'+(x.tool_count||0)+'</td><td class="text-sm text-muted">'+fmtTime(x.created_at)+'</td>','<div class="flex gap-lg"><div><span class="text-xs text-muted">Duration:</span> <span>'+(x.duration_min||'-')+'m</span></div><div><span class="text-xs text-muted">IDE:</span> '+ideIconHtml(x.ide)+'</div><div><span class="text-xs text-muted">Branch:</span> <span>'+(x.branch||'-')+'</span></div><div><span class="text-xs text-muted">Model:</span> <span>'+(x.model||'-')+'</span></div><div><span class="clickable text-sm" onclick="viewSession(\''+x.id+'\')">View Timeline →</span></div></div>')).join('')
+  +'<div class="panel"><div class="panel-header">Recent Sessions <span class="count">latest '+rs.length+'</span></div><div class="panel-body"><table><tr><th>Session</th><th>IDE</th><th>Project</th><th>Initiative</th><th class="text-right">Msgs</th><th class="text-right">Tools</th><th class="text-right">Dur</th><th>Started</th><th></th></tr>'
+  +rs.map(x=>expRow('<td><span class="clickable" onclick="event.stopPropagation();viewSession(\''+x.id+'\')">'+shortId(x.id,22)+'</span></td><td>'+ideIconHtml(x.ide)+'</td><td>'+(x.project||'-')+'</td><td>'+(x.initiative?'<span class="tag tag-session">'+x.initiative+'</span>':'-')+'</td><td class="text-right">'+(x.message_count||0)+'</td><td class="text-right">'+(x.tool_count||0)+'</td><td class="text-right">'+(x.duration_min?x.duration_min+'m':'-')+'</td><td class="text-sm text-muted">'+fmtTime(x.created_at)+'</td>','<div class="flex gap-lg"><div><span class="text-xs text-muted">Duration:</span> <span>'+(x.duration_min||'-')+'m</span></div><div><span class="text-xs text-muted">IDE:</span> '+ideIconHtml(x.ide)+'</div><div><span class="text-xs text-muted">Branch:</span> <span>'+(x.branch||'-')+'</span></div><div><span class="text-xs text-muted">Model:</span> <span>'+(x.model||'-')+'</span></div><div><span class="clickable text-sm" onclick="viewSession(\''+x.id+'\')">View Timeline →</span></div></div>')).join('')
   +'</table></div></div></div>';
 }
 
@@ -291,7 +291,7 @@ async function loadDR(d){$$('.range-btn').forEach(b=>b.classList.toggle('active'
 }
 
 // PROJECTS
-let projData=[],projSort={col:'session_count',dir:-1};
+let projData=[],projSort={col:'project_name',dir:1};
 function sortProjects(col){
   if(projSort.col===col)projSort.dir*=-1;else{projSort.col=col;projSort.dir=-1}
   const d=projData.slice().sort((a,b)=>{
@@ -313,11 +313,11 @@ async function loadProjects(){
     const d=await fetchJSON(API+'/projects');
     if(!d||d.length===0){$('#main').innerHTML='<div class="content"><div class="page-title">Projects</div><div class="panel"><div class="panel-body" style="padding:24px;text-align:center;color:var(--text-muted)">No projects data. Sessions need project attribution.</div></div></div>';return;}
     projData=d;
-    projSort={col:'session_count',dir:-1};
+    projSort={col:'project_name',dir:1};
     $('#main').innerHTML='<div class="content"><div class="page-title">Projects</div><div class="page-subtitle">Cross-project metrics comparison — click headers to sort</div>'
     +'<div class="stat-grid mb-lg"><div class="stat-card"><div class="label">Projects</div><div class="value blue">'+d.length+'</div></div><div class="stat-card"><div class="label">Sessions</div><div class="value">'+d.reduce((a,x)=>a+(x.session_count||0),0)+'</div></div><div class="stat-card"><div class="label">Tools</div><div class="value green">'+fmtNum(d.reduce((a,x)=>a+(x.total_tools||0),0))+'</div></div></div>'
     +'<div class="panel"><div class="panel-body"><table><thead id="proj-thead"></thead><tbody id="proj-tbody"></tbody></table></div></div></div>';
-    sortProjects('session_count');
+    sortProjects('project_name');
   } catch(e) { $('#main').innerHTML='<div class="content"><div class="page-title">Projects</div><div class="error">Failed to load: '+e.message+'</div></div>'; }
 }
 
