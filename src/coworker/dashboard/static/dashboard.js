@@ -291,16 +291,33 @@ async function loadDR(d){$$('.range-btn').forEach(b=>b.classList.toggle('active'
 }
 
 // PROJECTS
+let projData=[],projSort={col:'session_count',dir:-1};
+function sortProjects(col){
+  if(projSort.col===col)projSort.dir*=-1;else{projSort.col=col;projSort.dir=-1}
+  const d=projData.slice().sort((a,b)=>{
+    const av=a[col]||'',bv=b[col]||'';
+    if(typeof av==='string')return av.localeCompare(bv)*projSort.dir;
+    return(av-bv)*projSort.dir;
+  });
+  const cols=['project_name','session_count','total_messages','total_tools','ides','last_session'];
+  const hdr=cols.map(c=>{
+    const labels={project_name:'Project',session_count:'Sessions',total_messages:'Messages',total_tools:'Tool Calls',ides:'IDEs',last_session:'Last Active'};
+    const arrow=projSort.col===c?(projSort.dir>0?' ▴':' ▾'):'';
+    return'<th class="'+(c==='project_name'?'':'text-right')+'" style="cursor:pointer;user-select:none" onclick="sortProjects(\''+c+'\')">'+labels[c]+arrow+'</th>';
+  }).join('');
+  document.getElementById('proj-tbody').innerHTML=d.map(x=>expRow('<td><span class="tag '+(x.project_name==='root'?'tag-skill':'tag-file')+'">'+(x.project_name||'unknown')+'</span></td><td class="text-right">'+fmtNum(x.session_count)+'</td><td class="text-right">'+fmtNum(x.total_messages)+'</td><td class="text-right">'+fmtNum(x.total_tools)+'</td><td class="text-right text-xs">'+(x.ides?Object.keys(x.ides).join(', '):'-')+'</td><td class="text-sm text-muted">'+(x.last_session||'').slice(0,16)+'</td>','<div class="loading" style="padding:20px"><div class="spinner"></div><span>Loading sessions for '+escHtml(x.project_name||'')+'…</span></div>','project:'+encodeURIComponent(x.project_name||''))).join('');
+  document.getElementById('proj-thead').innerHTML=hdr;
+}
 async function loadProjects(){
   try {
     const d=await fetchJSON(API+'/projects');
     if(!d||d.length===0){$('#main').innerHTML='<div class="content"><div class="page-title">Projects</div><div class="panel"><div class="panel-body" style="padding:24px;text-align:center;color:var(--text-muted)">No projects data. Sessions need project attribution.</div></div></div>';return;}
-    const mS=Math.max(...d.map(x=>x.session_count||0),1);
-    $('#main').innerHTML='<div class="content"><div class="page-title">Projects</div><div class="page-subtitle">Cross-project metrics comparison</div>'
+    projData=d;
+    projSort={col:'session_count',dir:-1};
+    $('#main').innerHTML='<div class="content"><div class="page-title">Projects</div><div class="page-subtitle">Cross-project metrics comparison — click headers to sort</div>'
     +'<div class="stat-grid mb-lg"><div class="stat-card"><div class="label">Projects</div><div class="value blue">'+d.length+'</div></div><div class="stat-card"><div class="label">Sessions</div><div class="value">'+d.reduce((a,x)=>a+(x.session_count||0),0)+'</div></div><div class="stat-card"><div class="label">Tools</div><div class="value green">'+fmtNum(d.reduce((a,x)=>a+(x.total_tools||0),0))+'</div></div></div>'
-    +'<div class="panel"><div class="panel-body"><table><tr><th>Project</th><th class="text-right">Sessions</th><th class="text-right">Messages</th><th class="text-right">Tool Calls</th><th class="text-right">IDEs</th><th>Last Active</th><th></th></tr>'
-    +d.map(x=>expRow('<td><span class="tag '+(x.project_name==='root'?'tag-skill':'tag-file')+'">'+(x.project_name||'unknown')+'</span></td><td class="text-right">'+fmtNum(x.session_count)+'</td><td class="text-right">'+fmtNum(x.total_messages)+'</td><td class="text-right">'+fmtNum(x.total_tools)+'</td><td class="text-right text-xs">'+(x.ides?Object.keys(x.ides).join(', '):'-')+'</td><td class="text-sm text-muted">'+(x.last_session||'').slice(0,16)+'</td>','<div class="loading" style="padding:20px"><div class="spinner"></div><span>Loading sessions for '+escHtml(x.project_name||'')+'…</span></div>','project:'+encodeURIComponent(x.project_name||''))).join('')
-    +'</table></div></div></div>';
+    +'<div class="panel"><div class="panel-body"><table><thead id="proj-thead"></thead><tbody id="proj-tbody"></tbody></table></div></div></div>';
+    sortProjects('session_count');
   } catch(e) { $('#main').innerHTML='<div class="content"><div class="page-title">Projects</div><div class="error">Failed to load: '+e.message+'</div></div>'; }
 }
 
