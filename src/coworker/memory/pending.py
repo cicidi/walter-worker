@@ -83,7 +83,7 @@ def _promote_to_active(data: dict) -> None:
     usage = {
         "provenance": "agent",
         "total_calls": data.get("tool_call_count", 0),
-        "state": "active",
+        "state": "pending",  # requires user approval to become active
         "created_at": data.get("staged_at", ""),
         "promoted_at": data.get("approved_at", ""),
         "source_session": data.get("source_session", ""),

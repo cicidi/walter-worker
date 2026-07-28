@@ -1,6 +1,9 @@
 import json
 import logging
+from pathlib import Path
 from importlib.resources import files as resource_files
+
+import yaml
 
 from fastapi import FastAPI, WebSocket, HTTPException
 from fastapi.staticfiles import StaticFiles
@@ -93,6 +96,31 @@ def api_evolution_skill_detail(name: str):
     skills = queries.query_evolution_skills(auto_train=False, status="all")
     for s in skills:
         if s["name"] == name:
+            # Enrich with SKILL.md content for review
+            s["content"] = ""
+            s["description"] = s.get("description", "")
+            skill_paths = [
+                Path.home() / ".coworker" / "skills" / name / "SKILL.md",
+                Path("skills") / name / "SKILL.md",
+            ]
+            for sp in skill_paths:
+                if sp.exists():
+                    s["content"] = sp.read_text()
+                    # Parse description from frontmatter if not already set
+                    if not s["description"]:
+                        text = s["content"]
+                        if text.startswith("---"):
+                            end = text.find("---", 3)
+                            if end != -1:
+                                try:
+                                    import yaml
+                                    fm = yaml.safe_load(text[3:end])
+                                    if isinstance(fm, dict):
+                                        s["description"] = fm.get("description", "")
+                                        s["when_to_use"] = fm.get("when-to-use", "")
+                                except Exception:
+                                    pass
+                    break
             return s
     raise HTTPException(status_code=404, detail=f"Skill '{name}' not found")
 
