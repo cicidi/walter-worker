@@ -15,7 +15,8 @@ def query_cost_analytics():
     conn = _get_db_conn()
     try:
         model_stats = conn.execute(
-            """SELECT s.model,
+            """SELECT CASE WHEN s.model LIKE '{%}' THEN json_extract(s.model, '$.id')
+                           ELSE s.model END as model,
                       COUNT(DISTINCT s.id) as sessions,
                       COALESCE(SUM(ss.tokens_input),0) as total_input,
                       COALESCE(SUM(ss.tokens_output),0) as total_output,
@@ -31,7 +32,7 @@ def query_cost_analytics():
                FROM sessions s
                LEFT JOIN session_stats ss ON s.id = ss.session_id
                WHERE ss.tokens_input > 0
-               GROUP BY s.model
+               GROUP BY model
                ORDER BY total_cost DESC"""
         ).fetchall()
         daily = conn.execute(
@@ -127,7 +128,10 @@ def query_models():
     conn = _get_db_conn()
     try:
         rows = conn.execute(
-            """SELECT COALESCE(s.model,'unknown') as model_group,
+            """SELECT COALESCE(
+                      CASE WHEN s.model LIKE '{%}' THEN json_extract(s.model, '$.id')
+                           ELSE s.model END,
+                      'unknown') as model_group,
                       COUNT(DISTINCT s.id) as session_count,
                       COUNT(DISTINCT tc.call_id) as request_count,
                       COALESCE(SUM(ss.tokens_input),0) as total_tokens_in,
@@ -142,7 +146,7 @@ def query_models():
                LEFT JOIN session_stats ss ON s.id = ss.session_id
                LEFT JOIN tool_calls tc ON s.id = tc.session_id
                WHERE s.model IS NOT NULL
-               GROUP BY s.model
+               GROUP BY model
                ORDER BY total_cost DESC"""
         ).fetchall()
         return [dict(r) for r in rows]
