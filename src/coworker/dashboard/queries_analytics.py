@@ -146,7 +146,7 @@ def query_models():
                LEFT JOIN session_stats ss ON s.id = ss.session_id
                LEFT JOIN tool_calls tc ON s.id = tc.session_id
                WHERE s.model IS NOT NULL
-               GROUP BY model
+               GROUP BY model_group
                ORDER BY total_cost DESC"""
         ).fetchall()
         return [dict(r) for r in rows]
