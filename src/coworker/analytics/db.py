@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS messages (
     content       TEXT,
     ts            TEXT NOT NULL
 );
+CREATE UNIQUE INDEX IF NOT EXISTS idx_msg_unique ON messages(session_id, seq);
 CREATE INDEX IF NOT EXISTS idx_msg_session_seq ON messages(session_id, seq);
 
 CREATE TABLE IF NOT EXISTS tool_calls (
@@ -45,6 +46,7 @@ CREATE TABLE IF NOT EXISTS tool_calls (
     seq_after       INTEGER,
     ts              TEXT NOT NULL
 );
+CREATE UNIQUE INDEX IF NOT EXISTS idx_tc_unique ON tool_calls(session_id, call_id);
 CREATE INDEX IF NOT EXISTS idx_tc_session ON tool_calls(session_id);
 CREATE INDEX IF NOT EXISTS idx_tc_parent ON tool_calls(parent_call_id);
 CREATE INDEX IF NOT EXISTS idx_tc_tool ON tool_calls(tool);
