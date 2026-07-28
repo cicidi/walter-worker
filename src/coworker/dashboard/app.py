@@ -77,6 +77,71 @@ def api_file_stats():
 
 
 # ---------------------------------------------------------------------------
+# Graph page endpoints (Spec §7.2)
+# ---------------------------------------------------------------------------
+
+
+@app.get("/api/graph")
+def api_graph():
+    """Return memory graph data for visualization.
+
+    Spec §7.2: Node color by type, edge thickness by weight.
+    Returns nodes + edges with computed effective weights.
+    """
+    from coworker.memory.storage import load_graph
+    from coworker.memory.decay import compute_effective_weight, query_filter
+
+    graph = load_graph()
+    nodes_out = []
+    edges_out = []
+
+    for node in graph.nodes:
+        nodes_out.append({
+            "id": node.id,
+            "label": node.label or node.id,
+            "type": node.type,
+            "provenance": node.provenance,
+            "source_file": node.source_file,
+            "community": node.community,
+            "session_count": node.session_count,
+        })
+
+    for edge in graph.links:
+        ew = compute_effective_weight(edge.base_weight, edge.last_traversed_at)
+        qf = query_filter(ew)
+        edges_out.append({
+            "source": edge.source,
+            "target": edge.target,
+            "relation": edge.relation,
+            "confidence": edge.confidence,
+            "base_weight": edge.base_weight,
+            "effective_weight": ew,
+            "filter": qf,
+            "provenance": edge.provenance,
+        })
+
+    return {
+        "schema_version": graph.schema_version,
+        "nodes": nodes_out,
+        "edges": edges_out,
+        "stats": {
+            "total_nodes": len(nodes_out),
+            "total_edges": len(edges_out),
+            "by_type": _count_by(nodes_out, "type"),
+            "by_filter": _count_by(edges_out, "filter"),
+        },
+    }
+
+
+def _count_by(items: list[dict], key: str) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for item in items:
+        v = item.get(key, "unknown")
+        counts[v] = counts.get(v, 0) + 1
+    return counts
+
+
+# ---------------------------------------------------------------------------
 # Evolution page endpoints (Spec §11.1)
 # ---------------------------------------------------------------------------
 

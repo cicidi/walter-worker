@@ -6,37 +6,30 @@ async function fetchJSON(url) { const r=await fetch(url); if(!r.ok) throw new Er
 function $(s) { return document.querySelector(s); }
 function $$(s) { return document.querySelectorAll(s); }
 
-function renderSidebar() {
-  const views = [
-    {id:'overview',label:'Overview',icon:'◉',section:'Analytics'},
-    {id:'projects',label:'Projects',icon:'◫',section:'Analytics'},
-    {id:'sessions',label:'Sessions',icon:'☰',section:'Analytics'},
-    {id:'models',label:'Models',icon:'⚙',section:'Monitoring'},
-    {id:'skills',label:'Skills',icon:'⚡',section:'Monitoring'},
-    {id:'tools',label:'Tools',icon:'🔧',section:'Monitoring'},
-    {id:'files',label:'Files',icon:'📁',section:'Monitoring'},
-    {id:'knowledge',label:'Knowledge',icon:'✓',section:'Analytics'},
-    {id:'initiatives',label:'Initiatives',icon:'📋',section:'Analytics'},
-    {id:'evolution',label:'Evolution',icon:'⬡',section:'Monitoring'},
-    {id:'hotspots',label:'Hotspots',icon:'🔥',section:'Analytics'},
-    {id:'errors',label:'Errors',icon:'⚠',section:'Monitoring'},
-    {id:'memory',label:'Memory',icon:'◎',section:'Control'},
-    {id:'cost',label:'Cost & Tokens',icon:'💰',section:'Analytics'},
-    {id:'efficiency',label:'Efficiency',icon:'📊',section:'Analytics'},
-    {id:'quality',label:'Data Quality',icon:'🔍',section:'Control'},
-  ];
-  let html='<div class="sidebar-header"><span class="icon">◆</span> Coworker</div>';
-  let ls='';
-  views.forEach(v => {
-    if(v.section!==ls){html+=`<div class="nav-section"><div class="nav-label">${v.section}</div>`;ls=v.section;}
-    html+=`<div class="nav-item${v.id===currentView?' active':''}" onclick="navigate('${v.id}')">${v.icon} ${v.label}</div>`;
+function renderNav() {
+  const items = SUBNAV[currentTab];
+  let html = '<div class="sidebar-header"><span class="icon">◆</span> Coworker</div><div class="subnav">';
+  items.forEach(i => {
+    const a = i.id === currentView ? ' active' : '';
+    html += '<div class="subnav-item' + a + '" onclick="navigate(\'' + i.id + '\')"><span class="icon">' + i.icon + '</span> ' + i.label;
+    if (i.toggle) html += '<span class="subnav-toggle">Hotspots</span>';
+    html += '</div>';
   });
-  $('#sidebar').innerHTML=html;
+  html += '</div>';
+  $('#sidebar').innerHTML = html;
+  document.querySelectorAll('#topbar-tabs .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === currentTab));
 }
 
-function navigate(view,ph=true){if(ph&&currentView!==view)viewHistory.push(currentView);currentView=view;renderSidebar();
-  $('#main').innerHTML='<div class="content"><div class="loading"><div class="spinner"></div><span>Loading...</span></div></div>';
-  const l={overview:loadOverview,projects:loadProjects,sessions:loadSessions,models:loadModels,skills:loadSkills,tools:loadTools,files:loadFiles,knowledge:loadKnowledge,initiatives:loadInitiatives,evolution:loadEvolution,hotspots:loadHotspots,errors:loadErrors,memory:loadMemory,cost:loadCost,efficiency:loadEfficiency,quality:loadQuality};(l[view]||loadOverview)();
+function navigate(view, ph) {
+  if (ph !== false && currentView !== view) viewHistory.push(currentView);
+  currentView = view;
+  for (const [tid, items] of Object.entries(SUBNAV)) {
+    if (items.find(i => i.id === view)) { currentTab = tid; break; }
+  }
+  renderNav();
+  $('#main').innerHTML = '<div class="content">' + skForView(currentView) + '</div>';
+  const fn = LOAD_MAP[view] || loadOverview;
+  safeLoad(fn)().then(enrichContent);
 }
 function goBack(){const p=viewHistory.pop();if(p)navigate(p,false);}
 function timeAgo(ts){if(!ts)return'-';const m=Math.floor((Date.now()-new Date(ts).getTime())/60000);if(m<1)return'now';if(m<60)return m+'m';const h=Math.floor(m/60);return h<24?h+'h':Math.floor(h/24)+'d';}
@@ -533,10 +526,38 @@ function toggleTl(id){
   f.style.display=sh?'block':'none';
 }
 
+// ── Tab Navigation ──
+const TABS=[{id:'activity',label:'Activity',icon:'◉'},{id:'insights',label:'Insights',icon:'◎'},{id:'system',label:'System',icon:'⚙'}];
+const SUBNAV={activity:[{id:'summary',label:'Summary',icon:'◉',load:loadOverview},{id:'sessions',label:'Sessions',icon:'☰',load:loadSessions},{id:'files',label:'Files',icon:'📁',load:loadFiles,toggle:1}],insights:[{id:'usage',label:'Usage',icon:'◫',load:loadProjects},{id:'cost',label:'Cost',icon:'💰',load:loadCost},{id:'quality',label:'Quality',icon:'🔍',load:loadQuality},{id:'knowledge',label:'Knowledge',icon:'✓',load:loadKnowledge}],system:[{id:'health',label:'Health',icon:'◉',load:loadHealth},{id:'errors',label:'Errors',icon:'⚠',load:loadErrors},{id:'evolution',label:'Evolution',icon:'⬡',load:loadEvolution}]};
+const LOAD_MAP={};Object.values(SUBNAV).forEach(v=>v.forEach(i=>LOAD_MAP[i.id]=i.load));
+let currentTab='activity';
+
+function renderTopbar(){document.getElementById('topbar').innerHTML='<div class="topbar-tabs" id="topbar-tabs">'+TABS.map(t=>'<span class="tab'+(t.id==='activity'?' active':'')+'" data-tab="'+t.id+'" onclick="switchTab(\''+t.id+'\')">'+t.icon+' '+t.label+'</span>').join('')+'</div><div class="topbar-status"><span class="status-dot"></span><span class="status-text">Connected</span><span class="topbar-sdk">v2.0</span></div>';}
+function switchTab(t){if(t===currentTab)return;currentTab=t;navigate(SUBNAV[t][0].id);}
+function safeLoad(fn){return async function(){try{await fn();}catch(e){const c=document.querySelector('#main .content');if(c)c.innerHTML='<div class="panel-error"><div class="err-icon">⚠</div><div class="err-msg">'+escHtml(e.message)+'</div><button class="retry-btn" onclick="navigate(\''+currentView+'\')">↻ Retry</button></div>';}}}
+
+async function loadHealth(){
+  $('#main').innerHTML='<div class="content"><div class="page-title">◉ System Health</div><div class="page-subtitle">Model performance, tool latency, and system status</div>'+skStatCards(4)+'<div class="grid-2">'+skPanel('Model Performance',5)+skPanel('Tool Health',5)+'</div></div>';
+  try{const[md,tl]=await Promise.all([fetchJSON(API+'/models').catch(()=>[]),fetchJSON(API+'/tools').catch(()=>[])]);const tc=md.reduce((a,x)=>a+(x.total_cost||0),0),tt=md.reduce((a,x)=>a+(x.total_tokens_in||0)+(x.total_tokens_out||0),0);const tlc=tl.reduce((a,x)=>a+(x.calls||0),0),al=tl.length?Math.round(tl.reduce((a,x)=>a+(x.avg_ms||0),0)/tl.length):0;
+  $('#main').innerHTML='<div class="content"><div class="page-title">◉ System Health</div><div class="page-subtitle">Model performance, tool latency, and system status</div>'+'<div class="stat-grid"><div class="stat-card"><div class="label">Models</div><div class="value cyan">'+md.length+'</div><div class="sub">'+md.reduce((a,x)=>a+(x.session_count||0),0)+' sessions</div></div><div class="stat-card"><div class="label">Total Cost</div><div class="value green">$'+tc.toFixed(4)+'</div></div><div class="stat-card"><div class="label">Total Tokens</div><div class="value blue">'+fmtNum(tt)+'</div></div><div class="stat-card"><div class="label">Avg Latency</div><div class="value '+(al>5000?'yellow':'green')+'">'+al+'ms</div><div class="sub">'+tlc+' calls, '+tl.length+' tools</div></div></div><div class="grid-2"><div class="panel"><div class="panel-header">Model Performance<span class="count">'+md.length+' models</span></div><div class="panel-body"><table><tr><th>Model</th><th class="text-right">Sess</th><th class="text-right">In</th><th class="text-right">Out</th><th class="text-right">Cost</th></tr>'+md.map(m=>'<tr><td><span class="tag tag-tool">'+(m.model_group||'?')+'</span></td><td class="text-right">'+(m.session_count||0)+'</td><td class="text-right">'+fmtNum(m.total_tokens_in||0)+'</td><td class="text-right">'+fmtNum(m.total_tokens_out||0)+'</td><td class="text-right">$'+(m.total_cost||0).toFixed(4)+'</td></tr>').join('')+'</table></div></div><div class="panel"><div class="panel-header">Tool Health<span class="count">'+tl.length+' tools</span></div><div class="panel-body"><table><tr><th>Tool</th><th class="text-right">Calls</th><th class="text-right">Avg ms</th><th class="text-right">Max ms</th></tr>'+tl.map(t=>'<tr><td><span class="tag tag-tool">'+t.tool+'</span></td><td class="text-right">'+t.calls+'</td><td class="text-right">'+(t.avg_ms||'-')+'</td><td class="text-right">'+(t.max_ms||'-')+'</td></tr>').join('')+'</table></div></div></div></div>';}catch(e){const c=document.querySelector('#main .content');if(c)c.innerHTML='<div class="panel-error"><div class="err-icon">⚠</div><div class="err-msg">Failed: '+escHtml(e.message)+'</div><button class="retry-btn" onclick="loadHealth()">↻ Retry</button></div>';}
+}
+
+// ── Skeleton Helpers ──
+function skStatCards(n){let h='<div class="sk-stat-grid">';for(let i=0;i<n;i++)h+='<div class="sk-card"><div class="sk-l"></div><div class="sk-v"></div><div class="sk-s"></div></div>';return h+'</div>';}
+const skW=[65,45,80,55,70,35,90,60];
+function skPanel(title,n){n=n||5;let h='<div class="sk-panel"><div class="sk-ph"><div class="sk" style="width:'+Math.min((title.length||8)*9,200)+'px"></div></div><div class="sk-pb">';for(let i=0;i<n;i++)h+='<div class="sk-r"><div class="sk" style="width:'+skW[i%skW.length]+'%"></div></div>';return h+'</div></div>';}
+function skForView(v){switch(v){case'summary':return skStatCards(5)+'<div class="grid-2 mb-lg">'+skPanel('Daily Sessions',7)+skPanel('Tools',7)+'</div>'+skPanel('Recent Sessions',6);case'sessions':case'files':return skStatCards(3)+skPanel('Data',8);case'hotspots':return skPanel('File Hotspots',10);case'usage':return skStatCards(3)+skPanel('Usage',10);case'cost':return skStatCards(3)+skPanel('Cost Details',8);case'quality':return skStatCards(3)+skPanel('Quality Metrics',8);case'knowledge':return skStatCards(2)+skPanel('Knowledge',8);case'health':return skStatCards(4)+'<div class="grid-2">'+skPanel('Models',5)+skPanel('Tools',5)+'</div>';case'errors':return '<div class="grid-2">'+skPanel('Tool Errors',6)+skPanel('Error Sessions',6)+'</div>';case'evolution':return skStatCards(5)+'<div class="grid-2">'+skPanel('Skills',6)+skPanel('Experiences',6)+'</div>';default:return skStatCards(3)+skPanel('Data',5);}}
+
+// ── Info Tooltip ──
+function infoTrigger(title,source,purpose){return '<span class="info-trigger">ℹ<span class="info-tip"><span class="tip-title">'+escHtml(title)+'</span><span class="tip-source">'+escHtml(source)+'</span><span class="tip-purpose">'+escHtml(purpose)+'</span></span></span>';}
+const INFO_MAP={summary:{'Sessions':{source:'overview.total_sessions',purpose:'Total AI coding sessions recorded'},'Messages':{source:'overview.total_messages',purpose:'Assistant + user messages across sessions'},'Tool Calls':{source:'overview.tool_distribution',purpose:'Aggregated tool invocation count'},'Skills':{source:'overview.total_skills',purpose:'Unique skills invoked'},'Knowledge':{source:'overview.total_knowledge',purpose:'Cross-session validated insights'}},'summary-th':{'Session':{source:'sessions.id',purpose:'Unique session identifier'},'IDE':{source:'sessions.ide',purpose:'CLI tool or editor used'}}};
+function getInfo(v,l){const m=INFO_MAP[v];if(m&&m[l])return m[l];return{title:l,source:'api/'+v,purpose:'Metric from '+v+' view'};}
+function enrichContent(){document.querySelectorAll('.stat-card .value').forEach(el=>{if(el.querySelector('.info-trigger'))return;const lb=(el.closest('.stat-card')?.querySelector('.label')?.textContent||'').trim();if(lb){const i=getInfo(currentView,lb);el.insertAdjacentHTML('beforeend',' '+infoTrigger(i.title,i.source,i.purpose));}});document.querySelectorAll('th').forEach(th=>{if(th.querySelector('.info-trigger'))return;const t=th.textContent.trim();if(t&&t.length<25&&!/^\d+$/.test(t)){const i=getInfo(currentView+'-th',t);th.insertAdjacentHTML('beforeend',' '+infoTrigger(i.title,i.source,i.purpose));}});}
+
 // AUTO-REFRESH
 let ri=null;
-function startAR(view,ms){if(ri)clearInterval(ri);ri=setInterval(()=>{if(document.hidden)return;if(view==='overview')loadOverview();},ms);}
-const _n=navigate;navigate=function(view,ph){if(ri)clearInterval(ri);_n(view,ph);if(view==='overview')startAR(view,15000);};
+function startAR(view,ms){if(ri)clearInterval(ri);ri=setInterval(()=>{if(document.hidden)return;if(view==='summary')loadOverview();},ms);}
+const _n=navigate;navigate=function(view,ph){if(ri)clearInterval(ri);_n(view,ph);if(view==='summary')startAR(view,15000);};
 
 // ── Evolution (self-evolving-agent initiative) ──
 async function loadEvolution(){try{const o=await fetchJSON(API+'/evolution/overview');const sk=await fetchJSON(API+'/evolution/skills?status=all');const ex=await fetchJSON(API+'/evolution/experiences?status=all');const sc=o.evolution_score>=50?'green':o.evolution_score>=30?'yellow':'red';$('#main').innerHTML='<div class="content"><div class="page-title">⬡ Evolution Monitor</div><div class="page-subtitle">Self-evolving agent metrics — skills, experiences, and pending review</div><div class="stat-grid"><div class="stat-card"><div class="label">Evolution Score</div><div class="value '+sc+'">'+o.evolution_score+'</div><div class="sub">/100 target ≥50</div></div><div class="stat-card"><div class="label">Auto-Trained Skills</div><div class="value green">'+o.auto_trained_skills+'</div></div><div class="stat-card"><div class="label">Experiences</div><div class="value blue">'+o.auto_trained_experiences+'</div></div><div class="stat-card"><div class="label">Skill Reuse Rate</div><div class="value">'+Math.round(o.skill_reuse_rate*100)+'%</div></div><div class="stat-card"><div class="label">Pending Review</div><div class="value '+(o.pending_review>0?'yellow':'green')+'">'+o.pending_review+'</div></div></div><div class="grid-2 mb-lg"><div class="panel"><div class="panel-header">Skills<span class="count">'+sk.length+'</span></div><div class="panel-body" style="max-height:400px;overflow-y:auto"><table><tr><th>Name</th><th>Source</th><th>Health</th><th>Calls</th><th>Sessions</th><th>Reuse</th></tr>'+(sk.length?sk.map(s=>'<tr><td><span class="clickable" onclick="viewEvolutionSkill(\''+escHtml(s.name)+'\')">'+escHtml(s.name)+'</span></td><td><span class="tag '+((s.provenance||'')==='agent'?'tag-ide-claude':(s.provenance||'')==='bundled'?'tag-ide-gemini':'tag-tool')+'">'+escHtml(s.provenance||'?')+'</span></td><td><span class="tag '+((s.state||'')==='active'?'tag-knowledge':(s.state||'')==='stale'?'tag-skill':'tag-tool')+'">'+escHtml(s.state||'?')+'</span></td><td>'+fmtNum(s.total_calls)+'</td><td>'+fmtNum(s.sessions_invoked)+'</td><td>'+Math.round(s.reuse_rate*100)+'%</td></tr>').join(''):'<tr><td colspan="6" class="text-muted">No skills</td></tr>')+'</table></div></div><div class="panel"><div class="panel-header">Experiences<span class="count">'+ex.length+'</span></div><div class="panel-body" style="max-height:400px;overflow-y:auto">'+(ex.length?ex.slice(0,50).map(e=>'<div style="padding:8px 12px;border-bottom:1px solid var(--border);font-size:11px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span class="tag tag-skill">'+escHtml(e.state||'active')+'</span><span class="tag tag-tool text-xs">'+escHtml(e.topic||'')+'</span></div><div style="color:var(--text-secondary);line-height:1.4">'+escHtml((e.memory||'').slice(0,200))+'</div><div style="margin-top:4px;display:flex;gap:8px;font-size:10px;color:var(--text-muted)"><span>📊 '+fmtNum(e.use_count)+' uses</span><span>📁 '+escHtml(e.project||'')+'</span>'+(e.last_used?'<span>🕐 '+e.last_used.slice(0,10)+'</span>':'')+'</div></div>').join(''):'<div style="padding:24px;text-align:center;color:var(--text-muted)">No experiences stored yet.</div>')+'</div></div></div></div>'}catch(e){$('#main').innerHTML='<div class="content"><div class="page-title">Evolution</div><div class="error">Failed: '+e.message+'. Ensure mem0 is configured (DEEPSEEK_API_KEY).</div></div>'}}
@@ -565,4 +586,4 @@ async function loadEfficiency(){try{const d=await fetchJSON(API+'/efficiency');$
 async function loadQuality(){try{const d=await fetchJSON(API+'/data-quality');function bar(pct){return'<div style="display:flex;align-items:center;gap:8px"><div style="flex:1;height:6px;background:var(--bg-tertiary);border-radius:3px"><div style="width:'+pct+'%;height:6px;background:'+(pct>80?'var(--green)':pct>40?'var(--yellow)':'var(--red)')+';border-radius:3px"></div></div><span style="font-size:10px;color:'+(pct>80?'var(--green)':pct>40?'var(--yellow)':'var(--red)')+'">'+pct+'%</span></div>'}$('#main').innerHTML='<div class="content"><div class="page-title">🔍 Data Quality</div><div class="page-subtitle">Coverage rates for '+fmtNum(d.total_sessions)+' total sessions</div><div class="panel"><div class="panel-header">Coverage Metrics</div><div class="panel-body" style="padding:16px"><table><tr><th>Metric</th><th>Covered</th><th>Missing</th><th>Rate</th></tr><tr><td>Project</td><td>'+fmtNum(d.project.covered)+'</td><td>'+fmtNum(d.project.missing)+'</td><td>'+bar(d.project.pct)+'</td></tr><tr><td>Initiative</td><td>'+fmtNum(d.initiative.covered)+'</td><td>'+fmtNum(d.initiative.missing)+'</td><td>'+bar(d.initiative.pct)+'</td></tr><tr><td>Closed Tracking</td><td>'+fmtNum(d.closed.covered)+'</td><td>'+fmtNum(d.closed.missing)+'</td><td>'+bar(d.closed.pct)+'</td></tr><tr><td>Tokens</td><td>'+fmtNum(d.tokens.covered)+'</td><td>'+fmtNum(d.tokens.missing)+'</td><td>'+bar(d.tokens.pct)+'</td></tr><tr><td>Summaries</td><td>'+fmtNum(d.summaries.covered)+'</td><td>'+fmtNum(d.summaries.missing)+'</td><td>'+bar(d.summaries.pct)+'</td></tr></table></div></div><div class="text-xs text-muted mt-sm" style="padding:8px 16px">💡 Run <code>coworker memory train</code> to backfill summaries and tokens.</div></div>'}catch(e){$('#main').innerHTML='<div class="content"><div class="error">Failed: '+e.message+'</div></div>'}}
 
 // INIT
-renderSidebar();loadOverview();startAR('overview',15000);
+renderTopbar();navigate('summary');
