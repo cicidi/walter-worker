@@ -213,8 +213,12 @@ def query_file_hotspots(limit: int = 30):
         rows = conn.execute(
             """SELECT path, file_type, COUNT(*) as total_ops,
                       SUM(CASE WHEN op='write' THEN 1 ELSE 0 END) as writes,
+                      SUM(CASE WHEN op='edit' THEN 1 ELSE 0 END) as edits,
                       SUM(CASE WHEN op='read' THEN 1 ELSE 0 END) as reads,
-                      COUNT(DISTINCT session_id) as sessions_touched
+                      SUM(CASE WHEN op NOT IN ('read','write','edit','glob') THEN 1 ELSE 0 END) as deletes,
+                      COUNT(DISTINCT session_id) as sessions_touched,
+                      COUNT(DISTINCT project) as projects,
+                      MAX(ts) as last_touched
                FROM file_ops
                GROUP BY path
                ORDER BY total_ops DESC
