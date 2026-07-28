@@ -204,6 +204,43 @@ def memory_validate(task, task_file, compare_baseline):
     console.print(f"  Tool call reduction:     {report['tool_call_reduction']}")
     console.print(f"  Baseline assumptions:    {report['baseline']['incorrect_assumptions']} incorrect")
     console.print(f"  Memory assumptions:      {report['with_memory']['incorrect_assumptions']} incorrect")
+
+
+@memory.command("wrong-history")
+@click.argument("action", type=click.Choice(["record", "index"]))
+@click.option("--summary", default=None, help="One-line summary of the mistake")
+@click.option("--rule", "prevention_rule", default=None, help="Prevention rule")
+@click.option("--severity", default="high", type=click.Choice(["critical", "high", "medium", "low"]))
+@click.option("--category", default="code-quality", type=click.Choice(["tool-use", "code-quality", "process", "communication", "design"]))
+@click.option("--what", "what_happened", default="", help="What happened")
+@click.option("--why", "root_cause", default="", help="Root cause")
+@click.option("--fix", "fix_desc", default="", help="What was done to fix it")
+def memory_wrong_history(action, summary, prevention_rule, severity, category, what_happened, root_cause, fix_desc):
+    """Manage wrong-history entries — record mistakes or rebuild index."""
+    from .memory.wrong_history import record_entry, _rebuild_index
+
+    if action == "index":
+        _rebuild_index()
+        console.print("[green]Wrong-history INDEX rebuilt[/green]")
+        return
+
+    if action == "record":
+        if not summary or not prevention_rule:
+            console.print("[red]--summary and --rule are required for record[/red]")
+            return
+        path = record_entry(
+            summary=summary,
+            prevention_rule=prevention_rule,
+            severity=severity,
+            category=category,
+            what_happened=what_happened,
+            root_cause=root_cause,
+            fix=fix_desc,
+        )
+        if path:
+            console.print(f"[green]Created wrong-history entry: {path.name}[/green]")
+        else:
+            console.print("[red]Failed to create entry[/red]")
     console.print(f"  Skills invoked:          {', '.join(report['with_memory']['skills_invoked']) or 'none'}")
     console.print(f"  Experiences retrieved:   {', '.join(report['with_memory']['experiences_retrieved']) or 'none'}")
     console.print(f"  [bold]Verdict: {report['verdict'].upper()}[/bold]")

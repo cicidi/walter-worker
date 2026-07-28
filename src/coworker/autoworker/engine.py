@@ -147,8 +147,13 @@ class AutoWorkerAgent:
             prior_context = self._read_prior_state()
 
             # Build round-specific prompt
+            wrong_history_note = (
+                "\n\n**After every fix you make**, record the lesson by running:\n"
+                "  `coworker memory wrong-history record --summary '<one-line>' --rule '<prevention rule>' --severity high --category code-quality`\n"
+                "This ensures mistakes are documented and prevented in future sessions."
+            )
             if round_num == 1:
-                prompt = base_prompt + "\n\n" + prior_context + "\n\nBegin your investigation. Use grep, Read, and Bash to explore the codebase. Identify gaps and fix them."
+                prompt = base_prompt + "\n\n" + prior_context + "\n\nBegin your investigation. Use grep, Read, and Bash to explore the codebase. Identify gaps and fix them." + wrong_history_note
             else:
                 prompt = (
                     f"Round {round_num} of the auto-worker loop.\n\n"
@@ -156,7 +161,7 @@ class AutoWorkerAgent:
                     f"Continue investigating remaining gaps. "
                     f"Use tools to explore, analyze, and fix. "
                     f"Focus on items not yet checked."
-                )
+                ) + wrong_history_note
 
             # Spawn the agent
             result = _spawn_agent(prompt, work_dir=self.work_dir, timeout_sec=600)
