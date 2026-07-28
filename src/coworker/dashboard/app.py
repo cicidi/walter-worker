@@ -1,8 +1,11 @@
 import json
 import logging
+from pathlib import Path
 from importlib.resources import files as resource_files
 
-from fastapi import FastAPI, WebSocket
+import yaml
+
+from fastapi import FastAPI, WebSocket, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 
@@ -73,6 +76,251 @@ def api_file_stats():
     return queries.query_file_stats()
 
 
+# ---------------------------------------------------------------------------
+# Graph page endpoints (Spec §7.2)
+# ---------------------------------------------------------------------------
+
+
+@app.get("/api/graph")
+def api_graph():
+    """Return memory graph data for visualization.
+
+    Spec §7.2: Node color by type, edge thickness by weight.
+    Returns nodes + edges with computed effective weights.
+    """
+    from coworker.memory.storage import load_graph
+    from coworker.memory.decay import compute_effective_weight, query_filter
+
+    graph = load_graph()
+    nodes_out = []
+    edges_out = []
+
+    for node in graph.nodes:
+        nodes_out.append({
+            "id": node.id,
+            "label": node.label or node.id,
+            "type": node.type,
+            "provenance": node.provenance,
+            "source_file": node.source_file,
+            "community": node.community,
+            "session_count": node.session_count,
+        })
+
+    for edge in graph.links:
+        ew = compute_effective_weight(edge.base_weight, edge.last_traversed_at)
+        qf = query_filter(ew)
+        edges_out.append({
+            "source": edge.source,
+            "target": edge.target,
+            "relation": edge.relation,
+            "confidence": edge.confidence,
+            "base_weight": edge.base_weight,
+            "effective_weight": ew,
+            "filter": qf,
+            "provenance": edge.provenance,
+        })
+
+    return {
+        "schema_version": graph.schema_version,
+        "nodes": nodes_out,
+        "edges": edges_out,
+        "stats": {
+            "total_nodes": len(nodes_out),
+            "total_edges": len(edges_out),
+            "by_type": _count_by(nodes_out, "type"),
+            "by_filter": _count_by(edges_out, "filter"),
+        },
+    }
+
+
+def _count_by(items: list[dict], key: str) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for item in items:
+        v = item.get(key, "unknown")
+        counts[v] = counts.get(v, 0) + 1
+    return counts
+
+
+# ---------------------------------------------------------------------------
+# Evolution page endpoints (Spec §11.1)
+# ---------------------------------------------------------------------------
+
+
+@app.get("/api/evolution/overview")
+def api_evolution_overview():
+    return queries.query_evolution_overview()
+
+
+@app.get("/api/evolution/skills")
+def api_evolution_skills(auto_train: bool = True, project: str = "", status: str = "active"):
+    return queries.query_evolution_skills(auto_train=auto_train, project=project, status=status)
+
+
+@app.get("/api/evolution/skills/{name}")
+def api_evolution_skill_detail(name: str):
+    skills = queries.query_evolution_skills(auto_train=False, status="all")
+    for s in skills:
+        if s["name"] == name:
+            # Enrich with SKILL.md content for review
+            s["content"] = ""
+            s["description"] = s.get("description", "")
+            skill_paths = [
+                Path.home() / ".coworker" / "skills" / name / "SKILL.md",
+                Path("skills") / name / "SKILL.md",
+            ]
+            for sp in skill_paths:
+                if sp.exists():
+                    s["content"] = sp.read_text()
+                    # Parse description from frontmatter if not already set
+                    if not s["description"]:
+                        text = s["content"]
+                        if text.startswith("---"):
+                            end = text.find("---", 3)
+                            if end != -1:
+                                try:
+                                    import yaml
+                                    fm = yaml.safe_load(text[3:end])
+                                    if isinstance(fm, dict):
+                                        s["description"] = fm.get("description", "")
+                                        s["when_to_use"] = fm.get("when-to-use", "")
+                                except Exception:
+                                    pass
+                    break
+            return s
+    raise HTTPException(status_code=404, detail=f"Skill '{name}' not found")
+
+
+@app.get("/api/evolution/experiences")
+def api_evolution_experiences(auto_train: bool = True, project: str = "", status: str = "active"):
+    return queries.query_evolution_experiences(auto_train=auto_train, project=project, status=status)
+
+
+@app.get("/api/evolution/experiences/{exp_id}")
+def api_evolution_experience_detail(exp_id: str):
+    try:
+        from coworker.memory.mem0_client import Mem0Client
+        mem0 = Mem0Client.from_config()
+        entry = mem0.get(exp_id)
+        return {"id": exp_id, "memory": entry.get("memory", ""), "metadata": entry.get("metadata", {})}
+    except Exception:
+        raise HTTPException(status_code=404, detail=f"Experience '{exp_id}' not found")
+
+
+@app.get("/api/evolution/pending")
+def api_evolution_pending():
+    return queries.query_evolution_pending()
+
+
+@app.post("/api/evolution/approve/{item_id}")
+def api_evolution_approve(item_id: str):
+    from coworker.memory.pending import approve
+    ok = approve(item_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail=f"Pending item '{item_id}' not found")
+    return {"status": "approved", "id": item_id}
+
+
+@app.post("/api/evolution/reject/{item_id}")
+def api_evolution_reject(item_id: str):
+    from coworker.memory.pending import reject
+    ok = reject(item_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail=f"Pending item '{item_id}' not found")
+    return {"status": "rejected", "id": item_id}
+
+
+# ---------------------------------------------------------------------------
+# Enhanced monitoring endpoints
+# ---------------------------------------------------------------------------
+
+
+@app.get("/api/projects")
+def api_projects():
+    """Project comparison — side-by-side metrics."""
+    return queries.query_projects()
+
+
+@app.get("/api/hotspots")
+def api_hotspots(limit: int = 30):
+    """Most frequently modified files with churn metrics."""
+    return queries.query_file_hotspots(limit)
+
+
+@app.get("/api/activity")
+def api_activity(hours: int = 24):
+    """Hourly activity breakdown."""
+    return queries.query_activity_timeline(hours)
+
+
+@app.get("/api/errors")
+def api_errors():
+    """Error patterns across tools and sessions."""
+    tool_errors = queries.query_error_patterns()
+    session_errors = queries.query_session_errors(10)
+    return {"tool_errors": tool_errors, "session_errors": session_errors}
+
+
+@app.get("/api/memory-stats")
+def api_memory_stats():
+    """Memory platform health."""
+    return queries.query_memory_stats()
+
+
+@app.post("/api/memory/refresh-snapshot")
+def api_memory_refresh():
+    """Trigger CLAUDE.local.md snapshot refresh."""
+    from coworker.memory.inject import build_snapshot, inject_into_local_md
+    from coworker.memory.mem0_client import Mem0Client
+    try:
+        mem0 = Mem0Client.from_config()
+        import os
+        local_md = os.path.expanduser("~/CLAUDE.local.md")
+        snapshot = build_snapshot(mem0)
+        inject_into_local_md(str(local_md), snapshot)
+        return {"status": "refreshed"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/memory/reset-circuit")
+def api_memory_reset_circuit():
+    """Reset the circuit breaker."""
+    from coworker.memory.safety import reset_circuit_breaker
+    reset_circuit_breaker()
+    return {"status": "reset"}
+
+
+@app.get("/api/session-errors")
+def api_session_errors(limit: int = 20):
+    """Sessions with the most errors."""
+    return queries.query_session_errors(limit)
+
+
+@app.get("/api/cost-analytics")
+def api_cost_analytics():
+    return queries.query_cost_analytics()
+
+
+@app.get("/api/models")
+def api_models():
+    return queries.query_models()
+
+
+@app.get("/api/model-usage")
+def api_model_usage():
+    return queries.query_model_usage()
+
+
+@app.get("/api/efficiency")
+def api_efficiency():
+    return queries.query_efficiency_insights()
+
+
+@app.get("/api/data-quality")
+def api_data_quality():
+    return queries.query_data_quality()
+
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -84,7 +332,78 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception:
         logger.exception("WebSocket error")
 
+# ═══════════════════════════════════════════════════════
+# Restored original endpoints (required by dashboard.js)
+# ═══════════════════════════════════════════════════════
+
+@app.get("/api/sessions/{session_id}/messages")
+def api_session_messages(session_id: str):
+    return queries.query_session_messages(session_id)
+
+
+@app.get("/api/skill-detail")
+def api_skill_detail(name: str = None, days: int = 1):
+    return queries.query_skill_detail(name, days)
+
+
+@app.get("/api/skill-timeline")
+def api_skill_timeline(name: str, days: int = 1):
+    return queries.query_skill_timeline(name, days)
+
+
+@app.get("/api/tool-detail")
+def api_tool_detail(tool: str = None):
+    return queries.query_tool_detail(tool)
+
+
+@app.get("/api/tool-sessions")
+def api_tool_sessions(tool: str, limit: int = 50):
+    return queries.query_tool_sessions(tool, limit)
+
+
+@app.get("/api/file-detail")
+def api_file_detail(file_path: str = None, project: str = None, limit: int = 200):
+    return queries.query_file_detail(file_path, project, limit)
+
+
+@app.get("/api/daily-sessions")
+def api_daily_sessions(days: int = 14):
+    return queries.query_daily_sessions(days)
+
+
+@app.get("/api/skill-session-ids")
+def api_skill_session_ids(name: str):
+    conn = queries._get_db_conn()
+    try:
+        rows = conn.execute(
+            "SELECT DISTINCT session_id FROM tool_calls WHERE tool = 'Skill' AND tool = ?",
+            (name,),
+        ).fetchall()
+        return [r[0] for r in rows]
+    finally:
+        conn.close()
+
+
+@app.get("/api/skill-mentions")
+def api_skill_mentions(name: str):
+    conn = queries._get_db_conn()
+    try:
+        rows = conn.execute(
+            "SELECT DISTINCT session_id FROM tool_calls WHERE tool = 'Skill' AND (tool = ? OR args LIKE ?)",
+            (name, f"%{name}%"),
+        ).fetchall()
+        return [r[0] for r in rows]
+    finally:
+        conn.close()
+
+
+@app.get("/api/knowledge/{knowledge_id}/sessions")
+def api_knowledge_sessions(knowledge_id: int):
+    return queries.query_knowledge_sessions(knowledge_id)
+
 
 static_dir = resource_files("coworker.dashboard") / "static"
 if static_dir.is_dir():
     app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")
+
+
