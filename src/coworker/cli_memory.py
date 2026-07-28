@@ -204,6 +204,10 @@ def memory_validate(task, task_file, compare_baseline):
     console.print(f"  Tool call reduction:     {report['tool_call_reduction']}")
     console.print(f"  Baseline assumptions:    {report['baseline']['incorrect_assumptions']} incorrect")
     console.print(f"  Memory assumptions:      {report['with_memory']['incorrect_assumptions']} incorrect")
+    console.print(f"  Skills invoked:          {', '.join(report['with_memory']['skills_invoked']) or 'none'}")
+    console.print(f"  Experiences retrieved:   {', '.join(report['with_memory']['experiences_retrieved']) or 'none'}")
+    console.print(f"  [bold]Verdict: {report['verdict'].upper()}[/bold]")
+    console.print(f"  Elapsed: {report['elapsed_seconds']}s")
 
 
 @memory.command("wrong-history")
@@ -241,7 +245,3 @@ def memory_wrong_history(action, summary, prevention_rule, severity, category, w
             console.print(f"[green]Created wrong-history entry: {path.name}[/green]")
         else:
             console.print("[red]Failed to create entry[/red]")
-    console.print(f"  Skills invoked:          {', '.join(report['with_memory']['skills_invoked']) or 'none'}")
-    console.print(f"  Experiences retrieved:   {', '.join(report['with_memory']['experiences_retrieved']) or 'none'}")
-    console.print(f"  [bold]Verdict: {report['verdict'].upper()}[/bold]")
-    console.print(f"  Elapsed: {report['elapsed_seconds']}s")
