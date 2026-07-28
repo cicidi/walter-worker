@@ -190,7 +190,9 @@ def api_activity(hours: int = 24):
 @app.get("/api/errors")
 def api_errors():
     """Error patterns across tools and sessions."""
-    return queries.query_error_patterns()
+    tool_errors = queries.query_error_patterns()
+    session_errors = queries.query_session_errors(10)
+    return {"tool_errors": tool_errors, "session_errors": session_errors}
 
 
 @app.get("/api/memory-stats")
