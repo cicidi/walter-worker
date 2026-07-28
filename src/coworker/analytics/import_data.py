@@ -27,9 +27,18 @@ def import_session(session_dir: Path, conn_or_path=None):
 
     # Auto-detect project from cwd if not set
     if not info.get("project"):
-        cwd = info.get("cwd", "")
+        cwd = info.get("cwd", "").rstrip("/")
+        # /home/user/project/repo/subdir → repo
         if "/project/" in cwd:
             info["project"] = cwd.split("/project/")[-1].split("/")[0]
+        # /home/user → home
+        elif cwd.startswith("/home/") and cwd.count("/") <= 2:
+            info["project"] = "home"
+        # Fallback: last path component
+        elif "/" in cwd:
+            last = cwd.split("/")[-1]
+            if last and not last.startswith("-"):
+                info["project"] = last
 
     # Auto-detect branch from git if not in YAML (Claude Code doesn't write it)
     branch = info.get("branch", "")

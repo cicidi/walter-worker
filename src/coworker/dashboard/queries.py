@@ -473,13 +473,16 @@ def query_projects():
                LEFT JOIN session_stats ss ON s.id = ss.session_id
                LEFT JOIN (
                    SELECT id,
-                     -- Normalize cwd to project name:
-                     -- ~/project/<name>/... → <name>
+                     -- Normalize cwd to project name (GitHub repo level):
+                     -- ~/project/<repo>/... → <repo>
                      -- ~/ → home
+                     -- last dir component otherwise
                      CASE
                        WHEN cwd GLOB '*/project/*' THEN
                          REPLACE(SUBSTR(cwd, INSTR(cwd, '/project/') + 9), '/', '')
-                       ELSE cwd
+                       WHEN cwd LIKE '/home/%' AND LENGTH(cwd) - LENGTH(REPLACE(cwd,'/','')) <= 2 THEN
+                         'home'
+                       ELSE REPLACE(TRIM(cwd,'/'), '/', '-')
                      END as cwd_proj
                    FROM sessions
                ) ss2 ON s.id = ss2.id

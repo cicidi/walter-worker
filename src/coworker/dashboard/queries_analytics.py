@@ -294,7 +294,9 @@ def query_projects():
                      CASE
                        WHEN cwd GLOB '*/project/*' THEN
                          REPLACE(SUBSTR(cwd, INSTR(cwd, '/project/') + 9), '/', '')
-                       ELSE cwd
+                       WHEN cwd LIKE '/home/%' AND LENGTH(cwd) - LENGTH(REPLACE(cwd,'/','')) <= 2 THEN
+                         'home'
+                       ELSE REPLACE(TRIM(cwd,'/'), '/', '-')
                      END as cwd_proj
                    FROM sessions
                ) ss2 ON s.id = ss2.id
