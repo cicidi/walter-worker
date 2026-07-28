@@ -108,6 +108,10 @@ def import_session(session_dir: Path, conn_or_path=None):
                 post_calls[cid] = t
 
         all_call_ids = set(pre_calls.keys()) | set(post_calls.keys())
+
+        # Clean old file_ops for this session before re-import (prevents duplicates)
+        conn.execute("DELETE FROM file_ops WHERE session_id = ?", (session_id,))
+
         skill_call_ids = set()
         for cid in sorted(all_call_ids):
             pre = pre_calls.get(cid, {})

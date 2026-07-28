@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS file_ops (
     seq         INTEGER NOT NULL,
     ts          TEXT NOT NULL
 );
+CREATE UNIQUE INDEX IF NOT EXISTS idx_fo_unique ON file_ops(session_id, call_id, op, path);
 CREATE INDEX IF NOT EXISTS idx_fo_session ON file_ops(session_id);
 CREATE INDEX IF NOT EXISTS idx_fo_type ON file_ops(file_type);
 CREATE INDEX IF NOT EXISTS idx_fo_project ON file_ops(project);
