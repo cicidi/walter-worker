@@ -129,8 +129,8 @@ def query_models():
     try:
         rows = conn.execute(
             """SELECT COALESCE(
-                      CASE WHEN s.model LIKE '{%}' THEN json_extract(s.model, '$.id')
-                           ELSE s.model END,
+                      NULLIF(CASE WHEN s.model LIKE '{%}' THEN json_extract(s.model, '$.id')
+                                  ELSE s.model END, ''),
                       'unknown') as model_group,
                       COUNT(DISTINCT s.id) as session_count,
                       COUNT(DISTINCT tc.call_id) as request_count,
