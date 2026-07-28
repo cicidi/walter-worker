@@ -229,6 +229,29 @@ def api_evolution_reject(item_id: str):
     return {"status": "rejected", "id": item_id}
 
 
+@app.post("/api/evolution/skills/{name}/status")
+def api_evolution_skill_status(name: str, status: str = "active"):
+    """Change a skill's status: active, pending, or inactive."""
+    import json
+    from pathlib import Path
+
+    valid = {"active", "pending", "inactive"}
+    if status not in valid:
+        raise HTTPException(status_code=400, detail=f"Invalid status '{status}'. Use: {', '.join(valid)}")
+
+    usage_path = Path.home() / ".coworker" / "skills" / name / "usage.json"
+    if not usage_path.exists():
+        raise HTTPException(status_code=404, detail=f"Skill '{name}' not found in ~/.coworker/skills/")
+
+    try:
+        data = json.loads(usage_path.read_text())
+        data["state"] = status
+        usage_path.write_text(json.dumps(data, indent=2))
+        return {"status": "ok", "name": name, "state": status}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ---------------------------------------------------------------------------
 # Enhanced monitoring endpoints
 # ---------------------------------------------------------------------------
