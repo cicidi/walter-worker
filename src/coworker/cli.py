@@ -1,5 +1,6 @@
 from __future__ import annotations
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -30,6 +31,10 @@ from . import backup
 from .semantic_merge import classify_sections, apply_merge, verify_protected
 from .constants import DOCS_DISCIPLINES, STATE_DIR
 from .templates.global_claude_md import generate_global_claude_md
+from .memory.cli_memory import register_memory_commands
+# from .cli_analytics import register_analytics  # TODO: not yet implemented
+# from .cli_autoworker import register_autoworker  # TODO: not yet implemented
+# from .cli_memory import register_memory_commands  # duplicate removed
 
 console = Console()
 
@@ -237,6 +242,15 @@ def init(is_global, is_project):
         project_config = Path.cwd() / PROJECT_CONFIG_NAME
         project_config.parent.mkdir(parents=True, exist_ok=True)
         project_config.write_text(PROJECT_CONFIG_TEMPLATE)
+
+        # Install project skills to .claude/commands/
+        from .config import install_project_skills
+        installed = install_project_skills(Path.cwd())
+        if installed:
+            console.print(
+                f"[green]Installed {installed} project skills to .claude/commands/[/green]"
+            )
+
         console.print(f"[green]Created:[/green] {project_config}")
 
         claude_md = Path.cwd() / "CLAUDE.md"
@@ -526,6 +540,55 @@ Describe when the AI should invoke this skill.
     console.print(f"[green]Created:[/green] {skill_file}")
     console.print(f"[dim]Add to coworker.yaml:[/dim]")
     console.print(f"  skills:\n    - name: {name}\n      path: skills/{name}")
+
+
+@skill.command("pending")
+@click.option("--approve-all", is_flag=True, help="Approve all pending items")
+@click.option("--type", "item_type", default=None, help="Filter by type (lesson, convention, preference)")
+def skill_pending(approve_all, item_type):
+    """List or approve pending skill review items."""
+    from .memory.pending import list_pending, batch_approve, approve
+
+    if approve_all:
+        count = batch_approve(item_type)
+        console.print(f"[green]Approved {count} pending items[/green]")
+        return
+
+    items = list_pending()
+    if not items:
+        console.print("[dim]No pending items.[/dim]")
+        return
+
+    for item in items:
+        status_color = "yellow" if item.get("status") == "pending" else "green" if item.get("status") == "approved" else "red"
+        console.print(
+            f"[bold]{item['name']}[/bold] "
+            f"[{status_color}]{item.get('status', '?')}[/{status_color}] "
+            f"[dim](calls: {item.get('tool_call_count', 0)}, "
+            f"staged: {item.get('staged_at', '?')[:10]})[/dim]"
+        )
+
+
+@skill.command("approve")
+@click.argument("skill_id")
+def skill_approve(skill_id):
+    """Approve a pending skill for promotion."""
+    from .memory.pending import approve
+    if approve(skill_id):
+        console.print(f"[green]Approved: {skill_id}[/green]")
+    else:
+        console.print(f"[red]Not found: {skill_id}[/red]")
+
+
+@skill.command("reject")
+@click.argument("skill_id")
+def skill_reject(skill_id):
+    """Reject a pending skill."""
+    from .memory.pending import reject
+    if reject(skill_id):
+        console.print(f"[yellow]Rejected: {skill_id}[/yellow]")
+    else:
+        console.print(f"[red]Not found: {skill_id}[/red]")
 
 
 # ── Project Catalog ───────────────────────────────────────────────────────
@@ -906,54 +969,7 @@ def initiative_remove(name, proj_dir, force):
     except FileNotFoundError as e:
         console.print(f"[red]{e}[/red]")
 
-
-# ── Analytics ─────────────────────────────────────────────────────────────
-
-@main.group()
-def analytics():
-    """Analytics database and dashboard commands."""
-    pass
-
-
-@analytics.command("create-db")
-def analytics_create_db():
-    """Initialize analytics SQLite database."""
-    from .analytics.db import init_db
-    init_db()
-    console.print("[green]Analytics database initialized.[/green]")
-
-
-@analytics.command("import")
-def analytics_import():
-    """Import raw JSONL sessions into SQLite."""
-    from .analytics.import_data import import_all
-    import_all()
-
-
-@analytics.command("daemon")
-def analytics_daemon():
-    """Run auto-import daemon — polls every 30 minutes for new sessions."""
-    from .analytics.auto_import import run_daemon
-    run_daemon()
-
-
-@analytics.command("once")
-def analytics_once():
-    """Import new sessions once (no daemon)."""
-    from .analytics.auto_import import run_once
-    stats = run_once(verbose=True)
-    console.print(f"[green]Imported:[/green] claude_jsonl={stats['claude_jsonl']} claude_hooks={stats['claude_hooks']} opencode={stats['opencode']} skipped={stats['skipped']}")
-
-
-@analytics.command("dashboard")
-@click.option("--port", default=8080, help="Port to listen on")
-@click.option("--db", default=None, help="Path to analytics database")
-def analytics_dashboard(port, db):
-    """Start the analytics dashboard."""
-    import os
-    if db:
-        os.environ["COWORKER_ANALYTICS_DB"] = db
-    import uvicorn
-    from .dashboard.app import app
-    console.print(f"[green]Dashboard: http://localhost:{port}[/green]")
-    uvicorn.run(app, host="127.0.0.1", port=port, log_level="info")
+# Register sub-command groups from split-out modules
+register_memory_commands(main)
+# register_analytics(main)    # TODO: implement analytics CLI module
+# register_autoworker(main)   # TODO: implement autoworker CLI module

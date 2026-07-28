@@ -16,7 +16,8 @@ CREATE TABLE IF NOT EXISTS sessions (
     initiative    TEXT,
     branch        TEXT,
     created_at    TEXT NOT NULL,
-    closed_at     TEXT
+    closed_at     TEXT,
+    graph_enabled INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS messages (
@@ -27,6 +28,7 @@ CREATE TABLE IF NOT EXISTS messages (
     content       TEXT,
     ts            TEXT NOT NULL
 );
+CREATE UNIQUE INDEX IF NOT EXISTS idx_msg_unique ON messages(session_id, seq);
 CREATE INDEX IF NOT EXISTS idx_msg_session_seq ON messages(session_id, seq);
 
 CREATE TABLE IF NOT EXISTS tool_calls (
@@ -45,6 +47,7 @@ CREATE TABLE IF NOT EXISTS tool_calls (
     seq_after       INTEGER,
     ts              TEXT NOT NULL
 );
+CREATE UNIQUE INDEX IF NOT EXISTS idx_tc_unique ON tool_calls(session_id, call_id);
 CREATE INDEX IF NOT EXISTS idx_tc_session ON tool_calls(session_id);
 CREATE INDEX IF NOT EXISTS idx_tc_parent ON tool_calls(parent_call_id);
 CREATE INDEX IF NOT EXISTS idx_tc_tool ON tool_calls(tool);
@@ -61,6 +64,7 @@ CREATE TABLE IF NOT EXISTS file_ops (
     seq         INTEGER NOT NULL,
     ts          TEXT NOT NULL
 );
+CREATE UNIQUE INDEX IF NOT EXISTS idx_fo_unique ON file_ops(session_id, call_id, op, path);
 CREATE INDEX IF NOT EXISTS idx_fo_session ON file_ops(session_id);
 CREATE INDEX IF NOT EXISTS idx_fo_type ON file_ops(file_type);
 CREATE INDEX IF NOT EXISTS idx_fo_project ON file_ops(project);
@@ -117,6 +121,18 @@ CREATE TABLE IF NOT EXISTS session_summaries (
     memory_keywords        TEXT,
     generated_at           TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS graph_queries (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id      TEXT REFERENCES sessions(id),
+    query           TEXT NOT NULL,
+    graph_hits      INTEGER DEFAULT 0,
+    graph_useful    INTEGER DEFAULT 0,
+    avoided_tools   TEXT,
+    graph_misses    TEXT,
+    ts              TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_gq_session ON graph_queries(session_id);
 """
 
 
@@ -131,8 +147,19 @@ def get_db(db_path: str | Path | None = None) -> sqlite3.Connection:
     # import/dashboard) works on a fresh DB without an explicit create-db first.
     # Every statement in SCHEMA is CREATE ... IF NOT EXISTS, so this is safe to repeat.
     conn.executescript(SCHEMA)
+    # Migration: add graph_enabled column to existing databases (spec §9.5)
+    _migrate_add_graph_enabled(conn)
     conn.commit()
     return conn
+
+
+def _migrate_add_graph_enabled(conn: sqlite3.Connection) -> None:
+    """Add graph_enabled column if it doesn't exist (pre-v1 databases)."""
+    try:
+        conn.execute("SELECT graph_enabled FROM sessions LIMIT 0")
+    except sqlite3.OperationalError:
+        conn.execute("ALTER TABLE sessions ADD COLUMN graph_enabled INTEGER DEFAULT 0")
+        conn.commit()
 
 
 def init_db(db_path: str | Path | None = None) -> sqlite3.Connection:
@@ -140,3 +167,20 @@ def init_db(db_path: str | Path | None = None) -> sqlite3.Connection:
     conn.executescript(SCHEMA)
     conn.commit()
     return conn
+
+
+def list_all_sessions(conn: sqlite3.Connection) -> list[dict]:
+    """List all sessions from the analytics database."""
+    conn.row_factory = sqlite3.Row
+    rows = conn.execute("SELECT * FROM sessions ORDER BY created_at").fetchall()
+    return [dict(r) for r in rows]
+
+
+def get_transcript(conn: sqlite3.Connection, session_id: str) -> list[dict]:
+    """Get messages for a session formatted as transcript."""
+    conn.row_factory = sqlite3.Row
+    rows = conn.execute(
+        "SELECT type as role, content FROM messages WHERE session_id = ? ORDER BY seq",
+        (session_id,),
+    ).fetchall()
+    return [dict(r) for r in rows]
