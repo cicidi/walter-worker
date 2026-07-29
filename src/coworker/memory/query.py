@@ -44,6 +44,10 @@ def query(
         except Exception as exc:
             logger.warning("mem0 search failed (non-fatal): %s", exc)
 
+    # Tag graph results with source
+    for r in results_graph:
+        r["source"] = "graph"
+
     if mode == "both":
         graph_out = results_graph[:top_k]
         vector_out = [{"memory": r.get("memory", ""), "score": r.get("score", 0.5), "source": "vector",
