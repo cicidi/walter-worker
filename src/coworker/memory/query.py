@@ -17,8 +17,8 @@ from .decay import compute_effective_weight, query_filter
 
 logger = logging.getLogger(__name__)
 
-MAX_DEPTH = 3
-MAX_SEEDS = 3  # match graphify default — fewer seeds, higher quality
+MAX_DEPTH = 6
+MAX_SEEDS = 5  # more seeds than graphify to compensate for simpler BFS
 
 
 # ── Public API ──────────────────────────────────────────────────────────────
@@ -200,9 +200,6 @@ def _bfs_from_seeds(
         if depth < MAX_DEPTH:
             for edge in adjacency.get(node_id, []):
                 if edge.target not in visited:
-                    ew = compute_effective_weight(edge.base_weight, edge.last_traversed_at, now)
-                    if ew < 0.3:
-                        continue
                     queue.append((edge.target, depth + 1, path + [edge]))
 
     found.sort(key=lambda f: (f["depth"], -f["path_weight"]))
