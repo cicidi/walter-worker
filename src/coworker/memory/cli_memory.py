@@ -95,7 +95,7 @@ def register_memory_commands(main_group: click.Group) -> None:
 
     @memory.command("query")
     @click.argument("question")
-    @click.option("--top-k", "-k", default=10, help="Max results (default: 10)")
+    @click.option("--top-k", "-k", default=20, help="Max results per source (default: 20)")
     @click.option("--mode", default="both", type=click.Choice(["graph", "vector", "both"]),
                   help="Search mode (default: both)")
     def memory_query(question, top_k, mode):

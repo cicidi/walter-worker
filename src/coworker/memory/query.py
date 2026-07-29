@@ -18,7 +18,7 @@ from .decay import compute_effective_weight, query_filter
 logger = logging.getLogger(__name__)
 
 MAX_DEPTH = 3
-MAX_SEEDS = 8
+MAX_SEEDS = 3  # match graphify default — fewer seeds, higher quality
 
 
 # ── Public API ──────────────────────────────────────────────────────────────
