@@ -71,50 +71,116 @@ def query(
     }
 
 
+# ── Scoring constants ────────────────────────────────────────────────────────
+
+_EXACT_MATCH_WEIGHT = 100.0    # label exactly equals a query term
+_SUBSTRING_MATCH_WEIGHT = 1.0  # label contains a query term as substring
+_MAX_SEEDS = 8                 # cap seed nodes to avoid BFS explosion
+_SEED_GAP_RATIO = 0.15         # drop seeds scoring below top_score * ratio
+
+
+def _score_nodes(graph: Graph, terms: list[str]) -> list[tuple[float, str]]:
+    """Score every node by how well its label matches query terms.
+
+    Two tiers:
+        EXACT:   a query term is a whole-word match in the label (×100)
+        SUBSTR:  a query term is a substring of the label (×1)
+
+    Returns list of (score, node_id) sorted descending.
+    """
+    scored: list[tuple[float, str]] = []
+    terms_lower = [t.lower() for t in terms]
+    n_terms = len(terms)
+
+    for node in graph.nodes:
+        label_lower = node.label.lower()
+        source_lower = (node.source_file or "").lower()
+        score = 0.0
+
+        for t in terms_lower:
+            # Exact whole-word match in label
+            if t in label_lower.split():
+                score += _EXACT_MATCH_WEIGHT
+            # Exact match in source_file path (filename match)
+            elif t in source_lower.split("/")[-1].replace(".py", "").replace(".md", "").split("-"):
+                score += _EXACT_MATCH_WEIGHT * 0.5
+            # Substring match in label
+            elif t in label_lower:
+                score += _SUBSTRING_MATCH_WEIGHT
+            # Substring in source_file
+            elif t in source_lower:
+                score += _SUBSTRING_MATCH_WEIGHT * 0.5
+
+        if score > 0:
+            # Normalize by number of terms (longer queries don't get inflated scores)
+            score = score / n_terms
+            scored.append((score, node.id))
+
+    scored.sort(key=lambda x: -x[0])
+    return scored
+
+
+def _pick_seeds(scored: list[tuple[float, str]], max_k: int = _MAX_SEEDS) -> list[str]:
+    """Select BFS seed nodes with gap_ratio cutoff + label deduplication."""
+    if not scored:
+        return []
+
+    top_score = scored[0][0]
+    seeds: list[str] = []
+    seen_labels: set[str] = set()
+
+    for score, nid in scored:
+        if len(seeds) >= max_k:
+            break
+        if seeds and score < top_score * _SEED_GAP_RATIO:
+            break
+        # Dedup by normalized label (collapse GET/Get/get into one seed)
+        label_key = nid.rsplit("__", 1)[-1].lower().strip("_")
+        if label_key in seen_labels:
+            continue
+        seen_labels.add(label_key)
+        seeds.append(nid)
+
+    # Guarantee at least one seed per distinct query-ish term
+    return seeds
+
+
 def graph_traverse(
     graph: Graph,
     question: str,
     top_k: int = 10,
     now: Any = None,
 ) -> list[dict]:
-    """BFS traversal with decay-weighted ranking.
+    """BFS traversal with scored seed selection + decay-weighted ranking.
 
-    Spec §6.2:
-        - Start from nodes matching query terms
-        - BFS with max depth 3
-        - Rank by edge effective_weight
-        - Prefer EXTRACTED edges over INFERRED
+    Improved seed selection (graphify-style):
+        - Score ALL nodes against query terms (exact/substring tiers)
+        - Gap-ratio cutoff drops noise seeds
+        - Label dedup prevents homologous symbols flooding BFS
+        - Per-term seed guarantee
+
+    BFS:
+        - Max depth 3 from seeds
+        - Rank by path weight × effective_weight
         - Suppress edges with effective_weight < 0.3
     """
-    # Tokenize question for matching
-    query_terms = set(question.lower().split())
+    query_terms = [t for t in question.lower().split() if len(t) > 1]
+    if not query_terms:
+        return []
 
-    # Find seed nodes — match question terms against node labels + IDs
-    seed_ids: list[str] = []
-    for node in graph.nodes:
-        label_lower = node.label.lower()
-        id_lower = node.id.lower()
-        if any(term in label_lower or term in id_lower for term in query_terms):
-            seed_ids.append(node.id)
-
-    if not seed_ids:
-        # Broad match: any node with a label word overlap
-        for node in graph.nodes:
-            label_words = set(node.label.lower().split())
-            if label_words & query_terms:
-                seed_ids.append(node.id)
-        # Limit seeds to avoid explosion
-        seed_ids = seed_ids[:20]
+    # 1. Score ALL nodes → pick top seeds
+    scored = _score_nodes(graph, query_terms)
+    seed_ids = _pick_seeds(scored)
 
     if not seed_ids:
         return []
 
-    # Build adjacency index
+    # 2. Build adjacency index
     adjacency: dict[str, list[Edge]] = {}
     for edge in graph.links:
         adjacency.setdefault(edge.source, []).append(edge)
 
-    # BFS with depth tracking
+    # 3. BFS with depth tracking
     visited: set[str] = set()
     queue: deque = deque()
     for sid in seed_ids:
@@ -128,16 +194,13 @@ def graph_traverse(
             continue
         visited.add(node_id)
 
-        # Find the node object
         node = _find_node(graph, node_id)
-
         if depth >= 0 and node:
-            # Compute cumulative path weight
             path_weight = 1.0
             path_flags: list[str] = []
             for edge in path:
                 ew = compute_effective_weight(edge.base_weight, edge.last_traversed_at, now)
-                path_weight *= max(ew, 0.01)  # avoid zeroing out
+                path_weight *= max(ew, 0.01)
                 qf = query_filter(ew)
                 if qf != "normal":
                     path_flags.append(qf)
@@ -158,10 +221,9 @@ def graph_traverse(
                 if edge.target not in visited:
                     ew = compute_effective_weight(edge.base_weight, edge.last_traversed_at, now)
                     if ew < 0.3:
-                        continue  # suppress decayed edges
+                        continue
                     queue.append((edge.target, depth + 1, path + [edge]))
 
-    # Rank: prefer lower depth, higher path_weight, EXTRACTED edges
     found.sort(key=lambda f: (f["depth"], -f["path_weight"]))
     return found[:top_k]
 
