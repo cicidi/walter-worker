@@ -95,11 +95,12 @@ def register_memory_commands(main_group: click.Group) -> None:
 
     @memory.command("query")
     @click.argument("question")
-    @click.option("--top-k", "-k", default=50, help="Max results per source (default: 50, cut by token budget)")
+    @click.option("--top-k", "-k", default=50, help="Max results per source (default: 50)")
     @click.option("--budget", default=2000, help="Token budget per section (default: 2000)")
+    @click.option("--min-score", default=0.3, type=float, help="Min score for vector results (default: 0.3)")
     @click.option("--mode", default="both", type=click.Choice(["graph", "vector", "both"]),
                   help="Search mode (default: both)")
-    def memory_query(question, top_k, mode, budget):
+    def memory_query(question, top_k, mode, budget, min_score):
         """Query the memory graph.
 
         Searches nodes and traverses edges (BFS max depth 3).
@@ -126,6 +127,7 @@ def register_memory_commands(main_group: click.Group) -> None:
 
         graph_results = result.get("graph_results", [r for r in result["results"] if r.get("source") == "graph"])
         vector_results = result.get("vector_results", [r for r in result["results"] if r.get("source") == "vector"])
+        vector_results = [r for r in vector_results if r.get("score", 0) >= min_score]
 
         # Full-text search in session messages
         message_results = []
