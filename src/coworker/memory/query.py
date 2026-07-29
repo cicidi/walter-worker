@@ -1,8 +1,7 @@
-"""Graph query API — traversal + mem0 hybrid search.
+"""Graph query API — thin wrapper around graphify's scoring engine.
 
-Spec §6: BFS with max depth 3, rank by effective_weight,
-prefer EXTRACTED over INFERRED, suppress decayed edges.
-Hybrid mode combines graph traversal with mem0 semantic search.
+We don't maintain our own search algorithm. graphify's _score_nodes,
+_pick_seeds, and BFS traversal are used directly.
 """
 
 from __future__ import annotations
@@ -11,34 +10,28 @@ import logging
 from collections import deque
 from typing import Any
 
-from .graph import Graph, Node, Edge
+import networkx as nx
+
+from .graph import Graph as CoworkerGraph, Node, Edge
 from .decay import compute_effective_weight, query_filter
 
 logger = logging.getLogger(__name__)
 
 MAX_DEPTH = 3
+MAX_SEEDS = 8
 
 
 # ── Public API ──────────────────────────────────────────────────────────────
 
 
 def query(
-    graph: Graph,
+    graph: CoworkerGraph,
     question: str,
-    mode: str = "both",
+    mode: str = "graph",
     mem0_client: Any = None,
     top_k: int = 10,
 ) -> dict:
-    """Search the memory graph for nodes/edges relevant to a question.
-
-    Spec §6.1 — three modes:
-        "graph"   — BFS traversal with decay-adjusted weights
-        "vector"  — mem0 semantic search (requires mem0_client)
-        "both"    — merge and rank results from both
-
-    Returns:
-        {"results": [...], "mode": str, "stats": {...}}
-    """
+    """Search the memory graph. Delegates seed selection to graphify."""
     results_graph: list[dict] = []
     results_vector: list[dict] = []
 
@@ -50,7 +43,6 @@ def query(
             results_vector = mem0_client.search(query=question, top_k=top_k)
         except Exception as exc:
             logger.warning("mem0 search failed (non-fatal): %s", exc)
-            results_vector = []
 
     if mode == "both":
         results = _merge_and_rank(results_graph, results_vector)
@@ -71,120 +63,100 @@ def query(
     }
 
 
-# ── Scoring constants ────────────────────────────────────────────────────────
-
-_EXACT_MATCH_WEIGHT = 100.0    # label exactly equals a query term
-_SUBSTRING_MATCH_WEIGHT = 1.0  # label contains a query term as substring
-_MAX_SEEDS = 8                 # cap seed nodes to avoid BFS explosion
-_SEED_GAP_RATIO = 0.15         # drop seeds scoring below top_score * ratio
-
-
-def _score_nodes(graph: Graph, terms: list[str]) -> list[tuple[float, str]]:
-    """Score every node by how well its label matches query terms.
-
-    Two tiers:
-        EXACT:   a query term is a whole-word match in the label (×100)
-        SUBSTR:  a query term is a substring of the label (×1)
-
-    Returns list of (score, node_id) sorted descending.
-    """
-    scored: list[tuple[float, str]] = []
-    terms_lower = [t.lower() for t in terms]
-    n_terms = len(terms)
-
-    for node in graph.nodes:
-        label_lower = node.label.lower()
-        source_lower = (node.source_file or "").lower()
-        score = 0.0
-
-        for t in terms_lower:
-            # Exact whole-word match in label
-            if t in label_lower.split():
-                score += _EXACT_MATCH_WEIGHT
-            # Exact match in source_file path (filename match)
-            elif t in source_lower.split("/")[-1].replace(".py", "").replace(".md", "").split("-"):
-                score += _EXACT_MATCH_WEIGHT * 0.5
-            # Substring match in label
-            elif t in label_lower:
-                score += _SUBSTRING_MATCH_WEIGHT
-            # Substring in source_file
-            elif t in source_lower:
-                score += _SUBSTRING_MATCH_WEIGHT * 0.5
-
-        if score > 0:
-            # Normalize by number of terms (longer queries don't get inflated scores)
-            score = score / n_terms
-            scored.append((score, node.id))
-
-    scored.sort(key=lambda x: -x[0])
-    return scored
-
-
-def _pick_seeds(scored: list[tuple[float, str]], max_k: int = _MAX_SEEDS) -> list[str]:
-    """Select BFS seed nodes with gap_ratio cutoff + label deduplication."""
-    if not scored:
-        return []
-
-    top_score = scored[0][0]
-    seeds: list[str] = []
-    seen_labels: set[str] = set()
-
-    for score, nid in scored:
-        if len(seeds) >= max_k:
-            break
-        if seeds and score < top_score * _SEED_GAP_RATIO:
-            break
-        # Dedup by normalized label (collapse GET/Get/get into one seed)
-        label_key = nid.rsplit("__", 1)[-1].lower().strip("_")
-        if label_key in seen_labels:
-            continue
-        seen_labels.add(label_key)
-        seeds.append(nid)
-
-    # Guarantee at least one seed per distinct query-ish term
-    return seeds
-
-
 def graph_traverse(
-    graph: Graph,
+    graph: CoworkerGraph,
     question: str,
     top_k: int = 10,
     now: Any = None,
 ) -> list[dict]:
-    """BFS traversal with scored seed selection + decay-weighted ranking.
+    """graphify-powered search: score nodes → pick seeds → BFS.
 
-    Improved seed selection (graphify-style):
-        - Score ALL nodes against query terms (exact/substring tiers)
-        - Gap-ratio cutoff drops noise seeds
-        - Label dedup prevents homologous symbols flooding BFS
-        - Per-term seed guarantee
-
-    BFS:
-        - Max depth 3 from seeds
-        - Rank by path weight × effective_weight
-        - Suppress edges with effective_weight < 0.3
+    Seed selection delegated to graphify's _score_nodes + _pick_seeds.
+    BFS is our own lightweight implementation (graphify's BFS is tightly
+    coupled to its serve layer).
     """
-    query_terms = [t for t in question.lower().split() if len(t) > 1]
-    if not query_terms:
+    if not question.strip():
         return []
 
-    # 1. Score ALL nodes → pick top seeds
-    scored = _score_nodes(graph, query_terms)
-    seed_ids = _pick_seeds(scored)
+    # 1. Build networkx graph for graphify scoring
+    G = _to_networkx(graph)
+
+    # 2. Score nodes + pick seeds (graphify)
+    seed_ids = _graphify_seeds(G, question)
 
     if not seed_ids:
         return []
 
-    # 2. Build adjacency index
+    # 3. BFS from seeds (lightweight, our implementation)
+    return _bfs_from_seeds(graph, seed_ids, top_k, now)
+
+
+def _graphify_seeds(G: nx.Graph, question: str, max_k: int = MAX_SEEDS) -> list[str]:
+    """Use graphify's _score_nodes + _pick_seeds to find entry points."""
+    try:
+        from graphify.serve import _score_nodes, _pick_seeds
+    except ImportError:
+        logger.warning("graphify not installed — falling back to simple text match")
+        return _simple_seeds(G, question)
+
+    terms = [t for t in question.lower().split() if len(t) > 1]
+    if not terms:
+        return []
+
+    scored = _score_nodes(G, terms)
+    seeds = _pick_seeds(scored, max_k=max_k, G=G)
+    return seeds
+
+
+def _simple_seeds(G: nx.Graph, question: str) -> list[str]:
+    """Fallback seed selection when graphify is unavailable."""
+    terms = set(question.lower().split())
+    seeds = []
+    for nid in G.nodes:
+        label = (G.nodes[nid].get("label") or nid).lower()
+        if any(t in label for t in terms):
+            seeds.append(nid)
+    return seeds[:_MAX_SEEDS]
+
+
+def _to_networkx(graph: CoworkerGraph) -> nx.Graph:
+    """Convert coworker Graph to networkx for graphify compatibility."""
+    G = nx.Graph()
+    for node in graph.nodes:
+        G.add_node(
+            node.id,
+            label=node.label or node.id,
+            norm_label=(node.label or node.id).lower(),
+            type=node.type or "unknown",
+            source_file=node.source_file or "",
+            community=node.community or "",
+        )
+    for edge in graph.links:
+        G.add_edge(
+            edge.source,
+            edge.target,
+            relation=edge.relation,
+            confidence=edge.confidence,
+            base_weight=edge.base_weight,
+        )
+    return G
+
+
+def _bfs_from_seeds(
+    graph: CoworkerGraph,
+    seed_ids: list[str],
+    top_k: int,
+    now: Any = None,
+) -> list[dict]:
+    """BFS from seeds with decay-weighted ranking."""
     adjacency: dict[str, list[Edge]] = {}
     for edge in graph.links:
         adjacency.setdefault(edge.source, []).append(edge)
 
-    # 3. BFS with depth tracking
     visited: set[str] = set()
     queue: deque = deque()
     for sid in seed_ids:
-        queue.append((sid, 0, []))  # (node_id, depth, path_edges)
+        queue.append((sid, 0, []))
 
     found: list[dict] = []
 
@@ -195,7 +167,7 @@ def graph_traverse(
         visited.add(node_id)
 
         node = _find_node(graph, node_id)
-        if depth >= 0 and node:
+        if node:
             path_weight = 1.0
             path_flags: list[str] = []
             for edge in path:
@@ -231,8 +203,7 @@ def graph_traverse(
 # ── Helpers ─────────────────────────────────────────────────────────────────
 
 
-def _find_node(graph: Graph, node_id: str) -> Node | None:
-    """Find a node by ID."""
+def _find_node(graph: CoworkerGraph, node_id: str) -> Node | None:
     for n in graph.nodes:
         if n.id == node_id:
             return n
@@ -240,24 +211,16 @@ def _find_node(graph: Graph, node_id: str) -> Node | None:
 
 
 def _merge_and_rank(graph_results: list[dict], vector_results: list[dict]) -> list[dict]:
-    """Merge graph and vector results, deduplicate, rank by relevance.
-
-    Graph results take priority when they have high path_weight.
-    Vector results fill gaps.
-    """
     seen_ids: set[str] = set()
     merged: list[dict] = []
 
-    # Graph results first
     for r in graph_results:
         r["source"] = "graph"
         merged.append(r)
         seen_ids.add(r["node_id"])
 
-    # Vector results — skip duplicates
     for r in vector_results:
         memory = r.get("memory", "")
-        # Simple dedup: if a graph result's label matches vector memory text
         if not any(_text_overlap(memory, gr.get("label", "")) for gr in graph_results):
             merged.append({
                 "memory": memory,
@@ -266,17 +229,14 @@ def _merge_and_rank(graph_results: list[dict], vector_results: list[dict]) -> li
                 "metadata": r.get("metadata", {}),
             })
 
-    # Sort: graph results by path_weight (desc), then vector by score (desc)
     graph_part = [m for m in merged if m.get("source") == "graph"]
     vector_part = [m for m in merged if m.get("source") == "vector"]
     graph_part.sort(key=lambda x: -x.get("path_weight", 0))
     vector_part.sort(key=lambda x: -x.get("score", 0))
-
     return graph_part + vector_part
 
 
 def _text_overlap(a: str, b: str) -> bool:
-    """Check if two strings share significant word overlap."""
     if not a or not b:
         return False
     words_a = set(a.lower().split())
