@@ -96,8 +96,8 @@ def register_memory_commands(main_group: click.Group) -> None:
     @memory.command("query")
     @click.argument("question")
     @click.option("--top-k", "-k", default=10, help="Max results (default: 10)")
-    @click.option("--mode", default="graph", type=click.Choice(["graph", "vector", "both"]),
-                  help="Search mode (default: graph)")
+    @click.option("--mode", default="both", type=click.Choice(["graph", "vector", "both"]),
+                  help="Search mode (default: both)")
     def memory_query(question, top_k, mode):
         """Query the memory graph.
 
@@ -112,7 +112,15 @@ def register_memory_commands(main_group: click.Group) -> None:
             console.print("[dim]Graph is empty. Run 'coworker memory init' first.[/dim]")
             return
 
-        result = graph_query(graph, question, mode=mode, top_k=top_k)
+        mem0 = None
+        if mode in ("vector", "both"):
+            try:
+                from coworker.memory.mem0_client import Mem0Client
+                mem0 = Mem0Client.from_config()
+            except Exception:
+                console.print("[dim]mem0 not available — vector search skipped[/dim]")
+
+        result = graph_query(graph, question, mode=mode, mem0_client=mem0, top_k=top_k)
 
         table = Table(title=f"Graph Query: {question[:60]}")
         table.add_column("#", style="dim")
