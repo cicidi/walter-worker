@@ -164,6 +164,7 @@ class Mem0Client:
         filters: dict | None = None,
         top_k: int = 10,
         user_id: str = "default",
+        min_score: float = 0.0,
     ) -> list[dict]:
         """Search memory entries using hybrid retrieval.
 
@@ -172,6 +173,7 @@ class Mem0Client:
             filters: Key-value filter dict.
             top_k: Maximum number of results.
             user_id: User ID filter (mem0 v2 requires user_id/agent_id/run_id).
+            min_score: Minimum relevance score (0.0 = no filter).
 
         Returns:
             List of memory entry dicts (empty list on error or no results).
@@ -190,6 +192,10 @@ class Mem0Client:
                 results_list = list(result["results"])
             elif result:
                 results_list = list(result)
+
+            # Apply min_score filter
+            if min_score > 0.0:
+                results_list = [r for r in results_list if r.get("score", 0) >= min_score]
 
             # Auto-increment use_count for retrieved entries (W-5, C-5)
             for entry in results_list:

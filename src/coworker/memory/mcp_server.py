@@ -20,15 +20,16 @@ logging.basicConfig(level=logging.ERROR, stream=sys.stderr)
 logger = logging.getLogger(__name__)
 
 
-def query_graph(query: str, top_k: int = 10) -> list[dict]:
+def query_graph(query: str, top_k: int = 10, budget: int = 2000) -> list[dict]:
     """Query the memory graph for relevant nodes."""
     try:
         from .storage import load_graph
-        from .query import search_graph
+        from .query import query as graph_query
         g = load_graph()
         if not g.nodes:
             return []
-        return search_graph(g, query, top_k=top_k)
+        result = graph_query(g, query, mode="graph", top_k=top_k, budget=budget)
+        return result["results"]
     except Exception as e:
         logger.error("Graph query failed: %s", e)
         return []
@@ -52,12 +53,12 @@ def graph_stats() -> dict:
         return {"error": str(e)}
 
 
-def search_mem0(query: str, top_k: int = 5) -> list[dict]:
+def search_mem0(query: str, top_k: int = 5, min_score: float = 0.3) -> list[dict]:
     """Search mem0 vector memory for relevant past lessons and patterns."""
     try:
         from .mem0_client import Mem0Client
         client = Mem0Client.from_config()
-        results = client.search(query=query, top_k=top_k)
+        results = client.search(query=query, top_k=top_k, min_score=min_score)
         return [
             {"memory": r.get("memory", ""), "type": r.get("metadata", {}).get("type", "?"), "score": r.get("score", 0)}
             for r in results
@@ -92,7 +93,7 @@ def handle_request(req: dict) -> dict | None:
                 "tools": [
                     {
                         "name": "query_memory_graph",
-                        "description": "Query the project's memory knowledge graph. Returns relevant code nodes, document references, and their relationships. Use this to find which files relate to a feature, what calls what, or architectural patterns. The graph has 2,595 code/document nodes and 5,126 edges.",
+                        "description": "Query the project's memory knowledge graph. Returns relevant code nodes, document references, and their relationships. Use this to find which files relate to a feature, what calls what, or architectural patterns. Results are cut by token budget (default 2000).",
                         "inputSchema": {
                             "type": "object",
                             "properties": {
@@ -104,6 +105,11 @@ def handle_request(req: dict) -> dict | None:
                                     "type": "integer",
                                     "description": "Max results (default 10)",
                                     "default": 10,
+                                },
+                                "budget": {
+                                    "type": "integer",
+                                    "description": "Token budget for results (default 2000)",
+                                    "default": 2000,
                                 },
                             },
                             "required": ["query"],
@@ -124,6 +130,11 @@ def handle_request(req: dict) -> dict | None:
                                     "description": "Max results (default 5)",
                                     "default": 5,
                                 },
+                                "min_score": {
+                                    "type": "number",
+                                    "description": "Minimum relevance score 0-1 (default 0.3). Lower = more results but less relevant.",
+                                    "default": 0.3,
+                                },
                             },
                             "required": ["query"],
                         },
@@ -143,7 +154,11 @@ def handle_request(req: dict) -> dict | None:
         arguments = params.get("arguments", {})
 
         if tool_name == "query_memory_graph":
-            results = query_graph(arguments.get("query", ""), arguments.get("top_k", 10))
+            results = query_graph(
+                arguments.get("query", ""),
+                arguments.get("top_k", 10),
+                arguments.get("budget", 2000),
+            )
             return {
                 "jsonrpc": "2.0", "id": req_id,
                 "result": {
@@ -152,7 +167,11 @@ def handle_request(req: dict) -> dict | None:
             }
 
         if tool_name == "search_memory":
-            results = search_mem0(arguments.get("query", ""), arguments.get("top_k", 5))
+            results = search_mem0(
+                arguments.get("query", ""),
+                arguments.get("top_k", 5),
+                arguments.get("min_score", 0.3),
+            )
             return {
                 "jsonrpc": "2.0", "id": req_id,
                 "result": {

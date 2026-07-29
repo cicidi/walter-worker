@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 MAX_DEPTH = 6
 MAX_SEEDS = 5  # more seeds than graphify to compensate for simpler BFS
+_EDGE_SUPPRESS_THRESHOLD = 0.3  # edges below this weight are NOT traversed
 
 
 # ── Public API ──────────────────────────────────────────────────────────────
@@ -30,8 +31,23 @@ def query(
     mode: str = "graph",
     mem0_client: Any = None,
     top_k: int = 10,
+    min_score: float = 0.3,
+    budget: int | None = None,
 ) -> dict:
-    """Search the memory graph. Delegates seed selection to graphify."""
+    """Search the memory graph + vector memory (mem0).
+
+    Args:
+        graph: The memory graph to search.
+        question: Natural-language query.
+        mode: "graph", "vector", or "both".
+        mem0_client: Mem0Client instance (required for vector modes).
+        top_k: Max results per source.
+        min_score: Minimum score for vector results (default 0.3).
+        budget: Token budget per source (None = use top_k only).
+
+    Returns:
+        Dict with results, mode, stats.
+    """
     results_graph: list[dict] = []
     results_vector: list[dict] = []
 
@@ -40,34 +56,46 @@ def query(
 
     if mode in ("vector", "both") and mem0_client is not None:
         try:
-            results_vector = mem0_client.search(query=question, top_k=top_k)
+            results_vector = mem0_client.search(
+                query=question, top_k=top_k, min_score=min_score,
+            )
         except Exception as exc:
             logger.warning("mem0 search failed (non-fatal): %s", exc)
+
+    # Apply quality filter to vector results (belt-and-suspenders with mem0_client.search filter)
+    results_vector = [r for r in results_vector if r.get("score", 0) >= min_score]
+
+    # Apply budget cut if specified, otherwise use top_k
+    if budget is not None:
+        results_graph = _cut_by_budget(results_graph, budget)
+        results_vector = _cut_by_budget(results_vector, budget)
+    else:
+        results_graph = results_graph[:top_k]
+        results_vector = results_vector[:top_k]
 
     # Tag graph results with source
     for r in results_graph:
         r["source"] = "graph"
 
     if mode == "both":
-        graph_out = results_graph[:top_k]
-        vector_out = [{"memory": r.get("memory", ""), "score": r.get("score", 0.5), "source": "vector",
+        graph_out = list(results_graph)
+        vector_out = [{"memory": r.get("memory", ""), "score": r.get("score", 0), "source": "vector",
                        "metadata": r.get("metadata", {})}
-                      for r in results_vector[:top_k]]
+                      for r in results_vector]
         results = graph_out + vector_out
     elif mode == "graph":
-        results = results_graph[:top_k]
+        results = list(results_graph)
         vector_out = []
     else:
-        results = [{"memory": r.get("memory", ""), "score": 1.0, "source": "vector"}
-                   for r in results_vector[:top_k]]
+        results = [{"memory": r.get("memory", ""), "score": r.get("score", 0), "source": "vector"}
+                   for r in results_vector]
         vector_out = []
-        graph_out = []
 
     return {
         "results": results,
         "mode": mode,
-        "graph_results": graph_out if mode == "both" else results_graph[:top_k],
-        "vector_results": vector_out if mode == "both" else results_vector[:top_k],
+        "graph_results": results_graph,
+        "vector_results": results_vector,
         "stats": {
             "graph_hits": len(results_graph),
             "vector_hits": len(results_vector),
@@ -104,6 +132,24 @@ def graph_traverse(
     return _bfs_from_seeds(graph, seed_ids, top_k, now)
 
 
+def _cut_by_budget(items: list[dict], budget_tokens: int) -> list[dict]:
+    """Cut items to fit within budget_tokens (~3 chars per token).
+
+    Each item costs len(label_or_memory) + 50 chars for metadata overhead.
+    Items beyond the budget are dropped.
+    """
+    char_budget = budget_tokens * 3
+    used = 0
+    out: list[dict] = []
+    for item in items:
+        text = str(item.get("label") or item.get("memory", ""))
+        used += len(text) + 50
+        if used > char_budget:
+            break
+        out.append(item)
+    return out
+
+
 def _graphify_seeds(G: nx.Graph, question: str, max_k: int = MAX_SEEDS) -> list[str]:
     """Use graphify's _score_nodes + _pick_seeds to find entry points."""
     try:
@@ -129,7 +175,7 @@ def _simple_seeds(G: nx.Graph, question: str) -> list[str]:
         label = (G.nodes[nid].get("label") or nid).lower()
         if any(t in label for t in terms):
             seeds.append(nid)
-    return seeds[:_MAX_SEEDS]
+    return seeds[:MAX_SEEDS]
 
 
 def _to_networkx(graph: CoworkerGraph) -> nx.Graph:
@@ -161,7 +207,11 @@ def _bfs_from_seeds(
     top_k: int,
     now: Any = None,
 ) -> list[dict]:
-    """BFS from seeds with decay-weighted ranking."""
+    """BFS from seeds with decay-weighted ranking.
+
+    Edges with effective_weight < 0.3 (suppressed) are NOT traversed.
+    Edges 0.3-0.5 (stale) are traversed but flagged.
+    """
     adjacency: dict[str, list[Edge]] = {}
     for edge in graph.links:
         adjacency.setdefault(edge.source, []).append(edge)
@@ -204,6 +254,9 @@ def _bfs_from_seeds(
         if depth < MAX_DEPTH:
             for edge in adjacency.get(node_id, []):
                 if edge.target not in visited:
+                    ew = compute_effective_weight(edge.base_weight, edge.last_traversed_at, now)
+                    if ew < _EDGE_SUPPRESS_THRESHOLD:
+                        continue  # skip suppressed edges
                     queue.append((edge.target, depth + 1, path + [edge]))
 
     found.sort(key=lambda f: (f["depth"], -f["path_weight"]))
@@ -218,40 +271,3 @@ def _find_node(graph: CoworkerGraph, node_id: str) -> Node | None:
         if n.id == node_id:
             return n
     return None
-
-
-def _merge_and_rank(graph_results: list[dict], vector_results: list[dict]) -> list[dict]:
-    seen_ids: set[str] = set()
-    merged: list[dict] = []
-
-    for r in graph_results:
-        r["source"] = "graph"
-        merged.append(r)
-        seen_ids.add(r["node_id"])
-
-    for r in vector_results:
-        memory = r.get("memory", "")
-        if not any(_text_overlap(memory, gr.get("label", "")) for gr in graph_results):
-            merged.append({
-                "memory": memory,
-                "score": r.get("score", 0.5),
-                "source": "vector",
-                "metadata": r.get("metadata", {}),
-            })
-
-    graph_part = [m for m in merged if m.get("source") == "graph"]
-    vector_part = [m for m in merged if m.get("source") == "vector"]
-    graph_part.sort(key=lambda x: -x.get("path_weight", 0))
-    vector_part.sort(key=lambda x: -x.get("score", 0))
-    return graph_part + vector_part
-
-
-def _text_overlap(a: str, b: str) -> bool:
-    if not a or not b:
-        return False
-    words_a = set(a.lower().split())
-    words_b = set(b.lower().split())
-    if not words_a or not words_b:
-        return False
-    overlap = len(words_a & words_b)
-    return overlap >= min(len(words_a), len(words_b)) * 0.3

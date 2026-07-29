@@ -29,7 +29,7 @@ def register_memory_commands(main_group: click.Group) -> None:
         structure from Graphify. Safe to re-run — existing edges are preserved.
         """
         from pathlib import Path
-        from coworker.memory.graphify_sync import init_graph_from_graphify, load_graphify_output
+        from coworker.memory.graphify_sync import init_graph_from_graphify
         from coworker.memory.storage import save_graph
 
         gf_path = Path(graphify_dir) if graphify_dir else None
@@ -91,7 +91,7 @@ def register_memory_commands(main_group: click.Group) -> None:
                 f"{stats['deduped']} deduped, {stats['graph_misses']} misses"
             )
         else:
-            console.print(f"[yellow]No pending sessions to process.[/yellow]")
+            console.print("[yellow]No pending sessions to process.[/yellow]")
 
     @memory.command("query")
     @click.argument("question")
@@ -101,12 +101,12 @@ def register_memory_commands(main_group: click.Group) -> None:
     @click.option("--mode", default="both", type=click.Choice(["graph", "vector", "both"]),
                   help="Search mode (default: both)")
     def memory_query(question, top_k, mode, budget, min_score):
-        """Query the memory graph.
+        """Query the memory graph + vector memory.
 
-        Searches nodes and traverses edges (BFS max depth 3).
-        Results are ranked by path weight with decay applied.
+        Graph search: graphify seed scoring → BFS traversal (max depth 6)
+        with decay-weighted ranking. Results cut by token budget.
+        Vector search: mem0 hybrid retrieval with min_score quality filter.
         """
-        from pathlib import Path
         from coworker.memory.storage import load_graph
         from coworker.memory.query import query as graph_query
 
@@ -123,51 +123,13 @@ def register_memory_commands(main_group: click.Group) -> None:
             except Exception:
                 console.print("[dim]mem0 not available — vector search skipped[/dim]")
 
-        result = graph_query(graph, question, mode=mode, mem0_client=mem0, top_k=top_k)
+        result = graph_query(
+            graph, question, mode=mode, mem0_client=mem0,
+            top_k=top_k, min_score=min_score, budget=budget,
+        )
 
-        graph_results = result.get("graph_results", [r for r in result["results"] if r.get("source") == "graph"])
-        vector_results = result.get("vector_results", [r for r in result["results"] if r.get("source") == "vector"])
-        vector_results = [r for r in vector_results if r.get("score", 0) >= min_score]
-
-        # Full-text search in session messages
-        message_results = []
-        try:
-            import sqlite3
-            db = sqlite3.connect(str(Path.home() / '.coworker' / 'analytics' / 'analytics.db'))
-            terms = question.lower().split()
-            like_clauses = ' OR '.join(['m.content LIKE ?' for _ in terms])
-            params = ['%' + t + '%' for t in terms]
-            rows = db.execute(
-                f'SELECT m.type, substr(m.content, 1, 500) as snippet, s.id, s.initiative, s.created_at '
-                f'FROM messages m JOIN sessions s ON m.session_id = s.id '
-                f'WHERE ({like_clauses}) AND m.content != \"\" '
-                f'ORDER BY s.created_at DESC LIMIT 10',
-                params
-            ).fetchall()
-            for row in rows:
-                message_results.append({
-                    'type': row[0], 'content': row[1], 'session_id': row[2],
-                    'initiative': row[3] or '', 'date': (row[4] or '')[:10]
-                })
-            db.close()
-        except Exception:
-            pass
-
-        def _cut_by_budget(items, budget_tokens):
-            """Cut items to fit within budget_tokens (~3 chars per token)."""
-            char_budget = budget_tokens * 3
-            used = 0
-            out = []
-            for item in items:
-                text = str(item.get("label") or item.get("memory", ""))
-                used += len(text) + 50  # 50 chars for metadata (type, score, file)
-                if used > char_budget:
-                    break
-                out.append(item)
-            return out
-
-        graph_results = _cut_by_budget(graph_results, budget)
-        vector_results = _cut_by_budget(vector_results, budget)
+        graph_results = result["graph_results"]
+        vector_results = result["vector_results"]
 
         # Graph results
         if graph_results:
@@ -179,7 +141,6 @@ def register_memory_commands(main_group: click.Group) -> None:
             t.add_column("W", justify="right")
             for i, r in enumerate(graph_results, 1):
                 label = r.get("label", "")[:120]
-                # If it's a document node, include its content
                 source = (r.get("source_file") or "").replace("/home/cicidi/project/ai-coworker/", "")
                 t.add_row(
                     str(i), label, r.get("type", ""),
@@ -205,29 +166,10 @@ def register_memory_commands(main_group: click.Group) -> None:
                 )
             console.print(t2)
 
-        # Message results (full-text search in session transcripts)
-        if message_results:
-            console.print()
-            t3 = Table(title=f"💬 Session Messages ({len(message_results)} results)")
-            t3.add_column("#", style="dim")
-            t3.add_column("Session")
-            t3.add_column("Type")
-            t3.add_column("Content")
-            for i, m in enumerate(message_results, 1):
-                role_icon = '👤' if m['type'] == 'user' else '🤖'
-                t3.add_row(
-                    str(i),
-                    f"{m['session_id'][:20]}...\n{m['date']}",
-                    role_icon,
-                    m['content'][:300]
-                )
-            console.print(t3)
-
         console.print(
             f"[dim]Graph: {result['stats']['graph_hits']} | "
             f"Vector: {result['stats']['vector_hits']} | "
-            f"Messages: {len(message_results)} | "
-            f"Shown: {len(graph_results)} + {len(vector_results)} + {len(message_results)} (budget: {budget}T)[/dim]"
+            f"Shown: {len(graph_results)} + {len(vector_results)} (budget: {budget}T, min-score: {min_score})[/dim]"
         )
 
     @memory.command("stats")
