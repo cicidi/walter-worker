@@ -122,30 +122,46 @@ def register_memory_commands(main_group: click.Group) -> None:
 
         result = graph_query(graph, question, mode=mode, mem0_client=mem0, top_k=top_k)
 
-        table = Table(title=f"Graph Query: {question[:60]}")
-        table.add_column("#", style="dim")
-        table.add_column("Source", style="cyan")
-        table.add_column("Label / Memory")
-        table.add_column("Type")
-        table.add_column("Weight", justify="right")
+        graph_results = result.get("graph_results", [r for r in result["results"] if r.get("source") == "graph"])
+        vector_results = result.get("vector_results", [r for r in result["results"] if r.get("source") == "vector"])
 
-        for i, r in enumerate(result["results"], 1):
-            src = r.get("source", "graph")
-            if src == "graph":
-                label = r.get("label", r.get("node_id", ""))
-                table.add_row(
-                    str(i), src, label[:80], r.get("type", ""),
+        # Graph results
+        if graph_results:
+            t = Table(title=f"🔗 Knowledge Graph ({len(graph_results)} results)")
+            t.add_column("#", style="dim")
+            t.add_column("Label", style="cyan")
+            t.add_column("Type")
+            t.add_column("File")
+            t.add_column("W", justify="right")
+            for i, r in enumerate(graph_results[:top_k], 1):
+                t.add_row(
+                    str(i), r.get("label", "")[:80], r.get("type", ""),
+                    (r.get("source_file") or "").replace("/home/cicidi/project/ai-coworker/", "")[:50],
                     f"{r.get('path_weight', 0):.2f}"
                 )
-            else:
-                mem = r.get("memory", "")[:80]
-                table.add_row(str(i), src, mem, "", f"{r.get('score', 0):.2f}")
+            console.print(t)
 
-        console.print(table)
+        # Vector/mem0 results
+        if vector_results:
+            console.print()
+            t2 = Table(title=f"🧠 Session Memory ({len(vector_results)} results)")
+            t2.add_column("#", style="dim")
+            t2.add_column("Memory")
+            t2.add_column("Type")
+            t2.add_column("Score", justify="right")
+            for i, r in enumerate(vector_results[:top_k], 1):
+                meta = r.get("metadata", {})
+                t2.add_row(
+                    str(i), r.get("memory", "")[:120],
+                    meta.get("type", ""),
+                    f"{r.get('score', 0):.2f}"
+                )
+            console.print(t2)
+
         console.print(
-            f"[dim]Stats: {result['stats']['graph_hits']} graph hits, "
-            f"{result['stats']['vector_hits']} vector hits, "
-            f"{result['stats']['total_returned']} returned[/dim]"
+            f"[dim]Graph: {result['stats']['graph_hits']} hits | "
+            f"Vector: {result['stats']['vector_hits']} hits | "
+            f"Shown: {min(len(graph_results), top_k)} + {min(len(vector_results), top_k)}[/dim]"
         )
 
     @memory.command("stats")

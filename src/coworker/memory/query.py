@@ -45,20 +45,29 @@ def query(
             logger.warning("mem0 search failed (non-fatal): %s", exc)
 
     if mode == "both":
-        results = _merge_and_rank(results_graph, results_vector)
+        graph_out = results_graph[:top_k]
+        vector_out = [{"memory": r.get("memory", ""), "score": r.get("score", 0.5), "source": "vector",
+                       "metadata": r.get("metadata", {})}
+                      for r in results_vector[:top_k]]
+        results = graph_out + vector_out
     elif mode == "graph":
-        results = results_graph
+        results = results_graph[:top_k]
+        vector_out = []
     else:
         results = [{"memory": r.get("memory", ""), "score": 1.0, "source": "vector"}
-                   for r in results_vector]
+                   for r in results_vector[:top_k]]
+        vector_out = []
+        graph_out = []
 
     return {
-        "results": results[:top_k],
+        "results": results,
         "mode": mode,
+        "graph_results": graph_out if mode == "both" else results_graph[:top_k],
+        "vector_results": vector_out if mode == "both" else results_vector[:top_k],
         "stats": {
             "graph_hits": len(results_graph),
             "vector_hits": len(results_vector),
-            "total_returned": min(len(results), top_k),
+            "total_returned": len(results),
         },
     }
 
