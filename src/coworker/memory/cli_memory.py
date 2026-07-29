@@ -95,10 +95,11 @@ def register_memory_commands(main_group: click.Group) -> None:
 
     @memory.command("query")
     @click.argument("question")
-    @click.option("--top-k", "-k", default=20, help="Max results per source (default: 20)")
+    @click.option("--top-k", "-k", default=50, help="Max results per source (default: 50, cut by token budget)")
+    @click.option("--budget", default=2000, help="Token budget per section (default: 2000)")
     @click.option("--mode", default="both", type=click.Choice(["graph", "vector", "both"]),
                   help="Search mode (default: both)")
-    def memory_query(question, top_k, mode):
+    def memory_query(question, top_k, mode, budget):
         """Query the memory graph.
 
         Searches nodes and traverses edges (BFS max depth 3).
@@ -125,6 +126,22 @@ def register_memory_commands(main_group: click.Group) -> None:
         graph_results = result.get("graph_results", [r for r in result["results"] if r.get("source") == "graph"])
         vector_results = result.get("vector_results", [r for r in result["results"] if r.get("source") == "vector"])
 
+        def _cut_by_budget(items, budget_tokens):
+            """Cut items to fit within budget_tokens (~3 chars per token)."""
+            char_budget = budget_tokens * 3
+            used = 0
+            out = []
+            for item in items:
+                text = str(item.get("label") or item.get("memory", ""))
+                used += len(text) + 50  # 50 chars for metadata (type, score, file)
+                if used > char_budget:
+                    break
+                out.append(item)
+            return out
+
+        graph_results = _cut_by_budget(graph_results, budget)
+        vector_results = _cut_by_budget(vector_results, budget)
+
         # Graph results
         if graph_results:
             t = Table(title=f"🔗 Knowledge Graph ({len(graph_results)} results)")
@@ -133,7 +150,7 @@ def register_memory_commands(main_group: click.Group) -> None:
             t.add_column("Type")
             t.add_column("File")
             t.add_column("W", justify="right")
-            for i, r in enumerate(graph_results[:top_k], 1):
+            for i, r in enumerate(graph_results, 1):
                 t.add_row(
                     str(i), r.get("label", "")[:80], r.get("type", ""),
                     (r.get("source_file") or "").replace("/home/cicidi/project/ai-coworker/", "")[:50],
@@ -149,7 +166,7 @@ def register_memory_commands(main_group: click.Group) -> None:
             t2.add_column("Memory")
             t2.add_column("Type")
             t2.add_column("Score", justify="right")
-            for i, r in enumerate(vector_results[:top_k], 1):
+            for i, r in enumerate(vector_results, 1):
                 meta = r.get("metadata", {})
                 t2.add_row(
                     str(i), r.get("memory", "")[:120],
@@ -161,7 +178,7 @@ def register_memory_commands(main_group: click.Group) -> None:
         console.print(
             f"[dim]Graph: {result['stats']['graph_hits']} hits | "
             f"Vector: {result['stats']['vector_hits']} hits | "
-            f"Shown: {min(len(graph_results), top_k)} + {min(len(vector_results), top_k)}[/dim]"
+            f"Shown: {len(graph_results)} + {len(vector_results)} (budget: {budget}T)[/dim]"
         )
 
     @memory.command("stats")
