@@ -229,11 +229,20 @@ def _merge_and_rank(graph_results: list[dict], vector_results: list[dict]) -> li
                 "metadata": r.get("metadata", {}),
             })
 
+    # Interleave graph and vector results so both sources are visible
     graph_part = [m for m in merged if m.get("source") == "graph"]
     vector_part = [m for m in merged if m.get("source") == "vector"]
     graph_part.sort(key=lambda x: -x.get("path_weight", 0))
     vector_part.sort(key=lambda x: -x.get("score", 0))
-    return graph_part + vector_part
+
+    interleaved = []
+    gi = vi = 0
+    while gi < len(graph_part) or vi < len(vector_part):
+        if gi < len(graph_part):
+            interleaved.append(graph_part[gi]); gi += 1
+        if vi < len(vector_part):
+            interleaved.append(vector_part[vi]); vi += 1
+    return interleaved
 
 
 def _text_overlap(a: str, b: str) -> bool:
