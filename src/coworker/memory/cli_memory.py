@@ -105,6 +105,7 @@ def register_memory_commands(main_group: click.Group) -> None:
         Searches nodes and traverses edges (BFS max depth 3).
         Results are ranked by path weight with decay applied.
         """
+        from pathlib import Path
         from coworker.memory.storage import load_graph
         from coworker.memory.query import query as graph_query
 
@@ -125,6 +126,30 @@ def register_memory_commands(main_group: click.Group) -> None:
 
         graph_results = result.get("graph_results", [r for r in result["results"] if r.get("source") == "graph"])
         vector_results = result.get("vector_results", [r for r in result["results"] if r.get("source") == "vector"])
+
+        # Full-text search in session messages
+        message_results = []
+        try:
+            import sqlite3
+            db = sqlite3.connect(str(Path.home() / '.coworker' / 'analytics' / 'analytics.db'))
+            terms = question.lower().split()
+            like_clauses = ' OR '.join(['m.content LIKE ?' for _ in terms])
+            params = ['%' + t + '%' for t in terms]
+            rows = db.execute(
+                f'SELECT m.type, substr(m.content, 1, 500) as snippet, s.id, s.initiative, s.created_at '
+                f'FROM messages m JOIN sessions s ON m.session_id = s.id '
+                f'WHERE ({like_clauses}) AND m.content != \"\" '
+                f'ORDER BY s.created_at DESC LIMIT 10',
+                params
+            ).fetchall()
+            for row in rows:
+                message_results.append({
+                    'type': row[0], 'content': row[1], 'session_id': row[2],
+                    'initiative': row[3] or '', 'date': (row[4] or '')[:10]
+                })
+            db.close()
+        except Exception:
+            pass
 
         def _cut_by_budget(items, budget_tokens):
             """Cut items to fit within budget_tokens (~3 chars per token)."""
@@ -151,9 +176,12 @@ def register_memory_commands(main_group: click.Group) -> None:
             t.add_column("File")
             t.add_column("W", justify="right")
             for i, r in enumerate(graph_results, 1):
+                label = r.get("label", "")[:120]
+                # If it's a document node, include its content
+                source = (r.get("source_file") or "").replace("/home/cicidi/project/ai-coworker/", "")
                 t.add_row(
-                    str(i), r.get("label", "")[:80], r.get("type", ""),
-                    (r.get("source_file") or "").replace("/home/cicidi/project/ai-coworker/", "")[:50],
+                    str(i), label, r.get("type", ""),
+                    source[:50] if source else "",
                     f"{r.get('path_weight', 0):.2f}"
                 )
             console.print(t)
@@ -175,10 +203,29 @@ def register_memory_commands(main_group: click.Group) -> None:
                 )
             console.print(t2)
 
+        # Message results (full-text search in session transcripts)
+        if message_results:
+            console.print()
+            t3 = Table(title=f"💬 Session Messages ({len(message_results)} results)")
+            t3.add_column("#", style="dim")
+            t3.add_column("Session")
+            t3.add_column("Type")
+            t3.add_column("Content")
+            for i, m in enumerate(message_results, 1):
+                role_icon = '👤' if m['type'] == 'user' else '🤖'
+                t3.add_row(
+                    str(i),
+                    f"{m['session_id'][:20]}...\n{m['date']}",
+                    role_icon,
+                    m['content'][:300]
+                )
+            console.print(t3)
+
         console.print(
-            f"[dim]Graph: {result['stats']['graph_hits']} hits | "
-            f"Vector: {result['stats']['vector_hits']} hits | "
-            f"Shown: {len(graph_results)} + {len(vector_results)} (budget: {budget}T)[/dim]"
+            f"[dim]Graph: {result['stats']['graph_hits']} | "
+            f"Vector: {result['stats']['vector_hits']} | "
+            f"Messages: {len(message_results)} | "
+            f"Shown: {len(graph_results)} + {len(vector_results)} + {len(message_results)} (budget: {budget}T)[/dim]"
         )
 
     @memory.command("stats")
