@@ -7,6 +7,7 @@
 | 2026-08-01 | 0.1.0 | Initial draft |
 | 2026-08-01 | 0.2.0 | Post devil-advocate review: add TU-5 (model=pro), TI-4a (hex fallback), TI-7a (missing manifest), TI-9 (atomic write); update TI-3/4 to marker-based detection |
 | 2026-08-01 | 0.3.0 | Post GLM-5.2 review (scope-corrected): TU-5 → port-as-is (statusline unchanged, model field untouched); add TI-4b (legacy grey-theme migration), TR-6 (ai-coworker manifest exclusion); TI-7 → rm -rf + statusLine pop; TR-2 → preserve rich version as optional; fix 0/1/2 → 0/1/2/3 in §6 |
+| 2026-08-01 | 0.4.0 | Add §7 Verification: 4-layer verification (auto/smoke/rollback/coworker-regression), byte-diff for fixed input + human-reported feature checklist for live display, verify.sh modes, S1-S7 / T1-T6 feature checklist, success criteria |
 
 ---
 
@@ -115,3 +116,108 @@ After all tests pass, manual acceptance:
 4. Run `uninstall.sh`, confirm clean removal (statusLine gone, dirs removed)
 5. Confirm ai-coworker install no longer touches tmux
 6. (Existing ai-coworker user) confirm grey-theme → Benjamin Blue migration prompt appears
+
+---
+
+## 7. Verification — How to confirm it actually worked
+
+> This section defines the **verification deliverable**: how to confirm the
+> migration succeeded on a real machine, beyond the automated tests above.
+> Core principle: **fixed input → byte diff** (deterministic, immune to live
+> data changes); **live display → human-reported feature checklist** (the user
+> pastes terminal text, the reviewer checks ANSI-encoded features).
+
+### 7.1 Four verification layers
+
+| Layer | Name | Executor | How it verifies |
+|-------|------|----------|-----------------|
+| L1 | Automation | `verify.sh auto` (unattended) | temp HOME + byte diff + idempotency + uninstall |
+| L2 | Real-machine smoke | user pastes terminal text → reviewer checks | feature checklist + ANSI inspection |
+| L3 | Rollback | `verify.sh rollback` (unattended) | install → verify → uninstall → verify → reinstall → verify |
+| L4 | ai-coworker regression | `pytest` + `bats` | full suite green |
+
+### 7.2 Verification deliverables (in claude-tmux-config repo)
+
+```
+claude-tmux-config/
+└── verify/
+    ├── fixtures/sample-status.json      # fixed stdin input → deterministic statusline output
+    ├── expected/statusline-golden.txt   # captured BEFORE install: script output for the fixture
+    ├── expected/tmux-status-golden.txt  # tmux status bar output
+    ├── expected/feature-checklist.md    # human-readable expected-feature table (shared with user)
+    └── verify.sh                        # modes: auto | smoke | rollback
+```
+
+### 7.3 verify.sh modes
+
+```
+verify.sh auto       # L1: temp HOME + byte diff + idempotent + uninstall
+verify.sh smoke      # L2: real-machine render → prints "paste terminal text" prompt → reviewer checks
+verify.sh rollback   # L3: install → verify → uninstall → verify → reinstall → verify
+```
+
+### 7.4 Boundary (what goes in the repo vs. what's collaborative)
+
+**In the repo** (executable/mechanical):
+1. `fixtures/sample-status.json` — fixed input for deterministic rendering.
+2. `verify.sh auto` — byte-diffs the deployed script's output against the golden
+   (verifies script renders correctly, not just that files exist).
+3. `expected/feature-checklist.md` — the shared expectation table (for BOTH the
+   user to read and the reviewer to check against pasted text).
+
+**NOT in the repo** (human/model collaborative): the ANSI feature-checking on
+pasted live text. When the user pastes their Claude Code / tmux terminal text,
+the reviewer (Claude) inspects the ANSI escape sequences against the checklist.
+This is not automated code — it's a live review step.
+
+### 7.5 Judgment rules
+
+```
+Fixed input  → byte diff      (stable; immune to cost/model/turns changing)
+Live display → user pastes text → reviewer runs feature checks on the ANSI
+   all pass → PASS ✅ (print per-feature detail)
+   any fail → report the specific feature + likely cause + fix command
+```
+
+### 7.6 Feature checklist (what the reviewer checks on pasted text)
+
+**Claude Code statusline** (bottom 4 lines):
+
+| ID | Feature | Check |
+|----|---------|-------|
+| S1 | 4 lines present | line count = 4 |
+| S2 | `project` label green | `\x1b[38;5;71m` in the 📁 label |
+| S3 | context bar blue blocks + pct | `ctx:` followed by block chars + `NN%` |
+| S4 | cost color by threshold | green <$1 / yellow $1-3 / red >$3 |
+| S5 | `branch` label green | `\x1b[38;5;71m` in the 🌿 label |
+| S6 | add/del red-green | `+N` green, `-M` red |
+| S7 | path line | line 4 starts with 📂 |
+
+**tmux status bar**:
+
+| ID | Feature | Check |
+|----|---------|-------|
+| T1 | deep-ocean bg | `status-style bg=#102D46` (from `tmux show`) |
+| T2 | left = session name (yellow) + green dot | status-left content |
+| T3 | right = 📂 + folder path | status-right references `status_info.sh` |
+| T4 | current window yellow-bg | window-status-current `fg=#102D46,bg=#F2C94C` |
+| T5 | active pane border yellow | pane-active-border `fg=#F2C94C` |
+| T6 | claude-tmux binding | `bind C-c` exists |
+
+### 7.7 Rollback verification (L3)
+
+```
+verify.sh rollback
+  1. install → 2. run all feature checks → 3. uninstall
+  4. confirm files gone → 5. reinstall → 6. re-run feature checks
+  all pass → rollback is safe (can be re-applied cleanly)
+```
+
+### 7.8 Success criteria (end-to-end)
+
+1. `verify.sh auto` → PASS on a temp HOME (L1).
+2. User runs `install.sh` on the real machine; pastes Claude Code + tmux terminal
+   text → reviewer runs the S1-S7 / T1-T6 checks → all PASS (L2).
+3. `verify.sh rollback` → PASS (L3).
+4. ai-coworker `pytest` + `bats` → green, and `install-manifest.json` contains no
+   `~/.claude/statusline/` entries (L4).
