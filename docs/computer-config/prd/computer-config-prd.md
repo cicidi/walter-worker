@@ -6,6 +6,7 @@
 |------|---------|--------|
 | 2026-08-01 | 0.1.0 | Initial draft |
 | 2026-08-01 | 0.2.0 | Post devil-advocate review: US-4 "one-click install" satisfied via menu option "3) Both" in spec; target model confirmed DeepSeek V4 Pro |
+| 2026-08-01 | 0.3.0 | Post GLM-5.2 review (scope-corrected): add US-6 (legacy grey-theme migration), FR-12 (grey-theme detection), FR-13 (ai-coworker manifest excludes ~/.claude/statusline/); fix stale 0/1/2 menu refs to 0/1/2/3; US-4 reworded to "single-run" |
 
 ---
 
@@ -38,8 +39,9 @@ users who install it (pollution).
 | US-1 | environment maintainer | all Claude/tmux assets versioned & consolidated | trackable, reversible, shareable |
 | US-2 | environment maintainer | explicit confirmation on install | no accidental installs, no damage to existing config |
 | US-3 | ai-coworker user | installing ai-coworker doesn't force my personal theme | my terminal skin is my choice |
-| US-4 | new user | one-click install of the full statusline+theme | quickly get the same experience |
-| US-5 | environment maintainer | one-click clean uninstall | no orphaned files |
+| US-4 | new user | single-run install of the full statusline+theme | quickly get the same experience |
+| US-5 | environment maintainer | one-command clean uninstall | no orphaned files |
+| US-6 | existing ai-coworker user | claude-tmux-config to detect my old grey tmux theme and offer a one-step migration to Benjamin Blue | so I don't manually edit .tmux.conf |
 
 ---
 
@@ -54,12 +56,14 @@ users who install it (pollution).
 | FR-3 | Adopt wrap-statusline.py | P0 |
 | FR-4 | Adopt status_info.sh (simple version) | P0 |
 | FR-5 | Extract Benjamin Blue theme into a standalone file | P0 |
-| FR-6 | install.sh 0/1/2 menu + y/N confirm, default N | P0 |
+| FR-6 | install.sh 0/1/2/3 menu + y/N confirm, default 0 (option 3 = both, one click) | P0 |
 | FR-7 | Deploy statusline to `~/.claude/statusline/` + write statusLine to settings.json | P0 |
 | FR-8 | Deploy tmux theme + status_info.sh (idempotent, with backup) | P0 |
 | FR-9 | uninstall.sh manifest-driven clean removal | P0 |
 | FR-10 | Remove Step 16 + setup/status_info.sh from ai-coworker | P0 |
 | FR-11 | ai-coworker core tests stay green | P0 |
+| FR-12 | Detect legacy ai-coworker grey theme (`# ai-coworker status bar`) and offer one-step migration to Benjamin Blue | P1 |
+| FR-13 | ai-coworker manifest walk excludes `~/.claude/statusline/` (no cross-project deletion risk) | P0 |
 
 ### 3.2 Non-functional Requirements
 
@@ -87,7 +91,7 @@ separate effort).
 ## 5. Acceptance Criteria
 
 1. `claude-tmux-config` repo created, assets complete, paths parameterized
-2. `install.sh` runs: 0/1/2 menu + y/N confirm, default N
+2. `install.sh` runs: 0/1/2/3 menu + y/N confirm, default 0
 3. After install: `~/.claude/statusline/` two files in place, settings.json has `statusLine`
 4. After install: `~/.tmux/conf.d/benjamin-blue.tmux` in place (or skipped if existing inline color)
 5. `uninstall.sh` cleanly removes all traces

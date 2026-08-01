@@ -6,6 +6,7 @@
 |------|---------|--------|
 | 2026-08-01 | 0.1.0 | Initial draft — expanded from migration design doc to full configuration spec |
 | 2026-08-01 | 0.2.0 | Post devil-advocate review: confirm target model = DeepSeek V4 Pro; fix factual errors (.tmux.conf 36 lines, 10 top-level keys, 13 plugin entries); fix 0/1/2 menu → 0/1/2/3 (one-click both); define atomic-write mechanism, manifest schema + cross-project scoping, and inline-color detection algorithm |
+| 2026-08-01 | 0.3.0 | Post GLM-5.2 review (scope-corrected): reframe statusline as PORT-AS-IS (document, don't re-audit internals); DROP invented model-field reconciliation step (CCR manages it; statusline reads transcript dynamically); fix atomic write to stdlib-only (bash can't import ai-coworker backup.py); manifest scope now includes ~/.tmux/scripts/ + bidirectional cross-project conflict (ai-coworker must exclude ~/.claude/statusline/); add legacy grey-theme migration branch; fix effort table (high=red), status_info=15 lines, stale 0/1/2 refs |
 
 ---
 
@@ -48,14 +49,14 @@ the primary model.
 helper. Claude Code sees a standard Anthropic endpoint; CCR does the internal
 request translation (Anthropic Messages → OpenAI-compatible → DeepSeek, and back).
 
-> **⚠️ Target model confirmed: DeepSeek V4 Pro** (user decision, 2026-08-01).
-> The env vars (`ANTHROPIC_MODEL` / `CCR_CLAUDE_CODE_MODEL` / `CODEXL_CLAUDE_CODE_MODEL`)
-> all correctly say `DeepSeek/deepseek-v4-pro`. However, the `settings.json`
-> `model` field (`anthropic/claude-ccr-h446...f6c617368[1m]`) hex-decodes to
-> `DeepSeek/deepseek-v4-flash` — a **pending inconsistency**. The env vars take
-> precedence for routing, so the running model is pro, but the `model` field
-> should be reconciled to the pro routing ID during implementation to avoid a
-> future switch to flash.
+> **Port-as-is note**: the CCR proxy + `settings.json` model/env configuration is
+> the user's existing, working setup. This project PORTS the statusline + tmux
+> assets; it does NOT re-configure CCR, re-route models, or modify the
+> `settings.json` `model` field. The statusline's `compute_real_cost` reads the
+> transcript's per-message model dynamically, so it adapts to whatever model CCR
+> routes to — no static model assumption is needed. (The `model` field is
+> CCR-managed and changes on each `/model` switch; it is intentionally not
+> touched by the installer.)
 
 ### 2.2 settings.json Complete Fields
 
@@ -71,7 +72,7 @@ Main config at `~/.claude/settings.json`, 10 top-level keys:
 | `env.CCR_CLAUDE_CODE_MODEL` | `DeepSeek/deepseek-v4-pro` | Same |
 | `env.CODEXL_CLAUDE_CODE_MODEL` | `DeepSeek/deepseek-v4-pro` | Same |
 | `env.CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY` | `1` | Tells Claude Code a gateway (CCR) exists; query for available model listings |
-| `model` | `anthropic/claude-ccr-h446...f6c617368[1m]` | CCR-wrapped model ID; `[1m]` suffix signals 1M-token context window |
+| `model` | `anthropic/claude-ccr-<hex-encoded-model-name>[1m]` | CCR-wrapped model ID; CCR hex-encodes the real model name in the id and the `[1m]` suffix signals a 1M-token context window. **CCR-managed — changes on each `/model` switch; installer does not touch it** |
 | `permissions.defaultMode` | `bypassPermissions` | Skips permission prompt system; real safety net is hook infra audit logs |
 | `permissions.allow` | `Bash(*)`, `Edit(*)`, `Read(*)`, ... | Allow-list (no-op under bypass mode) |
 | `hooks` | 4 events + commands | UserPromptSubmit / PreToolUse / PostToolUse / Stop |
@@ -88,6 +89,12 @@ everything for audit, not the permission prompt system.
 ---
 
 ## 3. Claude Code Statusline
+
+> **Port-as-is**: this section DOCUMENTS the existing `statusline-command.sh`
+> behavior so the spec is complete. The script is a working, in-production asset
+> that is PORTED UNCHANGED. Its internal logic (cost calc, context detection,
+> thresholds, pricing tables) is existing behavior — not requirements to
+> implement or re-audit. Only the 3 hardcoded paths (§3.11) are parameterized.
 
 ### 3.1 Mechanism
 
@@ -126,7 +133,7 @@ rose `211`, gold `214`, coral `209`, grape `141`, teal `43`, silver `250`.
 |--------|-------|--------|-----|
 | Context usage | <50% | 50-80% | >80% |
 | Cost | <$1 | $1-3 | >$3 |
-| Effort level | low | medium/high | max |
+| Effort level | low | medium | high / max |
 | Elapsed | <30min | 30-60min | >1h |
 | avg_api | <3s | 3-8s | >8s |
 
@@ -220,7 +227,7 @@ gracefully). Contains Linux-specific commands `stat -c %W`, `hostname -s`
 
 ### 4.2 status_info.sh (currently-running version = simple)
 
-13 lines, displays only the current folder path (`$HOME` shortened to `~`).
+15 lines, displays only the current folder path (`$HOME` shortened to `~`).
 Reads via `tmux display-message -p -F '#{pane_current_path}'`.
 
 **⚠️ Version divergence**: the user currently runs the 303B simple version
@@ -350,34 +357,39 @@ install's `source` line). This is reliable and idempotent:
   `status_info.sh`, do NOT append `source` (avoids pollution).
 - If neither → fresh install → deploy `benjamin-blue.tmux` + append `source`
   line with the marker comment.
+- **Legacy ai-coworker grey-theme migration**: if `.tmux.conf` contains the old
+  ai-coworker marker `# ai-coworker status bar` (the grey `bg=colour236,fg=white`
+  block that ai-coworker's removed Step 16 used to append), prompt the user:
+  *"Detected old ai-coworker grey theme. Replace with Benjamin Blue? [y/N]"*.
+  On `y`: strip the old `# ai-coworker status bar` block, then deploy the full
+  Benjamin Blue theme + `source` + marker. On `n`: deploy only `status_info.sh`.
 
 > Hex-matching alone was rejected as unreliable (false-positives on any dark
 > blue). The marker comment is the primary gate; hex-matching is the fallback
-> for pre-existing manual themes.
+> for pre-existing manual themes. The legacy grey-theme check is a distinct
+> migration path for existing ai-coworker users (including this user).
 
 ### 6.3 Idempotency & Safety
 
 #### settings.json atomic write (defined)
 
-Reuse the proven `_write_json_atomic` from `src/coworker/adapters/claude.py`
-(lines 59-71): write to a temp file in the same directory → `os.replace()` →
-keep a `.bak` snapshot. This is genuinely atomic (rename is atomic on POSIX).
-The spec references this existing implementation rather than re-defining it:
+The install/uninstall edits `settings.json` via an inline `python3 -c` block
+(only stdlib is available inside bash — no ai-coworker imports). Use a
+stdlib-only atomic write: copy to `.bak` → write temp → `os.replace` (rename is
+atomic on POSIX). Do NOT call ai-coworker's `backup.snapshot()` (it lives in an
+internal Python module a bash script cannot import) and do NOT use plain
+`json.dump(fp)` (non-atomic):
 
 ```python
-# from ai-coworker: src/coworker/adapters/claude.py
-def _write_json_atomic(path, data):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if path.exists():
-        backup.snapshot([path], "json-sync")
-    fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=path.name + ".", suffix=".tmp")
-    with os.fdopen(fd, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
-    os.replace(tmp, path)
+# inline in install.sh / uninstall.sh — stdlib only
+import json, os, tempfile, shutil
+shutil.copy2(path, str(path) + ".bak")          # .bak snapshot
+fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path), prefix=".tmp")
+with os.fdopen(fd, "w") as f:
+    json.dump(cfg, f, indent=2)
+    f.flush(); os.fsync(f.fileno())
+os.replace(tmp, path)                            # atomic rename
 ```
-
-claude-tmux-config's install will vendor this same pattern (temp + fsync +
-rename + .bak). It must NOT use plain `json.dump(fp)` which is non-atomic.
 
 #### .tmux.conf mutation safety
 
@@ -403,11 +415,20 @@ owned paths only — **NOT** recursively claiming `~/.claude/`):
 }
 ```
 
-- **Cross-project conflict avoided**: this manifest scopes to
-  `~/.claude/statusline/` and `~/.tmux/conf.d/` ONLY. It never claims other
-  `~/.claude/` files, so it cannot conflict with ai-coworker's own manifest
-  (which walks `~/.coworker/` and `~/.config/opencode/`, plus its own hook
-  commands). Both manifests coexist by directory scoping.
+- **Cross-project conflict — must be fixed in BOTH directions**:
+  - *claude-tmux-config side* (solved here): this manifest scopes to
+    `~/.claude/statusline/`, `~/.tmux/conf.d/`, and `~/.tmux/scripts/status_info.sh`
+    ONLY. It never claims other `~/.claude/` files.
+  - *ai-coworker side* (Workstream B requirement): ai-coworker's install.sh
+    currently `os.walk()`s `~/.claude/` **recursively** when building its own
+    manifest, so it would also list `~/.claude/statusline/*` and could delete
+    them on uninstall. The strip (impl-plan B1.5) MUST add an exclusion so
+    ai-coworker's manifest walk skips `~/.claude/statusline/`. Until that
+    exclusion lands, the conflict is only half-resolved.
+- **Runtime cache files**: `~/.claude/statusline/` also accumulates runtime
+  files (`turn-counter-*.json`, `ccusage-cache.json`) not listed in the manifest.
+  Uninstall therefore removes the whole `~/.claude/statusline/` directory
+  (`rm -rf`), not just the listed files.
 - **Missing/partial manifest handling**: `uninstall.sh` refuses to run if the
   manifest is absent (logs a warning, lists what to remove manually); if
   partial, it removes only the files listed and reports the rest as manual.
@@ -445,7 +466,7 @@ Before component 1 install: `command -v jq && command -v bc && command -v python
 ## 9. Acceptance Criteria
 
 1. `claude-tmux-config` repo created, assets complete, paths parameterized
-2. `install.sh` runs: 0/1/2 menu + y/N confirm, default N
+2. `install.sh` runs: 0/1/2/3 menu + y/N confirm, default 0
 3. After install: `~/.claude/statusline/` two files in place, settings.json has `statusLine`
 4. After install: `~/.tmux/conf.d/benjamin-blue.tmux` in place (or skipped if existing inline color)
 5. `uninstall.sh` cleanly removes all traces
