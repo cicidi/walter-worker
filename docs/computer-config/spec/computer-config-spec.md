@@ -5,6 +5,7 @@
 | Date | Version | Change |
 |------|---------|--------|
 | 2026-08-01 | 0.1.0 | Initial draft — expanded from migration design doc to full configuration spec |
+| 2026-08-01 | 0.2.0 | Post devil-advocate review: confirm target model = DeepSeek V4 Pro; fix factual errors (.tmux.conf 36 lines, 10 top-level keys, 13 plugin entries); fix 0/1/2 menu → 0/1/2/3 (one-click both); define atomic-write mechanism, manifest schema + cross-project scoping, and inline-color detection algorithm |
 
 ---
 
@@ -47,9 +48,18 @@ the primary model.
 helper. Claude Code sees a standard Anthropic endpoint; CCR does the internal
 request translation (Anthropic Messages → OpenAI-compatible → DeepSeek, and back).
 
+> **⚠️ Target model confirmed: DeepSeek V4 Pro** (user decision, 2026-08-01).
+> The env vars (`ANTHROPIC_MODEL` / `CCR_CLAUDE_CODE_MODEL` / `CODEXL_CLAUDE_CODE_MODEL`)
+> all correctly say `DeepSeek/deepseek-v4-pro`. However, the `settings.json`
+> `model` field (`anthropic/claude-ccr-h446...f6c617368[1m]`) hex-decodes to
+> `DeepSeek/deepseek-v4-flash` — a **pending inconsistency**. The env vars take
+> precedence for routing, so the running model is pro, but the `model` field
+> should be reconciled to the pro routing ID during implementation to avoid a
+> future switch to flash.
+
 ### 2.2 settings.json Complete Fields
 
-Main config at `~/.claude/settings.json`, 11 top-level keys:
+Main config at `~/.claude/settings.json`, 10 top-level keys:
 
 | Key | Value | Purpose |
 |-----|-------|---------|
@@ -66,7 +76,7 @@ Main config at `~/.claude/settings.json`, 11 top-level keys:
 | `permissions.allow` | `Bash(*)`, `Edit(*)`, `Read(*)`, ... | Allow-list (no-op under bypass mode) |
 | `hooks` | 4 events + commands | UserPromptSubmit / PreToolUse / PostToolUse / Stop |
 | `statusLine` | `{type: command, command: bash .../statusline-command.sh, padding: 0}` | 4-line statusline rendering |
-| `enabledPlugins` | 12 plugins | superpowers/frontend-design/code-review/github/playwright/context7/feature-dev/claude-md-management/skill-creator/discord/telegram/claude-hud |
+| `enabledPlugins` | 13 entries (12 enabled + 1 disabled) | superpowers/frontend-design/code-review/github/playwright/context7/feature-dev/claude-md-management/skill-creator/discord/telegram/claude-hud (enabled); semgrep (disabled) |
 | `extraKnownMarketplaces` | claude-hud | Installs claude-hud plugin from jarrodwatts/claude-hud |
 | `alwaysThinkingEnabled` | `true` | Forces extended thinking mode |
 | `skipDangerousModePermissionPrompt` | `true` | Suppresses confirmation prompt when bypassPermissions is active |
@@ -190,7 +200,7 @@ gracefully). Contains Linux-specific commands `stat -c %W`, `hostname -s`
 
 ## 4. tmux Complete Configuration
 
-### 4.1 .tmux.conf (34 lines)
+### 4.1 .tmux.conf (36 lines)
 
 | Section | Config | Why |
 |---------|--------|-----|
@@ -309,28 +319,98 @@ claude-tmux-config/
 
 ### 6.2 Install Confirmation Mechanism
 
-Reuses ai-coworker install.sh interaction style (0/1/2 menu + y/N confirm,
-default N):
+Reuses ai-coworker install.sh interaction style (0/1/2/3 menu + y/N confirm,
+default 0). Supports one-click install of both components (satisfies PRD US-4):
 
 ```
 claude-tmux-config install
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🎯 What to install? (default skip, non-destructive)
-  1) Claude Code statusline (statusline + statusLine setting)
-  2) tmux theme + status bar (Benjamin Blue + source theme file)
   0) Skip
+  1) Claude Code statusline only (statusline + statusLine setting)
+  2) tmux theme + status bar only (Benjamin Blue + source theme file)
+  3) Both — full statusline + theme (one click)
 Choose [0]:
 ```
+
+Each selected component then asks an explicit `y/N` confirm (default N).
 
 **⚠️ Existing-inline-color special case**: the user's `.tmux.conf` already has
 Benjamin Blue inlined. If detected, install only deploys `status_info.sh` and does
 NOT add a duplicate `source`, avoiding pollution. Fresh users get the full theme file.
 
+**Detection algorithm (defined)**: install checks whether `.tmux.conf` already
+contains a **marker comment** `# claude-tmux-config theme` (added by a prior
+install's `source` line). This is reliable and idempotent:
+- If the marker exists → the theme was already sourced by this tool → deploy
+  only `status_info.sh`, do NOT re-append `source`.
+- If the marker is absent → check for any of the 6 Benjamin Blue hex values
+  (`#102D46`, `#EAE7DD`, `#F2C94C`, `#5F8D4E`, `#8EA2AF`, `#30506B`) in the
+  file. If ANY present → user has a manual/older inline theme → deploy only
+  `status_info.sh`, do NOT append `source` (avoids pollution).
+- If neither → fresh install → deploy `benjamin-blue.tmux` + append `source`
+  line with the marker comment.
+
+> Hex-matching alone was rejected as unreliable (false-positives on any dark
+> blue). The marker comment is the primary gate; hex-matching is the fallback
+> for pre-existing manual themes.
+
 ### 6.3 Idempotency & Safety
 
-- settings.json: backup `.bak` + atomic write (reuse `_write_json_atomic` pattern)
-- .tmux.conf: backup `.tmux.conf.bak` before mutation; marker check prevents duplicates
-- uninstall: manifest-driven, removes statusLine, deletes `~/.tmux/conf.d/`, restores source line
+#### settings.json atomic write (defined)
+
+Reuse the proven `_write_json_atomic` from `src/coworker/adapters/claude.py`
+(lines 59-71): write to a temp file in the same directory → `os.replace()` →
+keep a `.bak` snapshot. This is genuinely atomic (rename is atomic on POSIX).
+The spec references this existing implementation rather than re-defining it:
+
+```python
+# from ai-coworker: src/coworker/adapters/claude.py
+def _write_json_atomic(path, data):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if path.exists():
+        backup.snapshot([path], "json-sync")
+    fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=path.name + ".", suffix=".tmp")
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+    os.replace(tmp, path)
+```
+
+claude-tmux-config's install will vendor this same pattern (temp + fsync +
+rename + .bak). It must NOT use plain `json.dump(fp)` which is non-atomic.
+
+#### .tmux.conf mutation safety
+
+- Backup `~/.tmux.conf.bak` before any mutation.
+- Marker check (`# claude-tmux-config theme`) prevents duplicate appends.
+
+#### uninstall manifest (defined)
+
+Manifest at `~/.coworker/statusline-manifest.json` (scoped to claude-tmux-config
+owned paths only — **NOT** recursively claiming `~/.claude/`):
+
+```json
+{
+  "install_mode": "global",
+  "version": "0.1.0",
+  "statusline_files": ["/home/user/.claude/statusline/statusline-command.sh",
+                       "/home/user/.claude/statusline/wrap-statusline.py"],
+  "tmux_files": ["/home/user/.tmux/scripts/status_info.sh",
+                 "/home/user/.tmux/conf.d/benjamin-blue.tmux"],
+  "settings_entries": ["statusLine"],
+  "tmux_source_line": "source-file ~/.tmux/conf.d/benjamin-blue.tmux",
+  "marker": "# claude-tmux-config theme"
+}
+```
+
+- **Cross-project conflict avoided**: this manifest scopes to
+  `~/.claude/statusline/` and `~/.tmux/conf.d/` ONLY. It never claims other
+  `~/.claude/` files, so it cannot conflict with ai-coworker's own manifest
+  (which walks `~/.coworker/` and `~/.config/opencode/`, plus its own hook
+  commands). Both manifests coexist by directory scoping.
+- **Missing/partial manifest handling**: `uninstall.sh` refuses to run if the
+  manifest is absent (logs a warning, lists what to remove manually); if
+  partial, it removes only the files listed and reports the rest as manual.
 
 ### 6.4 Dependency Check
 
@@ -353,10 +433,12 @@ Before component 1 install: `command -v jq && command -v bc && command -v python
 |------|------------|
 | statusline performance overhead | ccusage cache (120s TTL), git lightweight, overall <100ms |
 | Missing jq/bc/python3 silent failure | install does `command -v` check + warn |
-| .tmux.conf pollution | idempotent marker + backup `.bak` before mutation |
-| settings.json corruption on interrupt | `_write_json_atomic` (temp + rename + .bak) |
+| .tmux.conf pollution | idempotent marker (`# claude-tmux-config theme`) + backup `.bak` before mutation |
+| settings.json corruption on interrupt | vendored `_write_json_atomic` (temp + fsync + rename + .bak), defined in §6.3 |
+| Uninstall leaves orphans | manifest scoped to owned paths (`~/.claude/statusline/` + `~/.tmux/conf.d/`), defined in §6.3 |
+| Cross-project manifest conflict | claude-tmux-config manifest scoped by directory, never claims `~/.claude/` recursively (§6.3) |
+| `settings.json` model field says flash while env says pro | reconcile `model` field to pro routing ID during implementation (see §2.1 note) |
 | macOS cross-platform incompatibility | declare Linux-only |
-| Uninstall leaves orphans | manifest tracks new paths + owned_dirs extension |
 
 ---
 

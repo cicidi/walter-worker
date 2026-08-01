@@ -5,6 +5,7 @@
 | Date | Version | Change |
 |------|---------|--------|
 | 2026-08-01 | 0.1.0 | Initial draft |
+| 2026-08-01 | 0.2.0 | Post devil-advocate review: menu → 0/1/2/3 (one-click both); component 1 adds settings.json model-field reconciliation to pro; component 2 uses marker-based inline-color detection; A4 manifest defined + missing-manifest handling |
 
 ---
 
@@ -54,34 +55,49 @@ old paths (except the target dir).
 
 ### Step A3 — install.sh
 
-Implement 0/1/2 menu + y/N confirm (default N):
+Implement 0/1/2/3 menu + y/N confirm (default 0, supports one-click both):
 
 ```
 🎯 What to install? (default skip, non-destructive)
-  1) Claude Code statusline (statusline + statusLine setting)
-  2) tmux theme + status bar (Benjamin Blue + source theme file)
   0) Skip
+  1) Claude Code statusline only (statusline + statusLine setting)
+  2) tmux theme + status bar only (Benjamin Blue + source theme file)
+  3) Both — full statusline + theme (one click)
+Choose [0]:
 ```
 
 Component 1:
 1. `command -v jq && command -v bc && command -v python3` check, warn if missing
 2. Deploy `statusline-command.sh` + `wrap-statusline.py` → `~/.claude/statusline/`
-3. inline python merge `statusLine` into settings.json (`_merge` pattern, idempotent)
+3. inline python merge `statusLine` into settings.json, using the vendored
+   `_write_json_atomic` pattern (temp + fsync + rename + `.bak`) — NOT plain
+   `json.dump` (non-atomic)
+4. **Reconcile `settings.json` `model` field**: currently hex-encodes
+   `deepseek-v4-flash` while env vars say `deepseek-v4-pro`. Update to the pro
+   routing ID so a future sync cannot switch the model to flash.
 
-Component 2:
-1. Detect if `.tmux.conf` already has inline Benjamin Blue → if yes, deploy only status_info.sh
-2. Deploy `benjamin-blue.tmux` → `~/.tmux/conf.d/`
-3. Append `source` to `.tmux.conf` (idempotent: `grep -q "benjamin-blue.tmux"`)
-4. Backup `.tmux.conf.bak` before mutation
+Component 2 (per spec §6.2 detection algorithm):
+1. If `.tmux.conf` contains marker `# claude-tmux-config theme` OR any of the 6
+   Benjamin Blue hexes → deploy only `status_info.sh`, do NOT append `source`
+2. Else (fresh) → deploy `benjamin-blue.tmux` → `~/.tmux/conf.d/`, append
+   `source` line + marker comment
+3. Backup `.tmux.conf.bak` before mutation
 
-**Verify**: run `install.sh`, confirm each item; check deployed files + settings.json.
+**Verify**: run `install.sh`, confirm each item; check deployed files + settings.json
+(statusLine present, model field = pro).
 
 ### Step A4 — uninstall.sh
 
-Manifest-driven: remove statusLine, delete `~/.claude/statusline/` and
-`~/.tmux/conf.d/`, restore `.tmux.conf` source line.
+Manifest-driven (manifest at `~/.coworker/statusline-manifest.json`, per spec
+§6.3): remove statusLine, delete `~/.claude/statusline/` and
+`~/.tmux/conf.d/`, restore `.tmux.conf` source line (strip the line containing
+the marker `# claude-tmux-config theme`).
 
-**Verify**: run uninstall, confirm all traces removed.
+- If manifest missing → refuse to run, log warning, list files to remove manually.
+- If manifest partial → remove only listed files, report the rest as manual.
+
+**Verify**: run uninstall, confirm all traces removed (statusLine gone, dirs
+deleted, source line stripped).
 
 ### Step A5 — README + docs/claude-tmux.md
 

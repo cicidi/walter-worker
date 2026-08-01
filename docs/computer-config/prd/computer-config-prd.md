@@ -5,6 +5,7 @@
 | Date | Version | Change |
 |------|---------|--------|
 | 2026-08-01 | 0.1.0 | Initial draft |
+| 2026-08-01 | 0.2.0 | Post devil-advocate review: US-4 "one-click install" satisfied via menu option "3) Both" in spec; target model confirmed DeepSeek V4 Pro |
 
 ---
 
