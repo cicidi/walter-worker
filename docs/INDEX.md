@@ -1,6 +1,5 @@
 # Document Index
-> Last updated: 2026-07-26 05:47:41 UTC
-> Total files: 101
+> Last updated: 2026-08-01
 
 ## ai-coworker
 
@@ -35,6 +34,7 @@
 | St | File | What It Contains |
 |----|------|-----------------|
 | ✅ | [ai-coworker-design.md](./ai-coworker/design/ai-coworker-design.md) | ai-coworker Design |
+| ✅ | [claude-tmux-config-design.md](./ai-coworker/design/claude-tmux-config-design.md) | 独立 claude-tmux-config 项目设计 — 收拢 Claude 状态栏 + tmux 外观，从 ai-coworker 剥离外观层 |
 
 ### impl-plan
 
