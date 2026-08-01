@@ -34,7 +34,6 @@
 | St | File | What It Contains |
 |----|------|-----------------|
 | ✅ | [ai-coworker-design.md](./ai-coworker/design/ai-coworker-design.md) | ai-coworker Design |
-| ✅ | [claude-tmux-config-design.md](./ai-coworker/design/claude-tmux-config-design.md) | 独立 claude-tmux-config 项目设计 — 收拢 Claude 状态栏 + tmux 外观，从 ai-coworker 剥离外观层 |
 
 ### impl-plan
 
@@ -59,6 +58,32 @@
 | St | File | What It Contains |
 |----|------|-----------------|
 | ✅ | [ai-coworker-test-plan.md](./ai-coworker/test-plan/ai-coworker-test-plan.md) | ai-coworker Test Plan |
+
+## computer-config
+
+### spec
+
+| St | File | What It Contains |
+|----|------|-----------------|
+| ✅ | [computer-config-spec.md](./computer-config/spec/computer-config-spec.md) | Complete technical spec of the Claude statusline + tmux theme + ai-coworker role boundary — every config field, feature/why/how, and the claude-tmux-config migration |
+
+### prd
+
+| St | File | What It Contains |
+|----|------|-----------------|
+| ✅ | [computer-config-prd.md](./computer-config/prd/computer-config-prd.md) | Product requirements — goals, user stories, functional/non-functional requirements, scope, acceptance criteria |
+
+### impl-plan
+
+| St | File | What It Contains |
+|----|------|-----------------|
+| ✅ | [computer-config-impl-plan.md](./computer-config/impl-plan/computer-config-impl-plan.md) | Implementation plan — two parallel workstreams (claude-tmux-config project + ai-coworker strip), step-by-step |
+
+### test-plan
+
+| St | File | What It Contains |
+|----|------|-----------------|
+| ✅ | [computer-config-test-plan.md](./computer-config/test-plan/computer-config-test-plan.md) | Test strategy — unit/integration/regression cases, coverage matrix, acceptance |
 
 ## analytics-listener
 
