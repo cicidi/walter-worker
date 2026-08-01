@@ -83,7 +83,7 @@
 
 | St | File | What It Contains |
 |----|------|-----------------|
-| ✅ | [computer-config-test-plan.md](./computer-config/test-plan/computer-config-test-plan.md) | Test strategy — unit/integration/regression cases, coverage matrix, acceptance |
+| ✅ | [computer-config-test-plan.md](./computer-config/test-plan/computer-config-test-plan.md) | Test strategy — unit/integration/regression cases, coverage matrix, acceptance, and §7 verification (byte-diff for fixed input + feature checklist for live display) |
 
 ## analytics-listener
 
@@ -215,6 +215,9 @@
 | ✅ | [report.md](./self-evolving-agent/devil-advocate/2026-07-25-prd-v4-review/report.md) | Devil's Advocate Review — Self-Evolving Agent PRD v4 (Final) |
 | ✅ | [discussion.md](./self-evolving-agent/devil-advocate/2026-07-25-prd-v5-feasibility-review/discussion.md) | Devil's Advocate Review — PRD v5 Feasibility |
 | ✅ | [report.md](./self-evolving-agent/devil-advocate/2026-07-25-prd-v5-feasibility-review/report.md) | Feasibility Review — PRD v5 (Final) |
+| ✅ | [discussion.md](./devil-advocate/2026-08-01-computer-config-spec/discussion.md) | Adversarial review — computer-config spec (DeepSeek devil-advocate) |
+| ✅ | [report.md](./devil-advocate/2026-08-01-computer-config-spec/report.md) | Adversarial review report — computer-config spec (DeepSeek) |
+| ✅ | [glm52-report.md](./devil-advocate/2026-08-01-computer-config-spec/glm52-report.md) | GLM-5.2 independent review report — computer-config spec |
 
 ### html
 
