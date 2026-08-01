@@ -473,38 +473,6 @@ else
 fi
 
 # =============================================================================
-# Step 16 — Deploy tmux status bar
-# =============================================================================
-echo ""
-log "Setting up tmux status bar..."
-
-TMUX_SCRIPTS_DIR="$HOME/.tmux/scripts"
-mkdir -p "$TMUX_SCRIPTS_DIR"
-
-cp "$REPO_ROOT/setup/status_info.sh" "$TMUX_SCRIPTS_DIR/status_info.sh"
-chmod +x "$TMUX_SCRIPTS_DIR/status_info.sh"
-ok "Status bar script deployed to $TMUX_SCRIPTS_DIR/status_info.sh"
-
-TMUX_CONF="$HOME/.tmux.conf"
-if [[ -f "$TMUX_CONF" ]]; then
-  if grep -q "status_info.sh" "$TMUX_CONF" 2>/dev/null; then
-    ok "tmux.conf already references status_info.sh"
-  else
-    {
-      echo ""
-      echo "# ai-coworker status bar"
-      echo "set -g status-style 'bg=colour236,fg=white'"
-      echo "set -g status-left-length 40"
-      echo "set -g status-left \"#[fg=yellow]#{session_created_string} \""
-      echo "set -g status-right-length 250"
-      echo "set -g status-right \"#(~/.tmux/scripts/status_info.sh) \""
-    } >> "$TMUX_CONF"
-    ok "tmux.conf updated with status bar config"
-  fi
-else
-  warn "$TMUX_CONF not found — skipping tmux config update"
-fi
-
 # =============================================================================
 # Step 16 — Write install manifest
 # =============================================================================
@@ -520,14 +488,21 @@ manifest = {
     'owned_dirs': [],
     'project_path': '${PROJECT_PATH}',
 }
-# Files we know were written (conditional on what actually exists)
+# Files we know were written (conditional on what actually exists).
+# Exclude claude-tmux-config's owned dirs so this manifest never claims them
+# (otherwise ai-coworker uninstall could delete the statusline/theme files).
+exclude_prefixes = (f'{home}/.claude/statusline/', f'{home}/.tmux/conf.d/',
+                    f'{home}/.tmux/scripts/status_info.sh')
 for d in [f'{home}/.coworker/analytics', f'{home}/.coworker/skills',
           f'{home}/.claude', f'{home}/.opencode',
           f'{home}/.config/opencode/skills/ai-coworker']:
     if os.path.isdir(d):
         for root, dirs, files in os.walk(d):
             for fn in files:
-                manifest['files'].append(os.path.join(root, fn))
+                p = os.path.join(root, fn)
+                if p.startswith(exclude_prefixes):
+                    continue
+                manifest['files'].append(p)
 # Global CLAUDE.md
 md = f'{home}/.claude/CLAUDE.md'
 if os.path.isfile(md): manifest['files'].append(md)
