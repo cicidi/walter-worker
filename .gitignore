@@ -26,6 +26,7 @@ docs/work-review/
 docs/superpowers/
 pic/*
 !pic/walter-worker-logo.png
+.playwright-mcp/
 .coworker/
 *.bak
 .polish-loop-stop
