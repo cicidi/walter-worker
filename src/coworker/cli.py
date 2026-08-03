@@ -9,6 +9,7 @@ import yaml
 import click
 from rich.console import Console
 from rich.table import Table
+from rich.panel import Panel
 from rich import print as rprint
 
 from .config import (
@@ -380,9 +381,137 @@ def sync(tool, is_project, is_global):
     console.print("\n[bold green]Done.[/bold green]")
 
 
+def _scan_initiative_progress(initiative_name: str, project_dir: Path, config) -> dict:
+    """Scan project for initiative work artifacts, sessions, and commits.
+
+    Returns a dict with keys: initiative, artifacts, sessions, commits,
+    memory_refs, remaining.
+    """
+    import subprocess
+    import sqlite3
+    from datetime import datetime
+
+    result: dict = {
+        "initiative": config,
+        "artifacts": {},
+        "sessions": 0,
+        "commits": 0,
+        "memory_refs": 0,
+        "remaining": config.remaining if config.remaining else [],
+    }
+
+    # ── 1. Artifact scan: check docs/<initiative>/ ──────────────────────
+    docs_dir = project_dir / "docs" / initiative_name
+    if docs_dir.exists():
+        # Known doc disciplines + any others present
+        disciplines = ["prd", "spec", "design", "plan", "test-plan", "impl-plan",
+                       "research", "decision-history"]
+        for discipline in disciplines:
+            dpath = docs_dir / discipline
+            if dpath.is_dir():
+                files = sorted(
+                    [f.name for f in dpath.iterdir() if f.is_file() and not f.name.startswith(".")]
+                )
+                if files:
+                    result["artifacts"][discipline] = files
+        # Catch any other subdirectories not in the known list
+        for dpath in sorted(docs_dir.iterdir()):
+            if dpath.is_dir() and dpath.name not in disciplines and dpath.name != "state":
+                files = sorted(
+                    [f.name for f in dpath.iterdir() if f.is_file() and not f.name.startswith(".")]
+                )
+                if files:
+                    result["artifacts"][dpath.name] = files
+
+    # ── 2. Git scan ────────────────────────────────────────────────────
+    try:
+        since_date = config.created or "2025-01-01"
+        r = subprocess.run(
+            ["git", "log", "--oneline", "--grep", initiative_name,
+             f"--since={since_date}"],
+            capture_output=True, text=True, cwd=str(project_dir), timeout=5,
+        )
+        if r.returncode == 0:
+            lines = [l for l in r.stdout.strip().splitlines() if l]
+            result["commits"] = len(lines)
+    except Exception:
+        pass
+
+    # ── 3. Session scan from analytics.db ───────────────────────────────
+    try:
+        db_path = Path.home() / ".coworker" / "analytics" / "analytics.db"
+        if db_path.exists():
+            conn = sqlite3.connect(str(db_path))
+            row = conn.execute(
+                "SELECT COUNT(DISTINCT id) FROM sessions "
+                "WHERE initiative = ? AND project = ?",
+                (initiative_name, project_dir.name),
+            ).fetchone()
+            if row:
+                result["sessions"] = row[0]
+            conn.close()
+    except Exception:
+        pass
+
+    # ── 4. Memory scan: session summaries + knowledge from analytics.db ──
+    try:
+        db_path = Path.home() / ".coworker" / "analytics" / "analytics.db"
+        if db_path.exists():
+            conn = sqlite3.connect(str(db_path))
+            # Count session summaries linked to this initiative
+            row = conn.execute(
+                "SELECT COUNT(*) FROM session_summaries ss "
+                "JOIN sessions s ON ss.session_id = s.id "
+                "WHERE s.initiative = ?",
+                (initiative_name,),
+            ).fetchone()
+            result["session_memories"] = row[0] if row else 0
+            # Count knowledge cards linked to this initiative
+            row = conn.execute(
+                "SELECT COUNT(DISTINCT k.id) FROM knowledge k "
+                "JOIN knowledge_sessions ks ON k.id = ks.knowledge_id "
+                "JOIN sessions s ON ks.session_id = s.id "
+                "WHERE s.initiative = ?",
+                (initiative_name,),
+            ).fetchone()
+            result["knowledge_cards"] = row[0] if row else 0
+            # Recent memory keywords
+            keywords = conn.execute(
+                "SELECT ss.memory_keywords FROM session_summaries ss "
+                "JOIN sessions s ON ss.session_id = s.id "
+                "WHERE s.initiative = ? AND ss.memory_keywords IS NOT NULL "
+                "ORDER BY s.created_at DESC LIMIT 10",
+                (initiative_name,),
+            ).fetchall()
+            result["recent_keywords"] = [kw[0] for kw in keywords if kw[0]]
+            conn.close()
+
+            # Total memory refs = session_memories + knowledge_cards
+            result["memory_refs"] = result["session_memories"] + result["knowledge_cards"]
+    except Exception:
+        result["session_memories"] = 0
+        result["knowledge_cards"] = 0
+        result["memory_refs"] = 0
+        result["recent_keywords"] = []
+
+    # ── 5. Remaining work — derive heuristically if not set ─────────────
+    if not result["remaining"] and config.goal:
+        missing = []
+        if not result["artifacts"].get("prd") and not result["artifacts"].get("spec"):
+            missing.append("No spec/PRD docs found — define scope")
+        if result["commits"] == 0:
+            missing.append("No initiative-related commits yet — start implementation")
+        if result["sessions"] == 0:
+            missing.append("No sessions linked to this initiative — run analytics import")
+        if missing:
+            result["remaining"] = missing
+
+    return result
+
+
 @main.command()
 def status():
-    """Show current config status."""
+    """Show current config status and active initiative progress."""
     table = Table(title="Coworker Config Status")
     table.add_column("Scope", style="cyan")
     table.add_column("Path")
@@ -412,6 +541,124 @@ def status():
     )
 
     console.print(table)
+
+    # ── Active Initiative ──────────────────────────────────────────────
+    cwd = Path.cwd()
+    mgr = InitiativeManager(project_dir=cwd)
+    active_name = mgr.active_name()
+    if not active_name:
+        return  # No active initiative, done
+
+    config = load_initiative(active_name)
+    if config is None:
+        return
+
+    progress = _scan_initiative_progress(active_name, cwd, config)
+
+    # Initiative overview
+    console.print()
+    itable = Table(title=f"Initiative: [bold cyan]{active_name}[/bold cyan]")
+    itable.add_column("Field", style="cyan")
+    itable.add_column("Value")
+    itable.add_row("Status", f"[green]{config.status}[/green]" if config.status == "active" else config.status)
+    if config.created:
+        itable.add_row("Created", config.created)
+    if config.goal:
+        itable.add_row("Goal", config.goal[:120])
+    elif config.description:
+        itable.add_row("Description", config.description[:120])
+    if config.approach:
+        itable.add_row("Approach", config.approach[:120])
+    console.print(itable)
+
+    # Work artifacts
+    console.print()
+    atable = Table(title="Work Artifacts")
+    atable.add_column("Category", style="cyan")
+    atable.add_column("Status")
+    atable.add_column("Files")
+
+    artifact_labels = {
+        "prd": "PRD",
+        "spec": "Spec / Design",
+        "design": "Design",
+        "plan": "Implementation Plan",
+        "test-plan": "Test Plan",
+        "impl-plan": "Implementation Plan",
+        "research": "Research",
+        "decision-history": "Decision History",
+    }
+
+    seen = set()
+    artifacts = progress.get("artifacts", {})
+    for key, label in artifact_labels.items():
+        files = artifacts.get(key, [])
+        if files:
+            atable.add_row(label, "[green]✅[/green]", ", ".join(files[:5]))
+            seen.add(key)
+    # Any other categories not in the labels map
+    for key, files in sorted(artifacts.items()):
+        if key not in seen and files:
+            atable.add_row(key, "[green]✅[/green]", ", ".join(files[:5]))
+    # Check for categories with no artifacts
+    for key, label in artifact_labels.items():
+        if key not in seen:
+            # Only show empty for top-level expected categories
+            if key in ("prd", "spec", "plan", "test-plan"):
+                atable.add_row(label, "[dim]⬜[/dim]", "—")
+
+    if not artifacts:
+        atable.add_row("All", "[dim]⬜[/dim]", "No docs/ artifacts found")
+    console.print(atable)
+
+    # Sessions & memory
+    console.print()
+    stable = Table(title="Sessions & Memory")
+    stable.add_column("Metric", style="cyan")
+    stable.add_column("Count")
+    stable.add_column("Source")
+    stable.add_row(
+        "Sessions", str(progress["sessions"]),
+        "analytics.db" if progress["sessions"] > 0 else "[dim]none linked[/dim]"
+    )
+    stable.add_row(
+        "Commits", str(progress["commits"]),
+        "git log --grep" if progress["commits"] > 0 else "[dim]none found[/dim]"
+    )
+    stable.add_row(
+        "Session Memories", str(progress.get("session_memories", 0)),
+        "analytics.db session_summaries"
+    )
+    stable.add_row(
+        "Knowledge Cards", str(progress.get("knowledge_cards", 0)),
+        "analytics.db knowledge"
+    )
+    console.print(stable)
+
+    # Recent memory keywords
+    keywords = progress.get("recent_keywords", [])
+    if keywords:
+        all_kw = set()
+        for kw_str in keywords:
+            for kw in kw_str.split(","):
+                kw = kw.strip()
+                if kw:
+                    all_kw.add(kw)
+        if all_kw:
+            console.print(f"  [dim]Recent topics:[/dim] {', '.join(sorted(all_kw)[:20])}")
+
+    # Remaining work
+    remaining = progress.get("remaining", [])
+    if remaining:
+        console.print()
+        rtable = Table(title="Remaining Work")
+        rtable.add_column("#", style="dim")
+        rtable.add_column("Item")
+        for i, item in enumerate(remaining, 1):
+            rtable.add_row(str(i), item)
+        console.print(rtable)
+    elif progress["commits"] > 0 or progress["sessions"] > 0:
+        console.print("\n[dim]No remaining work items defined. Use /initiative edit to add.[/dim]")
 
 
 @main.command()

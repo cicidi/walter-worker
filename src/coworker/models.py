@@ -140,3 +140,6 @@ class InitiativeConfig(BaseModel):
     links: list[LinkRef] = Field(default_factory=list)
     decisions: list[Decision] = Field(default_factory=list)
     reference_docs: list[ReferenceDoc] = Field(default_factory=list)
+    # Progress tracking — auto-scanned by `coworker status`
+    artifacts: dict[str, list[str]] = Field(default_factory=dict)
+    remaining: list[str] = Field(default_factory=list)

@@ -122,7 +122,14 @@ def import_session(session_dir: Path, conn_or_path=None):
                         content = "\n".join(parts)
                     elif not isinstance(content, str):
                         content = ""
-                    if t in ("user", "assistant") and content.strip():
+                    # Skip meta, local-command echoes, and system-generated user messages
+                    is_real_user = (
+                        t == "user"
+                        and d.get("promptSource") == "typed"
+                        and not d.get("isMeta")                 # system-generated resume/command messages
+                    )
+                    is_assistant = t == "assistant"
+                    if (is_real_user or is_assistant) and content.strip():
                         seq += 1
                         conn.execute(
                             "INSERT OR REPLACE INTO messages (session_id, seq, type, content, ts) VALUES (?, ?, ?, ?, ?)",

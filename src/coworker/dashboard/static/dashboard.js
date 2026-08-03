@@ -228,7 +228,7 @@ async function loadSessionExpand(id,sid){
       <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="var(--accent)"/></marker></defs>`;
     const stepsY=18;
     steps.forEach((st,i)=>{
-      const x=i*(bw+bg);const cs=['#26c68a','#00bcd4','#c792ea','#ffc857','#ff5370','#82aaff','#f78c6c','#89ddff'][i%8];
+      const x=i*(bw+bg);const cs=['#26c68a','#00bcd4','#c792ea','#F2C94C','#ff5370','#82aaff','#f78c6c','#89ddff'][i%8];
       html+=`<rect x="${x}" y="${stepsY}" width="${bw}" height="${bh}" rx="5" fill="rgba(0,0,0,0.2)" stroke="${cs}" stroke-width="1.5"/>`;
       html+=`<text x="${x+bw/2}" y="${stepsY+bh/2+4}" text-anchor="middle" fill="${cs}" font-size="9" font-weight="500">${st.slice(0,20)}</text>`;
       if(i<steps.length-1)html+=`<line x1="${x+bw}" y1="${stepsY+bh/2}" x2="${x+bw+bg}" y2="${stepsY+bh/2}" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#a)"/>`;
