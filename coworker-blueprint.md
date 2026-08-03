@@ -4,7 +4,7 @@
 
 > **What is AI Coworker?** A Python CLI tool that manages a three-layer CLAUDE.md architecture (Global → Project → Local), keeps your AI coding assistants aware of your projects and initiatives, syncs skills from [skill-factory](https://github.com/cicidi/skill-factory), and tracks session analytics. It's the data foundation for building an autonomous coding agent.
 
-> **What it is NOT:** A development workflow tool. Skills for coding, testing, reviewing, debugging — those come from skill-factory, not ai-coworker. AI Coworker provides the context, memory, and data layer that makes those skills effective.
+> **What it is NOT:** A development workflow tool. Skills for coding, testing, reviewing, debugging — those come from skill-factory, not walter-worker. AI Coworker provides the context, memory, and data layer that makes those skills effective.
 
 > **Evidence base:** Design validated against [CLAUDE.md Engineering: Best Practices and Anti-Patterns](docs/spec/2026-07-01-claude-md-best-practices-paper.md) — systematic review of 22 sources including Anthropic Applied AI, Chroma context-rot experiments, Superpowers (244k stars), and Andrej Karpathy's behavioral principles.
 
@@ -122,7 +122,7 @@ Every AI session starts from zero. Past learnings, effective workflows, and mist
 ## 3. Directory Structure
 
 ```
-ai-coworker/
+walter-worker/
 ├── CLAUDE.md              # Project-level meta-controller (committed)
 ├── CLAUDE.local.md        # Personal working context (gitignored)
 ├── CLAUDE.md.bak          # Backup of pre-redesign CLAUDE.md
@@ -151,7 +151,7 @@ ai-coworker/
 │   │   └── knowledge.py   # Knowledge extraction
 │   └── dashboard/         # Web dashboard (FastAPI)
 ├── skills/                # CLI command skills (SKILL.md format)
-│   ├── ai-coworker-setup-in-project/  # Interactive project setup
+│   ├── walter-worker-setup-in-project/  # Interactive project setup
 │   ├── init/              # Quick non-interactive init
 │   ├── initiative-create/ # Interview-based initiative creation
 │   └── ...                # 25+ other skills
@@ -297,14 +297,14 @@ Tracks all projects and their relationships. Stored at `~/.coworker/project.yaml
 
 ```yaml
 projects:
-  - name: ai-coworker
-    local_path: ~/project/ai-coworker
+  - name: walter-worker
+    local_path: ~/project/walter-worker
     upstream: []
     downstream:
       - name: skill-factory
     knowledge_pool:
       - type: github
-        url: https://github.com/cicidi/ai-coworker
+        url: https://github.com/cicidi/walter-worker
 ```
 
 Project relationships are injected into Project CLAUDE.md's `## Project Relationships` section. The catalog file path is listed in `CLAUDE.local.md`'s Config Paths.
@@ -329,7 +329,7 @@ testing: |
   Unit tests (86 pass). Behavioral validation by dogfooding.
 recommended_skills:
   - brainstorming
-  - ai-coworker-skill-create
+  - walter-worker-skill-create
   - commit
 status: active
 created: "2026-07-01"
@@ -447,7 +447,7 @@ coworker analytics create-db/import/daemon/once/dashboard
 4. Create `docs/` directory
 5. Add `CLAUDE.local.md` and `docs/state-*.md` to `.gitignore`
 
-For full interactive setup with interview, use the `ai-coworker-setup-in-project` skill.
+For full interactive setup with interview, use the `walter-worker-setup-in-project` skill.
 
 ---
 
@@ -582,8 +582,8 @@ Both tools read the same `CLAUDE.local.md`. Claude Code auto-loads it natively. 
 ### Install
 
 ```bash
-git clone https://github.com/cicidi/ai-coworker.git
-cd ai-coworker
+git clone https://github.com/cicidi/walter-worker.git
+cd walter-worker
 pip install --break-system-packages -e .
 ```
 

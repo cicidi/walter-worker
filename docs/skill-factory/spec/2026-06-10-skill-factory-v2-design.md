@@ -10,7 +10,7 @@
 
 ## 1. Context & Background
 
-This design is the v2 of a "skill creation" skill, based on a quality audit of v1 (`coworker-meta-skill-create.md` in the ai-coworker project, 590 lines, v1.0.0).
+This design is the v2 of a "skill creation" skill, based on a quality audit of v1 (`coworker-meta-skill-create.md` in the walter-worker project, 590 lines, v1.0.0).
 
 ### Audit findings (v1)
 
@@ -62,7 +62,7 @@ The v1 audit surfaced **43 issues** in 4 severity tiers:
 | # | Decision | Rationale |
 |---|----------|-----------|
 | D1 | **Path:** `~/project/skill-factory/skills/skill-create/SKILL.md` | Opencode-native path; flat with one folder per skill |
-| D2 | **Name:** `skill-create` (no `coworker-` prefix) | Project is skill-factory, not ai-coworker; prefix would tie it to wrong project |
+| D2 | **Name:** `skill-create` (no `coworker-` prefix) | Project is skill-factory, not walter-worker; prefix would tie it to wrong project |
 | D3 | **Frontmatter:** opencode 5 fields + `metadata` for extensions | Only fields opencode recognizes: `name`, `description`, `license`, `compatibility`, `metadata` |
 | D4 | **No `## Changelog` body section** | User preference; git log is canonical history |
 | D5 | **No `## Convention Notes` body section** | Outdated, not actionable; replaced by project `CONVENTIONS.md` |
@@ -187,7 +187,7 @@ metadata:
     - obra/superpowers:brainstorming
   audience:
     - skill-authors
-    - ai-coworker
+    - walter-worker
 ---
 ```
 
@@ -450,7 +450,7 @@ These are NOT evals.json. They are markdown bullets to manually walk through.
 | Self-evolution log | Defer to v3 (after real usage data) |
 | Cross-harness install (Claude Code, Cursor, Gemini) | Opencode-only for v2 |
 | `skill-edit` (separate skill) | Defer to next brainstorming |
-| ai-coworker integration | v2 is independent |
+| walter-worker integration | v2 is independent |
 
 ---
 
@@ -487,8 +487,8 @@ Libraries reviewed (not methodology, but reference):
 
 ### Key files
 
-- v1 (audited): `/home/cicidi/project/ai-coworker/skills/coworker-meta-skill-create.md` (590 lines)
-- v1 sibling: `/home/cicidi/project/ai-coworker/skills/coworker-meta-create-skill.md` (86 lines, quick version)
+- v1 (audited): `/home/cicidi/project/walter-worker/skills/coworker-meta-skill-create.md` (590 lines)
+- v1 sibling: `/home/cicidi/project/walter-worker/skills/coworker-meta-create-skill.md` (86 lines, quick version)
 - obra's `writing-skills`: `~/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.7/skills/writing-skills/SKILL.md`
 - opencode config: `~/.config/opencode/config.json` (superpowers plugin added this session)
 

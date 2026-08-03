@@ -7,7 +7,7 @@
 
 | Project | Decisions | Decision-History | INDEX.md | Status |
 |---------|-----------|-----------------|----------|--------|
-| ai-coworker | 155 | ✅ 16 files | ✅ | Partial (15/132 sessions) |
+| walter-worker | 155 | ✅ 16 files | ✅ | Partial (15/132 sessions) |
 | skill-factory | 126 | ✅ 14 files | ✅ | Complete |
 | mfangdai | 42 | ✅ 6 files | ✅ | Complete |
 | hackathon-video-gen | 40 | ✅ 3 files | ✅ | Complete |
@@ -53,7 +53,7 @@
 - Only 5/179 sessions processed
 - Continue extraction
 
-### 8. ai-coworker — Needs session extraction completion
+### 8. walter-worker — Needs session extraction completion
 - Only 15/132 sessions processed  
 - Continue extraction
 

@@ -1,17 +1,17 @@
 
 var D={projects:[
-{id:"ai-coworker",name:"ai-coworker",sessions:8,files:34,skills:12,knowledge:14,active:true,depends_on:[],depended_by:["skill-factory"],created:"2025-03-15",last_session:"2026-06-11 14:32"},
-{id:"skill-factory",name:"skill-factory",sessions:2,files:6,skills:2,knowledge:4,active:false,depends_on:["ai-coworker"],depended_by:[],created:"2026-05-10",last_session:"2026-06-09"},
+{id:"walter-worker",name:"walter-worker",sessions:8,files:34,skills:12,knowledge:14,active:true,depends_on:[],depended_by:["skill-factory"],created:"2025-03-15",last_session:"2026-06-11 14:32"},
+{id:"skill-factory",name:"skill-factory",sessions:2,files:6,skills:2,knowledge:4,active:false,depends_on:["walter-worker"],depended_by:[],created:"2026-05-10",last_session:"2026-06-09"},
 {id:"dotfiles",name:"~/.claude",sessions:1,files:4,skills:0,knowledge:2,active:false,depends_on:[],depended_by:[],created:"2025-01-01",last_session:"2026-06-01"},
 {id:"new-project",name:"new-project",sessions:0,files:0,skills:0,knowledge:0,active:false,depends_on:[],depended_by:[],created:"2026-06-10",last_session:null}],
 sessions:[
-{id:"s1",project:"ai-coworker",branch:"feat/dashboard",initiative:"dashboard-v1",started:"2026-06-11 14:20",ended:null,status:"active",
-workflow:[{phase:"Explore",icon:"🔍",desc:"Analyzed ai-coworker codebase structure"},{phase:"Brainstorm",icon:"🧠",desc:"Designed 12 dashboard views with visual companion"},{phase:"Review",icon:"🔎",desc:"Feasibility review: deleted 3 views, simplified 3, kept 5 MVP"},{phase:"Design",icon:"🎨",desc:"Built v2 object-relationship model with 7 entity types"},{phase:"Docs",icon:"📝",desc:"Reorganized to prd/spec/plan/test, wrote 3 PRDs"}],
+{id:"s1",project:"walter-worker",branch:"feat/dashboard",initiative:"dashboard-v1",started:"2026-06-11 14:20",ended:null,status:"active",
+workflow:[{phase:"Explore",icon:"🔍",desc:"Analyzed walter-worker codebase structure"},{phase:"Brainstorm",icon:"🧠",desc:"Designed 12 dashboard views with visual companion"},{phase:"Review",icon:"🔎",desc:"Feasibility review: deleted 3 views, simplified 3, kept 5 MVP"},{phase:"Design",icon:"🎨",desc:"Built v2 object-relationship model with 7 entity types"},{phase:"Docs",icon:"📝",desc:"Reorganized to prd/spec/plan/test, wrote 3 PRDs"}],
 skills:["brainstorming","writing-plans"],tools:["read","write","edit","bash","task"],files_r:["CLAUDE.md","src/coworker/models.py"],files_w:["src/coworker/dashboard.py","docs/prd/PRD.md"],knowledge:["k1","k3"]},
-{id:"s2",project:"ai-coworker",branch:"feat/dashboard",initiative:"dashboard-v1",started:"2026-06-10 15:20",ended:"2026-06-10 15:42",status:"done",
+{id:"s2",project:"walter-worker",branch:"feat/dashboard",initiative:"dashboard-v1",started:"2026-06-10 15:20",ended:"2026-06-10 15:42",status:"done",
 workflow:[{phase:"Explore",icon:"🔍",desc:"Read coworker-blueprint.md and existing docs"},{phase:"Brainstorm",icon:"🧠",desc:"Defined 3-layer architecture"},{phase:"Design",icon:"🎨",desc:"Created DESIGN.md and plan-dashboard.yaml"}],
 skills:["brainstorming","writing-plans"],tools:["read","write"],files_r:["coworker-blueprint.md","src/coworker/models.py"],files_w:["docs/design/DESIGN.md","docs/planning/plan-dashboard.yaml"],knowledge:["k2"]},
-{id:"s3",project:"ai-coworker",branch:"fix/config",initiative:null,started:"2026-06-09 10:00",ended:"2026-06-09 10:20",status:"done",
+{id:"s3",project:"walter-worker",branch:"fix/config",initiative:null,started:"2026-06-09 10:00",ended:"2026-06-09 10:20",status:"done",
 workflow:[{phase:"Debug",icon:"🐛",desc:"Used systematic-debugging to trace config sync failure"},{phase:"Fix",icon:"🔧",desc:"Fixed config.py typo, ran pytest to verify"}],
 skills:["systematic-debugging"],tools:["read","edit","bash"],files_r:["src/coworker/config.py","global/coworker.yaml"],files_w:["src/coworker/config.py"],knowledge:["k4"]}],
 skills:[
@@ -30,17 +30,17 @@ tools:[
 {id:"github",type:"mcp",calls:6,avg:"1.2s",max:"3.5s",sessions:["s1"],server:"github-mcp"},
 {id:"slack",type:"mcp",calls:3,avg:"0.8s",max:"2.1s",sessions:["s2"],server:"slack-mcp"}],
 files:[
-{id:"CLAUDE.md",path:"CLAUDE.md",project:"ai-coworker",sessions:["s1","s2"],read_by_skill:["brainstorming"],read_by_tool:["read"],written_by_tool:["edit"],last_read:"2026-06-11 14:22",last_written:"2026-06-11 14:30",created:"2025-03-15"},
-{id:"src/coworker/models.py",path:"src/coworker/models.py",project:"ai-coworker",sessions:["s1","s2"],read_by_skill:["brainstorming","writing-plans"],read_by_tool:["read"],written_by_tool:["edit"],last_read:"2026-06-11 14:22",last_written:"2026-06-10 15:35",created:"2025-03-15"},
-{id:"src/coworker/dashboard.py",path:"src/coworker/dashboard.py",project:"ai-coworker",sessions:["s1"],read_by_skill:[],read_by_tool:[],written_by_tool:["write"],last_read:null,last_written:"2026-06-11 14:28",created:"2026-06-11"},
-{id:"src/coworker/config.py",path:"src/coworker/config.py",project:"ai-coworker",sessions:["s3"],read_by_skill:["systematic-debugging"],read_by_tool:["read"],written_by_tool:["edit"],last_read:"2026-06-09 10:02",last_written:"2026-06-09 10:15",created:"2025-03-15"},
-{id:"global/coworker.yaml",path:"global/coworker.yaml",project:"ai-coworker",sessions:["s3"],read_by_skill:["systematic-debugging"],read_by_tool:["read"],written_by_tool:[],last_read:"2026-06-09 10:02",last_written:null,created:"2025-03-15"}],
+{id:"CLAUDE.md",path:"CLAUDE.md",project:"walter-worker",sessions:["s1","s2"],read_by_skill:["brainstorming"],read_by_tool:["read"],written_by_tool:["edit"],last_read:"2026-06-11 14:22",last_written:"2026-06-11 14:30",created:"2025-03-15"},
+{id:"src/coworker/models.py",path:"src/coworker/models.py",project:"walter-worker",sessions:["s1","s2"],read_by_skill:["brainstorming","writing-plans"],read_by_tool:["read"],written_by_tool:["edit"],last_read:"2026-06-11 14:22",last_written:"2026-06-10 15:35",created:"2025-03-15"},
+{id:"src/coworker/dashboard.py",path:"src/coworker/dashboard.py",project:"walter-worker",sessions:["s1"],read_by_skill:[],read_by_tool:[],written_by_tool:["write"],last_read:null,last_written:"2026-06-11 14:28",created:"2026-06-11"},
+{id:"src/coworker/config.py",path:"src/coworker/config.py",project:"walter-worker",sessions:["s3"],read_by_skill:["systematic-debugging"],read_by_tool:["read"],written_by_tool:["edit"],last_read:"2026-06-09 10:02",last_written:"2026-06-09 10:15",created:"2025-03-15"},
+{id:"global/coworker.yaml",path:"global/coworker.yaml",project:"walter-worker",sessions:["s3"],read_by_skill:["systematic-debugging"],read_by_tool:["read"],written_by_tool:[],last_read:"2026-06-09 10:02",last_written:null,created:"2025-03-15"}],
 knowledge:[
-{id:"k1",title:"pytest fails in worktree",type:"trap",session:"s1",project:"ai-coworker",skills:["systematic-debugging"],text:"pytest not found in worktree — use python3 -m pytest",evidence:['bash "pytest" returned command not found','bash "python3 -m pytest" succeeded','Worktree venv path resolution issue'],generated:"2026-06-11 14:40"},
-{id:"k2",title:"brainstorm before coding",type:"best",session:"s2",project:"ai-coworker",skills:["brainstorming"],text:"Always run brainstorming before new features. Design doc rate 60% to 95%.",evidence:['brainstorming produced DESIGN.md','Without brainstorming: 2 major reworks','Global: 12 with brainstorming avg 1.2 reworks'],generated:"2026-06-10 16:00"},
-{id:"k3",title:"edit unstable >500 lines",type:"trap",session:"s1",project:"ai-coworker",skills:["brainstorming"],text:"edit fails on files >500 lines. Use write instead.",evidence:['edit on cli.py (744 lines) failed 3x','write succeeded first attempt','Self-healing rule #7 generated'],generated:"2026-06-11 14:42"},
-{id:"k4",title:"--workdir more reliable",type:"pattern",session:"s3",project:"ai-coworker",skills:["systematic-debugging"],text:"OpenCode --workdir is more reliable than cd.",evidence:['cd && pytest failed in worktree','opencode --workdir resolved path'],generated:"2026-06-09 10:30"}],
-initiatives:[{id:"dashboard-v1",project:"ai-coworker",sessions:["s1","s2"],skills:["brainstorming","writing-plans"],files:["CLAUDE.md","models.py","dashboard.py"],knowledge:["k1","k2","k3"]}]};
+{id:"k1",title:"pytest fails in worktree",type:"trap",session:"s1",project:"walter-worker",skills:["systematic-debugging"],text:"pytest not found in worktree — use python3 -m pytest",evidence:['bash "pytest" returned command not found','bash "python3 -m pytest" succeeded','Worktree venv path resolution issue'],generated:"2026-06-11 14:40"},
+{id:"k2",title:"brainstorm before coding",type:"best",session:"s2",project:"walter-worker",skills:["brainstorming"],text:"Always run brainstorming before new features. Design doc rate 60% to 95%.",evidence:['brainstorming produced DESIGN.md','Without brainstorming: 2 major reworks','Global: 12 with brainstorming avg 1.2 reworks'],generated:"2026-06-10 16:00"},
+{id:"k3",title:"edit unstable >500 lines",type:"trap",session:"s1",project:"walter-worker",skills:["brainstorming"],text:"edit fails on files >500 lines. Use write instead.",evidence:['edit on cli.py (744 lines) failed 3x','write succeeded first attempt','Self-healing rule #7 generated'],generated:"2026-06-11 14:42"},
+{id:"k4",title:"--workdir more reliable",type:"pattern",session:"s3",project:"walter-worker",skills:["systematic-debugging"],text:"OpenCode --workdir is more reliable than cd.",evidence:['cd && pytest failed in worktree','opencode --workdir resolved path'],generated:"2026-06-09 10:30"}],
+initiatives:[{id:"dashboard-v1",project:"walter-worker",sessions:["s1","s2"],skills:["brainstorming","writing-plans"],files:["CLAUDE.md","models.py","dashboard.py"],knowledge:["k1","k2","k3"]}]};
 var L=function(arr,id){for(var i=0;i<arr.length;i++){if(arr[i].id===id)return arr[i]}return null};
 var bp=function(arr,pid){return arr.filter(function(x){return x.project===pid})};
 

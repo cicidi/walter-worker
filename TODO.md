@@ -1,4 +1,4 @@
-# ai-coworker TODO
+# walter-worker TODO
 
 ## Pending
 
@@ -7,11 +7,11 @@
 - git rm --cached, add `docs/` to .gitignore
 
 ### 2. Remove global/skills/commit/ from GitHub
-- Simple git commit helper — not ai-coworker specific
+- Simple git commit helper — not walter-worker specific
 - Delete and add to .gitignore
 
 ### 3. Merge personal/skills/ → skill-factory personal-skills/
-- ai-coworker `personal/skills/` (31 files, old format) → skill-factory `personal-skills/` (6 files, new format)
+- walter-worker `personal/skills/` (31 files, old format) → skill-factory `personal-skills/` (6 files, new format)
 - Convert to directory-per-skill format, unify naming
 
 ### 4. Split knowledge-skill → knowledge-save + knowledge-search
@@ -21,5 +21,5 @@
 ### 5. Check: does install auto-setup memory DB / RAG / SQLite?
 - Verify `coworker init` / `coworker sync` behavior for analytics DB setup
 
-### 6. Clean up personal/skills/ from ai-coworker (after merge to skill-factory)
+### 6. Clean up personal/skills/ from walter-worker (after merge to skill-factory)
 - Remove from GitHub, add to .gitignore

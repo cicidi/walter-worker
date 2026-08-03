@@ -6,7 +6,7 @@
 |------|---------|--------|
 | 2026-08-01 | 0.1.0 | Initial draft — expanded from migration design doc to full configuration spec |
 | 2026-08-01 | 0.2.0 | Post devil-advocate review: confirm target model = DeepSeek V4 Pro; fix factual errors (.tmux.conf 36 lines, 10 top-level keys, 13 plugin entries); fix 0/1/2 menu → 0/1/2/3 (one-click both); define atomic-write mechanism, manifest schema + cross-project scoping, and inline-color detection algorithm |
-| 2026-08-01 | 0.3.0 | Post GLM-5.2 review (scope-corrected): reframe statusline as PORT-AS-IS (document, don't re-audit internals); DROP invented model-field reconciliation step (CCR manages it; statusline reads transcript dynamically); fix atomic write to stdlib-only (bash can't import ai-coworker backup.py); manifest scope now includes ~/.tmux/scripts/ + bidirectional cross-project conflict (ai-coworker must exclude ~/.claude/statusline/); add legacy grey-theme migration branch; fix effort table (high=red), status_info=15 lines, stale 0/1/2 refs |
+| 2026-08-01 | 0.3.0 | Post GLM-5.2 review (scope-corrected): reframe statusline as PORT-AS-IS (document, don't re-audit internals); DROP invented model-field reconciliation step (CCR manages it; statusline reads transcript dynamically); fix atomic write to stdlib-only (bash can't import walter-worker backup.py); manifest scope now includes ~/.tmux/scripts/ + bidirectional cross-project conflict (walter-worker must exclude ~/.claude/statusline/); add legacy grey-theme migration branch; fix effort table (high=red), status_info=15 lines, stale 0/1/2 refs |
 
 ---
 
@@ -14,13 +14,13 @@
 
 This specification describes the user's complete development environment
 customizations: the **Claude Code statusline**, the **tmux terminal theme**, and
-the **ai-coworker role boundary**. Goals:
+the **walter-worker role boundary**. Goals:
 
 1. Consolidate the Claude + tmux presentation assets (currently scattered in the
    home directory, under no version control) into an independent project
    `claude-tmux-config`, with its own install confirmation script, zero impact
    on other users.
-2. Strip the presentation layer out of ai-coworker so it remains a pure
+2. Strip the presentation layer out of walter-worker so it remains a pure
    framework (context/skills/analytics/memory).
 
 > This document is the **spec** (defines "what it is"). Companion docs:
@@ -231,7 +231,7 @@ gracefully). Contains Linux-specific commands `stat -c %W`, `hostname -s`
 Reads via `tmux display-message -p -F '#{pane_current_path}'`.
 
 **⚠️ Version divergence**: the user currently runs the 303B simple version
-(folder path only). The 3KB rich version in ai-coworker (session/project/worktree/
+(folder path only). The 3KB rich version in walter-worker (session/project/worktree/
 branch/ahead-behind/staged/initiative) was **never deployed** to this machine.
 The spec uses the simple version; the rich version is an optional enhancement.
 
@@ -259,7 +259,7 @@ auto-install the binary**, only documents the binding.
 
 ---
 
-## 5. ai-coworker Role Boundary
+## 5. walter-worker Role Boundary
 
 ### 5.1 Core Layer (keep)
 
@@ -291,8 +291,8 @@ auto-install the binary**, only documents the binding.
 | `wrap-statusline.py` | `~/.claude/` | `claude-tmux-config/statusline/` |
 | `status_info.sh` (simple) | `~/.tmux/scripts/` | `claude-tmux-config/tmux/` |
 | Benjamin Blue theme | inline in .tmux.conf + statusline | `claude-tmux-config/theme/` |
-| `install.sh` Step 16 | `ai-coworker/setup/` | delete |
-| `setup/status_info.sh` (rich) | `ai-coworker/setup/` | delete (or fold into claude-tmux-config as optional enhancement) |
+| `install.sh` Step 16 | `walter-worker/setup/` | delete |
+| `setup/status_info.sh` (rich) | `walter-worker/setup/` | delete (or fold into claude-tmux-config as optional enhancement) |
 
 ### 5.4 Deploy Targets (after claude-tmux-config install)
 
@@ -326,7 +326,7 @@ claude-tmux-config/
 
 ### 6.2 Install Confirmation Mechanism
 
-Reuses ai-coworker install.sh interaction style (0/1/2/3 menu + y/N confirm,
+Reuses walter-worker install.sh interaction style (0/1/2/3 menu + y/N confirm,
 default 0). Supports one-click install of both components (satisfies PRD US-4):
 
 ```
@@ -357,26 +357,26 @@ install's `source` line). This is reliable and idempotent:
   `status_info.sh`, do NOT append `source` (avoids pollution).
 - If neither → fresh install → deploy `benjamin-blue.tmux` + append `source`
   line with the marker comment.
-- **Legacy ai-coworker grey-theme migration**: if `.tmux.conf` contains the old
-  ai-coworker marker `# ai-coworker status bar` (the grey `bg=colour236,fg=white`
-  block that ai-coworker's removed Step 16 used to append), prompt the user:
-  *"Detected old ai-coworker grey theme. Replace with Benjamin Blue? [y/N]"*.
-  On `y`: strip the old `# ai-coworker status bar` block, then deploy the full
+- **Legacy walter-worker grey-theme migration**: if `.tmux.conf` contains the old
+  walter-worker marker `# walter-worker status bar` (the grey `bg=colour236,fg=white`
+  block that walter-worker's removed Step 16 used to append), prompt the user:
+  *"Detected old walter-worker grey theme. Replace with Benjamin Blue? [y/N]"*.
+  On `y`: strip the old `# walter-worker status bar` block, then deploy the full
   Benjamin Blue theme + `source` + marker. On `n`: deploy only `status_info.sh`.
 
 > Hex-matching alone was rejected as unreliable (false-positives on any dark
 > blue). The marker comment is the primary gate; hex-matching is the fallback
 > for pre-existing manual themes. The legacy grey-theme check is a distinct
-> migration path for existing ai-coworker users (including this user).
+> migration path for existing walter-worker users (including this user).
 
 ### 6.3 Idempotency & Safety
 
 #### settings.json atomic write (defined)
 
 The install/uninstall edits `settings.json` via an inline `python3 -c` block
-(only stdlib is available inside bash — no ai-coworker imports). Use a
+(only stdlib is available inside bash — no walter-worker imports). Use a
 stdlib-only atomic write: copy to `.bak` → write temp → `os.replace` (rename is
-atomic on POSIX). Do NOT call ai-coworker's `backup.snapshot()` (it lives in an
+atomic on POSIX). Do NOT call walter-worker's `backup.snapshot()` (it lives in an
 internal Python module a bash script cannot import) and do NOT use plain
 `json.dump(fp)` (non-atomic):
 
@@ -419,11 +419,11 @@ owned paths only — **NOT** recursively claiming `~/.claude/`):
   - *claude-tmux-config side* (solved here): this manifest scopes to
     `~/.claude/statusline/`, `~/.tmux/conf.d/`, and `~/.tmux/scripts/status_info.sh`
     ONLY. It never claims other `~/.claude/` files.
-  - *ai-coworker side* (Workstream B requirement): ai-coworker's install.sh
+  - *walter-worker side* (Workstream B requirement): walter-worker's install.sh
     currently `os.walk()`s `~/.claude/` **recursively** when building its own
     manifest, so it would also list `~/.claude/statusline/*` and could delete
     them on uninstall. The strip (impl-plan B1.5) MUST add an exclusion so
-    ai-coworker's manifest walk skips `~/.claude/statusline/`. Until that
+    walter-worker's manifest walk skips `~/.claude/statusline/`. Until that
     exclusion lands, the conflict is only half-resolved.
 - **Runtime cache files**: `~/.claude/statusline/` also accumulates runtime
   files (`turn-counter-*.json`, `ccusage-cache.json`) not listed in the manifest.
@@ -444,7 +444,7 @@ Before component 1 install: `command -v jq && command -v bc && command -v python
 - ❌ No auto-install of the `claude-tmux` Rust binary (third-party, documented only)
 - ❌ No porting of `git_branch.sh` (redundant)
 - ❌ No macOS adaptation (`stat -c %W` / `hostname -s` Linux-only; Linux-only stated)
-- ❌ No stripping of ai-coworker core (hooks/skills/MCP/context/memory) — that is its soul
+- ❌ No stripping of walter-worker core (hooks/skills/MCP/context/memory) — that is its soul
 
 ---
 
@@ -470,4 +470,4 @@ Before component 1 install: `command -v jq && command -v bc && command -v python
 3. After install: `~/.claude/statusline/` two files in place, settings.json has `statusLine`
 4. After install: `~/.tmux/conf.d/benjamin-blue.tmux` in place (or skipped if existing inline color)
 5. `uninstall.sh` cleanly removes all traces
-6. After ai-coworker strip: install.sh no longer touches tmux, core tests all green
+6. After walter-worker strip: install.sh no longer touches tmux, core tests all green

@@ -50,7 +50,7 @@ The accurate concerns are: (a) **design ↔ impl-plan disagree** — the design 
 ## The Fork — Two Build Paths
 
 ### Path 1 — Self-contained QA skill (ship now)
-Strip the 5 platform dependencies. The QA skill uses only existing ai-coworker infra:
+Strip the 5 platform dependencies. The QA skill uses only existing walter-worker infra:
 - Knowledge storage → extend `analytics.db`'s `knowledge` table (not a parallel `qa/knowledge.db`).
 - LLM calls → reuse `analytics/knowledge.py`'s DeepSeek client (not a new `_call_llm`).
 - Hooks → wire into the existing PostToolUse/Stop commands (with correct `SessionEnd` + `async`).
@@ -79,7 +79,7 @@ Build the PRD's greenfield modules first: `memory_store.py`, `fts5_index.py`, `s
 **Path 1 for the QA skill now; run the self-evolution engine as a separate workstream.**
 
 Rationale:
-1. The user stated the QA agent is **"a supplement to ai-coworker."** A supplement should not block on the platform.
+1. The user stated the QA agent is **"a supplement to walter-worker."** A supplement should not block on the platform.
 2. The impl-plan already exists as scaffolding; converting it to self-contained (reuse `analytics.db` + `knowledge.py`, drop the platform claims) is smaller than building the engine.
 3. A working QA skill gives **real dogfooding signal** that de-risks the engine design.
 4. The engine is the bigger, riskier bet and deserves its own focused initiative — including fixing the hook architecture (review §1.2) and adding safety/competence gates (review §3) **before** relying on it for autonomous self-modification.

@@ -3,13 +3,13 @@
 > **Experiment Date**: 2026-07-09 ~ 2026-07-10  
 > **Pilot Project**: `mfangdai-ai-agent`  
 > **Git Branch**: `experiment/claude-md-harness-optimization`  
-> **Researcher**: Walter Chen (via ai-coworker)  
+> **Researcher**: Walter Chen (via walter-worker)  
 
 ---
 
 ## 1. Experiment Objectives
 
-Validate the quality of ai-coworker's CLAUDE.md generation, and find the optimal CLAUDE.md template through iterative optimization. Evaluation criteria:
+Validate the quality of walter-worker's CLAUDE.md generation, and find the optimal CLAUDE.md template through iterative optimization. Evaluation criteria:
 
 1. **Lean** — Remove every instruction with no practical use. Every line must be triggered during real coding.
 2. **Efficient** — Most-used rules come first. Section structure is flat and scannable.
@@ -39,7 +39,7 @@ Each round:
 1. **Test**: Execute real coding tasks guided by the generated CLAUDE.md, observe behavior
 2. **Score**: Rate on three dimensions: blueprint conformance, redundancy, per-instruction utility
 3. **Critique**: Identify lowest-scoring areas, produce natural-language critique (which section failed, root cause, how to fix)
-4. **Fix**: Edit ai-coworker template source (`project_claude_md.py`, `local_claude_md.py`, `cli.py`)
+4. **Fix**: Edit walter-worker template source (`project_claude_md.py`, `local_claude_md.py`, `cli.py`)
 5. **Re-test**: Regenerate CLAUDE.md, confirm issues fixed with no regression
 
 ### 2.3 Why APO over OPRO/DSPy
@@ -214,7 +214,7 @@ Every CLAUDE.md instruction is tested through this process:
 
 **Why**:
 - Items 1 and 2 are the same action (save state), differing only in trigger timing. Merged.
-- `coworker state-update` is ai-coworker-specific. If the project doesn't have ai-coworker installed, the instruction is meaningless. Changed to generic description.
+- `coworker state-update` is walter-worker-specific. If the project doesn't have walter-worker installed, the instruction is meaningless. Changed to generic description.
 - Items 3 and 4 are compaction theory descriptions with zero behavioral impact. Extracted only the actionable info (re-read, compact early timing).
 
 #### 4.2 Context Management (remove section preamble)
@@ -405,12 +405,12 @@ This experiment established a repeatable optimization pattern:
 
 This is the complete operation timeline for this session, recording every actual command, result, and decision.
 
-### Phase 0: Upgrade ai-coworker (Preceding Operations)
+### Phase 0: Upgrade walter-worker (Preceding Operations)
 
 ```bash
 # Identity check
 $ whoami → cicidi
-$ pwd → /home/cicidi/project/ai-coworker (git repo root)
+$ pwd → /home/cicidi/project/walter-worker (git repo root)
 $ git branch → fix/fix-plan-round1 (working branch)
 
 # Phase 1: Pull latest
@@ -426,7 +426,7 @@ $ mv conflicting files to /tmp → git merge --ff-only origin/master (fast-forwa
 #   - hackathon-video-gen: prepended PROTECTED block
 #   - openclaw: prepended PROTECTED block
 #   - deterministic-ai-agent: reordered, preserved user content
-#   - ai-coworker: unchanged
+#   - walter-worker: unchanged
 # Phase 4: Install 31 updated skills
 # Phase 5-7: Install hooks, sync configs to all IDEs
 ```
@@ -473,7 +473,7 @@ $ python3 convert HEIC to processed PNG (3024x4032, inverted for dark mode)
 $ easyocr → SUCCESS!
 ```
 
-OCR extracted key content (from Intuit repo's comparison analysis of cicidi/ai-coworker):
+OCR extracted key content (from Intuit repo's comparison analysis of cicidi/walter-worker):
 
 **Port Now (live bugs):**
 1. Placeholder phantom-OVERWRITE — `semantic_merge.py:197`
@@ -825,7 +825,7 @@ $ write experiments/claude-md-harness/METHODOLOGY.md
 
 | Time | Phase | Action |
 |------|-------|--------|
-| 01:00-01:30 | Phase 0 | ai-coworker upgrade (pull + merge + sync) |
+| 01:00-01:30 | Phase 0 | walter-worker upgrade (pull + merge + sync) |
 | 01:30-02:00 | Step 1 | OCR image (6 attempts, easyocr succeeded) |
 | 02:00-02:40 | Step 2 | Fix 4 bugs (semantic_merge + config + shell scripts) |
 | 02:40-02:45 | Step 3 | Internet research on harness methodology (subagent) |
@@ -854,7 +854,7 @@ coworker initiative activate <name>
 wc -l CLAUDE.md CLAUDE.local.md ~/.claude/CLAUDE.md
 
 # Run tests
-cd ~/project/ai-coworker && python3 -m pytest tests/ -x -q
+cd ~/project/walter-worker && python3 -m pytest tests/ -x -q
 
 # Fix lint
 python3 -m ruff check src/ --fix

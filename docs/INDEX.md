@@ -1,63 +1,63 @@
 # Document Index
 > Last updated: 2026-08-01
 
-## ai-coworker
+## walter-worker
 
 ### decision-history
 
 | St | File | What It Contains |
 |----|------|-----------------|
-| ✅ | [2025-04-10-integrate-loop-engineering-framework-by-running-lo-decision.md](./ai-coworker/decision-history/2025-04-10-integrate-loop-engineering-framework-by-running-lo-decision.md) | Decision Record — 2025-04-10 |
-| ✅ | [2026-03-30-feat-initial-commit--unified-ai-coworker-dev-env-decision.md](./ai-coworker/decision-history/2026-03-30-feat-initial-commit--unified-ai-coworker-dev-env-decision.md) | Decision Record — 2026-03-30 |
-| ✅ | [2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.md](./ai-coworker/decision-history/2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.md) | Decision Record — 2026-05-01 |
-| ✅ | [2026-05-06-feat-add-skill-meta-import-skill--import-externa-decision.md](./ai-coworker/decision-history/2026-05-06-feat-add-skill-meta-import-skill--import-externa-decision.md) | Decision Record — 2026-05-06 |
-| ✅ | [2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.md](./ai-coworker/decision-history/2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.md) | Decision Record — 2026-06-11 |
-| ✅ | [2026-06-12-feat-add-opencode-context-injection-initiativema-decision.md](./ai-coworker/decision-history/2026-06-12-feat-add-opencode-context-injection-initiativema-decision.md) | Decision Record — 2026-06-12 |
-| ✅ | [2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.md](./ai-coworker/decision-history/2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.md) | Decision Record — 2026-06-16 |
-| ✅ | [2026-06-23-chore-remove-self-strain-decision.md](./ai-coworker/decision-history/2026-06-23-chore-remove-self-strain-decision.md) | Decision Record — 2026-06-23 |
-| ✅ | [2026-06-24-chore-review-fixes--broken-refs-tests-docs-ch-decision.md](./ai-coworker/decision-history/2026-06-24-chore-review-fixes--broken-refs-tests-docs-ch-decision.md) | Decision Record — 2026-06-24 |
-| ✅ | [2026-06-30-fix-deploy-ai-coworker-skills-to-opencode-skill-d-decision.md](./ai-coworker/decision-history/2026-06-30-fix-deploy-ai-coworker-skills-to-opencode-skill-d-decision.md) | Decision Record — 2026-06-30 |
-| ✅ | [2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.md](./ai-coworker/decision-history/2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.md) | Decision Record — 2026-07-02 |
-| ✅ | [2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.md](./ai-coworker/decision-history/2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.md) | Decision Record — 2026-07-07 |
-| ✅ | [2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.md](./ai-coworker/decision-history/2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.md) | Decision Record — 2026-07-08 |
-| ✅ | [2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.md](./ai-coworker/decision-history/2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.md) | Decision Record — 2026-07-10 |
-| ✅ | [2026-07-13-feat-add-emoji-and-color-coded-fields-to-tmux-sta-decision.md](./ai-coworker/decision-history/2026-07-13-feat-add-emoji-and-color-coded-fields-to-tmux-sta-decision.md) | Decision Record — 2026-07-13 |
-| ✅ | [2026-07-17-docs-add-doc-organize--indexmd-refs-to-claudem-decision.md](./ai-coworker/decision-history/2026-07-17-docs-add-doc-organize--indexmd-refs-to-claudem-decision.md) | Decision Record — 2026-07-17 |
-| ✅ | [2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.md](./ai-coworker/decision-history/2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.md) | Decision Record — 2026-07-24 |
-| ✅ | [2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.md](./ai-coworker/decision-history/2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.md) | Decision Record — 2026-07-25 |
-| ✅ | [2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.md](./ai-coworker/decision-history/2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.md) | Decision Record — 2026-07-25 |
-| ✅ | [2026-07-25-fixdashboard-restore-original-css-420442-line-decision.md](./ai-coworker/decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.md) | Decision Record — 2026-07-25 |
-| ✅ | [unknown-remove-budget-related-features-from-prd-budget-fl-decision.md](./ai-coworker/decision-history/unknown-remove-budget-related-features-from-prd-budget-fl-decision.md) | Decision Record — unknown |
+| ✅ | [2025-04-10-integrate-loop-engineering-framework-by-running-lo-decision.md](./walter-worker/decision-history/2025-04-10-integrate-loop-engineering-framework-by-running-lo-decision.md) | Decision Record — 2025-04-10 |
+| ✅ | [2026-03-30-feat-initial-commit--unified-walter-worker-dev-env-decision.md](./walter-worker/decision-history/2026-03-30-feat-initial-commit--unified-walter-worker-dev-env-decision.md) | Decision Record — 2026-03-30 |
+| ✅ | [2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.md](./walter-worker/decision-history/2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.md) | Decision Record — 2026-05-01 |
+| ✅ | [2026-05-06-feat-add-skill-meta-import-skill--import-externa-decision.md](./walter-worker/decision-history/2026-05-06-feat-add-skill-meta-import-skill--import-externa-decision.md) | Decision Record — 2026-05-06 |
+| ✅ | [2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.md](./walter-worker/decision-history/2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.md) | Decision Record — 2026-06-11 |
+| ✅ | [2026-06-12-feat-add-opencode-context-injection-initiativema-decision.md](./walter-worker/decision-history/2026-06-12-feat-add-opencode-context-injection-initiativema-decision.md) | Decision Record — 2026-06-12 |
+| ✅ | [2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.md](./walter-worker/decision-history/2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.md) | Decision Record — 2026-06-16 |
+| ✅ | [2026-06-23-chore-remove-self-strain-decision.md](./walter-worker/decision-history/2026-06-23-chore-remove-self-strain-decision.md) | Decision Record — 2026-06-23 |
+| ✅ | [2026-06-24-chore-review-fixes--broken-refs-tests-docs-ch-decision.md](./walter-worker/decision-history/2026-06-24-chore-review-fixes--broken-refs-tests-docs-ch-decision.md) | Decision Record — 2026-06-24 |
+| ✅ | [2026-06-30-fix-deploy-walter-worker-skills-to-opencode-skill-d-decision.md](./walter-worker/decision-history/2026-06-30-fix-deploy-walter-worker-skills-to-opencode-skill-d-decision.md) | Decision Record — 2026-06-30 |
+| ✅ | [2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.md](./walter-worker/decision-history/2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.md) | Decision Record — 2026-07-02 |
+| ✅ | [2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.md](./walter-worker/decision-history/2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.md) | Decision Record — 2026-07-07 |
+| ✅ | [2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.md](./walter-worker/decision-history/2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.md) | Decision Record — 2026-07-08 |
+| ✅ | [2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.md](./walter-worker/decision-history/2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.md) | Decision Record — 2026-07-10 |
+| ✅ | [2026-07-13-feat-add-emoji-and-color-coded-fields-to-tmux-sta-decision.md](./walter-worker/decision-history/2026-07-13-feat-add-emoji-and-color-coded-fields-to-tmux-sta-decision.md) | Decision Record — 2026-07-13 |
+| ✅ | [2026-07-17-docs-add-doc-organize--indexmd-refs-to-claudem-decision.md](./walter-worker/decision-history/2026-07-17-docs-add-doc-organize--indexmd-refs-to-claudem-decision.md) | Decision Record — 2026-07-17 |
+| ✅ | [2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.md](./walter-worker/decision-history/2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.md) | Decision Record — 2026-07-24 |
+| ✅ | [2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.md](./walter-worker/decision-history/2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.md) | Decision Record — 2026-07-25 |
+| ✅ | [2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.md](./walter-worker/decision-history/2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.md) | Decision Record — 2026-07-25 |
+| ✅ | [2026-07-25-fixdashboard-restore-original-css-420442-line-decision.md](./walter-worker/decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.md) | Decision Record — 2026-07-25 |
+| ✅ | [unknown-remove-budget-related-features-from-prd-budget-fl-decision.md](./walter-worker/decision-history/unknown-remove-budget-related-features-from-prd-budget-fl-decision.md) | Decision Record — unknown |
 
 ### design
 
 | St | File | What It Contains |
 |----|------|-----------------|
-| ✅ | [ai-coworker-design.md](./ai-coworker/design/ai-coworker-design.md) | ai-coworker Design |
+| ✅ | [walter-worker-design.md](./walter-worker/design/walter-worker-design.md) | walter-worker Design |
 
 ### impl-plan
 
 | St | File | What It Contains |
 |----|------|-----------------|
-| ✅ | [ai-coworker-impl-plan.md](./ai-coworker/impl-plan/ai-coworker-impl-plan.md) | ai-coworker Implementation Plan |
+| ✅ | [walter-worker-impl-plan.md](./walter-worker/impl-plan/walter-worker-impl-plan.md) | walter-worker Implementation Plan |
 
 ### prd
 
 | St | File | What It Contains |
 |----|------|-----------------|
-| ✅ | [ai-coworker-prd.md](./ai-coworker/prd/ai-coworker-prd.md) | ai-coworker PRD |
+| ✅ | [walter-worker-prd.md](./walter-worker/prd/walter-worker-prd.md) | walter-worker PRD |
 
 ### spec
 
 | St | File | What It Contains |
 |----|------|-----------------|
-| ✅ | [ai-coworker-spec.md](./ai-coworker/spec/ai-coworker-spec.md) | ai-coworker Technical Specification |
+| ✅ | [walter-worker-spec.md](./walter-worker/spec/walter-worker-spec.md) | walter-worker Technical Specification |
 
 ### test-plan
 
 | St | File | What It Contains |
 |----|------|-----------------|
-| ✅ | [ai-coworker-test-plan.md](./ai-coworker/test-plan/ai-coworker-test-plan.md) | ai-coworker Test Plan |
+| ✅ | [walter-worker-test-plan.md](./walter-worker/test-plan/walter-worker-test-plan.md) | walter-worker Test Plan |
 
 ## computer-config
 
@@ -65,7 +65,7 @@
 
 | St | File | What It Contains |
 |----|------|-----------------|
-| ✅ | [computer-config-spec.md](./computer-config/spec/computer-config-spec.md) | Complete technical spec of the Claude statusline + tmux theme + ai-coworker role boundary — every config field, feature/why/how, and the claude-tmux-config migration |
+| ✅ | [computer-config-spec.md](./computer-config/spec/computer-config-spec.md) | Complete technical spec of the Claude statusline + tmux theme + walter-worker role boundary — every config field, feature/why/how, and the claude-tmux-config migration |
 
 ### prd
 
@@ -77,7 +77,7 @@
 
 | St | File | What It Contains |
 |----|------|-----------------|
-| ✅ | [computer-config-impl-plan.md](./computer-config/impl-plan/computer-config-impl-plan.md) | Implementation plan — two parallel workstreams (claude-tmux-config project + ai-coworker strip), step-by-step |
+| ✅ | [computer-config-impl-plan.md](./computer-config/impl-plan/computer-config-impl-plan.md) | Implementation plan — two parallel workstreams (claude-tmux-config project + walter-worker strip), step-by-step |
 
 ### test-plan
 
@@ -128,7 +128,7 @@
 
 | St | File | What It Contains |
 |----|------|-----------------|
-| ✅ | [2025-06-11-cleanup-design.md](./cleanup/spec/2025-06-11-cleanup-design.md) | Cleanup Design: ai-coworker |
+| ✅ | [2025-06-11-cleanup-design.md](./cleanup/spec/2025-06-11-cleanup-design.md) | Cleanup Design: walter-worker |
 
 ## core-architecture
 
@@ -158,8 +158,8 @@
 
 | St | File | What It Contains |
 |----|------|-----------------|
-| ✅ | [2026-07-07-ai-coworker-fix-plan.md](./fix-plan/plan/2026-07-07-ai-coworker-fix-plan.md) | ai-coworker Fix Plan — 2026-07-07 |
-| ✅ | [2026-07-07-contrarian-review-GAPS.md](./fix-plan/plan/2026-07-07-contrarian-review-GAPS.md) | Contrarian Gap Report — ai-coworker Phase 0+1 |
+| ✅ | [2026-07-07-walter-worker-fix-plan.md](./fix-plan/plan/2026-07-07-walter-worker-fix-plan.md) | walter-worker Fix Plan — 2026-07-07 |
+| ✅ | [2026-07-07-contrarian-review-GAPS.md](./fix-plan/plan/2026-07-07-contrarian-review-GAPS.md) | Contrarian Gap Report — walter-worker Phase 0+1 |
 | ✅ | [2026-07-07-photo-fix-plan-transcribed.md](./fix-plan/plan/2026-07-07-photo-fix-plan-transcribed.md) | CICIDI/AI-COWORKER — FIX PLAN (ENGINEERING WORK ORDER) |
 | ✅ | [2026-07-07-plan-comparison.md](./fix-plan/plan/2026-07-07-plan-comparison.md) | Comparison: My Audit Plan vs. The Photo FIX-PLAN |
 

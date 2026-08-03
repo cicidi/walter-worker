@@ -22,7 +22,7 @@ Search the agent's long-term memory for past lessons, patterns, and conventions.
 Or:
 
 ```
-coworker memory search "<query>" --project ai-coworker --limit 10
+coworker memory search "<query>" --project walter-worker --limit 10
 ```
 
 ## Implementation

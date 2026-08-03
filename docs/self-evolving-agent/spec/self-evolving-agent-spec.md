@@ -25,7 +25,7 @@ PRD v6 will be restructured to requirements-only (removing current §1.4, §6, �
 |---|---|---|---|
 | **mem0** ([github](https://github.com/mem0ai/mem0)) | Memory layer: LLM extraction + vector store + hybrid retrieval | **The memory substrate** — store, retrieve, extract facts (Tier 3). Library mode (in-process, no server). Hybrid retrieval (semantic + BM25 + entity). | Its default `gpt-5-mini` LLM and `text-embedding-3-small` embedder → swapped for DeepSeek Flash + local embedder |
 | **Hermes Agent** ([docs](https://hermes-agent.nousresearch.com/docs/)) | Standalone self-improving agent with a closed learning loop | **The loop patterns** — skill create/patch/curator lifecycle, session-end summarization trigger, MEMORY.md/USER.md agent-curated philosophy, "smart approval system". Re-hosted on Claude Code/OpenCode hooks. | Its FTS5+SQLite recall layer (replaced by mem0); running Hermes itself (we are not a Hermes fork) |
-| **ai-coworker existing infra** | analytics.db, hooks, semantic_merge, templates, CLI | analytics.db as raw capture/audit layer; semantic_merge for CLAUDE.local.md injection; CLI/templates/adapters | analytics.db `knowledge` table as the memory store (mem0 owns memory now; analytics.db keeps raw session/tool capture) |
+| **walter-worker existing infra** | analytics.db, hooks, semantic_merge, templates, CLI | analytics.db as raw capture/audit layer; semantic_merge for CLAUDE.local.md injection; CLI/templates/adapters | analytics.db `knowledge` table as the memory store (mem0 owns memory now; analytics.db keeps raw session/tool capture) |
 
 ### 0.3 Boundary decision (mem0 vs Hermes — resolves the overlap)
 
@@ -148,11 +148,11 @@ PRD §1.6 defines three knowledge types. mem0 stores two of them; the third is s
 {
   "memory": "MCP first request always 403-times-out; retry once before failing.",
   "user_id": "<user>",
-  "agent_id": "ai-coworker",
+  "agent_id": "walter-worker",
   "run_id": "<session-id>",
   "metadata": {
     "type": "lesson",                       // lesson | state | convention | preference
-    "project": "ai-coworker",
+    "project": "walter-worker",
     "topic": "mcp",
     "problem": "first-request-403",
     "source_session": "<session-id>",
@@ -317,12 +317,12 @@ Hermes has a "smart approval system that learns safe commands over time" — **n
 At session start, read relevant mem0 entries → inject into CLAUDE.local.md between markers. Both Claude Code and OpenCode read CLAUDE.local.md at start, so the snapshot is available with **zero tool calls** (R5).
 
 ```markdown
-<!-- MEMORY:ai-coworker START -->
+<!-- MEMORY:walter-worker START -->
 ## Memory Snapshot (frozen at session start)
 - Project uses ruff, E501 ignored
 - MCP first request 403-times-out — retry once
 - Prefers Chinese; prefers discussing before implementing
-<!-- MEMORY:ai-coworker END -->
+<!-- MEMORY:walter-worker END -->
 ```
 
 - **Frozen:** captured once at start; mid-session mem0 writes do not refresh it.
@@ -567,7 +567,7 @@ This section specifies the **how** for the auto-worker (design: [auto-worker-des
 ### 12.1 Entry Point
 
 ```bash
-coworker run --loop --skill auto-worker [--max-hours 12] [--project ai-coworker]
+coworker run --loop --skill auto-worker [--max-hours 12] [--project walter-worker]
 ```
 
 Runs on the same infrastructure as the implicit evolution loop — same mem0 store, same state files, same capture hooks. The difference: SDK mode (explicit loop) vs hook-embedded (implicit).

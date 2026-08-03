@@ -7,7 +7,7 @@
 
 ## Metadata
 
-- Reviewer: ai-coworker-devil-advocate skill
+- Reviewer: walter-worker-devil-advocate skill
 - Model: DeepSeek/deepseek-v4-pro (via CCR)
 - Round limit: 5
 
@@ -37,13 +37,13 @@ Con → Pro → Judge. Judge rulings: 9 total, 8 con-wins, 1 pro-wins, 0 deferre
 | 12 plugins | con-wins | Live has 13 (12 enabled + 1 disabled) |
 | .tmux.conf 34 lines | con-wins | Actual 36 |
 | Atomic writes via _write_json_atomic | con-wins | Pattern undefined; json.dump non-atomic |
-| Uninstall manifest-driven safe | con-wins | No schema; cross-project manifest conflict with ai-coworker |
+| Uninstall manifest-driven safe | con-wins | No schema; cross-project manifest conflict with walter-worker |
 | Inline color detection | con-wins | Algorithm undefined; safety gate unimplementable |
 | 0/1/2 menu | con-wins | Contradicts PRD US-4 |
 
 **Unresolved (deferred):**
 - Which model actually routes through CCR (flash vs pro)? — cascades into cost/context claims
-- Cross-project manifest conflict (ai-coworker walks ~/.claude/ recursively)
+- Cross-project manifest conflict (walter-worker walks ~/.claude/ recursively)
 - Impl-plan Step B1 "remove tmux tracking" may be a phantom task
 - Statusline behavior when CCR is down
 - Test plan gaps (rollback, missing deps at runtime, non-BB colors, concurrent installs)

@@ -171,7 +171,7 @@
         "relation": "form",
         "confidence": "EXTRACTED",
         "confidence_score": 1.0,
-        "source_file": "docs/ai-coworker/design/ai-coworker-design.md"
+        "source_file": "docs/walter-worker/design/walter-worker-design.md"
       },
       {
         "id": "analytics_pipeline_components",
@@ -185,7 +185,7 @@
         "relation": "participate_in",
         "confidence": "INFERRED",
         "confidence_score": 0.85,
-        "source_file": "docs/ai-coworker/design/ai-coworker-design.md"
+        "source_file": "docs/walter-worker/design/walter-worker-design.md"
       },
       {
         "id": "self_evolving_agent_system",
@@ -200,7 +200,7 @@
         "relation": "participate_in",
         "confidence": "INFERRED",
         "confidence_score": 0.9,
-        "source_file": "docs/ai-coworker/decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.md"
+        "source_file": "docs/walter-worker/decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.md"
       },
       {
         "id": "three_layer_claude_md_architecture",
@@ -243,7 +243,7 @@
         "relation": "implement",
         "confidence": "EXTRACTED",
         "confidence_score": 1.0,
-        "source_file": "docs/ai-coworker/test-plan/ai-coworker-test-plan.md"
+        "source_file": "docs/walter-worker/test-plan/walter-worker-test-plan.md"
       },
       {
         "id": "critical_fix_cluster",
@@ -256,7 +256,7 @@
         "relation": "participate_in",
         "confidence": "INFERRED",
         "confidence_score": 0.8,
-        "source_file": "docs/fix-plan/plan/2026-07-07-ai-coworker-fix-plan.md"
+        "source_file": "docs/fix-plan/plan/2026-07-07-walter-worker-fix-plan.md"
       },
       {
         "id": "data_safety_core_fixes",
@@ -398,7 +398,7 @@
           "evolution_observability",
           "claude_code",
           "opencode",
-          "ai_coworker"
+          "walter_worker"
         ],
         "relation": "implement",
         "confidence": "INFERRED",
@@ -445,7 +445,7 @@
         "nodes": [
           "concept_memory_substrate_mem0",
           "concept_hermes_self_evolution_loop",
-          "concept_ai_coworker_existing_infra"
+          "concept_walter_worker_existing_infra"
         ],
         "relation": "participate_in",
         "confidence": "EXTRACTED",
@@ -503,9 +503,9 @@
         "label": "Skill Documents in skills/ directory",
         "nodes": [
           "skills_SCHEMA_SkillFrontmatterSchema",
-          "skills_ai_coworker_fix_AI-coworker-fix",
-          "skills_ai_coworker_setup_in_project_AI-coworker-setup-in-project",
-          "skills_ai_coworker_upgrade_AI-coworker-upgrade",
+          "skills_walter_worker_fix_AI-coworker-fix",
+          "skills_walter_worker_setup_in_project_AI-coworker-setup-in-project",
+          "skills_walter_worker_upgrade_AI-coworker-upgrade",
           "skills_analytics_create_db_Analytics-create-db",
           "skills_analytics_daemon_Analytics-daemon",
           "skills_analytics_dashboard_Analytics-dashboard",
@@ -1915,7 +1915,7 @@
       "norm_label": "assign a test scenario to each instruction based on keyword matching."
     },
     {
-      "label": "ai-coworker",
+      "label": "walter-worker",
       "file_type": "code",
       "type": "package",
       "ecosystem": "python",
@@ -1923,9 +1923,9 @@
       "source_location": "L1",
       "version": "0.1.0",
       "_origin": "ast",
-      "id": "pkg_ai_coworker",
+      "id": "pkg_walter_worker",
       "community": 250,
-      "norm_label": "ai-coworker"
+      "norm_label": "walter-worker"
     },
     {
       "label": "bridge_to_obsidian.py",
@@ -12012,14 +12012,14 @@
       "norm_label": "claude code hooks use the canonical {matcher, hooks:[{type,command}]} shape."
     },
     {
-      "label": "OpenCode: ai-coworker skills are deployed under .config/opencode/skills/.      N",
+      "label": "OpenCode: walter-worker skills are deployed under .config/opencode/skills/.      N",
       "file_type": "rationale",
       "source_file": "tests/analytics/test_install.py",
       "source_location": "L54",
       "_origin": "ast",
       "id": "tests_analytics_test_install_rationale_54",
       "community": 86,
-      "norm_label": "opencode: ai-coworker skills are deployed under .config/opencode/skills/.      n"
+      "norm_label": "opencode: walter-worker skills are deployed under .config/opencode/skills/.      n"
     },
     {
       "label": "The on-user-prompt hook script exists and is executable.",
@@ -25792,14 +25792,14 @@
       "norm_label": ".test_source_has_skill_dirs()"
     },
     {
-      "label": ".test_ai_coworker_skills_have_skill_md()",
+      "label": ".test_walter_worker_skills_have_skill_md()",
       "file_type": "code",
       "source_file": "tests/python/test_skill_factory_integration.py",
       "source_location": "L29",
       "_origin": "ast",
-      "id": "tests_python_test_skill_factory_integration_testskillfactorysource_test_ai_coworker_skills_have_skill_md",
+      "id": "tests_python_test_skill_factory_integration_testskillfactorysource_test_walter_worker_skills_have_skill_md",
       "community": 72,
-      "norm_label": ".test_ai_coworker_skills_have_skill_md()"
+      "norm_label": ".test_walter_worker_skills_have_skill_md()"
     },
     {
       "label": ".test_source_skills_have_valid_frontmatter()",
@@ -26710,7 +26710,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "project_ai_coworker",
+      "id": "project_walter_worker",
       "community": 55,
       "norm_label": "ai coworker"
     },
@@ -27274,43 +27274,43 @@
       "norm_label": "dashboard errors tab"
     },
     {
-      "label": "ai-coworker-fix Skill",
+      "label": "walter-worker-fix Skill",
       "file_type": "code",
-      "source_file": ".claude/commands/ai-coworker-fix.md",
+      "source_file": ".claude/commands/walter-worker-fix.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "skill_ai_coworker_fix",
+      "id": "skill_walter_worker_fix",
       "community": 255,
-      "norm_label": "ai-coworker-fix skill"
+      "norm_label": "walter-worker-fix skill"
     },
     {
-      "label": "ai-coworker-upgrade Skill",
+      "label": "walter-worker-upgrade Skill",
       "file_type": "code",
-      "source_file": ".claude/commands/ai-coworker-upgrade.md",
+      "source_file": ".claude/commands/walter-worker-upgrade.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "skill_ai_coworker_upgrade",
+      "id": "skill_walter_worker_upgrade",
       "community": 55,
-      "norm_label": "ai-coworker-upgrade skill"
+      "norm_label": "walter-worker-upgrade skill"
     },
     {
-      "label": "ai-coworker-setup-in-project Skill",
+      "label": "walter-worker-setup-in-project Skill",
       "file_type": "code",
-      "source_file": ".claude/commands/ai-coworker-setup-in-project.md",
+      "source_file": ".claude/commands/walter-worker-setup-in-project.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "skill_ai_coworker_setup",
+      "id": "skill_walter_worker_setup",
       "community": 55,
-      "norm_label": "ai-coworker-setup-in-project skill"
+      "norm_label": "walter-worker-setup-in-project skill"
     },
     {
       "label": "init Skill",
@@ -27872,7 +27872,7 @@
       "norm_label": "pending review"
     },
     {
-      "label": "ai-coworker",
+      "label": "walter-worker",
       "file_type": "code",
       "source_file": ".playwright-mcp/page-2026-07-26T05-42-43-708Z.yml",
       "source_location": null,
@@ -27880,9 +27880,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "playwright_mcp_page_2026_07_26t05_42_43_708z_project_ai_coworker",
+      "id": "playwright_mcp_page_2026_07_26t05_42_43_708z_project_walter_worker",
       "community": 104,
-      "norm_label": "ai-coworker"
+      "norm_label": "walter-worker"
     },
     {
       "label": "cicidi",
@@ -28524,7 +28524,7 @@
       "norm_label": "bottleneck: test setup requiring 4 ide directories"
     },
     {
-      "label": "ai-coworker project",
+      "label": "walter-worker project",
       "file_type": "concept",
       "source_file": ".playwright-mcp/page-2026-07-28T05-27-14-654Z.yml",
       "source_location": null,
@@ -28532,9 +28532,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "coworker_project_ai_coworker",
+      "id": "coworker_project_walter_worker",
       "community": 143,
-      "norm_label": "ai-coworker project"
+      "norm_label": "walter-worker project"
     },
     {
       "label": "root project",
@@ -28589,56 +28589,56 @@
       "norm_label": "document index"
     },
     {
-      "label": "ai-coworker Design Document",
+      "label": "walter-worker Design Document",
       "file_type": "document",
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_ai_coworker_design_ai_coworker_design",
+      "id": "docs_walter_worker_design_walter_worker_design",
       "community": 48,
-      "norm_label": "ai-coworker design document"
+      "norm_label": "walter-worker design document"
     },
     {
-      "label": "ai-coworker Technical Specification (Markdown)",
+      "label": "walter-worker Technical Specification (Markdown)",
       "file_type": "document",
-      "source_file": "docs/ai-coworker/spec/ai-coworker-spec.md",
+      "source_file": "docs/walter-worker/spec/walter-worker-spec.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_ai_coworker_spec_ai_coworker_spec_md",
+      "id": "docs_walter_worker_spec_walter_worker_spec_md",
       "community": 88,
-      "norm_label": "ai-coworker technical specification (markdown)"
+      "norm_label": "walter-worker technical specification (markdown)"
     },
     {
-      "label": "ai-coworker Product Requirements Document",
+      "label": "walter-worker Product Requirements Document",
       "file_type": "document",
-      "source_file": "docs/ai-coworker/prd/ai-coworker-prd.md",
+      "source_file": "docs/walter-worker/prd/walter-worker-prd.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_ai_coworker_prd_ai_coworker_prd",
+      "id": "docs_walter_worker_prd_walter_worker_prd",
       "community": 48,
-      "norm_label": "ai-coworker product requirements document"
+      "norm_label": "walter-worker product requirements document"
     },
     {
-      "label": "ai-coworker Implementation Plan",
+      "label": "walter-worker Implementation Plan",
       "file_type": "document",
-      "source_file": "docs/ai-coworker/impl-plan/ai-coworker-impl-plan.md",
+      "source_file": "docs/walter-worker/impl-plan/walter-worker-impl-plan.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_ai_coworker_impl_plan_ai_coworker_impl_plan",
+      "id": "docs_walter_worker_impl_plan_walter_worker_impl_plan",
       "community": 48,
-      "norm_label": "ai-coworker implementation plan"
+      "norm_label": "walter-worker implementation plan"
     },
     {
       "label": "Analytics Overview Page",
@@ -28667,9 +28667,9 @@
       "norm_label": "memory graph page"
     },
     {
-      "label": "Context Manager (ai-coworker identity)",
+      "label": "Context Manager (walter-worker identity)",
       "file_type": "concept",
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28677,12 +28677,12 @@
       "contributor": null,
       "id": "concept_context_manager",
       "community": 48,
-      "norm_label": "context manager (ai-coworker identity)"
+      "norm_label": "context manager (walter-worker identity)"
     },
     {
       "label": "Three-Layer CLAUDE.md Architecture",
       "file_type": "concept",
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28695,7 +28695,7 @@
     {
       "label": "Skill-Based Plugin System",
       "file_type": "concept",
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28708,7 +28708,7 @@
     {
       "label": "Manifest-Driven Install/Uninstall",
       "file_type": "concept",
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28721,7 +28721,7 @@
     {
       "label": "Analytics Import and Dashboard Pipeline",
       "file_type": "concept",
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28734,7 +28734,7 @@
     {
       "label": "Memory Substrate (mem0 + DeepSeek) Pipeline",
       "file_type": "concept",
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28747,7 +28747,7 @@
     {
       "label": "SQLite Database",
       "file_type": "concept",
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28760,7 +28760,7 @@
     {
       "label": "DeepSeek API (LLM)",
       "file_type": "concept",
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28773,7 +28773,7 @@
     {
       "label": "mem0 Memory Substrate",
       "file_type": "concept",
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28786,7 +28786,7 @@
     {
       "label": "Flask Web Framework",
       "file_type": "concept",
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28799,7 +28799,7 @@
     {
       "label": "tmux Status Bar Integration",
       "file_type": "concept",
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28812,7 +28812,7 @@
     {
       "label": "Initial Commit \u2013 Unified Dev Environment (2026-03-30)",
       "file_type": "rationale",
-      "source_file": "docs/ai-coworker/decision-history/2026-03-30-feat-initial-commit--unified-ai-coworker-dev-env-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-03-30-feat-initial-commit--unified-walter-worker-dev-env-decision.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28825,7 +28825,7 @@
     {
       "label": "Skill Restructure and Naming Convention (2026-05-01)",
       "file_type": "rationale",
-      "source_file": "docs/ai-coworker/decision-history/2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28838,7 +28838,7 @@
     {
       "label": "Analytics Listener + Dashboard MVP (2026-06-11)",
       "file_type": "rationale",
-      "source_file": "docs/ai-coworker/decision-history/2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28851,7 +28851,7 @@
     {
       "label": "Initiative Migration \u2013 Global to Project-Level (2026-06-12)",
       "file_type": "rationale",
-      "source_file": "docs/ai-coworker/decision-history/2026-06-12-feat-add-opencode-context-injection-initiativema-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-06-12-feat-add-opencode-context-injection-initiativema-decision.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28864,7 +28864,7 @@
     {
       "label": "Replace 8-Stage Pipeline with 5-Stage Workflow (2026-06-16)",
       "file_type": "rationale",
-      "source_file": "docs/ai-coworker/decision-history/2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28877,7 +28877,7 @@
     {
       "label": "Three-Layer CLAUDE.md Architecture (2026-07-02)",
       "file_type": "rationale",
-      "source_file": "docs/ai-coworker/decision-history/2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28890,7 +28890,7 @@
     {
       "label": "Fix Round \u2013 B1, S3, Polish Loop (2026-07-07)",
       "file_type": "rationale",
-      "source_file": "docs/ai-coworker/decision-history/2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28903,7 +28903,7 @@
     {
       "label": "Analytics Session Dedup + LLM Knowledge Dedup (2026-07-08)",
       "file_type": "rationale",
-      "source_file": "docs/ai-coworker/decision-history/2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28916,7 +28916,7 @@
     {
       "label": "CLAUDE.md Optimization \u2013 95\u219260 Lines (2026-07-10)",
       "file_type": "rationale",
-      "source_file": "docs/ai-coworker/decision-history/2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28929,7 +28929,7 @@
     {
       "label": "Dashboard Expansion \u2013 10+ Views (2026-07-25)",
       "file_type": "rationale",
-      "source_file": "docs/ai-coworker/decision-history/2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28942,7 +28942,7 @@
     {
       "label": "Self-Evolving Agent Phase \u2013 PRD v7, Spec, Design (2026-07-25)",
       "file_type": "rationale",
-      "source_file": "docs/ai-coworker/decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28955,7 +28955,7 @@
     {
       "label": "Wrong-History Skill + Auto-Injection (2026-07-25)",
       "file_type": "rationale",
-      "source_file": "docs/ai-coworker/decision-history/2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28968,7 +28968,7 @@
     {
       "label": "Remove Budget Concept from Autonomous Agent PRD (2026-07-24)",
       "file_type": "rationale",
-      "source_file": "docs/ai-coworker/decision-history/2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28981,7 +28981,7 @@
     {
       "label": "Infrastructure Reuse Analysis for Self-Evolving Agent (2026-07-24)",
       "file_type": "rationale",
-      "source_file": "docs/ai-coworker/decision-history/unknown-remove-budget-related-features-from-prd-budget-fl-decision.md",
+      "source_file": "docs/walter-worker/decision-history/unknown-remove-budget-related-features-from-prd-budget-fl-decision.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -28994,7 +28994,7 @@
     {
       "label": "Test Plan",
       "file_type": "document",
-      "source_file": "docs/ai-coworker/test-plan/ai-coworker-test-plan.md",
+      "source_file": "docs/walter-worker/test-plan/walter-worker-test-plan.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -29085,7 +29085,7 @@
     {
       "label": "Unit Test",
       "file_type": "concept",
-      "source_file": "docs/ai-coworker/test-plan/ai-coworker-test-plan.md",
+      "source_file": "docs/walter-worker/test-plan/walter-worker-test-plan.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -29098,7 +29098,7 @@
     {
       "label": "Integration Test",
       "file_type": "concept",
-      "source_file": "docs/ai-coworker/test-plan/ai-coworker-test-plan.md",
+      "source_file": "docs/walter-worker/test-plan/walter-worker-test-plan.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -29111,7 +29111,7 @@
     {
       "label": "End-to-End Test",
       "file_type": "concept",
-      "source_file": "docs/ai-coworker/test-plan/ai-coworker-test-plan.md",
+      "source_file": "docs/walter-worker/test-plan/walter-worker-test-plan.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -29124,7 +29124,7 @@
     {
       "label": "Smoke Test",
       "file_type": "concept",
-      "source_file": "docs/ai-coworker/test-plan/ai-coworker-test-plan.md",
+      "source_file": "docs/walter-worker/test-plan/walter-worker-test-plan.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -29137,7 +29137,7 @@
     {
       "label": "Acceptance Test",
       "file_type": "concept",
-      "source_file": "docs/ai-coworker/test-plan/ai-coworker-test-plan.md",
+      "source_file": "docs/walter-worker/test-plan/walter-worker-test-plan.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -29553,13 +29553,13 @@
     {
       "label": "AI Coworker Fix Plan (Audit)",
       "file_type": "document",
-      "source_file": "docs/fix-plan/plan/2026-07-07-ai-coworker-fix-plan.md",
+      "source_file": "docs/fix-plan/plan/2026-07-07-walter-worker-fix-plan.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "docs_fix_plan_plan_2026-07-07-ai-coworker-fix-plan",
+      "id": "docs_fix_plan_plan_2026-07-07-walter-worker-fix-plan",
       "community": 56,
       "norm_label": "ai coworker fix plan (audit)"
     },
@@ -29709,7 +29709,7 @@
     {
       "label": "Path Traversal in Initiative Names (Security)",
       "file_type": "concept",
-      "source_file": "docs/fix-plan/plan/2026-07-07-ai-coworker-fix-plan.md",
+      "source_file": "docs/fix-plan/plan/2026-07-07-walter-worker-fix-plan.md",
       "source_location": "H1",
       "source_url": null,
       "captured_at": null,
@@ -29722,7 +29722,7 @@
     {
       "label": "get_db() Does Not Create Schema on Fresh DB",
       "file_type": "concept",
-      "source_file": "docs/fix-plan/plan/2026-07-07-ai-coworker-fix-plan.md",
+      "source_file": "docs/fix-plan/plan/2026-07-07-walter-worker-fix-plan.md",
       "source_location": "C3",
       "source_url": null,
       "captured_at": null,
@@ -29864,7 +29864,7 @@
     {
       "label": "Analytics Count Correctness (bash_count, tool_count, skill_count)",
       "file_type": "concept",
-      "source_file": "docs/fix-plan/plan/2026-07-07-ai-coworker-fix-plan.md",
+      "source_file": "docs/fix-plan/plan/2026-07-07-walter-worker-fix-plan.md",
       "source_location": "M6-M8",
       "source_url": null,
       "captured_at": null,
@@ -31019,7 +31019,7 @@
       "norm_label": "opencode"
     },
     {
-      "label": "ai-coworker Platform",
+      "label": "walter-worker Platform",
       "file_type": "concept",
       "source_file": "docs/self-evolving-agent/prd/self-evolving-agent-prd.md",
       "source_location": "1",
@@ -31027,9 +31027,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "ai_coworker",
+      "id": "walter_worker",
       "community": 76,
-      "norm_label": "ai-coworker platform"
+      "norm_label": "walter-worker platform"
     },
     {
       "label": "QA Autonomous Agent Spec (Deferred)",
@@ -31292,7 +31292,7 @@
       "norm_label": "opencode ide"
     },
     {
-      "label": "ai-coworker Existing Infra (analytics.db, hooks, CLI)",
+      "label": "walter-worker Existing Infra (analytics.db, hooks, CLI)",
       "file_type": "concept",
       "source_file": "docs/self-evolving-agent/spec/self-evolving-agent-spec.md",
       "source_location": "\u00a70.2",
@@ -31300,9 +31300,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "concept_ai_coworker_existing_infra",
+      "id": "concept_walter_worker_existing_infra",
       "community": 32,
-      "norm_label": "ai-coworker existing infra (analytics.db, hooks, cli)"
+      "norm_label": "walter-worker existing infra (analytics.db, hooks, cli)"
     },
     {
       "label": "Wrong-History Entry Recording",
@@ -31513,43 +31513,43 @@
       "norm_label": "skill.md frontmatter schema"
     },
     {
-      "label": "ai-coworker-fix skill",
+      "label": "walter-worker-fix skill",
       "file_type": "document",
-      "source_file": "skills/ai-coworker-fix/SKILL.md",
+      "source_file": "skills/walter-worker-fix/SKILL.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "skills_ai_coworker_fix_AI-coworker-fix",
+      "id": "skills_walter_worker_fix_AI-coworker-fix",
       "community": 98,
-      "norm_label": "ai-coworker-fix skill"
+      "norm_label": "walter-worker-fix skill"
     },
     {
-      "label": "ai-coworker-setup-in-project skill",
+      "label": "walter-worker-setup-in-project skill",
       "file_type": "document",
-      "source_file": "skills/ai-coworker-setup-in-project/SKILL.md",
+      "source_file": "skills/walter-worker-setup-in-project/SKILL.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "skills_ai_coworker_setup_in_project_AI-coworker-setup-in-project",
+      "id": "skills_walter_worker_setup_in_project_AI-coworker-setup-in-project",
       "community": 98,
-      "norm_label": "ai-coworker-setup-in-project skill"
+      "norm_label": "walter-worker-setup-in-project skill"
     },
     {
-      "label": "ai-coworker-upgrade skill",
+      "label": "walter-worker-upgrade skill",
       "file_type": "document",
-      "source_file": "skills/ai-coworker-upgrade/SKILL.md",
+      "source_file": "skills/walter-worker-upgrade/SKILL.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "id": "skills_ai_coworker_upgrade_AI-coworker-upgrade",
+      "id": "skills_walter_worker_upgrade_AI-coworker-upgrade",
       "community": 98,
-      "norm_label": "ai-coworker-upgrade skill"
+      "norm_label": "walter-worker-upgrade skill"
     },
     {
       "label": "analytics-create-db skill",
@@ -89799,7 +89799,7 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "tests_python_test_skill_factory_integration_testskillfactorysource",
-      "target": "tests_python_test_skill_factory_integration_testskillfactorysource_test_ai_coworker_skills_have_skill_md",
+      "target": "tests_python_test_skill_factory_integration_testskillfactorysource_test_walter_worker_skills_have_skill_md",
       "confidence_score": 1.0
     },
     {
@@ -90806,7 +90806,7 @@
       "source_file": "coworker-blueprint.md",
       "source_location": "\u00a713",
       "weight": 1.0,
-      "source": "project_ai_coworker",
+      "source": "project_walter_worker",
       "target": "component_adapters"
     },
     {
@@ -90816,7 +90816,7 @@
       "source_file": "coworker-blueprint.md",
       "source_location": "\u00a711",
       "weight": 1.0,
-      "source": "project_ai_coworker",
+      "source": "project_walter_worker",
       "target": "component_analytics"
     },
     {
@@ -90826,7 +90826,7 @@
       "source_file": "coworker-blueprint.md",
       "source_location": "\u00a79",
       "weight": 1.0,
-      "source": "project_ai_coworker",
+      "source": "project_walter_worker",
       "target": "component_cli"
     },
     {
@@ -90836,7 +90836,7 @@
       "source_file": "coworker-blueprint.md",
       "source_location": "\u00a712",
       "weight": 1.0,
-      "source": "project_ai_coworker",
+      "source": "project_walter_worker",
       "target": "component_configuration"
     },
     {
@@ -90846,7 +90846,7 @@
       "source_file": "coworker-blueprint.md",
       "source_location": "\u00a75",
       "weight": 1.0,
-      "source": "project_ai_coworker",
+      "source": "project_walter_worker",
       "target": "component_context_injection"
     },
     {
@@ -90856,7 +90856,7 @@
       "source_file": "coworker-blueprint.md",
       "source_location": "\u00a711",
       "weight": 1.0,
-      "source": "project_ai_coworker",
+      "source": "project_walter_worker",
       "target": "component_dashboard"
     },
     {
@@ -90866,7 +90866,7 @@
       "source_file": "coworker-blueprint.md",
       "source_location": "\u00a77",
       "weight": 1.0,
-      "source": "project_ai_coworker",
+      "source": "project_walter_worker",
       "target": "component_initiatives"
     },
     {
@@ -90876,7 +90876,7 @@
       "source_file": "coworker-blueprint.md",
       "source_location": "\u00a76",
       "weight": 1.0,
-      "source": "project_ai_coworker",
+      "source": "project_walter_worker",
       "target": "component_project_catalog"
     },
     {
@@ -90886,7 +90886,7 @@
       "source_file": "coworker-blueprint.md",
       "source_location": "\u00a74",
       "weight": 1.0,
-      "source": "project_ai_coworker",
+      "source": "project_walter_worker",
       "target": "component_semantic_merge"
     },
     {
@@ -90896,7 +90896,7 @@
       "source_file": "coworker-blueprint.md",
       "source_location": "\u00a78",
       "weight": 1.0,
-      "source": "project_ai_coworker",
+      "source": "project_walter_worker",
       "target": "component_state_persistence"
     },
     {
@@ -90906,7 +90906,7 @@
       "source_file": "coworker-blueprint.md",
       "source_location": "\u00a74",
       "weight": 1.0,
-      "source": "project_ai_coworker",
+      "source": "project_walter_worker",
       "target": "component_templates"
     },
     {
@@ -90916,7 +90916,7 @@
       "source_file": "README.md",
       "source_location": null,
       "weight": 1.0,
-      "source": "project_ai_coworker",
+      "source": "project_walter_worker",
       "target": "concept_self_evolving_agent"
     },
     {
@@ -90926,7 +90926,7 @@
       "source_file": "README.md",
       "source_location": null,
       "weight": 1.0,
-      "source": "project_ai_coworker",
+      "source": "project_walter_worker",
       "target": "external_skill_factory"
     },
     {
@@ -90936,7 +90936,7 @@
       "source_file": "README.md",
       "source_location": "IDE Support table",
       "weight": 1.0,
-      "source": "project_ai_coworker",
+      "source": "project_walter_worker",
       "target": "ide_claude_code"
     },
     {
@@ -90946,7 +90946,7 @@
       "source_file": "README.md",
       "source_location": "Roadmap",
       "weight": 0.7,
-      "source": "project_ai_coworker",
+      "source": "project_walter_worker",
       "target": "ide_cursor"
     },
     {
@@ -90956,7 +90956,7 @@
       "source_file": "README.md",
       "source_location": "IDE Support table",
       "weight": 1.0,
-      "source": "project_ai_coworker",
+      "source": "project_walter_worker",
       "target": "ide_gemini"
     },
     {
@@ -90966,7 +90966,7 @@
       "source_file": "README.md",
       "source_location": "IDE Support table",
       "weight": 1.0,
-      "source": "project_ai_coworker",
+      "source": "project_walter_worker",
       "target": "ide_opencode"
     },
     {
@@ -90976,7 +90976,7 @@
       "source_file": "coworker-blueprint.md",
       "source_location": null,
       "weight": 1.0,
-      "source": "project_ai_coworker",
+      "source": "project_walter_worker",
       "target": "three_layer_claude_md"
     },
     {
@@ -91063,10 +91063,10 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": ".claude/commands/ai-coworker-setup-in-project.md",
+      "source_file": ".claude/commands/walter-worker-setup-in-project.md",
       "source_location": "Phase 3",
       "weight": 1.0,
-      "source": "skill_ai_coworker_setup",
+      "source": "skill_walter_worker_setup",
       "target": "component_templates"
     },
     {
@@ -91283,30 +91283,30 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": ".claude/commands/ai-coworker-upgrade.md",
+      "source_file": ".claude/commands/walter-worker-upgrade.md",
       "source_location": "Phase 2",
       "weight": 1.0,
-      "source": "skill_ai_coworker_upgrade",
+      "source": "skill_walter_worker_upgrade",
       "target": "component_semantic_merge"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": ".claude/commands/ai-coworker-setup-in-project.md",
+      "source_file": ".claude/commands/walter-worker-setup-in-project.md",
       "source_location": "Phase 7",
       "weight": 1.0,
-      "source": "skill_ai_coworker_setup",
+      "source": "skill_walter_worker_setup",
       "target": "component_context_injection"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": ".claude/commands/ai-coworker-upgrade.md",
+      "source_file": ".claude/commands/walter-worker-upgrade.md",
       "source_location": "Phase 4",
       "weight": 1.0,
-      "source": "skill_ai_coworker_upgrade",
+      "source": "skill_walter_worker_upgrade",
       "target": "external_skill_factory"
     },
     {
@@ -91413,7 +91413,7 @@
       "relation": "conceptually_related_to",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
-      "source_file": "docs/ai-coworker/decision-history/2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.md",
       "source_location": null,
       "weight": 0.8,
       "source": "decision_budget_removal",
@@ -91423,7 +91423,7 @@
       "relation": "implements",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.md",
       "source_location": null,
       "weight": 1.0,
       "source": "decision_self_evolving_agent",
@@ -91433,7 +91433,7 @@
       "relation": "conceptually_related_to",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
-      "source_file": "docs/ai-coworker/decision-history/2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.md",
       "source_location": null,
       "weight": 0.8,
       "source": "decision_wrong_history",
@@ -91443,10 +91443,10 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "weight": 1.0,
-      "source": "docs_ai_coworker_design_ai_coworker_design",
+      "source": "docs_walter_worker_design_walter_worker_design",
       "target": "concept_auto_worker"
     },
     {
@@ -91777,7 +91777,7 @@
       "source_location": null,
       "weight": 1.0,
       "source": "playwright_mcp_page_2026_07_26t05_42_43_708z_projects_page",
-      "target": "playwright_mcp_page_2026_07_26t05_42_43_708z_project_ai_coworker"
+      "target": "playwright_mcp_page_2026_07_26t05_42_43_708z_project_walter_worker"
     },
     {
       "relation": "conceptually_related_to",
@@ -91967,7 +91967,7 @@
       "source_location": null,
       "weight": 1.0,
       "source": "playwright_mcp_page_2026_07_26t05_42_43_708z_session_c83790b0",
-      "target": "playwright_mcp_page_2026_07_26t05_42_43_708z_project_ai_coworker"
+      "target": "playwright_mcp_page_2026_07_26t05_42_43_708z_project_walter_worker"
     },
     {
       "relation": "conceptually_related_to",
@@ -92227,7 +92227,7 @@
       "source_location": null,
       "weight": 1.0,
       "source": "coworker_projects",
-      "target": "coworker_project_ai_coworker"
+      "target": "coworker_project_walter_worker"
     },
     {
       "relation": "references",
@@ -92347,7 +92347,7 @@
       "source_location": null,
       "weight": 0.8,
       "source": "coworker_initiative_self_evolving_agent",
-      "target": "coworker_project_ai_coworker"
+      "target": "coworker_project_walter_worker"
     },
     {
       "relation": "references",
@@ -92357,7 +92357,7 @@
       "source_location": null,
       "weight": 1.0,
       "source": "docs_index_md",
-      "target": "docs_ai_coworker_design_ai_coworker_design"
+      "target": "docs_walter_worker_design_walter_worker_design"
     },
     {
       "relation": "references",
@@ -92367,7 +92367,7 @@
       "source_location": null,
       "weight": 1.0,
       "source": "docs_index_md",
-      "target": "docs_ai_coworker_impl_plan_ai_coworker_impl_plan"
+      "target": "docs_walter_worker_impl_plan_walter_worker_impl_plan"
     },
     {
       "relation": "references",
@@ -92377,7 +92377,7 @@
       "source_location": null,
       "weight": 1.0,
       "source": "docs_index_md",
-      "target": "docs_ai_coworker_prd_ai_coworker_prd"
+      "target": "docs_walter_worker_prd_walter_worker_prd"
     },
     {
       "relation": "references",
@@ -92387,166 +92387,166 @@
       "source_location": null,
       "weight": 1.0,
       "source": "docs_index_md",
-      "target": "docs_ai_coworker_spec_ai_coworker_spec_md"
+      "target": "docs_walter_worker_spec_walter_worker_spec_md"
     },
     {
       "relation": "references",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
-      "source_file": "docs/ai-coworker/decision-history/2026-03-30-feat-initial-commit--unified-ai-coworker-dev-env-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-03-30-feat-initial-commit--unified-walter-worker-dev-env-decision.md",
       "source_location": null,
       "weight": 0.8,
       "source": "decision_initial_commit",
-      "target": "docs_ai_coworker_design_ai_coworker_design"
+      "target": "docs_walter_worker_design_walter_worker_design"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "weight": 1.0,
-      "source": "docs_ai_coworker_design_ai_coworker_design",
+      "source": "docs_walter_worker_design_walter_worker_design",
       "target": "concept_analytics_pipeline"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "weight": 1.0,
-      "source": "docs_ai_coworker_design_ai_coworker_design",
+      "source": "docs_walter_worker_design_walter_worker_design",
       "target": "concept_context_manager"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "weight": 1.0,
-      "source": "docs_ai_coworker_design_ai_coworker_design",
+      "source": "docs_walter_worker_design_walter_worker_design",
       "target": "concept_manifest_install"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "weight": 1.0,
-      "source": "docs_ai_coworker_design_ai_coworker_design",
+      "source": "docs_walter_worker_design_walter_worker_design",
       "target": "concept_memory_pipeline"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "weight": 1.0,
-      "source": "docs_ai_coworker_design_ai_coworker_design",
+      "source": "docs_walter_worker_design_walter_worker_design",
       "target": "concept_skill_plugin"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "weight": 1.0,
-      "source": "docs_ai_coworker_design_ai_coworker_design",
+      "source": "docs_walter_worker_design_walter_worker_design",
       "target": "concept_three_layer_claude_md"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "weight": 1.0,
-      "source": "docs_ai_coworker_design_ai_coworker_design",
+      "source": "docs_walter_worker_design_walter_worker_design",
       "target": "technology_deepseek"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "weight": 1.0,
-      "source": "docs_ai_coworker_design_ai_coworker_design",
+      "source": "docs_walter_worker_design_walter_worker_design",
       "target": "technology_flask"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "weight": 1.0,
-      "source": "docs_ai_coworker_design_ai_coworker_design",
+      "source": "docs_walter_worker_design_walter_worker_design",
       "target": "technology_mem0"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "weight": 1.0,
-      "source": "docs_ai_coworker_design_ai_coworker_design",
+      "source": "docs_walter_worker_design_walter_worker_design",
       "target": "technology_sqlite"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md",
+      "source_file": "docs/walter-worker/design/walter-worker-design.md",
       "source_location": null,
       "weight": 1.0,
-      "source": "docs_ai_coworker_design_ai_coworker_design",
+      "source": "docs_walter_worker_design_walter_worker_design",
       "target": "technology_tmux"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/spec/ai-coworker-spec.md",
+      "source_file": "docs/walter-worker/spec/walter-worker-spec.md",
       "source_location": null,
       "weight": 1.0,
-      "source": "docs_ai_coworker_spec_ai_coworker_spec_md",
+      "source": "docs_walter_worker_spec_walter_worker_spec_md",
       "target": "concept_analytics_pipeline"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/spec/ai-coworker-spec.md",
+      "source_file": "docs/walter-worker/spec/walter-worker-spec.md",
       "source_location": null,
       "weight": 1.0,
-      "source": "docs_ai_coworker_spec_ai_coworker_spec_md",
+      "source": "docs_walter_worker_spec_walter_worker_spec_md",
       "target": "concept_memory_pipeline"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/spec/ai-coworker-spec.md",
+      "source_file": "docs/walter-worker/spec/walter-worker-spec.md",
       "source_location": null,
       "weight": 1.0,
-      "source": "docs_ai_coworker_spec_ai_coworker_spec_md",
+      "source": "docs_walter_worker_spec_walter_worker_spec_md",
       "target": "concept_three_layer_claude_md"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/prd/ai-coworker-prd.md",
+      "source_file": "docs/walter-worker/prd/walter-worker-prd.md",
       "source_location": null,
       "weight": 1.0,
-      "source": "docs_ai_coworker_prd_ai_coworker_prd",
+      "source": "docs_walter_worker_prd_walter_worker_prd",
       "target": "concept_context_manager"
     },
     {
@@ -92573,7 +92573,7 @@
       "relation": "conceptually_related_to",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
-      "source_file": "docs/ai-coworker/decision-history/unknown-remove-budget-related-features-from-prd-budget-fl-decision.md",
+      "source_file": "docs/walter-worker/decision-history/unknown-remove-budget-related-features-from-prd-budget-fl-decision.md",
       "source_location": null,
       "weight": 0.8,
       "source": "decision_infrastructure_reuse",
@@ -92583,7 +92583,7 @@
       "relation": "implements",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/decision-history/2026-06-12-feat-add-opencode-context-injection-initiativema-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-06-12-feat-add-opencode-context-injection-initiativema-decision.md",
       "source_location": null,
       "weight": 1.0,
       "source": "decision_initiative_migration",
@@ -92593,7 +92593,7 @@
       "relation": "implements",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/decision-history/2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.md",
       "source_location": null,
       "weight": 1.0,
       "source": "decision_workflow_simplification",
@@ -92603,7 +92603,7 @@
       "relation": "implements",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/decision-history/2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.md",
       "source_location": null,
       "weight": 1.0,
       "source": "decision_claude_md_optimization",
@@ -92613,7 +92613,7 @@
       "relation": "implements",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/decision-history/2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.md",
       "source_location": null,
       "weight": 1.0,
       "source": "decision_three_layer_claude",
@@ -92623,7 +92623,7 @@
       "relation": "implements",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/decision-history/2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.md",
       "source_location": null,
       "weight": 1.0,
       "source": "decision_skill_restructure",
@@ -92633,7 +92633,7 @@
       "relation": "implements",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/decision-history/2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.md",
       "source_location": null,
       "weight": 1.0,
       "source": "decision_fix_round",
@@ -92643,7 +92643,7 @@
       "relation": "implements",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/decision-history/2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.md",
       "source_location": null,
       "weight": 1.0,
       "source": "decision_analytics_dashboard",
@@ -92653,7 +92653,7 @@
       "relation": "implements",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/decision-history/2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.md",
       "source_location": null,
       "weight": 1.0,
       "source": "decision_analytics_dedup",
@@ -92663,7 +92663,7 @@
       "relation": "implements",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/decision-history/2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.md",
       "source_location": null,
       "weight": 1.0,
       "source": "decision_dashboard_expansion",
@@ -92673,7 +92673,7 @@
       "relation": "implements",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.md",
+      "source_file": "docs/walter-worker/decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.md",
       "source_location": null,
       "weight": 1.0,
       "source": "decision_self_evolving_agent",
@@ -92683,7 +92683,7 @@
       "relation": "conceptually_related_to",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/test-plan/ai-coworker-test-plan.md",
+      "source_file": "docs/walter-worker/test-plan/walter-worker-test-plan.md",
       "source_location": null,
       "weight": 1.0,
       "source": "test_plan",
@@ -92693,7 +92693,7 @@
       "relation": "conceptually_related_to",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/test-plan/ai-coworker-test-plan.md",
+      "source_file": "docs/walter-worker/test-plan/walter-worker-test-plan.md",
       "source_location": null,
       "weight": 1.0,
       "source": "test_plan",
@@ -92703,7 +92703,7 @@
       "relation": "conceptually_related_to",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/test-plan/ai-coworker-test-plan.md",
+      "source_file": "docs/walter-worker/test-plan/walter-worker-test-plan.md",
       "source_location": null,
       "weight": 1.0,
       "source": "test_plan",
@@ -92713,7 +92713,7 @@
       "relation": "conceptually_related_to",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/test-plan/ai-coworker-test-plan.md",
+      "source_file": "docs/walter-worker/test-plan/walter-worker-test-plan.md",
       "source_location": null,
       "weight": 1.0,
       "source": "test_plan",
@@ -92723,7 +92723,7 @@
       "relation": "conceptually_related_to",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/test-plan/ai-coworker-test-plan.md",
+      "source_file": "docs/walter-worker/test-plan/walter-worker-test-plan.md",
       "source_location": null,
       "weight": 1.0,
       "source": "test_plan",
@@ -93083,30 +93083,30 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/fix-plan/plan/2026-07-07-ai-coworker-fix-plan.md",
+      "source_file": "docs/fix-plan/plan/2026-07-07-walter-worker-fix-plan.md",
       "source_location": "M6-M8",
       "weight": 1.0,
-      "source": "docs_fix_plan_plan_2026-07-07-ai-coworker-fix-plan",
+      "source": "docs_fix_plan_plan_2026-07-07-walter-worker-fix-plan",
       "target": "concept_analytics_count_correctness"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/fix-plan/plan/2026-07-07-ai-coworker-fix-plan.md",
+      "source_file": "docs/fix-plan/plan/2026-07-07-walter-worker-fix-plan.md",
       "source_location": "C3",
       "weight": 1.0,
-      "source": "docs_fix_plan_plan_2026-07-07-ai-coworker-fix-plan",
+      "source": "docs_fix_plan_plan_2026-07-07-walter-worker-fix-plan",
       "target": "concept_analytics_db_schema_bootstrap"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/fix-plan/plan/2026-07-07-ai-coworker-fix-plan.md",
+      "source_file": "docs/fix-plan/plan/2026-07-07-walter-worker-fix-plan.md",
       "source_location": "H1",
       "weight": 1.0,
-      "source": "docs_fix_plan_plan_2026-07-07-ai-coworker-fix-plan",
+      "source": "docs_fix_plan_plan_2026-07-07-walter-worker-fix-plan",
       "target": "concept_path_traversal_vulnerability"
     },
     {
@@ -93117,7 +93117,7 @@
       "source_location": null,
       "weight": 1.0,
       "source": "docs_fix_plan_plan_2026-07-07-plan-comparison",
-      "target": "docs_fix_plan_plan_2026-07-07-ai-coworker-fix-plan"
+      "target": "docs_fix_plan_plan_2026-07-07-walter-worker-fix-plan"
     },
     {
       "relation": "references",
@@ -94127,7 +94127,7 @@
       "source_location": "1",
       "weight": 1.0,
       "source": "docs_self_evolving_agent_prd_self_evolving_agent_prd",
-      "target": "ai_coworker"
+      "target": "walter_worker"
     },
     {
       "relation": "references",
@@ -94257,7 +94257,7 @@
       "source_location": "\u00a70.2",
       "weight": 1.0,
       "source": "docs_self_evolving_agent_spec_self_evolving_agent_spec",
-      "target": "concept_ai_coworker_existing_infra"
+      "target": "concept_walter_worker_existing_infra"
     },
     {
       "relation": "references",
@@ -94827,7 +94827,7 @@
       "source_location": null,
       "weight": 1.0,
       "source": "skills_SCHEMA_SkillFrontmatterSchema",
-      "target": "skills_ai_coworker_fix_AI-coworker-fix"
+      "target": "skills_walter_worker_fix_AI-coworker-fix"
     },
     {
       "relation": "references",
@@ -94837,7 +94837,7 @@
       "source_location": null,
       "weight": 1.0,
       "source": "skills_SCHEMA_SkillFrontmatterSchema",
-      "target": "skills_ai_coworker_setup_in_project_AI-coworker-setup-in-project"
+      "target": "skills_walter_worker_setup_in_project_AI-coworker-setup-in-project"
     },
     {
       "relation": "references",
@@ -94847,7 +94847,7 @@
       "source_location": null,
       "weight": 1.0,
       "source": "skills_SCHEMA_SkillFrontmatterSchema",
-      "target": "skills_ai_coworker_upgrade_AI-coworker-upgrade"
+      "target": "skills_walter_worker_upgrade_AI-coworker-upgrade"
     },
     {
       "relation": "references",
@@ -95419,7 +95419,7 @@
       "relation": "form",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md"
+      "source_file": "docs/walter-worker/design/walter-worker-design.md"
     },
     {
       "id": "analytics_pipeline_components",
@@ -95433,7 +95433,7 @@
       "relation": "participate_in",
       "confidence": "INFERRED",
       "confidence_score": 0.85,
-      "source_file": "docs/ai-coworker/design/ai-coworker-design.md"
+      "source_file": "docs/walter-worker/design/walter-worker-design.md"
     },
     {
       "id": "self_evolving_agent_system",
@@ -95448,7 +95448,7 @@
       "relation": "participate_in",
       "confidence": "INFERRED",
       "confidence_score": 0.9,
-      "source_file": "docs/ai-coworker/decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.md"
+      "source_file": "docs/walter-worker/decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.md"
     },
     {
       "id": "three_layer_claude_md_architecture",
@@ -95491,7 +95491,7 @@
       "relation": "implement",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/ai-coworker/test-plan/ai-coworker-test-plan.md"
+      "source_file": "docs/walter-worker/test-plan/walter-worker-test-plan.md"
     },
     {
       "id": "critical_fix_cluster",
@@ -95504,7 +95504,7 @@
       "relation": "participate_in",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
-      "source_file": "docs/fix-plan/plan/2026-07-07-ai-coworker-fix-plan.md"
+      "source_file": "docs/fix-plan/plan/2026-07-07-walter-worker-fix-plan.md"
     },
     {
       "id": "data_safety_core_fixes",
@@ -95646,7 +95646,7 @@
         "evolution_observability",
         "claude_code",
         "opencode",
-        "ai_coworker"
+        "walter_worker"
       ],
       "relation": "implement",
       "confidence": "INFERRED",
@@ -95693,7 +95693,7 @@
       "nodes": [
         "concept_memory_substrate_mem0",
         "concept_hermes_self_evolution_loop",
-        "concept_ai_coworker_existing_infra"
+        "concept_walter_worker_existing_infra"
       ],
       "relation": "participate_in",
       "confidence": "EXTRACTED",
@@ -95751,9 +95751,9 @@
       "label": "Skill Documents in skills/ directory",
       "nodes": [
         "skills_SCHEMA_SkillFrontmatterSchema",
-        "skills_ai_coworker_fix_AI-coworker-fix",
-        "skills_ai_coworker_setup_in_project_AI-coworker-setup-in-project",
-        "skills_ai_coworker_upgrade_AI-coworker-upgrade",
+        "skills_walter_worker_fix_AI-coworker-fix",
+        "skills_walter_worker_setup_in_project_AI-coworker-setup-in-project",
+        "skills_walter_worker_upgrade_AI-coworker-upgrade",
         "skills_analytics_create_db_Analytics-create-db",
         "skills_analytics_daemon_Analytics-daemon",
         "skills_analytics_dashboard_Analytics-dashboard",

@@ -1,6 +1,6 @@
 # Self-Evolving Agent — PRD
 
-> 目标：交付一个在持续循环中自演化以达成目标的自主智能体。该智能体是 Claude Code（及 OpenCode），由 ai-coworker 驱动。智能体执行真实动作——监控、编排——基于真实信息源。
+> 目标：交付一个在持续循环中自演化以达成目标的自主智能体。该智能体是 Claude Code（及 OpenCode），由 walter-worker 驱动。智能体执行真实动作——监控、编排——基于真实信息源。
 
 ## 状态
 
@@ -73,7 +73,7 @@
 | 演化范围 | Skills + Context + Code + Config（全范围） | 智能体触及的一切皆可改进 |
 | 记忆架构 | 三层：Session → Project-State → Long-Term | 每 turn 同步、跨 IDE/跨项目搜索、语义+精确检索、定期清理 |
 | Skill 创建 | 复用现有 `skill-create` / `skill-edit` | 不重复造轮子——自动触发 |
-| 编排 | 由智能体决定如何分解任务 | ai-coworker 不硬编码工作流 |
+| 编排 | 由智能体决定如何分解任务 | walter-worker 不硬编码工作流 |
 | 原则 | 优先复用 → 不够改造 → 没轮子造轮子 | 务实，不教条 |
 
 ### 1.6 知识分类
@@ -154,7 +154,7 @@ Session N                            Session N+1
 ### 2.3 不做 Publish / Transact（MVP）
 
 - `publish` 与 `transact` 在 MVP 范围外
-- `orchestrate` 委派给智能体——ai-coworker 不硬编码任务分解
+- `orchestrate` 委派给智能体——walter-worker 不硬编码任务分解
 
 ---
 
@@ -422,7 +422,7 @@ Skill **先在本地创建**，不直接进 skill-factory。它们靠自己挣�
 
 ## 6. 实现
 
-实现（记忆基座、skill 提炼 loop、hook/event 接线、schema、错误处理、成本模型、现有 ai-coworker 基础设施复用分析）在 [spec](../spec/self-evolving-agent-spec.md) 中指定。本 PRD 刻意省略需求**如何**被满足。
+实现（记忆基座、skill 提炼 loop、hook/event 接线、schema、错误处理、成本模型、现有 walter-worker 基础设施复用分析）在 [spec](../spec/self-evolving-agent-spec.md) 中指定。本 PRD 刻意省略需求**如何**被满足。
 
 ---
 

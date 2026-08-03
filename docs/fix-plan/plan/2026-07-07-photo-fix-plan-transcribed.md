@@ -2,7 +2,7 @@
 
 > **Source**: Transcribed via OCR from `pic/IMG_5471`–`IMG_5486.HEIC` (a MacDown rendering of `FIX-PLAN.md`).
 > **Audience**: Engineer executing the fixes (junior-friendly: every item has exact files, steps, and acceptance criteria).
-> **Repo under repair**: `~/project/cicidi/ai-coworker` (github.com/cicidi/ai-coworker, branch `master`).
+> **Repo under repair**: `~/project/cicidi/walter-worker` (github.com/cicidi/walter-worker, branch `master`).
 > **Companion repo**: github.com/cicidi/skill-factory (branch `master`).
 > **Source analysis**: `CICIDI-IMPROVEMENTS.md` (all problem IDs `P*`/`G*`/`H*` refer to it; every claim was repro-verified).
 > **Date**: 2026-07-07 | **Owner**: Walter Chen
@@ -28,8 +28,8 @@ Every item was executed once; these are where reality diverged from the plan. A 
 
 ### Scope discoveries (more instances than the plan listed)
 - **P1**: SIX `from src.coworker` sites, not five — `install.sh` has two inline `python3 -c` blocks (lines ~64 and ~424) that also `import src.coworker`. Fix: `sys.path.insert(0, "$REPO_ROOT/src")` + `from coworker...`.
-- **H4**: needs a negative-lookbehind for `ai-coworker/` paths and must skip `echo|print|log|ok|warn` message lines, or it throws ~8 false positives on log strings.
-- `update.sh` `install_mode` memory was already broken independent of P7: it read `config/ai-coworker/config.yaml`, which nothing in this repo ever writes. Fixed by persisting `install_mode` into the P8 manifest and reading it back.
+- **H4**: needs a negative-lookbehind for `walter-worker/` paths and must skip `echo|print|log|ok|warn` message lines, or it throws ~8 false positives on log strings.
+- `update.sh` `install_mode` memory was already broken independent of P7: it read `config/walter-worker/config.yaml`, which nothing in this repo ever writes. Fixed by persisting `install_mode` into the P8 manifest and reading it back.
 
 ### Semantics the plan got subtly wrong
 - **G1 upgrade classification**: a changed section heading is NOT an OVERWRITE — a renamed heading looks like a user-created section and is correctly KEEP. Only a changed body under the same heading is OVERWRITE. Write upgrade test fixtures that mutate body text, not headings, or the test asserts the wrong thing.
@@ -159,7 +159,7 @@ A ~40-line stdlib module `src/coworker/backup.py`, modeled on the intuit port's 
 **As-built.** Verified end-to-end on bash 3.2.57 — full install completes, 63 files, exit 0.
 
 ### P7 · HIGH — Every Self-Update Path Pulls `origin main`; The Branch Is `master` — Updates Are A Permanent Silent No-Op
-**Problem.** `git ls-remote` confirms both public repos have only `master`. (1) `setup/update.sh:37,40` fetch/merge `origin main`, stderr discarded, warn-only handlers, then unconditionally print `ok ai-coworker repository updated` (line 51) and re-run `install.sh` over the stale checkout. (2) `setup/install.sh:87` pulls skill-factory with `git pull --ff-only origin main 2>/dev/null || warn "dirty or offline"` — fails every run; the primary skill-delivery channel is frozen at first-clone forever. (3) The upgrade skill (`SKILL.md:71-76`) repeats the doomed merge and adds `git stash` of the user's local changes as a "fallback".
+**Problem.** `git ls-remote` confirms both public repos have only `master`. (1) `setup/update.sh:37,40` fetch/merge `origin main`, stderr discarded, warn-only handlers, then unconditionally print `ok walter-worker repository updated` (line 51) and re-run `install.sh` over the stale checkout. (2) `setup/install.sh:87` pulls skill-factory with `git pull --ff-only origin main 2>/dev/null || warn "dirty or offline"` — fails every run; the primary skill-delivery channel is frozen at first-clone forever. (3) The upgrade skill (`SKILL.md:71-76`) repeats the doomed merge and adds `git stash` of the user's local changes as a "fallback".
 
 **Fix steps.**
 1. Resolve the default branch dynamically in one helper (put it in `setup/lib/common.sh` or inline in both scripts): `default_branch() { git ls-remote --symref origin HEAD | awk '/^ref:/ {sub("refs/heads/","",$2); print $2}'; }`. Use `git pull --ff-only origin "$(default_branch)"` at all three sites (`update.sh`, `install.sh`, upgrade skill).
@@ -182,16 +182,16 @@ A ~40-line stdlib module `src/coworker/backup.py`, modeled on the intuit port's 
 **Acceptance.** Reference-integrity test passes; installing in a temp HOME with a `.mcp.json` present produces no "No such command" output; the `init` skill lands in the deploy target.
 **As-built.** Deleted the `import-mcp` call (`install.sh` + upgrade skill); pointed Step 9 at `skills/init/SKILL.md`; fixed the banner to `coworker analytics dashboard`. Test: `tests/python/test_reference_integrity.py` scans every `coworker <cmd>` in `setup/` + `skills/` — it surfaced 4 MORE phantom commands (see Field Notes), all fixed.
 
-### H4 · HIGH — Hardcoded Personal Paths Leak Into Skills/Scripts (session-memory vault, ~/.config/ai-coworker)
-**Problem.** `skills/session-memory/SKILL.md:71` hardcodes `VAULT_PATH = "/home/cicidi/obsidian/coworker-brain"` (the companion script correctly uses `~`). `setup/update.sh` and the upgrade skill read `~/.config/ai-coworker/*` — a config home this repo never writes (its real home is `~/.coworker`, `config.py:7,109`); these are copy-paste leakage from the sibling internal harness. In a repo positioned as "give this to any LLM to reproduce", literal personal paths become instructions.
+### H4 · HIGH — Hardcoded Personal Paths Leak Into Skills/Scripts (session-memory vault, ~/.config/walter-worker)
+**Problem.** `skills/session-memory/SKILL.md:71` hardcodes `VAULT_PATH = "/home/cicidi/obsidian/coworker-brain"` (the companion script correctly uses `~`). `setup/update.sh` and the upgrade skill read `~/.config/walter-worker/*` — a config home this repo never writes (its real home is `~/.coworker`, `config.py:7,109`); these are copy-paste leakage from the sibling internal harness. In a repo positioned as "give this to any LLM to reproduce", literal personal paths become instructions.
 
 **Fix steps.**
 1. Parameterize the vault path: read `$COWORKER_VAULT_PATH` env var (default `~/obsidian/coworker-brain`), in both the `SKILL.md` instructions and the companion script.
-2. In `update.sh` + upgrade skill, replace every `~/.config/ai-coworker/...` read with the real `~/.coworker/...` equivalents (`coworker.yaml`, `initiatives/`) — or delete the read if nothing produces the file (check each: if `config.py` never writes it, delete).
-3. `grep -rn "cicidi\|/home/\|/Users/" skills/ setup/ src/ --include='*.md' --include='*.sh' --include='*.py'` and clean any remaining personal absolute paths (needs a negative-lookbehind for `ai-coworker/` paths and must skip `echo|print|log|ok|warn` message lines).
+2. In `update.sh` + upgrade skill, replace every `~/.config/walter-worker/...` read with the real `~/.coworker/...` equivalents (`coworker.yaml`, `initiatives/`) — or delete the read if nothing produces the file (check each: if `config.py` never writes it, delete).
+3. `grep -rn "cicidi\|/home/\|/Users/" skills/ setup/ src/ --include='*.md' --include='*.sh' --include='*.py'` and clean any remaining personal absolute paths (needs a negative-lookbehind for `walter-worker/` paths and must skip `echo|print|log|ok|warn` message lines).
 
 **Acceptance.** The grep in step 3 returns no personal paths; `session-memory` skill works with the env var set in a temp HOME.
-**As-built.** `skills/session-memory/SKILL.md` now reads `~/.local/share/opencode/opencode.db` (expanded) and `$COWORKER_VAULT_PATH` (default `~/obsidian/coworker-brain`). `~/.config/ai-coworker/*` reads in `update.sh`/upgrade skill repointed to `~/.coworker/*`. (Remaining `/home/cicidi/...` strings are in `docs/plan/*` and a test fixture — non-instructional, left as-is.)
+**As-built.** `skills/session-memory/SKILL.md` now reads `~/.local/share/opencode/opencode.db` (expanded) and `$COWORKER_VAULT_PATH` (default `~/obsidian/coworker-brain`). `~/.config/walter-worker/*` reads in `update.sh`/upgrade skill repointed to `~/.coworker/*`. (Remaining `/home/cicidi/...` strings are in `docs/plan/*` and a test fixture — non-instructional, left as-is.)
 
 ### P13 · LOW — CLI Defect Cluster (Five Small Fixes, One PR)
 Problems and fixes (all in `src/coworker/cli.py`).
@@ -283,7 +283,7 @@ Problems and fixes (all in `src/coworker/cli.py`).
 **As-built.** `install.sh` writes `~/.coworker/install-manifest.json` (files, hook commands, owned dirs, repo_root, install mode, pristine snapshot path). Rewrote `uninstall.sh`: backup → remove manifest files/dirs → strip only our hook entries by command path → unregister only our OpenCode plugin → optional `--restore-pristine`. Test: `tests/setup/test_install_hermetic.py::TestUninstall`. Verified end-to-end: 63 files removed, foreign `/user/mine.sh` hook survived.
 
 ### P9 · MED — Install.sh Assignment-Overwrites All Four Hook Arrays; Project Mode Symlinks The Wrong CLAUDE.md; Gitignore Misses CLAUDE.local.md
-**Problem.** Step 14 assigns `cfg['hooks'][event] = [<coworker entry>]` for all four events (`install.sh:399-402`) — pre-existing user hooks destroyed on every install/upgrade. Step 12 symlinks `$PROJECT_PATH/AGENTS.md → $REPO_ROOT/CLAUDE.md` (`install.sh:352-358`) — OpenCode in the target project loads the ai-coworker repo's own instructions instead of the project's. Step 13's `.gitignore` list (line 366) omits `CLAUDE.local.md`.
+**Problem.** Step 14 assigns `cfg['hooks'][event] = [<coworker entry>]` for all four events (`install.sh:399-402`) — pre-existing user hooks destroyed on every install/upgrade. Step 12 symlinks `$PROJECT_PATH/AGENTS.md → $REPO_ROOT/CLAUDE.md` (`install.sh:352-358`) — OpenCode in the target project loads the walter-worker repo's own instructions instead of the project's. Step 13's `.gitignore` list (line 366) omits `CLAUDE.local.md`.
 
 **Fix steps.**
 1. Hook merge: replace the assignment with the same ownership-aware append used in P5 step 2 (`setdefault` the event array; append only if no entry with our command path exists). Reuse one helper for `install.sh` and the adapter — one implementation, two callers.
@@ -316,10 +316,10 @@ Problems and fixes (all in `src/coworker/cli.py`).
 ## Phase 3 — Consistency (Single Sources Of Truth)
 
 ### G3 · HIGH — Same Skills In Two Public Repos Have Diverged; Different Versions Ship To Different IDEs — Must Land Before G4
-**Problem.** `bug-hunt`, `bug-report`, `self-analyze`, `self-heal` exist in both `ai-coworker/skills/` and `cicidi/skill-factory/ai-coworker-skills/` and have diverged (diffs vs factory master `bc4d6cc`: 172/171/24/24 lines; different titles and output schemas). `install.sh` ships the bundle copies to OpenCode (Step 6) and the factory copies to Claude Code (Steps 7-10) — one user's two IDEs run different versions of the same-named skill. No skill anywhere has a `version:` field, so nothing can arbitrate. The factory clone lives inside OpenCode's skill root, so OpenCode can discover both copies.
+**Problem.** `bug-hunt`, `bug-report`, `self-analyze`, `self-heal` exist in both `walter-worker/skills/` and `cicidi/skill-factory/walter-worker-skills/` and have diverged (diffs vs factory master `bc4d6cc`: 172/171/24/24 lines; different titles and output schemas). `install.sh` ships the bundle copies to OpenCode (Step 6) and the factory copies to Claude Code (Steps 7-10) — one user's two IDEs run different versions of the same-named skill. No skill anywhere has a `version:` field, so nothing can arbitrate. The factory clone lives inside OpenCode's skill root, so OpenCode can discover both copies.
 
 **Fix steps.**
-1. Owner decision required before starting: pick the single source of truth. Recommendation: bundle-only (`ai-coworker/skills/`) — it keeps the repo self-contained, which is its positioning.
+1. Owner decision required before starting: pick the single source of truth. Recommendation: bundle-only (`walter-worker/skills/`) — it keeps the repo self-contained, which is its positioning.
 2. For each of the 4 diverged skills: diff the two copies, merge the better content into the bundle copy (ask the owner where the diff is substantive — e.g., bug-hunt's schema), delete the factory copy (or replace it with a pointer README).
 3. Add `version: 0.1.0` to every skill's frontmatter (all 30 bundle + remaining factory skills).
 5. CI parity check: a test that fails if any same-named `SKILL.md` exists in both repos with differing content (fetch factory in CI, or vendor a manifest of factory skill names + hashes).
@@ -329,7 +329,7 @@ Problems and fixes (all in `src/coworker/cli.py`).
 **As-built.** `install.sh`: skill-factory relocated to `~/.coworker/skill-factory` (out of OpenCode's skill root, with one-time migration from the legacy path); `index_skills` indexes the bundle FIRST and shadows same-named factory copies (first-wins). Added `version:` to all 30 skills (via the G11 migration). Added `.githooks/pre-commit` version-bump gate.
 
 ### G4 · MED — The 30 Bundled Skills Never Reach Claude Code (Do After G3)
-**Problem.** Step 6 deploys `skills/` only to OpenCode; Steps 7-10 install to `~/.claude/commands` only from the external skill-factory clone; `coworker sync` copies only `config.skills`, and the generated template is `skills: []` (`cli.py:30-67`). A Claude Code user following the README gets no `initiative-*`, no `ai-coworker-upgrade`, no `analytics-*` — the entire interactive layer is absent in the primary IDE. The repo's own `.claude/commands/` holds an unrelated older command set (`design-p2f`, `gate-*`, `dev-feat-*`).
+**Problem.** Step 6 deploys `skills/` only to OpenCode; Steps 7-10 install to `~/.claude/commands` only from the external skill-factory clone; `coworker sync` copies only `config.skills`, and the generated template is `skills: []` (`cli.py:30-67`). A Claude Code user following the README gets no `initiative-*`, no `walter-worker-upgrade`, no `analytics-*` — the entire interactive layer is absent in the primary IDE. The repo's own `.claude/commands/` holds an unrelated older command set (`design-p2f`, `gate-*`, `dev-feat-*`).
 
 *Why after G3*: shipping the bundle to Claude Code while 4 skills are diverged would put both versions in the same IDE.
 
@@ -338,7 +338,7 @@ Problems and fixes (all in `src/coworker/cli.py`).
 2. Delete the stale `.claude/commands/` legacy command set from the repo (confirm with owner first — it may be personal history worth archiving in a branch).
 
 **Acceptance.** Fresh install gives a Claude Code user the full interactive layer; test green.
-**As-built.** `install.sh` `index_skills "$REPO_ROOT/skills"` deploys the bundle to `~/.claude/commands/` too; `skill-select` default flipped to All. Deleted the legacy `.claude/commands/` set from the repo. Verified: fresh install puts `initiative-activate.md`, `ai-coworker-upgrade.md`, `analytics-dashboard.md`, `init.md` in Claude Code's commands dir (`TestSkillDelivery`).
+**As-built.** `install.sh` `index_skills "$REPO_ROOT/skills"` deploys the bundle to `~/.claude/commands/` too; `skill-select` default flipped to All. Deleted the legacy `.claude/commands/` set from the repo. Verified: fresh install puts `initiative-activate.md`, `walter-worker-upgrade.md`, `analytics-dashboard.md`, `init.md` in Claude Code's commands dir (`TestSkillDelivery`).
 
 ### G11 · MED — Four Incompatible Skill Frontmatter Dialects; The Scaffold Generates A Mismatched Fourth
 **Problem.** Across the 30 skills: 5 use flat `aliases:` style; ~25 use `license`+`compatibility`+nested `metadata.*` with ad-hoc extras; `coworker skill new` scaffolds a fourth shape (`user-invocable: true`, no triggers/aliases/license, `cli.py:409-443`). No `version` field anywhere (fixed by G3 step 3). No test validates any of it.
@@ -429,16 +429,16 @@ Problems and fixes (all in `src/coworker/cli.py`).
 **As-built.** `cli.py` `state_update` now returns early unless `.coworker/` or `CLAUDE.local.md` is found in cwd or an ancestor (opt-in gate); bare invocation writes one file per DAY (`state-YYYY-MM-DD.md`), not per minute. Test: `tests/python/test_state_update.py` (no-op outside coworker, ancestor detection, two-stops-one-file).
 
 ### G10 · MED — Ai-Coworker-Upgrade Skill Is Built On Five Stale Assumptions
-**Problem.** (1) Hardcodes the repo at `~/project/ai-coworker` (`SKILL.md:47`) — README installs to `~/ai-coworker`; on machines where that path is a different repo, the skill fetches/stashes/merges the wrong repository. (2) The empty-template regex (fixed by G1). (3) Branch `main` vs `master` (fixed by P7). (4) Phases 5/8 read `~/.config/ai-coworker/{config.yaml,initiatives/.active}` — paths this repo never writes (real home is `~/.coworker`; copy-paste leakage, see H4). (5) Phase 3 runs `coworker init --project` per project to capture output as the "future" template — `init` writes files (and pre-P2 destroyed `CLAUDE.md` mid-upgrade); Phase 7's fallback calls the Click command object as a plain function (`sync('all', False, False)`).
+**Problem.** (1) Hardcodes the repo at `~/project/walter-worker` (`SKILL.md:47`) — README installs to `~/walter-worker`; on machines where that path is a different repo, the skill fetches/stashes/merges the wrong repository. (2) The empty-template regex (fixed by G1). (3) Branch `main` vs `master` (fixed by P7). (4) Phases 5/8 read `~/.config/walter-worker/{config.yaml,initiatives/.active}` — paths this repo never writes (real home is `~/.coworker`; copy-paste leakage, see H4). (5) Phase 3 runs `coworker init --project` per project to capture output as the "future" template — `init` writes files (and pre-P2 destroyed `CLAUDE.md` mid-upgrade); Phase 7's fallback calls the Click command object as a plain function (`sync('all', False, False)`).
 
 **Fix steps** (after G1 lands, most of this skill shrinks drastically).
 1. Derive the repo root from config the installer actually writes (add `repo_root:` to `~/.coworker/coworker.yaml` at install time; the skill reads it).
 2. Replace Phase 3's `init`-as-generator with `python3 -c 'from coworker.templates.project_claude_md import generate; print(generate(...))'` — render to stdout, write nothing.
-3. Fix the `~/.config/ai-coworker` paths → `~/.coworker` (H4 covers the same class).
+3. Fix the `~/.config/walter-worker` paths → `~/.coworker` (H4 covers the same class).
 4. Delete Phase 7's Python-level `sync(...)` call; shell out to `coworker sync` like everywhere else.
 5. Add the G2 reference-integrity test's coverage to this skill's text (it references coworker commands and filepaths; the grep test catches future drift).
 
-**As-built.** `skills/ai-coworker-upgrade/SKILL.md`: repo root from `install-manifest.json` (`repo_root`) then editable-install fallback, no hardcoded `~/project/ai-coworker`; merge delegated to `setup/update.sh`; `~/.config/ai-coworker` → `~/.coworker`; `init`-as-generator replaced with render-to-stdout; Phase 7 shells out to `coworker sync`.
+**As-built.** `skills/walter-worker-upgrade/SKILL.md`: repo root from `install-manifest.json` (`repo_root`) then editable-install fallback, no hardcoded `~/project/walter-worker`; merge delegated to `setup/update.sh`; `~/.config/walter-worker` → `~/.coworker`; `init`-as-generator replaced with render-to-stdout; Phase 7 shells out to `coworker sync`.
 
 ### G7 · MED — OpenCode Integration Writes To Locations OpenCode Doesn't Consume
 **Problem.** The adapter writes injected context to `.opencode/instructions.md` (`adapters/opencode.py:10-13,77-83`) but nothing registers that file in OpenCode's config `instructions` array, and OpenCode doesn't auto-load the path; it also targets legacy `~/.config/opencode/config.json` (:6-7) rather than `opencode.json`. `install.sh` spreads OpenCode artifacts across three roots (`~/.config/opencode/skills/`, `~/.opencode/instructions/`, per-project `.opencode/`).

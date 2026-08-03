@@ -6,7 +6,7 @@
 |------|---------|--------|
 | 2026-08-01 | 0.1.0 | Initial draft |
 | 2026-08-01 | 0.2.0 | Post devil-advocate review: menu → 0/1/2/3 (one-click both); component 1 adds settings.json model-field reconciliation to pro; component 2 uses marker-based inline-color detection; A4 manifest defined + missing-manifest handling |
-| 2026-08-01 | 0.3.0 | Post GLM-5.2 review (scope-corrected): DROP model-field reconciliation (CCR-managed, not our concern); atomic write → stdlib-only; component 2 adds legacy grey-theme migration + tmux reload note; A4 uninstall uses rm -rf + python pop statusLine; add B1.5 (ai-coworker manifest excludes ~/.claude/statusline/); B2 preserves rich status_info as optional rather than deleting |
+| 2026-08-01 | 0.3.0 | Post GLM-5.2 review (scope-corrected): DROP model-field reconciliation (CCR-managed, not our concern); atomic write → stdlib-only; component 2 adds legacy grey-theme migration + tmux reload note; A4 uninstall uses rm -rf + python pop statusLine; add B1.5 (walter-worker manifest excludes ~/.claude/statusline/); B2 preserves rich status_info as optional rather than deleting |
 
 ---
 
@@ -14,7 +14,7 @@
 
 This plan runs two parallel workstreams:
 - **Workstream A**: create the claude-tmux-config standalone project
-- **Workstream B**: strip the presentation layer out of ai-coworker
+- **Workstream B**: strip the presentation layer out of walter-worker
 
 They are independent and can run in parallel.
 
@@ -75,11 +75,11 @@ Component 1:
    `settings.json` `model` field — it is CCR-managed.
 3. Inline `python3 -c` merge `statusLine` into settings.json using the
    **stdlib-only atomic write** (spec §6.3: `shutil.copy2` → `.bak`, temp,
-   `os.fsync`, `os.replace`). NOT plain `json.dump`, NOT ai-coworker's
+   `os.fsync`, `os.replace`). NOT plain `json.dump`, NOT walter-worker's
    `backup.snapshot()` (unimportable from bash).
 
 Component 2 (per spec §6.2 detection algorithm):
-1. If `.tmux.conf` contains the **legacy `# ai-coworker status bar` marker** →
+1. If `.tmux.conf` contains the **legacy `# walter-worker status bar` marker** →
    prompt "Replace old grey theme with Benjamin Blue? [y/N]"; on `y`, strip the
    old block then do a full deploy; on `n`, deploy only `status_info.sh`.
 2. Else if marker `# claude-tmux-config theme` OR any of the 6 Benjamin Blue
@@ -104,7 +104,7 @@ Manifest-driven (manifest at `~/.coworker/statusline-manifest.json`, per spec
   files `turn-counter-*.json`, `ccusage-cache.json` that aren't in the manifest).
 - `~/.tmux/conf.d/benjamin-blue.tmux`: delete.
 - `~/.tmux.conf`: strip the line containing the marker `# claude-tmux-config
-  theme` (leave any legacy ai-coworker grey block untouched — that's ai-coworker's
+  theme` (leave any legacy walter-worker grey block untouched — that's walter-worker's
   responsibility; document this scope in README).
 - If manifest missing → refuse to run, log warning, list files to remove manually.
 - If manifest partial → remove only listed files, report the rest as manual.
@@ -121,7 +121,7 @@ docs/claude-tmux.md: claude-tmux binding docs (no binary auto-install).
 
 ---
 
-## 3. Workstream B: ai-coworker strip
+## 3. Workstream B: walter-worker strip
 
 ### Step B1 — Remove install.sh Step 16
 
@@ -130,26 +130,26 @@ Remove Step 16 (tmux status bar deploy, ~lines 476-506) from `setup/install.sh`.
 **Verify**: `grep -n "status_info\|tmux" setup/install.sh` has no residual
 deploy logic.
 
-### Step B1.5 — Exclude `~/.claude/statusline/` from ai-coworker's manifest walk
+### Step B1.5 — Exclude `~/.claude/statusline/` from walter-worker's manifest walk
 
-ai-coworker's manifest step does `os.walk(~/.claude/)` recursively, so it would
+walter-worker's manifest step does `os.walk(~/.claude/)` recursively, so it would
 claim `~/.claude/statusline/*` (claude-tmux-config's deployed files) and could
-delete them on ai-coworker uninstall. Add an exclusion so the walk skips
+delete them on walter-worker uninstall. Add an exclusion so the walk skips
 `~/.claude/statusline/` (and `~/.tmux/conf.d/`). This makes the cross-project
 conflict resolution bidirectional (spec §6.3).
 
-**Verify**: after running ai-coworker install, `~/.coworker/install-manifest.json`
+**Verify**: after running walter-worker install, `~/.coworker/install-manifest.json`
 contains NO entries under `~/.claude/statusline/`.
 
 ### Step B2 — Move setup/status_info.sh to claude-tmux-config (don't delete)
 
-The 90-line rich `setup/status_info.sh` is removed from ai-coworker, but
+The 90-line rich `setup/status_info.sh` is removed from walter-worker, but
 **preserved** as `claude-tmux-config/assets/status_info-rich.sh` (optional
 enhancement for users who want git/worktree/initiative info). The user's current
 simple version remains the default `assets/status_info.sh`. This keeps the
 working code reversible rather than permanently deleting it.
 
-**Verify**: ai-coworker `setup/status_info.sh` gone; rich version lives in
+**Verify**: walter-worker `setup/status_info.sh` gone; rich version lives in
 claude-tmux-config as optional.
 
 ### Step B3 — Update affected tests
@@ -188,4 +188,4 @@ A and B run in parallel
 | .tmux.conf pollution | backup + idempotent marker |
 | test breakage | run full test baseline before strip |
 
-Rollback: `uninstall.sh` (claude-tmux-config) + `git revert` (ai-coworker).
+Rollback: `uninstall.sh` (claude-tmux-config) + `git revert` (walter-worker).

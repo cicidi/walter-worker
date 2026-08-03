@@ -2,7 +2,7 @@
 
 > **For agentic workers:** Use TDD — each task writes tests first, then implements. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Implement the three-layer CLAUDE.md architecture (Global → Project → Local) in ai-coworker, generate canonical templates, update init/install/update/initiative commands, and dogfood on ai-coworker itself.
+**Goal:** Implement the three-layer CLAUDE.md architecture (Global → Project → Local) in walter-worker, generate canonical templates, update init/install/update/initiative commands, and dogfood on walter-worker itself.
 
 **Architecture:** New `templates/` module holds canonical template content. New `semantic_merge.py` handles CLAUDE.md updates. CLI `init` generates the new project structure. Initiatives inject into `CLAUDE.local.md` instead of `CLAUDE.md`. Install script uses new global template.
 
@@ -93,7 +93,7 @@ def test_generate_global_claude_md_allows_user_additions():
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-cd ~/project/ai-coworker && python -m pytest tests/test_templates.py -v
+cd ~/project/walter-worker && python -m pytest tests/test_templates.py -v
 ```
 Expected: FAIL — module not found
 
@@ -192,7 +192,7 @@ def generate_global_claude_md() -> str:
 - [ ] **Step 5: Run tests**
 
 ```bash
-cd ~/project/ai-coworker && python -m pytest tests/test_templates.py::test_global_template_exists tests/test_templates.py::test_global_template_under_100_lines tests/test_templates.py::test_global_template_contains_all_8_principles tests/test_templates.py::test_global_template_no_tool_specific_references -v
+cd ~/project/walter-worker && python -m pytest tests/test_templates.py::test_global_template_exists tests/test_templates.py::test_global_template_under_100_lines tests/test_templates.py::test_global_template_contains_all_8_principles tests/test_templates.py::test_global_template_no_tool_specific_references -v
 ```
 Expected: all PASS
 
@@ -290,7 +290,7 @@ def test_project_template_no_tool_specific_references():
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-cd ~/project/ai-coworker && python -m pytest tests/test_templates.py::test_project_template_under_200_lines -v
+cd ~/project/walter-worker && python -m pytest tests/test_templates.py::test_project_template_under_200_lines -v
 ```
 Expected: FAIL — module not found
 
@@ -484,7 +484,7 @@ def generate_project_claude_md(
 - [ ] **Step 4: Run tests**
 
 ```bash
-cd ~/project/ai-coworker && python -m pytest tests/test_templates.py -v -k "project"
+cd ~/project/walter-worker && python -m pytest tests/test_templates.py -v -k "project"
 ```
 Expected: all PASS
 
@@ -557,7 +557,7 @@ def test_local_template_removes_initiative():
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-cd ~/project/ai-coworker && python -m pytest tests/test_templates.py::test_local_template_is_empty_by_default -v
+cd ~/project/walter-worker && python -m pytest tests/test_templates.py::test_local_template_is_empty_by_default -v
 ```
 Expected: FAIL
 
@@ -622,7 +622,7 @@ def remove_initiative_from_local_md(content: str, name: str) -> str:
 - [ ] **Step 4: Run tests**
 
 ```bash
-cd ~/project/ai-coworker && python -m pytest tests/test_templates.py -v -k "local"
+cd ~/project/walter-worker && python -m pytest tests/test_templates.py -v -k "local"
 ```
 Expected: all PASS
 
@@ -740,7 +740,7 @@ def test_classify_returns_list():
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-cd ~/project/ai-coworker && python -m pytest tests/test_semantic_merge.py -v
+cd ~/project/walter-worker && python -m pytest tests/test_semantic_merge.py -v
 ```
 Expected: FAIL
 
@@ -908,7 +908,7 @@ def apply_merge(
 - [ ] **Step 4: Run tests**
 
 ```bash
-cd ~/project/ai-coworker && python -m pytest tests/test_semantic_merge.py -v
+cd ~/project/walter-worker && python -m pytest tests/test_semantic_merge.py -v
 ```
 Expected: all PASS
 
@@ -1126,7 +1126,7 @@ def test_generated_claude_md_under_200_lines():
 - [ ] **Step 5: Run tests**
 
 ```bash
-cd ~/project/ai-coworker && python -m pytest tests/test_init.py -v
+cd ~/project/walter-worker && python -m pytest tests/test_init.py -v
 ```
 Expected: all PASS
 
@@ -1280,7 +1280,7 @@ def test_deactivate_removes_from_local_md():
 - [ ] **Step 6: Run tests**
 
 ```bash
-cd ~/project/ai-coworker && python -m pytest tests/test_initiatives.py -v -k "local"
+cd ~/project/walter-worker && python -m pytest tests/test_initiatives.py -v -k "local"
 ```
 Expected: all PASS
 
@@ -1318,14 +1318,14 @@ print(generate_global_claude_md())
 - [ ] **Step 2: Verify install.sh still works**
 
 ```bash
-cd ~/project/ai-coworker && bash -n setup/install.sh
+cd ~/project/walter-worker && bash -n setup/install.sh
 ```
 Expected: no syntax errors
 
 - [ ] **Step 3: Test template extraction from Python**
 
 ```bash
-cd ~/project/ai-coworker && python3 -c "
+cd ~/project/walter-worker && python3 -c "
 import sys
 sys.path.insert(0, '.')
 from src.coworker.templates.global_claude_md import generate_global_claude_md
@@ -1343,25 +1343,25 @@ git commit -m "feat: use canonical Global CLAUDE.md template in install.sh"
 
 ---
 
-### Task 8: Dogfood — Apply New CLAUDE.md to ai-coworker
+### Task 8: Dogfood — Apply New CLAUDE.md to walter-worker
 
 **Files:**
-- Modify: `/home/cicidi/project/ai-coworker/CLAUDE.md` (existing)
-- Create: `/home/cicidi/project/ai-coworker/CLAUDE.local.md`
-- Create: `/home/cicidi/project/ai-coworker/docs/specs/` (existing)
-- Create: `/home/cicidi/project/ai-coworker/docs/discussion/`
+- Modify: `/home/cicidi/project/walter-worker/CLAUDE.md` (existing)
+- Create: `/home/cicidi/project/walter-worker/CLAUDE.local.md`
+- Create: `/home/cicidi/project/walter-worker/docs/specs/` (existing)
+- Create: `/home/cicidi/project/walter-worker/docs/discussion/`
 - Modify: `~/.claude/CLAUDE.md`
 
 - [ ] **Step 1: Generate and replace project CLAUDE.md**
 
 ```bash
-cd ~/project/ai-coworker && coworker init --project
+cd ~/project/walter-worker && coworker init --project
 ```
 
 - [ ] **Step 2: Generate Global CLAUDE.md**
 
 ```bash
-cd ~/project/ai-coworker && python3 -c "
+cd ~/project/walter-worker && python3 -c "
 from src.coworker.templates.global_claude_md import generate_global_claude_md
 print(generate_global_claude_md())
 " > ~/.claude/CLAUDE.md
@@ -1378,42 +1378,42 @@ Expected: <100 lines, contains "Ask and Confirm"
 - [ ] **Step 4: Verify Project CLAUDE.md**
 
 ```bash
-wc -l ~/project/ai-coworker/CLAUDE.md
-head -10 ~/project/ai-coworker/CLAUDE.md
+wc -l ~/project/walter-worker/CLAUDE.md
+head -10 ~/project/walter-worker/CLAUDE.md
 ```
 Expected: <200 lines, contains critical rules first
 
 - [ ] **Step 5: Verify CLAUDE.local.md**
 
 ```bash
-cat ~/project/ai-coworker/CLAUDE.local.md
+cat ~/project/walter-worker/CLAUDE.local.md
 ```
 
 - [ ] **Step 6: Activate current initiative in new format**
 
 ```bash
-cd ~/project/ai-coworker && coworker initiative activate claude-md-design
+cd ~/project/walter-worker && coworker initiative activate claude-md-design
 ```
 Expected: "Injected initiative 'claude-md-design' into ...CLAUDE.local.md"
 
 - [ ] **Step 7: Verify initiative in local.md**
 
 ```bash
-cat ~/project/ai-coworker/CLAUDE.local.md | grep -c "INITIATIVE:claude-md-design"
+cat ~/project/walter-worker/CLAUDE.local.md | grep -c "INITIATIVE:claude-md-design"
 ```
 Expected: 2 (START and END)
 
 - [ ] **Step 8: Run existing tests to check nothing broke**
 
 ```bash
-cd ~/project/ai-coworker && python -m pytest tests/ -v --ignore=tests/test_templates.py --ignore=tests/test_semantic_merge.py --ignore=tests/test_init.py
+cd ~/project/walter-worker && python -m pytest tests/ -v --ignore=tests/test_templates.py --ignore=tests/test_semantic_merge.py --ignore=tests/test_init.py
 ```
 
 - [ ] **Step 9: Commit dogfood changes**
 
 ```bash
 git add CLAUDE.md CLAUDE.local.md .gitignore
-git commit -m "chore: dogfood new CLAUDE.md design on ai-coworker itself"
+git commit -m "chore: dogfood new CLAUDE.md design on walter-worker itself"
 ```
 
 ---
@@ -1490,7 +1490,7 @@ def test_claude_md_local_md_not_committed():
 - [ ] **Step 2: Run integration tests**
 
 ```bash
-cd ~/project/ai-coworker && python -m pytest tests/test_integration.py -v
+cd ~/project/walter-worker && python -m pytest tests/test_integration.py -v
 ```
 Expected: all PASS
 
@@ -1508,13 +1508,13 @@ git commit -m "test: add end-to-end integration test for full workflow"
 - [ ] **Step 1: Run all tests**
 
 ```bash
-cd ~/project/ai-coworker && python -m pytest tests/ -v
+cd ~/project/walter-worker && python -m pytest tests/ -v
 ```
 
 - [ ] **Step 2: Run lint**
 
 ```bash
-cd ~/project/ai-coworker && ruff check src/ tests/
+cd ~/project/walter-worker && ruff check src/ tests/
 ```
 
 - [ ] **Step 3: Fix any issues, commit**

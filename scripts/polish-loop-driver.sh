@@ -5,7 +5,7 @@
 # Cap:   POLISH_MAX_CYCLES (default 20)
 set -u
 
-REPO="${POLISH_REPO:-/home/cicidi/project/ai-coworker}"
+REPO="${POLISH_REPO:-/home/cicidi/project/walter-worker}"
 STATE="$REPO/docs/state/polish-loop.md"
 RUNNER="$REPO/docs/state/RUNNER.md"
 STOP="$REPO/.polish-loop-stop"

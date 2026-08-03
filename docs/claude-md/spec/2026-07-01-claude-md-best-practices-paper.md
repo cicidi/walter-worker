@@ -3,7 +3,7 @@
 > A systematic literature review with empirical evidence from 20+ sources
 
 <!-- PROTECTED -->
-Project: ai-coworker
+Project: walter-worker
 Initiative: claude-md-design
 Date: 2026-07-01
 <!-- END PROTECTED -->
@@ -296,7 +296,7 @@ Based on this review, we propose six actionable design principles:
 
 CLAUDE.md engineering is fundamentally an attention-budgeting problem. The most successful designs — Anthropic's context engineering framework, Karpathy's 8 principles, Superpowers' rigorous contributor guidelines — share a common pattern: they are short, structured with imperatives at the top, use heuristics over rigid rules, provide escape hatches, and are tested with real agent behavior before being trusted.
 
-Our three-layer architecture (Global → Project → Local → Skills) aligns with all established best practices and avoids the five most common anti-patterns. The design passes all unit tests (87/87), respects Anthropic's <200-line guidance, and has been dogfooded on the ai-coworker project itself.
+Our three-layer architecture (Global → Project → Local → Skills) aligns with all established best practices and avoids the five most common anti-patterns. The design passes all unit tests (87/87), respects Anthropic's <200-line guidance, and has been dogfooded on the walter-worker project itself.
 
 The next frontier is not template design but behavioral evaluation: building an eval harness that measures whether these CLAUDE.md files actually improve agent outcomes in real sessions.
 

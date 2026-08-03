@@ -7,7 +7,7 @@ extracts key decisions via LLM, aligns with git commits and
 existing docs, and generates doc-organize-compliant output.
 
 Usage:
-    python scripts/decision_extractor.py --project ai-coworker --limit 10
+    python scripts/decision_extractor.py --project walter-worker --limit 10
     python scripts/decision_extractor.py --all --skip-trivial
 """
 from __future__ import annotations
@@ -27,8 +27,8 @@ OPENCODE_DB = HOME / ".local" / "share" / "opencode" / "opencode.db"
 
 # Project directory name -> canonical project name
 PROJECT_MAP = {
-    "ai-coworker": "ai-coworker",
-    "-home-cicidi-project-ai-coworker": "ai-coworker",
+    "walter-worker": "walter-worker",
+    "-home-cicidi-project-walter-worker": "walter-worker",
     "deterministic-ai-agent": "deterministic-workflow",
     "deterministic-workflow": "deterministic-workflow",
     "-home-cicidi-project-deterministic-ai-agent": "deterministic-workflow",
@@ -59,7 +59,7 @@ SKIP_PROJECTS = {
     "-home-cicidi-project-claude-study",
     "-home-cicidi-project-claude-study-openclaw-setup",
     "-home-cicidi-project-openclaw",
-    "-home-cicidi-project-ai-coworker--claude-worktrees-feat-test-coverage-95",
+    "-home-cicidi-project-walter-worker--claude-worktrees-feat-test-coverage-95",
 }
 
 DECISION_EXTRACTION_PROMPT = """Analyze this AI coding session transcript and extract KEY DEVELOPMENT DECISIONS.
@@ -539,7 +539,7 @@ def main():
 
         # Determine repo path
         repo_path_map = {
-            "ai-coworker": HOME / "project" / "ai-coworker",
+            "walter-worker": HOME / "project" / "walter-worker",
             "deterministic-workflow": HOME / "project" / "deterministic-workflow",
             "mfangdai": HOME / "project" / "mfangdai",
             "skill-factory": HOME / "project" / "skill-factory",

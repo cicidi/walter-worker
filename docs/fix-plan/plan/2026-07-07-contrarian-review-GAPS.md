@@ -1,4 +1,4 @@
-# Contrarian Gap Report — ai-coworker Phase 0+1
+# Contrarian Gap Report — walter-worker Phase 0+1
 
 ## Summary
 - 0 gaps at Critical or High severity
@@ -43,5 +43,5 @@ Each item checked against the photo plan's acceptance criteria, then spot-verifi
 | P6 | `declare -A` → indexed parallel arrays + empty-array guard | Code verified; installed_home fixture proves install.sh still works |
 | P7 | `default_branch()` helper, verify HEAD moved, exit non-zero on failure, `origin main` → dynamic | Code verified; no residual `origin main` in setup/ |
 | G2 | Phantom `import-mcp` deleted, Step 9→`skills/init/SKILL.md`, banner `analytics dashboard` | All clean; reference-integrity test passes |
-| H4 | `$COWORKER_VAULT_PATH` env var, `~/.config/ai-coworker`→`~/.coworker` | No residual personal paths in setup/ or session-memory |
+| H4 | `$COWORKER_VAULT_PATH` env var, `~/.config/walter-worker`→`~/.coworker` | No residual personal paths in setup/ or session-memory |
 | P13 | 5 fixes: flask guard deleted, initiative name from catalog, `--global/--project` paired flag, `split("|",1)`, gitignore line-set dedup | Code verified; tests pass |

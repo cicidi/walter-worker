@@ -94,7 +94,7 @@ version: 1.0.0
 
 **Files:**
 - Create: `/home/cicidi/.claude/commands-backup-2026-05-01/` (copy of current commands)
-- Create: `/home/cicidi/project/ai-coworker/personal/skills-backup-2026-05-01/` (copy of personal skills)
+- Create: `/home/cicidi/project/walter-worker/personal/skills-backup-2026-05-01/` (copy of personal skills)
 
 - [ ] **Step 1: Backup installed commands**
 ```bash
@@ -105,8 +105,8 @@ Expected: "Backed up 34 files"
 
 - [ ] **Step 2: Backup personal skills source**
 ```bash
-cp -r /home/cicidi/project/ai-coworker/personal/skills \
-      /home/cicidi/project/ai-coworker/personal/skills-backup-2026-05-01
+cp -r /home/cicidi/project/walter-worker/personal/skills \
+      /home/cicidi/project/walter-worker/personal/skills-backup-2026-05-01
 echo "done"
 ```
 
@@ -569,10 +569,10 @@ echo "done"
 
 - [ ] **Step 2: Also rename source file**
 ```bash
-mv /home/cicidi/project/ai-coworker/personal/skills/skill-create.md \
-   /home/cicidi/project/ai-coworker/personal/skills/coworker-meta-skill-create.md
+mv /home/cicidi/project/walter-worker/personal/skills/skill-create.md \
+   /home/cicidi/project/walter-worker/personal/skills/coworker-meta-skill-create.md
 sed -i 's/^name: skill-create/name: coworker-meta-skill-create/' \
-    /home/cicidi/project/ai-coworker/personal/skills/coworker-meta-skill-create.md
+    /home/cicidi/project/walter-worker/personal/skills/coworker-meta-skill-create.md
 echo "done"
 ```
 
@@ -675,7 +675,7 @@ All above waves only updated `~/.claude/commands/`. Now sync changes back to the
 
 - [ ] **Step 1: Copy all new coworker-* files to personal/skills/**
 ```bash
-SKILLS_DIR=/home/cicidi/project/ai-coworker/personal/skills
+SKILLS_DIR=/home/cicidi/project/walter-worker/personal/skills
 for f in ~/.claude/commands/coworker-*.md; do
   name=$(basename "$f")
   cp "$f" "$SKILLS_DIR/$name"
@@ -687,7 +687,7 @@ Expected: 34 files
 
 - [ ] **Step 2: Remove old-named files from personal/skills/ if any remain**
 ```bash
-SKILLS_DIR=/home/cicidi/project/ai-coworker/personal/skills
+SKILLS_DIR=/home/cicidi/project/walter-worker/personal/skills
 for prefix in commit- design- dev-ai-tool- dev-feat- doc- issue- mcp- video-edit skill-create; do
   for f in "$SKILLS_DIR"/${prefix}*.md; do
     [ -f "$f" ] && echo "OLD FILE FOUND: $f"
@@ -697,12 +697,12 @@ done
 If any found, remove them:
 ```bash
 # Only run if Step 2 shows old files
-rm /home/cicidi/project/ai-coworker/personal/skills/commit-*.md 2>/dev/null
-rm /home/cicidi/project/ai-coworker/personal/skills/design-*.md 2>/dev/null
-rm /home/cicidi/project/ai-coworker/personal/skills/dev-*.md 2>/dev/null
-rm /home/cicidi/project/ai-coworker/personal/skills/doc-*.md 2>/dev/null
-rm /home/cicidi/project/ai-coworker/personal/skills/issue-*.md 2>/dev/null
-rm /home/cicidi/project/ai-coworker/personal/skills/mcp-*.md 2>/dev/null
+rm /home/cicidi/project/walter-worker/personal/skills/commit-*.md 2>/dev/null
+rm /home/cicidi/project/walter-worker/personal/skills/design-*.md 2>/dev/null
+rm /home/cicidi/project/walter-worker/personal/skills/dev-*.md 2>/dev/null
+rm /home/cicidi/project/walter-worker/personal/skills/doc-*.md 2>/dev/null
+rm /home/cicidi/project/walter-worker/personal/skills/issue-*.md 2>/dev/null
+rm /home/cicidi/project/walter-worker/personal/skills/mcp-*.md 2>/dev/null
 ```
 
 ---
@@ -736,7 +736,7 @@ Each should show `name:`, `triggers:`, `services: category:`, `when_to_use:`.
 
 - [ ] **Step 4: Commit source changes**
 ```bash
-cd /home/cicidi/project/ai-coworker
+cd /home/cicidi/project/walter-worker
 git add personal/skills/
 git commit -m "refactor: restructure all skills to coworker-{category} naming + new frontmatter schema"
 ```

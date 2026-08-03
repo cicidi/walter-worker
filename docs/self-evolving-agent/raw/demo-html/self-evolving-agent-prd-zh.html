@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="zh"><head><meta charset="utf-8"><title>Self-Evolving Agent PRD v6 (中文)</title><style>body{font-family:sans-serif;max-width:960px;margin:0 auto;padding:20px;line-height:1.6} table{border-collapse:collapse;width:100%} th,td{border:1px solid #ddd;padding:8px;text-align:left} th{background:#f5f5f5} code{background:#f0f0f0;padding:2px 4px;border-radius:3px} pre{background:#f5f5f5;padding:1em;overflow-x:auto} h1,h2,h3{border-bottom:1px solid #eee;padding-bottom:.3em}</style></head><body><h1>Self-Evolving Agent — PRD</h1>
 <blockquote>
-<p>目标：交付一个在持续循环中自演化以达成目标的自主智能体。该智能体是 Claude Code（及 OpenCode），由 ai-coworker 驱动。智能体执行真实动作——监控、编排——基于真实信息源。</p>
+<p>目标：交付一个在持续循环中自演化以达成目标的自主智能体。该智能体是 Claude Code（及 OpenCode），由 walter-worker 驱动。智能体执行真实动作——监控、编排——基于真实信息源。</p>
 </blockquote>
 <h2>状态</h2>
 <table>
@@ -126,7 +126,7 @@
 <tr>
 <td>编排</td>
 <td>由智能体决定如何分解任务</td>
-<td>ai-coworker 不硬编码工作流</td>
+<td>walter-worker 不硬编码工作流</td>
 </tr>
 <tr>
 <td>原则</td>
@@ -295,7 +295,7 @@
 <h3>2.3 不做 Publish / Transact（MVP）</h3>
 <ul>
 <li><code>publish</code> 与 <code>transact</code> 在 MVP 范围外</li>
-<li><code>orchestrate</code> 委派给智能体——ai-coworker 不硬编码任务分解</li>
+<li><code>orchestrate</code> 委派给智能体——walter-worker 不硬编码任务分解</li>
 </ul>
 <hr />
 <h2>3. 记忆——三层架构</h2>
@@ -618,7 +618,7 @@ When you complete a complex task using significant tool calls:
 <p>采集每 session 自动进行，在 curator 报告中呈现。确切公式是实现细节（spec）。</p>
 <hr />
 <h2>6. 实现</h2>
-<p>实现（记忆基座、skill 提炼 loop、hook/event 接线、schema、错误处理、成本模型、现有 ai-coworker 基础设施复用分析）在 <a href="../spec/self-evolving-agent-spec.md">spec</a> 中指定。本 PRD 刻意省略需求<strong>如何</strong>被满足。</p>
+<p>实现（记忆基座、skill 提炼 loop、hook/event 接线、schema、错误处理、成本模型、现有 walter-worker 基础设施复用分析）在 <a href="../spec/self-evolving-agent-spec.md">spec</a> 中指定。本 PRD 刻意省略需求<strong>如何</strong>被满足。</p>
 <hr />
 <h2>7. 范围外（MVP）</h2>
 <ul>

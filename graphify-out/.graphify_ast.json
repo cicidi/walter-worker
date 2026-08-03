@@ -1093,8 +1093,8 @@
       "_origin": "ast"
     },
     {
-      "id": "pkg_ai_coworker",
-      "label": "ai-coworker",
+      "id": "pkg_walter_worker",
+      "label": "walter-worker",
       "file_type": "code",
       "type": "package",
       "ecosystem": "python",
@@ -9209,7 +9209,7 @@
     },
     {
       "id": "tests_analytics_test_install_rationale_54",
-      "label": "OpenCode: ai-coworker skills are deployed under .config/opencode/skills/.      N",
+      "label": "OpenCode: walter-worker skills are deployed under .config/opencode/skills/.      N",
       "file_type": "rationale",
       "source_file": "tests/analytics/test_install.py",
       "source_location": "L54",
@@ -20232,8 +20232,8 @@
       "_origin": "ast"
     },
     {
-      "id": "tests_python_test_skill_factory_integration_testskillfactorysource_test_ai_coworker_skills_have_skill_md",
-      "label": ".test_ai_coworker_skills_have_skill_md()",
+      "id": "tests_python_test_skill_factory_integration_testskillfactorysource_test_walter_worker_skills_have_skill_md",
+      "label": ".test_walter_worker_skills_have_skill_md()",
       "file_type": "code",
       "source_file": "tests/python/test_skill_factory_integration.py",
       "source_location": "L29",
@@ -22960,7 +22960,7 @@
       "_origin": "ast"
     },
     {
-      "source": "pkg_ai_coworker",
+      "source": "pkg_walter_worker",
       "target": "pkg_pydantic",
       "relation": "depends_on",
       "context": "dependency",
@@ -22972,7 +22972,7 @@
       "_origin": "ast"
     },
     {
-      "source": "pkg_ai_coworker",
+      "source": "pkg_walter_worker",
       "target": "pkg_pyyaml",
       "relation": "depends_on",
       "context": "dependency",
@@ -22984,7 +22984,7 @@
       "_origin": "ast"
     },
     {
-      "source": "pkg_ai_coworker",
+      "source": "pkg_walter_worker",
       "target": "pkg_click",
       "relation": "depends_on",
       "context": "dependency",
@@ -22996,7 +22996,7 @@
       "_origin": "ast"
     },
     {
-      "source": "pkg_ai_coworker",
+      "source": "pkg_walter_worker",
       "target": "pkg_rich",
       "relation": "depends_on",
       "context": "dependency",
@@ -23008,7 +23008,7 @@
       "_origin": "ast"
     },
     {
-      "source": "pkg_ai_coworker",
+      "source": "pkg_walter_worker",
       "target": "pkg_fastapi",
       "relation": "depends_on",
       "context": "dependency",
@@ -23020,7 +23020,7 @@
       "_origin": "ast"
     },
     {
-      "source": "pkg_ai_coworker",
+      "source": "pkg_walter_worker",
       "target": "pkg_uvicorn",
       "relation": "depends_on",
       "context": "dependency",
@@ -28816,7 +28816,7 @@
     },
     {
       "source": "src_coworker_cli",
-      "target": "home_cicidi_project_ai_coworker_src_coworker_adapters_py",
+      "target": "home_cicidi_project_walter_worker_src_coworker_adapters_py",
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -59269,7 +59269,7 @@
     },
     {
       "source": "tests_python_test_skill_factory_integration_testskillfactorysource",
-      "target": "tests_python_test_skill_factory_integration_testskillfactorysource_test_ai_coworker_skills_have_skill_md",
+      "target": "tests_python_test_skill_factory_integration_testskillfactorysource_test_walter_worker_skills_have_skill_md",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "tests/python/test_skill_factory_integration.py",

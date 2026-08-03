@@ -77,7 +77,7 @@ class TestMem0ClientAdd:
             run_id="sess_test_001",
             metadata={
                 "type": "lesson",
-                "project": "ai-coworker",
+                "project": "walter-worker",
                 "topic": "mcp",
                 "problem": "first-request-403",
                 "provenance": "agent",
@@ -118,7 +118,7 @@ class TestMem0ClientAdd:
             run_id="sess_full_001",
             metadata={
                 "type": "lesson",
-                "project": "ai-coworker",
+                "project": "walter-worker",
                 "topic": "testing",
                 "problem": "full-schema-verification",
                 "source_session": "sess_full_001",
@@ -131,7 +131,7 @@ class TestMem0ClientAdd:
         assert entry_id is not None
         result = clean_mem0.get(entry_id)
         assert result["metadata"]["type"] == "lesson"
-        assert result["metadata"]["project"] == "ai-coworker"
+        assert result["metadata"]["project"] == "walter-worker"
         assert result["metadata"]["state"] == "active"
 
     def test_add_multiple_entries(self, clean_mem0):
@@ -148,7 +148,7 @@ class TestMem0ClientAdd:
         entry_id = clean_mem0.add(
             memory="使用 ruff 进行代码检查，忽略 E501 规则。",
             user_id="default",
-            metadata={"type": "convention", "project": "ai-coworker", "topic": "linting"},
+            metadata={"type": "convention", "project": "walter-worker", "topic": "linting"},
         )
         assert entry_id is not None
         results = clean_mem0.search(query="ruff 代码检查", top_k=5)
@@ -167,7 +167,7 @@ class TestMem0ClientAdd:
         entry_id = clean_mem0.add(
             memory=long_text,
             user_id="default",
-            metadata={"type": "lesson", "project": "ai-coworker", "topic": "mcp"},
+            metadata={"type": "lesson", "project": "walter-worker", "topic": "mcp"},
         )
         assert entry_id is not None
         result = clean_mem0.get(entry_id)
@@ -194,11 +194,11 @@ class TestMem0ClientSearch:
     def test_search_by_project_filter(self, populated_mem0):
         """Base happy path: filter by project."""
         results = populated_mem0.search(
-            query=".", filters={"project": "ai-coworker"}
+            query=".", filters={"project": "walter-worker"}
         )
         assert len(results) >= 1
         for r in results:
-            assert r["metadata"]["project"] == "ai-coworker"
+            assert r["metadata"]["project"] == "walter-worker"
 
     def test_search_by_another_project(self, populated_mem0):
         """Inference 1: filter by different project (skill-factory)."""
@@ -239,7 +239,7 @@ class TestMem0ClientSearch:
         """Inference 5: semantic query + project filter combined."""
         results = populated_mem0.search(
             query="linting and code style",
-            filters={"project": "ai-coworker"},
+            filters={"project": "walter-worker"},
         )
         assert len(results) >= 1
 
@@ -257,7 +257,7 @@ class TestMem0ClientSearch:
 
     def test_search_empty_query_returns_results(self, populated_mem0):
         """Edge case: empty query with filter → returns filtered results."""
-        results = populated_mem0.search(query=".", filters={"project": "ai-coworker"})
+        results = populated_mem0.search(query=".", filters={"project": "walter-worker"})
         assert len(results) >= 1
 
     def test_search_semantic_match(self, populated_mem0):

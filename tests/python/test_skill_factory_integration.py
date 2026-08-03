@@ -21,13 +21,13 @@ class TestSkillFactorySource:
         )
 
     def test_source_has_skill_dirs(self):
-        subdirs = {"ai-coworker-skills", "personal-skills"}
+        subdirs = {"walter-worker-skills", "personal-skills"}
         for subdir in subdirs:
             path = SKILL_FACTORY_SRC / subdir
             assert path.is_dir(), f"Skill-factory missing directory: {subdir}"
 
-    def test_ai_coworker_skills_have_skill_md(self):
-        skills_dir = SKILL_FACTORY_SRC / "ai-coworker-skills"
+    def test_walter_worker_skills_have_skill_md(self):
+        skills_dir = SKILL_FACTORY_SRC / "walter-worker-skills"
         if not skills_dir.is_dir():
             return
         for skill_dir in skills_dir.iterdir():
@@ -38,7 +38,7 @@ class TestSkillFactorySource:
                 )
 
     def test_source_skills_have_valid_frontmatter(self):
-        for skills_sub in ["ai-coworker-skills", "personal-skills"]:
+        for skills_sub in ["walter-worker-skills", "personal-skills"]:
             skills_dir = SKILL_FACTORY_SRC / skills_sub
             if not skills_dir.is_dir():
                 continue
@@ -67,7 +67,7 @@ class TestSkillFactorySource:
 
 class TestDeployConsistency:
     def test_deployed_source_skills_match(self):
-        source_skills_dir = SKILL_FACTORY_SRC / "ai-coworker-skills"
+        source_skills_dir = SKILL_FACTORY_SRC / "walter-worker-skills"
         if not source_skills_dir.is_dir():
             return
 

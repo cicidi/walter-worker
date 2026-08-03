@@ -1,4 +1,4 @@
-# ai-coworker Fix Plan — 2026-07-07
+# walter-worker Fix Plan — 2026-07-07
 
 **Audience**: Junior engineer. Work through items top-to-bottom by priority.
 **Scope**: All open issues found via (a) GitHub Issue #1, (b) `TODO.md` items, (c) full source audit, (d) test-suite failures.
@@ -18,7 +18,7 @@
 | C3 | Critical | Fresh-DB crash — `get_db()` never creates schema | `analytics/db.py:122` | S (20 min) |
 | C4 | Critical | `coworker init`/`sync` never bootstrap analytics DB (TODO #5) | `cli.py:202-277,333-350` | S (20 min) |
 | C5 | Critical | `coworker init --project` silently overwrites `CLAUDE.md` | `cli.py:243-254` | M (1 hr) |
-| GH1 | Critical | Issue #1 — setup-coworker hardcodes `~/ai-coworker` | `skills/coworker-meta-setup-coworker.md:34-39` | M (1 hr) |
+| GH1 | Critical | Issue #1 — setup-coworker hardcodes `~/walter-worker` | `skills/coworker-meta-setup-coworker.md:34-39` | M (1 hr) |
 | H1 | High | Path traversal in initiative name (arbitrary file read/write/delete) | `config.py:134,145,151`; `manager.py:76` | S (30 min) |
 | H2 | High | One bad session aborts entire import + connection leak | `analytics/import_data.py:170-180` | S (30 min) |
 | H3 | High | Skill `total_calls` double-counted on every re-import | `import_data.py:125-133`; `auto_import.py:108-109` | M (1 hr) |
@@ -141,10 +141,10 @@
 
 ---
 
-## GH1 — GitHub Issue #1: setup-coworker hardcodes `~/ai-coworker`
+## GH1 — GitHub Issue #1: setup-coworker hardcodes `~/walter-worker`
 
 - **Source file**: `skills/coworker-meta-setup-coworker.md:34-39` (currently only on `feat/dashboard` branch / in the `.worktrees/feat-dashboard/` copy and installed IDE copies; on `master` it was renamed to `skills/init/` in commit `47740a4`).
-- **Problem**: Step 2 specifically checks for "the ai-coworker repo," breaking for users whose related repos have different names/locations.
+- **Problem**: Step 2 specifically checks for "the walter-worker repo," breaking for users whose related repos have different names/locations.
 - **Acceptance criteria** (from the issue):
   - Step 2 does not reference a hardcoded repo name
   - User can provide any local path to a related repo
@@ -157,7 +157,7 @@
   1. Check out `feat/dashboard` (or cherry-pick the skill file back to `master` if that's the intended home — confirm with maintainer). The skill currently lives at `skills/coworker-meta-setup-coworker.md` on `feat/dashboard`.
   2. Edit Step 2 (lines 34-39) from:
      ```
-     → Check if ai-coworker repo is cloned locally
+     → Check if walter-worker repo is cloned locally
      → If no: guide through: git clone + upstream remote setup
      → If yes: validate path exists and upstream is set
      ```
@@ -175,20 +175,20 @@
      ```
   3. Update the "Output" section (line 69) to match the chosen config storage (drop the `.local_config.yaml` line if using the Project Catalog, or keep it if the author confirms).
   4. Reusable utilities already in the repo:
-     - Repo-root detection pattern: `skills/ai-coworker-upgrade/SKILL.md:44-52` (`git -C <path> rev-parse --show-toplevel`).
+     - Repo-root detection pattern: `skills/walter-worker-upgrade/SKILL.md:44-52` (`git -C <path> rev-parse --show-toplevel`).
      - Config persistence: `config.py` `load_config`/`save_config`/`find_project_config`.
      - Existing model field: `models.py:89` `ProjectEntry.local_path`.
-  5. Also fix the **other hardcoded `~/ai-coworker` assumptions** the audit found (same root cause):
-     - `README.md:29-30,66` — install instructions and example catalog hardcode `~/ai-coworker`. Change to a generic `~/<your-ai-coworker-dir>` and note the path is user-chosen.
-     - `skills/ai-coworker-upgrade/SKILL.md:47,49,203` — hardcodes `~/project/ai-coworker`. Make it discover the repo (scan `~/project/ai-coworker`, `~/ai-coworker`, or accept `COWORKER_ROOT` env var).
-     - `skills/ai-coworker-setup-in-project/SKILL.md:34-35` — `cd ~/project/ai-coworker`. Same discovery approach.
+  5. Also fix the **other hardcoded `~/walter-worker` assumptions** the audit found (same root cause):
+     - `README.md:29-30,66` — install instructions and example catalog hardcode `~/walter-worker`. Change to a generic `~/<your-walter-worker-dir>` and note the path is user-chosen.
+     - `skills/walter-worker-upgrade/SKILL.md:47,49,203` — hardcodes `~/project/walter-worker`. Make it discover the repo (scan `~/project/walter-worker`, `~/walter-worker`, or accept `COWORKER_ROOT` env var).
+     - `skills/walter-worker-setup-in-project/SKILL.md:34-35` — `cd ~/project/walter-worker`. Same discovery approach.
   6. Reinstall updated skill to IDE copies: `coworker sync` (or manually update `~/.claude/commands/`, `~/.opencode/instructions/`, `~/.gemini/`, `~/.cursor/rules/`).
 - **Side-finding (fix in same PR or separate)**: `setup/install.sh:264-272,325-339` references `skills/coworker-meta-setup-coworker.md` which doesn't exist on `master` (renamed to `init/`). The `bats` test `tests/setup/test_install.bats:130-176` asserts this file is installed → fails on master. Either restore the file on master or update `install.sh` + the test to use the new `init/SKILL.md` path.
 - **Verification**:
   1. Run the setup skill in a project with NO related repo → proceeds to Step 3.
   2. Provide a valid repo path → validated and recorded.
   3. Provide a bogus path → re-prompted with a clear error.
-  4. `grep -rn "ai-coworker repo is cloned" skills/` returns nothing.
+  4. `grep -rn "walter-worker repo is cloned" skills/` returns nothing.
   5. `python3 -m pytest tests/setup/ -v` (fix the bats test per step above).
 
 ---

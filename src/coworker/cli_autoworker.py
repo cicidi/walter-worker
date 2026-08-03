@@ -21,7 +21,7 @@ def register_autoworker(main_group: click.Group) -> None:
         pass
 
     @find_issues.command("run")
-    @click.option("--project", default="ai-coworker", help="Target project")
+    @click.option("--project", default="walter-worker", help="Target project")
     @click.option(
         "--phases",
         default="all",
@@ -123,7 +123,7 @@ def register_autoworker(main_group: click.Group) -> None:
     @main_group.command()
     @click.option("--loop", is_flag=True, help="Run in continuous loop mode")
     @click.option("--max-hours", default=12, help="Max duration in hours")
-    @click.option("--project", default="ai-coworker", help="Target project")
+    @click.option("--project", default="walter-worker", help="Target project")
     def run(loop, max_hours, project):
         """Run an auto-worker validation loop."""
         if not loop:

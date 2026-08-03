@@ -38,7 +38,7 @@ Verify memory query returns high-quality skill update memories via min_score qua
 Verify a subagent, when given a task, can search and apply past experience from memory.
 
 ### Scenario
-Give subagent the task: "Create a new CLI command skill for ai-coworker"
+Give subagent the task: "Create a new CLI command skill for walter-worker"
 1. Subagent should first call search_memory for "skill creation" experience
 2. Found conventions include: create SKILL.md in skill-factory/personal-skills/, write design spec, update all references
 3. Subagent should reflect these conventions in its approach

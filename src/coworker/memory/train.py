@@ -107,7 +107,7 @@ def run_training_pipeline(
         try:
             result = extract_and_store(
                 mem0_client, llm_client, session_id, transcript_text,
-                project=session.get("project") or "ai-coworker",
+                project=session.get("project") or "walter-worker",
             )
             all_lessons.extend(result.lessons)
             all_skill_candidates.extend(result.skill_candidates)

@@ -535,7 +535,7 @@ Nodes (5): _is_placeholder(), Cover _is_placeholder including all patterns and t
 
 ### Community 79 - "Community 79"
 Cohesion: 0.17
-Nodes (11): Install artifact tests — run against a hermetic temp HOME (installed_home).  Nev, install.sh creates hooks, DB, config under the temp HOME., Claude Code hooks use the canonical {matcher, hooks:[{type,command}]} shape., OpenCode: ai-coworker skills are deployed under .config/opencode/skills/.      N, The on-user-prompt hook script exists and is executable., sessions directory created., test_claude_hooks_configured(), test_install_creates_all_artifacts() (+3 more)
+Nodes (11): Install artifact tests — run against a hermetic temp HOME (installed_home).  Nev, install.sh creates hooks, DB, config under the temp HOME., Claude Code hooks use the canonical {matcher, hooks:[{type,command}]} shape., OpenCode: walter-worker skills are deployed under .config/opencode/skills/.      N, The on-user-prompt hook script exists and is executable., sessions directory created., test_claude_hooks_configured(), test_install_creates_all_artifacts() (+3 more)
 
 ### Community 80 - "Community 80"
 Cohesion: 0.17
@@ -682,7 +682,7 @@ Cohesion: 0.67
 Nodes (3): import_db(), fixture, In-memory SQLite with full schema, patched get_db.
 
 ## Knowledge Gaps
-- **18 isolated node(s):** `BASE_DIR`, `ai-coworker`, `polish-loop-driver.sh script`, `polish-loop-qa.sh script`, `AVAILABLE_SKILLS` (+13 more)
+- **18 isolated node(s):** `BASE_DIR`, `walter-worker`, `polish-loop-driver.sh script`, `polish-loop-qa.sh script`, `AVAILABLE_SKILLS` (+13 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **62 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 

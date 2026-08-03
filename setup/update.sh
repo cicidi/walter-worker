@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # =============================================================================
-# ai-coworker update.sh
+# walter-worker update.sh
 # Updates coworker itself from upstream. Optionally updates skill-factory.
 # =============================================================================
 
@@ -35,7 +35,7 @@ echo ""
 # =============================================================================
 # Step 1 — Update coworker repository
 # =============================================================================
-log "Updating ai-coworker..."
+log "Updating walter-worker..."
 
 cd "$REPO_ROOT"
 
@@ -68,9 +68,9 @@ fi
 
 after=$(git rev-parse HEAD)
 if [[ "$before" == "$after" ]]; then
-  ok "ai-coworker repository already up to date"
+  ok "walter-worker repository already up to date"
 else
-  ok "ai-coworker repository updated ($before → $after)"
+  ok "walter-worker repository updated ($before → $after)"
 fi
 
 # =============================================================================

@@ -30,7 +30,7 @@ def extract_and_store(
     llm_client,
     session_id: str,
     transcript: str,
-    project: str = "ai-coworker",
+    project: str = "walter-worker",
 ) -> ExtractionResult:
     """Extract lessons and skill candidates from a session transcript.
 
@@ -110,7 +110,7 @@ def extract_and_store(
             mem0_client.add(
                 memory=lesson["memory"],
                 user_id="default",
-                agent_id="ai-coworker",
+                agent_id="walter-worker",
                 run_id=session_id,
                 metadata={
                     "type": lesson.get("type", "lesson"),

@@ -300,7 +300,7 @@ class TestMem0ClientAdd:
         entry_id = client.add(
             memory="MCP first request 403-times-out; retry once before failing.",
             user_id="test-user", run_id="sess_test_001",
-            metadata={"type": "lesson", "project": "ai-coworker", "topic": "mcp",
+            metadata={"type": "lesson", "project": "walter-worker", "topic": "mcp",
                       "problem": "first-request-403", "provenance": "agent", "state": "active"}
         )
         assert entry_id is not None
@@ -320,11 +320,11 @@ class TestMem0ClientSearch:
 
     def test_search_by_project_filter(self, populated_mem0):
         results = populated_mem0.search(
-            query="", filters={"metadata.project": "ai-coworker"}
+            query="", filters={"metadata.project": "walter-worker"}
         )
         assert len(results) >= 1
         for r in results:
-            assert r["metadata"]["project"] == "ai-coworker"
+            assert r["metadata"]["project"] == "walter-worker"
 
     def test_search_top_k(self, clean_mem0):
         for i in range(10):
@@ -382,13 +382,13 @@ def populated_mem0(clean_mem0):
     """Real mem0 pre-loaded with 5 known entries."""
     entries = [
         ("MCP first request after startup often returns 403; retry once before failing.",
-         {"type": "lesson", "project": "ai-coworker", "topic": "mcp", "problem": "first-request-403",
+         {"type": "lesson", "project": "walter-worker", "topic": "mcp", "problem": "first-request-403",
           "provenance": "agent", "state": "active", "use_count": 12, "last_used": "2026-07-25T09:00:00Z"}),
-        ("Ruff E501 (line too long) is project-ignored in ai-coworker; never fix it.",
-         {"type": "convention", "project": "ai-coworker", "topic": "lint", "problem": "e501-ignored",
+        ("Ruff E501 (line too long) is project-ignored in walter-worker; never fix it.",
+         {"type": "convention", "project": "walter-worker", "topic": "lint", "problem": "e501-ignored",
           "provenance": "agent", "state": "active", "use_count": 9, "last_used": "2026-07-24T16:00:00Z"}),
         ("Prefer Chinese for discussion, English for code and commits.",
-         {"type": "preference", "project": "ai-coworker", "topic": "language",
+         {"type": "preference", "project": "walter-worker", "topic": "language",
           "provenance": "hand-written", "state": "active", "use_count": 15, "last_used": "2026-07-25T10:00:00Z"}),
     ]
     for memory, meta in entries:
@@ -424,8 +424,8 @@ def real_db(tmp_path):
         )
     """)
     conn.executemany("INSERT INTO sessions VALUES (?,?,?,?,?,?,?)", [
-        ("sess_a1b2", "claude", "ai-coworker", "self-evolving-agent", 45, 32, "2026-07-20T10:00:00Z"),
-        ("sess_c3d4", "claude", "ai-coworker", "self-evolving-agent", 38, 28, "2026-07-21T14:00:00Z"),
+        ("sess_a1b2", "claude", "walter-worker", "self-evolving-agent", 45, 32, "2026-07-20T10:00:00Z"),
+        ("sess_c3d4", "claude", "walter-worker", "self-evolving-agent", 38, 28, "2026-07-21T14:00:00Z"),
         ("sess_x1y2", "claude", "skill-factory", None, 12, 8, "2026-07-10T08:00:00Z"),
     ])
     conn.executemany("INSERT INTO tool_calls (session_id, tool, detail, ts) VALUES (?,?,?,?)", [
@@ -801,7 +801,7 @@ def process_turn(mem0_client, llm_client, tool_event: dict, recent_window: list[
                     run_id=session_id,
                     metadata={
                         "type": lesson.get("type", "lesson"),
-                        "project": "ai-coworker",
+                        "project": "walter-worker",
                         "topic": lesson.get("topic", ""),
                         "problem": lesson.get("problem", ""),
                         "provenance": "agent",
@@ -985,7 +985,7 @@ def process_session_end(mem0_client, llm_client, session_id: str, transcript_pat
             mem0_client.add(
                 memory=lesson["memory"], user_id="default", run_id=session_id,
                 metadata={
-                    "type": lesson.get("type", "lesson"), "project": "ai-coworker",
+                    "type": lesson.get("type", "lesson"), "project": "walter-worker",
                     "topic": lesson.get("topic", ""), "problem": lesson.get("problem", ""),
                     "provenance": "agent", "state": "active",
                     "source_session": session_id,
@@ -1134,7 +1134,7 @@ def refresh():
     from coworker.memory.inject import refresh_snapshot
     from coworker.memory.mem0_client import Mem0Client
     mem0 = Mem0Client.from_config()
-    refresh_snapshot(Path("CLAUDE.local.md"), mem0_client=mem0, project="ai-coworker")
+    refresh_snapshot(Path("CLAUDE.local.md"), mem0_client=mem0, project="walter-worker")
     click.echo("Snapshot refreshed.")
 
 
@@ -1453,10 +1453,10 @@ from coworker.memory.inject import inject_into_local_md, parse_markers, build_sn
 
 class TestBuildSnapshot:
     def test_scoped_to_project(self, populated_mem0):
-        entries = build_snapshot(populated_mem0, project="ai-coworker", top_k=5)
+        entries = build_snapshot(populated_mem0, project="walter-worker", top_k=5)
         assert len(entries) >= 1
         for e in entries:
-            assert e["metadata"]["project"] == "ai-coworker"
+            assert e["metadata"]["project"] == "walter-worker"
 
     def test_empty_project(self, clean_mem0):
         entries = build_snapshot(clean_mem0, project="nonexistent")
@@ -1468,20 +1468,20 @@ class TestInjectIntoLocalMd:
         path = tmp_path / "CLAUDE.local.md"
         path.write_text("# Config\n\n## Task\nactive\n")
 
-        inject_into_local_md(path, project="ai-coworker", entries=[
+        inject_into_local_md(path, project="walter-worker", entries=[
             {"memory": "MCP 403 retry", "metadata": {"topic": "mcp"}}
         ])
 
         content = path.read_text()
-        assert "<!-- MEMORY:ai-coworker START -->" in content
+        assert "<!-- MEMORY:walter-worker START -->" in content
         assert "MCP 403 retry" in content
         assert "## Task" in content  # human content preserved
 
     def test_replaces_existing_block(self, tmp_path):
         path = tmp_path / "CLAUDE.local.md"
-        path.write_text("prefix\n<!-- MEMORY:ai-coworker START -->\nold\n<!-- MEMORY:ai-coworker END -->\nsuffix\n")
+        path.write_text("prefix\n<!-- MEMORY:walter-worker START -->\nold\n<!-- MEMORY:walter-worker END -->\nsuffix\n")
 
-        inject_into_local_md(path, project="ai-coworker", entries=[
+        inject_into_local_md(path, project="walter-worker", entries=[
             {"memory": "new content", "metadata": {}}
         ])
 
@@ -1494,11 +1494,11 @@ class TestInjectIntoLocalMd:
     def test_multi_project_independent(self, tmp_path):
         path = tmp_path / "CLAUDE.local.md"
         path.write_text(
-            "<!-- MEMORY:ai-coworker START -->\nai\n<!-- MEMORY:ai-coworker END -->\n"
+            "<!-- MEMORY:walter-worker START -->\nai\n<!-- MEMORY:walter-worker END -->\n"
             "<!-- MEMORY:skill-factory START -->\nsf\n<!-- MEMORY:skill-factory END -->"
         )
 
-        inject_into_local_md(path, project="ai-coworker", entries=[
+        inject_into_local_md(path, project="walter-worker", entries=[
             {"memory": "updated ai", "metadata": {}}
         ])
 
@@ -1509,8 +1509,8 @@ class TestInjectIntoLocalMd:
 
 class TestParseMarkers:
     def test_extracts_project_and_content(self):
-        result = parse_markers("<!-- MEMORY:ai-coworker START -->\nhello world\n<!-- MEMORY:ai-coworker END -->")
-        assert result == ("ai-coworker", "hello world")
+        result = parse_markers("<!-- MEMORY:walter-worker START -->\nhello world\n<!-- MEMORY:walter-worker END -->")
+        assert result == ("walter-worker", "hello world")
 
     def test_no_block_returns_none(self):
         assert parse_markers("# just text") is None
@@ -1799,7 +1799,7 @@ Respond with JSON:
                 user_id="training",
                 run_id="batch-train",
                 metadata={
-                    "type": exp.get("type", "lesson"), "project": "ai-coworker",
+                    "type": exp.get("type", "lesson"), "project": "walter-worker",
                     "topic": exp.get("topic", ""), "provenance": "agent",
                     "state": "active", "use_count": 0,
                     "last_used": datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -2296,7 +2296,7 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
-def run_autoworker_loop(mem0_client, llm_client, db, max_hours=12, project="ai-coworker"):
+def run_autoworker_loop(mem0_client, llm_client, db, max_hours=12, project="walter-worker"):
     from coworker.autoworker.state import has_been_checked, mark_checked, add_open_question, get_open_questions
     from coworker.autoworker.rules import validate_against_raw_data, detect_dead_skills
     import time
@@ -2362,7 +2362,7 @@ def _check_api_key():
 @click.option("--loop", is_flag=True, help="Run in continuous loop mode")
 @click.option("--skill", default="auto-worker", help="Skill to run")
 @click.option("--max-hours", default=12, help="Max duration in hours")
-@click.option("--project", default="ai-coworker", help="Target project")
+@click.option("--project", default="walter-worker", help="Target project")
 def run(loop: bool, skill: str, max_hours: int, project: str):
     """Run an auto-worker loop (SDK mode)."""
     if not loop:

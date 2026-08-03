@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # =============================================================================
-# ai-coworker uninstall.sh — manifest-driven
+# walter-worker uninstall.sh — manifest-driven
 # Reads ~/.coworker/install-manifest.json and removes exactly what install.sh
 # recorded. User/third-party files and hook entries are never touched.
 # Option: --restore-pristine restores the pre-install backup snapshot.
@@ -33,7 +33,7 @@ RESTORE_PRIS=false
 if [[ ! -f "$MANIFEST" ]]; then
   error "No install manifest found at $MANIFEST"
   echo "  This may be a pre-manifest install. To clean up manually:"
-  echo "  rm -rf ~/.coworker ~/.claude/commands/ai-coworker-*"
+  echo "  rm -rf ~/.coworker ~/.claude/commands/walter-worker-*"
   echo "  Also remove coworker hook entries from ~/.claude/settings.json hooks.*"
   exit 1
 fi

@@ -2,7 +2,7 @@
 
 Scenario (Test 2 from test plan):
   1. Create a subagent with access to search_memory tool
-  2. Give it a task: "create a new CLI command skill for ai-coworker"
+  2. Give it a task: "create a new CLI command skill for walter-worker"
   3. Verify the subagent:
      a. Calls search_memory to find relevant past experiences
      b. Uses the retrieved conventions in its response
@@ -230,7 +230,7 @@ IMPORTANT: Always call search_memory FIRST, before doing anything else."""
 
         task = (
             "I need to know the convention for creating a new skill in the "
-            "ai-coworker project. What is the established process?"
+            "walter-worker project. What is the established process?"
         )
 
         response = client.messages.create(
@@ -266,7 +266,7 @@ IMPORTANT: Always call search_memory FIRST, before doing anything else."""
         system_prompt = """You are a coding assistant. Use search_memory to find
 relevant conventions before answering. Apply what you find."""
 
-        task = "What is the convention for updating a skill in ai-coworker?"
+        task = "What is the convention for updating a skill in walter-worker?"
 
         # First call — agent should use search_memory
         response1 = client.messages.create(

@@ -1,4 +1,4 @@
-# Contributing to ai-coworker
+# Contributing to walter-worker
 
 ## Running tests
 

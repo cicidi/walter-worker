@@ -170,11 +170,11 @@ def process_turn(
                 mem0_client.add(
                     memory=lesson["memory"],
                     user_id="default",
-                    agent_id="ai-coworker",
+                    agent_id="walter-worker",
                     run_id=session_id,
                     metadata={
                         "type": lesson.get("type", "lesson"),
-                        "project": "ai-coworker",
+                        "project": "walter-worker",
                         "topic": lesson.get("topic", ""),
                         "problem": lesson.get("problem", ""),
                         "provenance": "agent",
@@ -263,11 +263,11 @@ def process_session_end(
                 mem0_client.add(
                     memory=lesson["memory"],
                     user_id="default",
-                    agent_id="ai-coworker",
+                    agent_id="walter-worker",
                     run_id=session_id,
                     metadata={
                         "type": lesson.get("type", "lesson"),
-                        "project": "ai-coworker",
+                        "project": "walter-worker",
                         "topic": lesson.get("topic", ""),
                         "problem": lesson.get("problem", ""),
                         "provenance": "agent",

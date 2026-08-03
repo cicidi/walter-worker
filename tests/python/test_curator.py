@@ -27,15 +27,15 @@ class TestExportMemoryMd:
     def test_with_entries_grouped_by_project(self, tmp_path):
         mock_client = MagicMock()
         mock_client.search.return_value = [
-            {"memory": "Lesson A", "metadata": {"project": "ai-coworker", "type": "lesson", "topic": "mcp"}},
-            {"memory": "Convention B", "metadata": {"project": "ai-coworker", "type": "convention", "topic": "lint"}},
+            {"memory": "Lesson A", "metadata": {"project": "walter-worker", "type": "lesson", "topic": "mcp"}},
+            {"memory": "Convention B", "metadata": {"project": "walter-worker", "type": "convention", "topic": "lint"}},
             {"memory": "Lesson C", "metadata": {"project": "skill-factory", "type": "lesson", "topic": "docker"}},
         ]
         path = tmp_path / "MEMORY.md"
         count = export_memory_md(mock_client, str(path))
         assert count == 3
         content = path.read_text()
-        assert "Project: ai-coworker" in content
+        assert "Project: walter-worker" in content
         assert "Project: skill-factory" in content
         assert "Lesson A" in content
         assert "Convention B" in content

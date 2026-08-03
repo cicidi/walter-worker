@@ -76,20 +76,20 @@ class TestSkillReferences:
 
         skill_names = set()
         for line in content.splitlines():
-            if "skill-create" in line or "ai-coworker-skill-create" in line:
+            if "skill-create" in line or "walter-worker-skill-create" in line:
                 skill_names.add("skill-create")
-            if "skill-edit" in line or "ai-coworker-skill-edit" in line:
+            if "skill-edit" in line or "walter-worker-skill-edit" in line:
                 skill_names.add("skill-edit")
-            if "self-heal" in line or "ai-coworker-self-heal" in line:
+            if "self-heal" in line or "walter-worker-self-heal" in line:
                 skill_names.add("self-heal")
-            if "self-analyze" in line or "ai-coworker-self-analyze" in line:
+            if "self-analyze" in line or "walter-worker-self-analyze" in line:
                 skill_names.add("self-analyze")
 
         assert len(skill_names) > 0, "No skill references found in CLAUDE.local.md"
 
         skills_dir = root / "skills"
         skill_factory_skills = (
-            Path.home() / ".config/opencode/skills/skill-factory/ai-coworker-skills"
+            Path.home() / ".config/opencode/skills/skill-factory/walter-worker-skills"
         )
         skill_factory_personal = (
             Path.home() / ".config/opencode/skills/skill-factory/personal-skills"

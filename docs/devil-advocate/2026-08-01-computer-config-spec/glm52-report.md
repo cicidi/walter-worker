@@ -23,15 +23,15 @@ remove the reconciliation step; document the mechanism, not a snapshot.
 
 ## Critical new findings (GLM-5.2)
 
-1. **Old ai-coworker grey-theme users have no migration path** — the detection
-   algorithm (marker / 6-hex / fresh) doesn't recognize the `# ai-coworker status bar`
-   grey block; an existing ai-coworker user would get Benjamin Blue appended ON TOP
+1. **Old walter-worker grey-theme users have no migration path** — the detection
+   algorithm (marker / 6-hex / fresh) doesn't recognize the `# walter-worker status bar`
+   grey block; an existing walter-worker user would get Benjamin Blue appended ON TOP
    of the grey theme → polluted `.tmux.conf`.
 2. **Cross-project manifest conflict is one-directional** — claude-tmux-config
-   scopes its manifest, but ai-coworker's install.sh does `os.walk(~/.claude/)`
-   recursively and would claim `~/.claude/statusline/*` as its own; ai-coworker
+   scopes its manifest, but walter-worker's install.sh does `os.walk(~/.claude/)`
+   recursively and would claim `~/.claude/statusline/*` as its own; walter-worker
    uninstall could then delete them.
-3. **`_write_json_atomic` not vendorable into bash** — the ai-coworker version
+3. **`_write_json_atomic` not vendorable into bash** — the walter-worker version
    calls `backup.snapshot()` (an internal Python module). A bash install.sh can't
    import it. Must use stdlib `shutil.copy2` for the `.bak`.
 4. **Model-field reconciliation impossible** — installer has no way to obtain the
@@ -52,7 +52,7 @@ remove the reconciliation step; document the mechanism, not a snapshot.
 - No `tmux source-file` reload step after install (fresh machines see no change).
 - **GLM-5x pricing ($1.40/$4.40) possibly ~10x above public Zhipu rates (~$0.14/$0.55)** — needs provider confirmation.
 - **Effort threshold table wrong**: spec says high=yellow; code says high=red (brick_red).
-- Spec §6.3 incorrectly describes ai-coworker manifest scope (omits ~/.claude/ walk).
+- Spec §6.3 incorrectly describes walter-worker manifest scope (omits ~/.claude/ walk).
 
 ## Minor / nit
 
@@ -64,7 +64,7 @@ remove the reconciliation step; document the mechanism, not a snapshot.
 
 ## Disagreement with DeepSeek
 
-- U3 ("remove tmux tracking = phantom task"): GLM-5.2 says NOT phantom — ai-coworker
+- U3 ("remove tmux tracking = phantom task"): GLM-5.2 says NOT phantom — walter-worker
   manifest does walk ~/.claude/ and lists statusline files; Step B1 needs to specify
   exactly what manifest logic is removed.
 

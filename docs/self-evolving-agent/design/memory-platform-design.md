@@ -164,10 +164,10 @@ Each mem0 entry carries our metadata layer on top of mem0's memory model:
 |-------|---------|---------|
 | `memory` | The lesson/pattern text | "MCP first request 403-times-out; retry once before failing" |
 | `user_id` | Which user | `<user>` |
-| `agent_id` | Which agent | `ai-coworker` |
+| `agent_id` | Which agent | `walter-worker` |
 | `run_id` | Which session | `<session-id>` |
 | `metadata.type` | lesson / state / convention / preference | `lesson` |
-| `metadata.project` | Which project | `ai-coworker` |
+| `metadata.project` | Which project | `walter-worker` |
 | `metadata.topic` | Subject area slug | `mcp` |
 | `metadata.problem` | Specific problem slug | `first-request-403` |
 | `metadata.provenance` | agent / hand-written | `agent` |
@@ -224,12 +224,12 @@ At session start, a frozen snapshot of relevant mem0 entries is injected into `C
 ### 7.1 Format
 
 ```markdown
-<!-- MEMORY:ai-coworker START -->
+<!-- MEMORY:walter-worker START -->
 ## Memory Snapshot (frozen at 2026-07-25T10:00:00Z)
 - Project uses ruff, E501 ignored
 - MCP first request 403-times-out — retry once
 - Prefers Chinese; prefers discussing before implementing
-<!-- MEMORY:ai-coworker END -->
+<!-- MEMORY:walter-worker END -->
 ```
 
 ### 7.2 Behavior

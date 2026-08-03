@@ -111,7 +111,7 @@ footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--border);font-
 
 <aside class="callout callout-info">
   <p class="callout-title">Context — PRD ↔ Spec boundary</p>
-  <p>PRD = <strong>what/why</strong> (R1–R7, three-tier model, taxonomy, safety behavior). Spec = <strong>how</strong> — mem0 config, hook wiring, Hermes loop adaptation, schemas, error codes. Three external anchors: <strong>mem0</strong> (storage), <strong>Hermes</strong> (loop patterns, re-hosted), <strong>ai-coworker infra</strong> (hooks, analytics, templates).</p>
+  <p>PRD = <strong>what/why</strong> (R1–R7, three-tier model, taxonomy, safety behavior). Spec = <strong>how</strong> — mem0 config, hook wiring, Hermes loop adaptation, schemas, error codes. Three external anchors: <strong>mem0</strong> (storage), <strong>Hermes</strong> (loop patterns, re-hosted), <strong>walter-worker infra</strong> (hooks, analytics, templates).</p>
 </aside>
 
 <h2 id="s1">§1 Architecture Overview</h2>
@@ -175,7 +175,7 @@ flowchart TB
 <h3>Memory entry schema</h3>
 <pre><code>memory.add(message, metadata={
   "type": "lesson | state | convention | preference",
-  "project": "ai-coworker",
+  "project": "walter-worker",
   "topic": "mcp",
   "problem": "first-request-403",
   "provenance": "agent | hand-written",

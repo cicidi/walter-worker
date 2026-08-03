@@ -74,13 +74,13 @@ Before implementing:
 
 - If the current task would benefit from a more capable LLM, say so and recommend an upgrade.
 
-## 9. Fix ai-coworker Itself
+## 9. Fix walter-worker Itself
 
-**When user asks to fix an issue and it's in ai-coworker itself, invoke the `ai-coworker-fix` skill.**
+**When user asks to fix an issue and it's in walter-worker itself, invoke the `walter-worker-fix` skill.**
 
-- Analyze: is the issue in ai-coworker source code (not just usage/config)?
-- If yes: edit ai-coworker source files, run tests, commit, push, then invoke `ai-coworker-upgrade` to distribute.
-- Dogfood: the fix workflow applies ai-coworker's own tools to itself.
+- Analyze: is the issue in walter-worker source code (not just usage/config)?
+- If yes: edit walter-worker source files, run tests, commit, push, then invoke `walter-worker-upgrade` to distribute.
+- Dogfood: the fix workflow applies walter-worker's own tools to itself.
 ## 0. Golden Rule: Think → Ask → Act
 
 **CRITICAL: Never start work immediately when given a prompt.**
@@ -158,9 +158,9 @@ working directory:
 
 This applies regardless of which project you're currently in. Example:
 - Current directory: `~/project/deterministic-workflow`
-- Task: "add a skill to ai-coworker"
-- Action: Read `~/project/ai-coworker/CLAUDE.md` and `CLAUDE.local.md` first,
-  because the code being modified lives in ai-coworker.
+- Task: "add a skill to walter-worker"
+- Action: Read `~/project/walter-worker/CLAUDE.md` and `CLAUDE.local.md` first,
+  because the code being modified lives in walter-worker.
 """
 
 

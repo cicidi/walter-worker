@@ -89,7 +89,7 @@ class AutoWorkerAgent:
         self,
         mem0_client=None,
         db=None,
-        project: str = "ai-coworker",
+        project: str = "walter-worker",
         state_dir: str = "docs/self-evolving-agent/state",
         work_dir: str = ".",
     ):
@@ -201,7 +201,7 @@ class AutoWorkerAgent:
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
         lines = [
-            "You are the ai-coworker Auto-Worker — an autonomous QA agent.",
+            "You are the walter-worker Auto-Worker — an autonomous QA agent.",
             f"Project: {self.project}",
             f"Date: {today}",
             "",
@@ -378,7 +378,7 @@ def run_autoworker_loop(
     llm_client=None,
     db=None,
     max_hours: int = 12,
-    project: str = "ai-coworker",
+    project: str = "walter-worker",
     state_dir: str | None = None,
     task: str | None = None,
 ) -> dict:

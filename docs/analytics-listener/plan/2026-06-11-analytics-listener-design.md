@@ -46,8 +46,8 @@ session_id: "2026-06-11-T143052-a1b2c3"
 created: "2026-06-11T14:30:52+08:00"
 closed: "2026-06-11T15:45:10+08:00"
 ide: opencode
-project: ai-coworker
-cwd: /home/cicidi/project/ai-coworker
+project: walter-worker
+cwd: /home/cicidi/project/walter-worker
 initiative: auth-migration     # Read from CLAUDE.md, can be appended mid-session
 branch: feat/oauth2             # git branch --show-current
 ```
@@ -100,7 +100,7 @@ Design notes:
 One line appended when each session ends:
 
 ```json
-{"session_id":"a1b2c3","created":"2026-06-11T14:30:52+08:00","ide":"opencode","project":"ai-coworker","message_count":45,"tool_count":12}
+{"session_id":"a1b2c3","created":"2026-06-11T14:30:52+08:00","ide":"opencode","project":"walter-worker","message_count":45,"tool_count":12}
 ```
 
 ## 4. Claude Code Implementation

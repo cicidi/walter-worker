@@ -578,7 +578,7 @@ graph updates immediately when a session ends (no daemon, no 30s latency). If th
 worker crashes mid-merge, the pending file survives (not yet deleted) and is
 re-processed on the next session's hook invocation.
 
-> **Why synchronous hook, not a daemon (review #3 decision):** ai-coworker is a
+> **Why synchronous hook, not a daemon (review #3 decision):** walter-worker is a
 > single-user, low-concurrency tool. A 30s daemon adds process-management and
 > crash-recovery overhead for negligible benefit. The session-end hook already
 > fires per session; running merge there gives immediate updates with no new

@@ -1,6 +1,6 @@
 # Comparison: My Audit Plan vs. The Photo FIX-PLAN
 
-- **My plan**: `docs/plan/2026-07-07-ai-coworker-fix-plan.md` (6 Critical, 5 High, 11 Medium, 18 Low, 2 failing tests)
+- **My plan**: `docs/plan/2026-07-07-walter-worker-fix-plan.md` (6 Critical, 5 High, 11 Medium, 18 Low, 2 failing tests)
 - **Photo plan**: `docs/plan/2026-07-07-photo-fix-plan-transcribed.md` (~30 items across 5 phases; **already executed** — 192 passed / 0 failed, baseline 86/7)
 
 ---
@@ -36,7 +36,7 @@ My plan is **narrower but finds some things theirs missed** — notably a **path
 | `from src.coworker...` breaks installed package | C2 | P1 | Theirs is better: notes **6 sites not 5** (2 inline `python3 -c` in `install.sh`) |
 | `analytics once` KeyError | C1 | P1 (2nd half) | Same fix |
 | CLAUDE.md overwrite / sentinel mismatch | C5 | P2 | Theirs adds: `mkdir` for `.coworker/` + sentinel as a shared constant + backup-before-overwrite |
-| Hardcoded `~/ai-coworker` path (Issue #1) | GH1 | G10 + G2 + H4 | Theirs decomposes it into 5 stale assumptions; mine lumped it together |
+| Hardcoded `~/walter-worker` path (Issue #1) | GH1 | G10 + G2 + H4 | Theirs decomposes it into 5 stale assumptions; mine lumped it together |
 | `semantic_merge` is dead code | L1 | P3 + G1 | Theirs goes further: it's not just dead, it **corrupts documents** (fence-blind, dup-heading, empty-section) and must be fixed *before* wiring (G1) |
 | `initiative activate` swallows errors / false success | H5 | P10 (sub-issue 2) | Theirs also catches the **split-brain global `.active` marker** I missed |
 | `_replace_or_append_block` crash on missing END | H4 | P10 (sub-issue 4) | Same fix (regex range match + self-heal) |
@@ -92,7 +92,7 @@ These are the items I did **not** find. Grouped by why I missed them.
 - **Injected STATIC block describes nonexistent things** (G5) — `_build_static_block` tells the AI about `personal/skills/`, `.cursor/rules/` auto-loading, a 5-stage pipeline, `create-skill` — none exist. Plus duplicates ~55 lines of Karpathy text per project. I didn't audit the *content truthfulness* of generated instructions.
 - **Three docs/ conventions drift** (G13) — init scaffolds `docs/specs/`, static block advertises `docs/architecture|spec|planning`, repo uses `docs/spec/`+`docs/plan/`. I noted docs/ tracked in git (T1) but missed the convention drift.
 - **Session mis-attribution** (P11) — hooks resolve session as `ls -t | head -1` (newest dir) when `SESSION_ID` unset; Claude Code never sets it; concurrent sessions interleave into one record. I found skill double-counting (H3) but not the upstream attribution bug.
-- **Upgrade skill's 5 stale assumptions** (G10) — I found the hardcoded path (GH1) but missed: `~/.config/ai-coworker` paths (copy-paste leakage), `init --project`-as-generator writing files mid-upgrade, Phase 7 calling the Click object as a plain function.
+- **Upgrade skill's 5 stale assumptions** (G10) — I found the hardcoded path (GH1) but missed: `~/.config/walter-worker` paths (copy-paste leakage), `init --project`-as-generator writing files mid-upgrade, Phase 7 calling the Click object as a plain function.
 
 ### D3. Calibration differences
 - I labeled 6 items "Critical"; the photo plan treats most of those as HIGH and reserves true-critical for the data-loss class. Their calibration is more accurate: e.g. my C3/C4 (DB bootstrap) are real but fixable in 20 min — not "critical" in the same sense as P4 (PROTECTED guarantee broken) or P8 (uninstall deletes user hooks).
@@ -110,7 +110,7 @@ These are the items I did **not** find. Grouped by why I missed them.
    - **M9 (NULL→prompt)** — pair with G6b (knowledge layer).
    - **M11 (busy_timeout)** — trivial, fold into the analytics PR.
    - **M1 (encoding=utf-8)** — batch cleanup PR.
-3. **For the junior engineer**: give them the **photo plan** as the primary doc, plus my `2026-07-07-ai-coworker-fix-plan.md` §"What my plan found that the photo plan missed" as a supplemental checklist. The path-traversal item should be filed as its own GitHub issue.
+3. **For the junior engineer**: give them the **photo plan** as the primary doc, plus my `2026-07-07-walter-worker-fix-plan.md` §"What my plan found that the photo plan missed" as a supplemental checklist. The path-traversal item should be filed as its own GitHub issue.
 
 ---
 

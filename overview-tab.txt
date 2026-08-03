@@ -70,7 +70,7 @@
             - cell "0m" [ref=f1e373]
             - cell "2026-07-25T01:30" [ref=f1e374]
           - row [ref=f1e375]:
-            - cell "ai-coworker" [ref=f1e376]
+            - cell "walter-worker" [ref=f1e376]
             - cell "29" [ref=f1e378]
             - cell "225" [ref=f1e379]
             - cell "2,022" [ref=f1e380]
@@ -78,7 +78,7 @@
             - cell "48.1m" [ref=f1e382]
             - cell "2026-07-15T02:48" [ref=f1e383]
           - row [ref=f1e384]:
-            - cell "-home-cicidi-project-ai-coworker" [ref=f1e385]
+            - cell "-home-cicidi-project-walter-worker" [ref=f1e385]
             - cell "20" [ref=f1e387]
             - cell "186" [ref=f1e388]
             - cell "6" [ref=f1e389]

@@ -103,9 +103,9 @@ def real_db(tmp_path):
     db.execute("""
         INSERT INTO sessions (id, ide, project, initiative, message_count, tool_count, created_at)
         VALUES
-        ('sess_a1b2', 'claude', 'ai-coworker', 'self-evolving-agent', 45, 32, '2026-07-20T10:00:00Z'),
-        ('sess_c3d4', 'claude', 'ai-coworker', 'self-evolving-agent', 38, 28, '2026-07-21T14:00:00Z'),
-        ('sess_e5f6', 'claude', 'ai-coworker', 'self-evolving-agent', 52, 41, '2026-07-22T09:00:00Z'),
+        ('sess_a1b2', 'claude', 'walter-worker', 'self-evolving-agent', 45, 32, '2026-07-20T10:00:00Z'),
+        ('sess_c3d4', 'claude', 'walter-worker', 'self-evolving-agent', 38, 28, '2026-07-21T14:00:00Z'),
+        ('sess_e5f6', 'claude', 'walter-worker', 'self-evolving-agent', 52, 41, '2026-07-22T09:00:00Z'),
         ('sess_g7h8', 'claude', 'skill-factory', NULL, 20, 15, '2026-07-23T11:00:00Z'),
         ('sess_x1y2', 'claude', 'skill-factory', NULL, 12, 8, '2026-07-10T08:00:00Z')
     """)
@@ -163,26 +163,26 @@ def populated_mem0(clean_mem0, real_llm):
     """Real mem0 pre-loaded with 10 known experiences. Uses real LLM for extraction."""
     entries = [
         {"memory": "MCP first request after startup often returns 403; retry once before failing.",
-         "metadata": {"type": "lesson", "project": "ai-coworker", "topic": "mcp",
+         "metadata": {"type": "lesson", "project": "walter-worker", "topic": "mcp",
                       "problem": "first-request-403", "provenance": "agent", "state": "active",
                       "source_session": "sess_a1b2", "use_count": 12,
                       "last_used": "2026-07-25T09:00:00Z"}},
-        {"memory": "Ruff E501 (line too long) is project-ignored in ai-coworker; never fix it.",
-         "metadata": {"type": "convention", "project": "ai-coworker", "topic": "lint",
+        {"memory": "Ruff E501 (line too long) is project-ignored in walter-worker; never fix it.",
+         "metadata": {"type": "convention", "project": "walter-worker", "topic": "lint",
                       "problem": "e501-ignored", "provenance": "agent", "state": "active",
                       "source_session": "sess_c3d4", "use_count": 9,
                       "last_used": "2026-07-24T16:00:00Z"}},
         {"memory": "Prefer Chinese for discussion, English for code and commits.",
-         "metadata": {"type": "preference", "project": "ai-coworker", "topic": "language",
+         "metadata": {"type": "preference", "project": "walter-worker", "topic": "language",
                       "provenance": "hand-written", "state": "active",
                       "use_count": 15, "last_used": "2026-07-25T10:00:00Z"}},
         {"memory": "When creating a new CLI command, register it in cli.py AND add a test in tests/python/",
-         "metadata": {"type": "convention", "project": "ai-coworker", "topic": "cli",
+         "metadata": {"type": "convention", "project": "walter-worker", "topic": "cli",
                       "problem": "new-command-pattern", "provenance": "agent", "state": "active",
                       "source_session": "sess_a1b2", "use_count": 18,
                       "last_used": "2026-07-25T10:00:00Z"}},
         {"memory": "Gemini Flash API returns empty response on first cold-start call; warm-up needed",
-         "metadata": {"type": "lesson", "project": "ai-coworker", "topic": "api",
+         "metadata": {"type": "lesson", "project": "walter-worker", "topic": "api",
                       "problem": "gemini-cold-start", "provenance": "agent", "state": "stale",
                       "source_session": "sess_g7h8", "use_count": 3,
                       "last_used": "2026-07-15T10:00:00Z"}},
@@ -330,7 +330,7 @@ class TestMem0ClientAdd:
             user_id="test-user",
             run_id="sess_test_001",
             metadata={
-                "type": "lesson", "project": "ai-coworker",
+                "type": "lesson", "project": "walter-worker",
                 "topic": "mcp", "problem": "first-request-403",
                 "provenance": "agent", "state": "active",
                 "source_session": "sess_test_001",
@@ -348,11 +348,11 @@ class TestMem0ClientAdd:
         """Add 3 entries with different topics → search scoped to one topic."""
         client = make_client(clean_mem0)
         client.add(memory="MCP 403 retry", user_id="u1",
-                   metadata={"topic": "mcp", "project": "ai-coworker", "provenance": "agent"})
+                   metadata={"topic": "mcp", "project": "walter-worker", "provenance": "agent"})
         client.add(memory="Ruff E501 ignored", user_id="u1",
-                   metadata={"topic": "lint", "project": "ai-coworker", "provenance": "agent"})
+                   metadata={"topic": "lint", "project": "walter-worker", "provenance": "agent"})
         client.add(memory="Click CLI pattern", user_id="u1",
-                   metadata={"topic": "cli", "project": "ai-coworker", "provenance": "agent"})
+                   metadata={"topic": "cli", "project": "walter-worker", "provenance": "agent"})
 
         results = client.search(query="lint", filters={"metadata.topic": "lint"})
         assert len(results) >= 1
@@ -401,7 +401,7 @@ class TestMem0ClientSearch:
         """Query 'MCP timeout handling' finds entry about 'MCP 403 retry'."""
         client = make_client(clean_mem0)
         client.add(memory="MCP first request returns 403; retry once before failing.",
-                   user_id="u1", metadata={"topic": "mcp", "project": "ai-coworker"})
+                   user_id="u1", metadata={"topic": "mcp", "project": "walter-worker"})
 
         results = client.search(query="MCP timeout handling", top_k=5)
         assert len(results) >= 1
@@ -417,7 +417,7 @@ class TestMem0ClientSearch:
         client = make_client(clean_mem0)
         for i in range(10):
             client.add(memory=f"test entry {i}", user_id="u1",
-                       metadata={"topic": f"topic_{i}", "project": "ai-coworker"})
+                       metadata={"topic": f"topic_{i}", "project": "walter-worker"})
 
         results = client.search(query="test entry", top_k=3)
         assert len(results) <= 3
@@ -425,19 +425,19 @@ class TestMem0ClientSearch:
     def test_search_by_project_filter(self, populated_mem0):
         """Filter by project returns only matching entries."""
         client = make_client(populated_mem0)
-        results = client.search(query="", filters={"metadata.project": "ai-coworker"})
-        assert all(r["metadata"]["project"] == "ai-coworker" for r in results)
+        results = client.search(query="", filters={"metadata.project": "walter-worker"})
+        assert all(r["metadata"]["project"] == "walter-worker" for r in results)
 
     def test_search_by_multiple_filters(self, populated_mem0):
         """Combined project + provenance filters work together."""
         client = make_client(populated_mem0)
         results = client.search(
             query="",
-            filters={"metadata.project": "ai-coworker", "metadata.provenance": "agent"}
+            filters={"metadata.project": "walter-worker", "metadata.provenance": "agent"}
         )
         assert len(results) >= 1
         for r in results:
-            assert r["metadata"]["project"] == "ai-coworker"
+            assert r["metadata"]["project"] == "walter-worker"
             assert r["metadata"]["provenance"] == "agent"
 
 
@@ -458,13 +458,13 @@ class TestMem0ClientUpdate:
         """Update state only → topic, project unchanged."""
         client = make_client(clean_mem0)
         entry_id = client.add(memory="test", user_id="u1",
-                              metadata={"topic": "mcp", "project": "ai-coworker", "state": "active"})
+                              metadata={"topic": "mcp", "project": "walter-worker", "state": "active"})
 
         client.update(entry_id, metadata={"state": "archived"})
 
         result = client.get(entry_id)
         assert result["metadata"]["topic"] == "mcp"
-        assert result["metadata"]["project"] == "ai-coworker"
+        assert result["metadata"]["project"] == "walter-worker"
         assert result["metadata"]["state"] == "archived"
 
 
@@ -756,11 +756,11 @@ SAMPLE_CLAUDE_LOCAL_MD = """# Personal Working Context
 ## Config
 - Project Catalog: ~/.coworker/project.yaml
 
-<!-- MEMORY:ai-coworker START -->
+<!-- MEMORY:walter-worker START -->
 ## Memory Snapshot (frozen at 2026-07-24T10:00:00Z)
 - Ruff E501 is project-ignored
 - Prefers Chinese for discussion
-<!-- MEMORY:ai-coworker END -->
+<!-- MEMORY:walter-worker END -->
 
 ## Current Task
 Active task: design phase
@@ -778,18 +778,18 @@ Active task: design phase
 
 class TestBuildSnapshot:
     def test_build_snapshot_scoped_to_project(self, populated_mem0):
-        """Snapshot query filters by project → only ai-coworker entries returned."""
+        """Snapshot query filters by project → only walter-worker entries returned."""
         client = make_client(populated_mem0)
-        snapshot = build_snapshot(mem0_client=client, project="ai-coworker", top_k=10)
+        snapshot = build_snapshot(mem0_client=client, project="walter-worker", top_k=10)
         assert len(snapshot) >= 1
         for entry in snapshot:
             meta = entry.get("metadata", {})
-            assert meta.get("project") == "ai-coworker"
+            assert meta.get("project") == "walter-worker"
 
     def test_build_snapshot_respects_top_k(self, populated_mem0):
         """top_k=2 returns at most 2 entries."""
         client = make_client(populated_mem0)
-        snapshot = build_snapshot(mem0_client=client, project="ai-coworker", top_k=2)
+        snapshot = build_snapshot(mem0_client=client, project="walter-worker", top_k=2)
         assert len(snapshot) <= 2
 
     def test_build_snapshot_empty_project(self, clean_mem0):
@@ -805,14 +805,14 @@ class TestInjectIntoLocalMd:
         path = tmp_path / "CLAUDE.local.md"
         path.write_text(SAMPLE_CLAUDE_LOCAL_NO_MEMORY)
 
-        inject_into_local_md(path, project="ai-coworker", entries=[
+        inject_into_local_md(path, project="walter-worker", entries=[
             {"memory": "MCP 403 retry pattern", "metadata": {"topic": "mcp"}}
         ])
 
         content = path.read_text()
-        assert "<!-- MEMORY:ai-coworker START -->" in content
+        assert "<!-- MEMORY:walter-worker START -->" in content
         assert "MCP 403 retry pattern" in content
-        assert "<!-- MEMORY:ai-coworker END -->" in content
+        assert "<!-- MEMORY:walter-worker END -->" in content
         assert "Project Catalog" in content  # human content preserved
         assert "design phase" in content
 
@@ -821,24 +821,24 @@ class TestInjectIntoLocalMd:
         path = tmp_path / "CLAUDE.local.md"
         path.write_text(SAMPLE_CLAUDE_LOCAL_MD)
 
-        inject_into_local_md(path, project="ai-coworker", entries=[
+        inject_into_local_md(path, project="walter-worker", entries=[
             {"memory": "NEW: MCP timeout workaround", "metadata": {"topic": "mcp"}}
         ])
 
         content = path.read_text()
         assert "Ruff E501 is project-ignored" not in content  # old removed
         assert "NEW: MCP timeout workaround" in content
-        assert content.count("<!-- MEMORY:ai-coworker START -->") == 1
-        assert content.count("<!-- MEMORY:ai-coworker END -->") == 1
+        assert content.count("<!-- MEMORY:walter-worker START -->") == 1
+        assert content.count("<!-- MEMORY:walter-worker END -->") == 1
 
     def test_inject_preserves_content_outside_markers(self, tmp_path):
         """Content outside MEMORY markers must never change."""
         prefix = "# Config\n\n"
         suffix = "\n## Task\nactive\n"
         path = tmp_path / "CLAUDE.local.md"
-        path.write_text(prefix + "<!-- MEMORY:ai-coworker START -->\nold\n<!-- MEMORY:ai-coworker END -->" + suffix)
+        path.write_text(prefix + "<!-- MEMORY:walter-worker START -->\nold\n<!-- MEMORY:walter-worker END -->" + suffix)
 
-        inject_into_local_md(path, project="ai-coworker", entries=[{"memory": "new", "metadata": {}}])
+        inject_into_local_md(path, project="walter-worker", entries=[{"memory": "new", "metadata": {}}])
 
         content = path.read_text()
         assert content.startswith(prefix)
@@ -846,11 +846,11 @@ class TestInjectIntoLocalMd:
 
     def test_inject_multi_project_blocks_independent(self, tmp_path):
         """Only the matching project block is replaced."""
-        content = "<!-- MEMORY:ai-coworker START -->\nold\n<!-- MEMORY:ai-coworker END -->\n<!-- MEMORY:skill-factory START -->\nunchanged\n<!-- MEMORY:skill-factory END -->"
+        content = "<!-- MEMORY:walter-worker START -->\nold\n<!-- MEMORY:walter-worker END -->\n<!-- MEMORY:skill-factory START -->\nunchanged\n<!-- MEMORY:skill-factory END -->"
         path = tmp_path / "CLAUDE.local.md"
         path.write_text(content)
 
-        inject_into_local_md(path, project="ai-coworker", entries=[{"memory": "new"}])
+        inject_into_local_md(path, project="walter-worker", entries=[{"memory": "new"}])
         result = path.read_text()
         assert "new" in result
         assert "unchanged" in result  # skill-factory block untouched
@@ -861,7 +861,7 @@ class TestInjectIntoLocalMd:
         path.write_text(SAMPLE_CLAUDE_LOCAL_MD)
         client = make_client(populated_mem0)
 
-        refresh_snapshot(path, mem0_client=client, project="ai-coworker")
+        refresh_snapshot(path, mem0_client=client, project="walter-worker")
 
         content = path.read_text()
         # Old snapshot replaced with fresh data
@@ -870,16 +870,16 @@ class TestInjectIntoLocalMd:
 
 class TestParseMarkers:
     def test_parse_markers_extracts_project_and_content(self):
-        block = "<!-- MEMORY:ai-coworker START -->\n- lesson 1\n<!-- MEMORY:ai-coworker END -->"
+        block = "<!-- MEMORY:walter-worker START -->\n- lesson 1\n<!-- MEMORY:walter-worker END -->"
         result = parse_markers(block)
-        assert result == ("ai-coworker", "- lesson 1")
+        assert result == ("walter-worker", "- lesson 1")
 
     def test_parse_markers_no_block_returns_none(self):
         result = parse_markers("# Just markdown\nNo markers.")
         assert result is None
 
     def test_parse_markers_unclosed_returns_none(self):
-        result = parse_markers("<!-- MEMORY:ai-coworker START -->\nno end")
+        result = parse_markers("<!-- MEMORY:walter-worker START -->\nno end")
         assert result is None
 ```
 
@@ -893,7 +893,7 @@ class TestCuratorArchive:
         client = make_client(clean_mem0)
         entry_id = client.add(memory="old lesson", user_id="u1", metadata={
             "state": "active", "last_used": "2026-06-24T10:00:00Z",
-            "provenance": "agent", "use_count": 0, "project": "ai-coworker"
+            "provenance": "agent", "use_count": 0, "project": "walter-worker"
         })
         run_curator(mem0_client=client, current_date="2026-07-25")
         updated = client.get(entry_id)
@@ -919,7 +919,7 @@ class TestCuratorArchive:
         client = make_client(clean_mem0)
         entry_id = client.add(memory="popular pattern", user_id="u1", metadata={
             "state": "active", "provenance": "agent", "use_count": 15,
-            "project": "ai-coworker", "last_used": "2026-07-25T10:00:00Z"
+            "project": "walter-worker", "last_used": "2026-07-25T10:00:00Z"
         })
         run_curator(mem0_client=client, pin_threshold=10)
         updated = client.get(entry_id)
@@ -936,7 +936,7 @@ class TestCuratorExport:
         regenerate_export(mem0_client=client, export_path=export_path)
 
         content = export_path.read_text()
-        assert "## Project: ai-coworker" in content
+        assert "## Project: walter-worker" in content
         assert "MCP first request" in content or "Ruff E501" in content
 
     def test_regenerate_export_active_only(self, populated_mem0, tmp_path):

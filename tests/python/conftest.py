@@ -104,21 +104,21 @@ def populated_mem0(clean_mem0):
         {
             "memory": "MCP first request 403-times-out; retry once before failing.",
             "metadata": {
-                "type": "lesson", "project": "ai-coworker", "topic": "mcp",
+                "type": "lesson", "project": "walter-worker", "topic": "mcp",
                 "problem": "first-request-403", "provenance": "agent", "state": "active",
             },
         },
         {
             "memory": "Use ruff for linting with E501 ignored for this project.",
             "metadata": {
-                "type": "convention", "project": "ai-coworker", "topic": "linting",
+                "type": "convention", "project": "walter-worker", "topic": "linting",
                 "provenance": "agent", "state": "active",
             },
         },
         {
             "memory": "Prefer Chinese for communication; discuss before implementing.",
             "metadata": {
-                "type": "preference", "project": "ai-coworker", "topic": "communication",
+                "type": "preference", "project": "walter-worker", "topic": "communication",
                 "provenance": "hand-written", "state": "active",
             },
         },

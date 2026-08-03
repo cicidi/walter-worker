@@ -23,7 +23,7 @@ Create a structured GitHub Issue. Covers project bugs, coworker system issues, a
 → Check if coworker project catalog has GitHub repos
 → List available: "Report to which repo?"
   1. {current project} (default)
-  2. ai-coworker
+  2. walter-worker
   3. skill-factory
   4. Other (enter owner/repo manually)
 → Default: current project's repo

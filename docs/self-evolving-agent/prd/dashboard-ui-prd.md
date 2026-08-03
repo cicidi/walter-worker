@@ -4,7 +4,7 @@
 
 ## 1. Overview
 
-Analytics dashboard for ai-coworker. Displays session data, skill usage, tool metrics,
+Analytics dashboard for walter-worker. Displays session data, skill usage, tool metrics,
 cost analytics, memory health, and self-evolution metrics.
 
 **Current state:** v2 redesign deployed (3-tab nav), partially complete.
@@ -126,7 +126,7 @@ Project skills in `skills/` directory must be installed to `.claude/commands/`.
 **Status:**
 - [x] 30 missing skills installed to `.claude/commands/`
 - [x] `coworker init` auto-discovers and installs project skills
-- [x] `ai-coworker-upgrade` Phase 4 includes skill installation step
+- [x] `walter-worker-upgrade` Phase 4 includes skill installation step
 - [x] `_promote_to_active()` installs to `~/.claude/commands/`
 
 ### R9: Wrong-History Auto-Creation

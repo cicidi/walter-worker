@@ -43,8 +43,8 @@ The **self-evolving agent** learns from every session and gets smarter over time
 ## Install
 
 ```bash
-git clone https://github.com/cicidi/ai-coworker.git ~/ai-coworker
-cd ~/ai-coworker
+git clone https://github.com/cicidi/walter-worker.git ~/walter-worker
+cd ~/walter-worker
 pipx install .           # or: python3 -m venv .venv && source .venv/bin/activate && pip install -e .
 ```
 
@@ -86,7 +86,7 @@ AI Coworker writes managed sections into your `CLAUDE.md` (or `instructions.md` 
 ## Project Catalog
 | Project | Path | Upstream | Downstream |
 |---------|------|----------|------------|
-| ai-coworker | ~/ai-coworker | - | skill-factory |
+| walter-worker | ~/walter-worker | - | skill-factory |
 
 ## Docs Directory Structure
 ...
@@ -100,7 +100,7 @@ When you activate an initiative:
 ```markdown
 <!-- INITIATIVE:skill-migration START -->
 ## Active Initiative: skill-migration
-> Migrate all skills from ai-coworker to skill-factory
+> Migrate all skills from walter-worker to skill-factory
 ...
 <!-- INITIATIVE:skill-migration END -->
 ```

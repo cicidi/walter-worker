@@ -190,7 +190,7 @@
 | NF2 | Query latency (traverse + decay compute) | < 100ms |
 | NF3 | Memory usage (10k nodes in memory) | < 500 MB |
 | NF4 | File size growth per session | < 5 KB |
-| NF5 | Graphify sync time (ai-coworker size) | < 30s |
+| NF5 | Graphify sync time (walter-worker size) | < 30s |
 
 ---
 

@@ -1,6 +1,6 @@
 # Self-Evolving Agent — PRD
 
-> Goal: Ship an autonomous agent that self-evolves in a continuous loop to achieve a goal. The agent is Claude Code (and OpenCode), harnessed by ai-coworker. The agent takes real action — monitor, orchestrate — grounded in real sources.
+> Goal: Ship an autonomous agent that self-evolves in a continuous loop to achieve a goal. The agent is Claude Code (and OpenCode), harnessed by walter-worker. The agent takes real action — monitor, orchestrate — grounded in real sources.
 
 ## Status
 
@@ -74,7 +74,7 @@ Implementation choices (memory substrate, skill-refinement patterns, hook wiring
 | Evolution scope | Skills + Context + Code + Config (full scope) | Everything the agent touches can improve |
 | Memory architecture | Three-tier: Session → Project-State → Long-Term | Per-turn sync, cross-IDE/cross-project search, semantic + exact retrieval, periodic cleanup |
 | Skill creation | Reuse existing `skill-create` / `skill-edit` | Don't reinvent — trigger them automatically |
-| Orchestration | The agent decides how to decompose tasks | ai-coworker doesn't hardcode workflows |
+| Orchestration | The agent decides how to decompose tasks | walter-worker doesn't hardcode workflows |
 | Principles | 优先复用 → 不够改造 → 没轮子造轮子 | Pragmatic, not dogmatic |
 
 ### 1.6 Knowledge Taxonomy
@@ -155,7 +155,7 @@ For programmatic use, the same infrastructure is exposed as a CLI with an explic
 ### 2.3 No Publish / Transact (MVP)
 
 - `publish` and `transact` are out of scope for MVP
-- `orchestrate` is delegated to the agent — ai-coworker doesn't hardcode task decomposition
+- `orchestrate` is delegated to the agent — walter-worker doesn't hardcode task decomposition
 
 ---
 
@@ -428,7 +428,7 @@ The agent evolves in the background — but the user MUST be able to verify that
 | Flag | Meaning |
 |------|---------|
 | 🟢 Auto-Train | Created by the self-evolution engine from session patterns |
-| 🔵 Bundled | Shipped with ai-coworker or skill-factory |
+| 🔵 Bundled | Shipped with walter-worker or skill-factory |
 | ⚪ Manual | Hand-written by the user, never auto-modified |
 
 **R9 — Auto-train flag (experiences):** Every experience/lesson in long-term memory MUST carry the same provenance flag. Auto-extracted experiences are distinguishable from hand-written ones.
@@ -451,7 +451,7 @@ These requirements are what the dashboard must show. How (API endpoints, table s
 
 ## 6. Implementation
 
-Implementation (memory substrate, skill-refinement loop, hook/event wiring, schemas, error handling, cost model, reuse analysis of existing ai-coworker infrastructure) is specified in the [spec](../spec/self-evolving-agent-spec.md). This PRD intentionally omits *how* the requirements are met.
+Implementation (memory substrate, skill-refinement loop, hook/event wiring, schemas, error handling, cost model, reuse analysis of existing walter-worker infrastructure) is specified in the [spec](../spec/self-evolving-agent-spec.md). This PRD intentionally omits *how* the requirements are met.
 
 ---
 

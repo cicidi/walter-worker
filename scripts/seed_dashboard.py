@@ -21,7 +21,7 @@ from src.coworker.analytics.import_data import import_session
 
 # ── Configuration ──────────────────────────────────────────────────────────────
 
-PROJECTS = ["ai-coworker", "skill-factory", "dotfiles", "opencode"]
+PROJECTS = ["walter-worker", "skill-factory", "dotfiles", "opencode"]
 IDES = ["opencode", "claude"]
 BRANCHES = [
     "feat/dashboard-v1", "feat/listener-v1", "feat/knowledge-skill",
@@ -35,7 +35,7 @@ INITIATIVES = [
 
 # Real project files for file operations
 PROJECT_FILES = {
-    "ai-coworker": [
+    "walter-worker": [
         "CLAUDE.md", "src/coworker/models.py", "src/coworker/cli.py",
         "src/coworker/config.py", "src/coworker/dashboard/app.py",
         "src/coworker/dashboard/queries.py",
@@ -292,7 +292,7 @@ def generate_tool_calls(project: str, start: datetime, duration_min: int, base_s
     interval = (duration_min * 60) / 50  # rough spacing
 
     # Phase 1: Exploration (Read, Glob, Grep)
-    exploration_files = random.sample(PROJECT_FILES.get(project, PROJECT_FILES["ai-coworker"]),
+    exploration_files = random.sample(PROJECT_FILES.get(project, PROJECT_FILES["walter-worker"]),
                                        k=random.randint(3, 6))
     for f in exploration_files:
         seq += 1

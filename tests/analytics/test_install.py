@@ -51,15 +51,15 @@ def test_claude_hooks_configured(installed_home):
 
 
 def test_opencode_skills_deployed(installed_home):
-    """OpenCode: ai-coworker skills are deployed under .config/opencode/skills/.
+    """OpenCode: walter-worker skills are deployed under .config/opencode/skills/.
 
     Note: install.sh currently does NOT create/modify the OpenCode plugin
     config on a fresh HOME (it reads config.json and silently warns if absent).
     That registration gap is tracked under G7; this test asserts what
     install.sh reliably produces today — the deployed skill tree.
     """
-    skills_dir = installed_home / ".config" / "opencode" / "skills" / "ai-coworker"
-    assert skills_dir.is_dir(), "opencode ai-coworker skills dir missing"
+    skills_dir = installed_home / ".config" / "opencode" / "skills" / "walter-worker"
+    assert skills_dir.is_dir(), "opencode walter-worker skills dir missing"
     skill_mds = list(skills_dir.rglob("SKILL.md"))
     assert skill_mds, "no SKILL.md files deployed under opencode skills dir"
 

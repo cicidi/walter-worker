@@ -5,9 +5,9 @@ description: Auto-scan project and generate config — detects language, depende
 triggers:
 - init
 - setup coworker
-- initialize ai coworker
+- initialize walter worker
 - coworker init
-when-to-use: When setting up ai-coworker for a new project
+when-to-use: When setting up walter-worker for a new project
 license: MIT
 compatibility: claude-code,opencode,gemini
 ---

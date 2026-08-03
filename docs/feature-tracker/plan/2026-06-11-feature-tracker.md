@@ -1,7 +1,7 @@
 # Feature Tracker
 
 <!-- PROTECTED -->
-Project: ai-coworker
+Project: walter-worker
 Last Updated: 2026-06-11
 <!-- END PROTECTED -->
 

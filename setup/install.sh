@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # =============================================================================
-# ai-coworker install.sh
+# walter-worker install.sh
 # Installs coworker skills from skill-factory to Claude Code (primary) and
 # OpenCode (symlink/copy).
 #
@@ -142,13 +142,13 @@ mkdir -p "$CLAUDE_DIR"
 ok "Claude Code skills dir: $CLAUDE_DIR"
 
 # =============================================================================
-# Step 6 — Deploy ai-coworker skills to OpenCode skill directory
+# Step 6 — Deploy walter-worker skills to OpenCode skill directory
 # =============================================================================
-OPENCODE_SKILLS_DIR="$HOME/.config/opencode/skills/ai-coworker"
-log "Deploying ai-coworker skills to OpenCode skill directory..."
+OPENCODE_SKILLS_DIR="$HOME/.config/opencode/skills/walter-worker"
+log "Deploying walter-worker skills to OpenCode skill directory..."
 
 if [[ ! -d "$REPO_ROOT/skills" ]]; then
-  warn "No skills/ directory found in ai-coworker repo — skipping"
+  warn "No skills/ directory found in walter-worker repo — skipping"
 else
   mkdir -p "$OPENCODE_SKILLS_DIR"
 
@@ -224,7 +224,7 @@ index_skills() {
   done
 }
 
-index_skills "$SKILL_FACTORY_DIR/ai-coworker-skills" "[factory] "
+index_skills "$SKILL_FACTORY_DIR/walter-worker-skills" "[factory] "
 index_skills "$SKILL_FACTORY_DIR/personal-skills" "[personal] "
 index_skills "$SKILL_FACTORY_DIR/import-skills" "[import] "
 index_skills "$REPO_ROOT/skills" "[bundle] "
@@ -490,12 +490,12 @@ manifest = {
 }
 # Files we know were written (conditional on what actually exists).
 # Exclude claude-tmux-config's owned dirs so this manifest never claims them
-# (otherwise ai-coworker uninstall could delete the statusline/theme files).
+# (otherwise walter-worker uninstall could delete the statusline/theme files).
 exclude_prefixes = (f'{home}/.claude/statusline/', f'{home}/.tmux/conf.d/',
                     f'{home}/.tmux/scripts/status_info.sh')
 for d in [f'{home}/.coworker/analytics', f'{home}/.coworker/skills',
           f'{home}/.claude', f'{home}/.opencode',
-          f'{home}/.config/opencode/skills/ai-coworker']:
+          f'{home}/.config/opencode/skills/walter-worker']:
     if os.path.isdir(d):
         for root, dirs, files in os.walk(d):
             for fn in files:
@@ -517,7 +517,7 @@ if os.path.isfile(sf):
                     for h in g.get('hooks', []):
                         manifest['hook_commands'].append(h.get('command', ''))
 # Owned dirs
-for d in [f'{home}/.coworker', f'{home}/.config/opencode/skills/ai-coworker']:
+for d in [f'{home}/.coworker', f'{home}/.config/opencode/skills/walter-worker']:
     if os.path.isdir(d):
         manifest['owned_dirs'].append(d)
 os.makedirs(f'{home}/.coworker', exist_ok=True)

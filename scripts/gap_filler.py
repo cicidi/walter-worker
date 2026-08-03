@@ -6,7 +6,7 @@ Reads decision raw data, uses LLM to synthesize PRD/spec/design docs,
 and writes them in doc-organize format.
 
 Usage:
-    python scripts/gap_filler.py --project ai-coworker
+    python scripts/gap_filler.py --project walter-worker
     python scripts/gap_filler.py --all
 """
 from __future__ import annotations
@@ -222,7 +222,7 @@ def main():
     args = parser.parse_args()
 
     project_map = {
-        "ai-coworker": HOME / "project" / "ai-coworker",
+        "walter-worker": HOME / "project" / "walter-worker",
         "skill-factory": HOME / "project" / "skill-factory",
         "mfangdai": HOME / "project" / "mfangdai",
         "hackathon-video-gen": HOME / "project" / "hackathon-video-gen",

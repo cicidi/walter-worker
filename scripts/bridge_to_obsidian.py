@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Bridge pipeline: ai-coworker analytics SQLite → claude-obsidian Obsidian vault.
+Bridge pipeline: walter-worker analytics SQLite → claude-obsidian Obsidian vault.
 
 Exports session memory as structured knowledge cards and session notes into
 the claude-obsidian vault format with wikilinks, frontmatter, and tags.
@@ -498,7 +498,7 @@ status: evergreen
 # Recent Context
 
 ## Last Updated
-{datetime.now().strftime('%Y-%m-%d %H:%M')} — Coworker Brain sync from ai-coworker analytics.
+{datetime.now().strftime('%Y-%m-%d %H:%M')} — Coworker Brain sync from walter-worker analytics.
 
 ## Stats
 - **Sessions:** {len(sessions)}

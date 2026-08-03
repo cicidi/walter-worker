@@ -1674,7 +1674,7 @@ from datetime import datetime, timedelta
 from src.coworker.analytics.db import init_db
 from src.coworker.analytics.import_data import import_session
 
-PROJECTS = ["ai-coworker", "skill-factory", "dotfiles"]
+PROJECTS = ["walter-worker", "skill-factory", "dotfiles"]
 TOOLS = ["Bash", "Read", "Write", "Edit", "Skill", "TodoWrite", "Glob", "Grep", "Task", "Question"]
 SKILLS = ["brainstorming", "writing-plans", "systematic-debugging", "executing-plans", "subagent-driven-dev"]
 FILES = [

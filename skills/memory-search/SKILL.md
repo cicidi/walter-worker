@@ -33,7 +33,7 @@ coworker memory query "<query>"
 Or:
 
 ```
-coworker memory search "<query>" --project ai-coworker --limit 10
+coworker memory search "<query>" --project walter-worker --limit 10
 ```
 
 ## Implementation

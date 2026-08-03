@@ -1,7 +1,7 @@
 # Knowledge Skill PRD
 
 <!-- PROTECTED -->
-Project: ai-coworker
+Project: walter-worker
 Owner: cicidi
 Last Updated: 2026-06-11
 Status: PLANNED

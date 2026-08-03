@@ -16,7 +16,7 @@ MARKER_START = "<!-- MEMORY:{project} START -->"
 MARKER_END = "<!-- MEMORY:{project} END -->"
 
 
-def build_snapshot(mem0_client, project: str = "ai-coworker", top_k: int = 10) -> str:
+def build_snapshot(mem0_client, project: str = "walter-worker", top_k: int = 10) -> str:
     """Build a memory snapshot block for injection into CLAUDE.local.md.
 
     Args:
@@ -53,7 +53,7 @@ def build_snapshot(mem0_client, project: str = "ai-coworker", top_k: int = 10) -
     return "\n".join(lines)
 
 
-def inject_into_local_md(local_md_path: str, snapshot: str, project: str = "ai-coworker") -> bool:
+def inject_into_local_md(local_md_path: str, snapshot: str, project: str = "walter-worker") -> bool:
     """Inject (or replace) a memory snapshot block in CLAUDE.local.md.
 
     Args:
@@ -103,7 +103,7 @@ def inject_into_local_md(local_md_path: str, snapshot: str, project: str = "ai-c
     return True
 
 
-def remove_snapshot(local_md_path: str, project: str = "ai-coworker") -> bool:
+def remove_snapshot(local_md_path: str, project: str = "walter-worker") -> bool:
     """Remove the memory snapshot block from CLAUDE.local.md.
 
     Returns True if the block was found and removed.

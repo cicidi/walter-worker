@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>Self-Evolving Agent PRD v6</title><style>body{font-family:sans-serif;max-width:960px;margin:0 auto;padding:20px;line-height:1.6} table{border-collapse:collapse;width:100%} th,td{border:1px solid #ddd;padding:8px;text-align:left} th{background:#f5f5f5} code{background:#f0f0f0;padding:2px 4px;border-radius:3px} pre{background:#f5f5f5;padding:1em;overflow-x:auto} h1,h2,h3{border-bottom:1px solid #eee;padding-bottom:.3em}</style></head><body><h1>Self-Evolving Agent — PRD</h1>
 <blockquote>
-<p>Goal: Ship an autonomous agent that self-evolves in a continuous loop to achieve a goal. The agent is Claude Code (and OpenCode), harnessed by ai-coworker. The agent takes real action — monitor, orchestrate — grounded in real sources.</p>
+<p>Goal: Ship an autonomous agent that self-evolves in a continuous loop to achieve a goal. The agent is Claude Code (and OpenCode), harnessed by walter-worker. The agent takes real action — monitor, orchestrate — grounded in real sources.</p>
 </blockquote>
 <h2>Status</h2>
 <table>
@@ -126,7 +126,7 @@
 <tr>
 <td>Orchestration</td>
 <td>The agent decides how to decompose tasks</td>
-<td>ai-coworker doesn't hardcode workflows</td>
+<td>walter-worker doesn't hardcode workflows</td>
 </tr>
 <tr>
 <td>Principles</td>
@@ -295,7 +295,7 @@
 <h3>2.3 No Publish / Transact (MVP)</h3>
 <ul>
 <li><code>publish</code> and <code>transact</code> are out of scope for MVP</li>
-<li><code>orchestrate</code> is delegated to the agent — ai-coworker doesn't hardcode task decomposition</li>
+<li><code>orchestrate</code> is delegated to the agent — walter-worker doesn't hardcode task decomposition</li>
 </ul>
 <hr />
 <h2>3. Memory — Three-Tier Architecture</h2>
@@ -618,7 +618,7 @@ When you complete a complex task using significant tool calls:
 <p>Collection is automatic per session and surfaced in curator reports. Exact formulas are an implementation detail (spec).</p>
 <hr />
 <h2>6. Implementation</h2>
-<p>Implementation (memory substrate, skill-refinement loop, hook/event wiring, schemas, error handling, cost model, reuse analysis of existing ai-coworker infrastructure) is specified in the <a href="../spec/self-evolving-agent-spec.md">spec</a>. This PRD intentionally omits <em>how</em> the requirements are met.</p>
+<p>Implementation (memory substrate, skill-refinement loop, hook/event wiring, schemas, error handling, cost model, reuse analysis of existing walter-worker infrastructure) is specified in the <a href="../spec/self-evolving-agent-spec.md">spec</a>. This PRD intentionally omits <em>how</em> the requirements are met.</p>
 <hr />
 <h2>7. Out of Scope (MVP)</h2>
 <ul>

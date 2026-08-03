@@ -31,7 +31,7 @@ For each metric, document:
 | **Display location** | Dashboard → Initiatives tab → table row 1 |
 | **JSON path** | `$.initiative` in `/api/initiatives` response |
 | **DB location** | `analytics.db` → `sessions` table → `initiative` column |
-| **Raw source** | Git branch name `/home/cicidi/project/ai-coworker/.git/HEAD` |
+| **Raw source** | Git branch name `/home/cicidi/project/walter-worker/.git/HEAD` |
 | **Expected value** | `self-evolving-agent` (current branch) |
 
 ### Step 2: Trace — Does the source match the DB?

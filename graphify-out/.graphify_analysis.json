@@ -2149,7 +2149,7 @@
       "tests_python_test_skill_factory_integration_testdeployconsistency_test_deployed_skills_have_complete_structure",
       "tests_python_test_skill_factory_integration_testdeployconsistency_test_deployed_source_skills_match",
       "tests_python_test_skill_factory_integration_testskillfactorysource",
-      "tests_python_test_skill_factory_integration_testskillfactorysource_test_ai_coworker_skills_have_skill_md",
+      "tests_python_test_skill_factory_integration_testskillfactorysource_test_walter_worker_skills_have_skill_md",
       "tests_python_test_skill_factory_integration_testskillfactorysource_test_source_has_conventions",
       "tests_python_test_skill_factory_integration_testskillfactorysource_test_source_has_skill_dirs",
       "tests_python_test_skill_factory_integration_testskillfactorysource_test_source_repo_exists",
@@ -2988,7 +2988,7 @@
       "tests_python_test_dashboard_testwebsocket_test_websocket_returns_overview_on_refresh"
     ],
     "198": [
-      "pkg_ai_coworker"
+      "pkg_walter_worker"
     ],
     "199": [
       "src_coworker_analytics_init"

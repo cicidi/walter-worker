@@ -313,13 +313,13 @@ def test_build_summary_prompt():
     from coworker.analytics.knowledge import build_summary_prompt
 
     data = {
-        "project": "ai-coworker",
+        "project": "walter-worker",
         "initiative": "test-coverage",
         "messages": [{"role": "user"}],
         "tool_calls": [{"tool": "Bash"}],
     }
     prompt = build_summary_prompt(data)
-    assert "ai-coworker" in prompt
+    assert "walter-worker" in prompt
     assert "test-coverage" in prompt
     assert "Messages: 1" in prompt
     assert "Tool calls: 1" in prompt

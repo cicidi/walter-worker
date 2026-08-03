@@ -1,4 +1,4 @@
-# ai-coworker — CLAUDE.md
+# walter-worker — CLAUDE.md
 
 
 

@@ -1,14 +1,14 @@
 # CLAUDE.md Design — Three-Layer Architecture
 
 <!-- PROTECTED -->
-Project: ai-coworker
+Project: walter-worker
 Last Updated: 2026-07-01
 Initiative: claude-md-design
 <!-- END PROTECTED -->
 
 ## Overview
 
-Redesign how CLAUDE.md works across ai-coworker — separating concerns into three distinct layers: Global (programming philosophy), Project (meta-controller), Skill (workflow execution). All configuration MUST be compatible with both Claude Code and OpenCode. No tool-specific features (e.g., `.claude/rules/`) unless they have an OpenCode equivalent.
+Redesign how CLAUDE.md works across walter-worker — separating concerns into three distinct layers: Global (programming philosophy), Project (meta-controller), Skill (workflow execution). All configuration MUST be compatible with both Claude Code and OpenCode. No tool-specific features (e.g., `.claude/rules/`) unless they have an OpenCode equivalent.
 
 **Evidence base**: [CLAUDE.md Engineering: Best Practices and Anti-Patterns](./2026-07-01-claude-md-best-practices-paper.md) — systematic literature review of 22 sources including Anthropic Applied AI, Chroma context-rot experiments, Superpowers (244k stars), and Andrej Karpathy's behavioral principles. This design was validated against 6 best practices and 5 anti-patterns identified in the review.
 
@@ -91,7 +91,7 @@ Include only fundamental, slow-changing project identity:
 - Repo URL (defines the project)
 - Local path (if non-obvious)
 
-Architecture quirks and project-specific conventions can be added by the team during `ai-coworker-setup-in-project` interview.
+Architecture quirks and project-specific conventions can be added by the team during `walter-worker-setup-in-project` interview.
 
 #### 2.1.1 Project Relationships
 List upstream / downstream / peer projects:
@@ -317,7 +317,7 @@ After context compaction or session truncation:
 4. Reference material last (paths, URLs)
 
 ### Generation
-`coworker init` scans the project and generates sections 2.1, 2.2, 2.4. Sections 2.3, 2.5, 2.6, 2.7, 2.8 are merged from canonical templates maintained in ai-coworker.
+`coworker init` scans the project and generates sections 2.1, 2.2, 2.4. Sections 2.3, 2.5, 2.6, 2.7, 2.8 are merged from canonical templates maintained in walter-worker.
 
 ### Update mechanism
 `ai-worker-update` Phase 3 — per-project semantic merge. Sections 2.1, 2.2 (project-specific) are KEPT by default. Sections 2.3, 2.4, 2.6, 2.7, 2.8 (canonical templates) can be OVERWRITTEN or MERGE_ADDed from updated templates.
@@ -420,7 +420,7 @@ When project CLAUDE.md is loaded, the AI reads `CLAUDE.local.md`. If initiative 
 
 ### Project CLAUDE.md — Interactive Setup
 
-The `ai-coworker-setup-in-project` skill handles project-level setup via interview:
+The `walter-worker-setup-in-project` skill handles project-level setup via interview:
 
 1. **Scan project**: detect language, framework, deps (for context, not for inclusion in CLAUDE.md)
 2. **Interview** (one question at a time):
@@ -444,7 +444,7 @@ The `ai-coworker-setup-in-project` skill handles project-level setup via intervi
    - OpenCode: `coworker *` allow permission in opencode.json
 
 ### Update (`ai-worker-update`)
-1. Pull latest ai-coworker and skill-factory
+1. Pull latest walter-worker and skill-factory
 2. Semantic merge Global CLAUDE.md (canonical template vs current)
 3. Per-project:
    - Semantic merge canonical sections (Guardrails, Context Management, Workflow Heuristics, Compaction)
@@ -459,7 +459,7 @@ Quick non-interactive mode — generates minimal CLAUDE.md with all canonical se
 2. Generate Project CLAUDE.md with default sections
 3. Generate CLAUDE.local.md with auto-detected skills
 4. Create docs/ structure
-5. User can then run `ai-coworker-setup-in-project` skill for full interactive interview
+5. User can then run `walter-worker-setup-in-project` skill for full interactive interview
 
 ## 7. Cross-Tool Compatibility Rules
 
@@ -525,7 +525,7 @@ OpenCode's `AGENTS.md` can be a symlink to `CLAUDE.md` for single-source-of-trut
 ```bash
 ln -sf CLAUDE.md AGENTS.md
 ```
-This is the current ai-coworker install behavior (Step 12 of install.sh).
+This is the current walter-worker install behavior (Step 12 of install.sh).
 
 ## 8. Size Budget
 
@@ -558,7 +558,7 @@ Current sections and their new locations:
 | Project Context | Project CLAUDE.md §2.1 | Keep, enhance |
 
 ### Phase 1: Template
-Create canonical Project CLAUDE.md template in ai-coworker.
+Create canonical Project CLAUDE.md template in walter-worker.
 
 ### Phase 2: Init integration
 Update `coworker init` to generate the new structure.

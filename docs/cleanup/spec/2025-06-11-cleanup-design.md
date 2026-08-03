@@ -1,4 +1,4 @@
-# Cleanup Design: ai-coworker
+# Cleanup Design: walter-worker
 
 Date: 2025-06-11
 Status: Approved
@@ -10,7 +10,7 @@ Status: Approved
 ## Part 1: Photo Cleanup
 
 - **Source**: `.pic/` (15 HEIC, ~34MB), `Photos-3-001/` (21 HEIC + 21 JPG, ~50MB)
-- **Action**: Backup to `~/project/ai-coworker-backup/photos/`, then delete from repo
+- **Action**: Backup to `~/project/walter-worker-backup/photos/`, then delete from repo
 
 ## Part 2: Skill Migration
 
@@ -18,18 +18,18 @@ Status: Approved
 
 | Source | Target Dir | New Name |
 |--------|-----------|----------|
-| `coworker-meta-doc-protection.md` | `personal-skills/` | `ai-coworker-doc-protect` |
-| `coworker-meta-merge-docs.md` | `ai-coworker-skills/` | `ai-coworker-doc-merge` |
-| `coworker-meta-self-analyze.md` | `personal-skills/` | `ai-coworker-self-analyze` |
-| `coworker-meta-self-healing-trace.md` | `personal-skills/` | `ai-coworker-self-healing-trace` |
-| `coworker-meta-report-issue.md` | `ai-coworker-skills/` | `ai-coworker-issue-report` |
-| `coworker-meta-setup-coworker.md` | Keep in ai-coworker + install to IDE | original name |
+| `coworker-meta-doc-protection.md` | `personal-skills/` | `walter-worker-doc-protect` |
+| `coworker-meta-merge-docs.md` | `walter-worker-skills/` | `walter-worker-doc-merge` |
+| `coworker-meta-self-analyze.md` | `personal-skills/` | `walter-worker-self-analyze` |
+| `coworker-meta-self-healing-trace.md` | `personal-skills/` | `walter-worker-self-healing-trace` |
+| `coworker-meta-report-issue.md` | `walter-worker-skills/` | `walter-worker-issue-report` |
+| `coworker-meta-setup-coworker.md` | Keep in walter-worker + install to IDE | original name |
 
-Remaining 28 skills: backup to `~/project/ai-coworker-backup/skills/`, delete from repo.
+Remaining 28 skills: backup to `~/project/walter-worker-backup/skills/`, delete from repo.
 
 ## Part 3: Template Cleanup
 
-- Backup `templates/` to `~/project/ai-coworker-backup/templates/`
+- Backup `templates/` to `~/project/walter-worker-backup/templates/`
 - Delete `templates/` from repo
 
 ## Part 4: Setup Optimization

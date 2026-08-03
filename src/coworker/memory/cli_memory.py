@@ -141,7 +141,7 @@ def register_memory_commands(main_group: click.Group) -> None:
             t.add_column("W", justify="right")
             for i, r in enumerate(graph_results, 1):
                 label = r.get("label", "")[:120]
-                source = (r.get("source_file") or "").replace("/home/cicidi/project/ai-coworker/", "")
+                source = (r.get("source_file") or "").replace("/home/cicidi/project/walter-worker/", "")
                 t.add_row(
                     str(i), label, r.get("type", ""),
                     source[:50] if source else "",
