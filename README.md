@@ -81,6 +81,7 @@ walter-worker writes into managed comment blocks inside your `CLAUDE.md` — you
 | Project | What we use |
 |---------|-------------|
 | **[the-super-lab](https://github.com/cicidi/the-super-lab)** | General-purpose development skills |
+| **[graphify](https://github.com/cicidi/graphify)** | Code knowledge graph — scoring engine for memory search |
 | **[mem0](https://github.com/mem0ai/mem0)** | Vector memory layer — cross-session recall |
 | **[Guild AI](https://github.com/mathomhaus/guild)** | Multi-agent orchestration patterns |
 | **[Jam](https://github.com/Dag7/jam)** | Browser-based MCP agent reference |
