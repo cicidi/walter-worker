@@ -1,10 +1,10 @@
-# AI Coworker System — Blueprint
+# Walter Worker — Blueprint
 
-> **Purpose:** Complete specification of the AI Coworker context management system. Give this to any LLM to recreate it.
+> **Purpose:** Complete specification of the Walter Worker context management system. Give this to any LLM to recreate it.
 
-> **What is AI Coworker?** A Python CLI tool that manages a three-layer CLAUDE.md architecture (Global → Project → Local), keeps your AI coding assistants aware of your projects and initiatives, syncs skills from [skill-factory](https://github.com/cicidi/skill-factory), and tracks session analytics. It's the data foundation for building an autonomous coding agent.
+> **What is Walter Worker?** A Python CLI tool that manages a three-layer CLAUDE.md architecture (Global → Project → Local), keeps your AI coding assistants aware of your projects and initiatives, syncs skills from [skill-factory](https://github.com/cicidi/skill-factory), and tracks session analytics. It's the data foundation for building an autonomous coding agent.
 
-> **What it is NOT:** A development workflow tool. Skills for coding, testing, reviewing, debugging — those come from skill-factory, not walter-worker. AI Coworker provides the context, memory, and data layer that makes those skills effective.
+> **What it is NOT:** A development workflow tool. Skills for coding, testing, reviewing, debugging — those come from skill-factory, not walter-worker. Walter Worker provides the context, memory, and data layer that makes those skills effective.
 
 > **Evidence base:** Design validated against [CLAUDE.md Engineering: Best Practices and Anti-Patterns](docs/spec/2026-07-01-claude-md-best-practices-paper.md) — systematic review of 22 sources including Anthropic Applied AI, Chroma context-rot experiments, Superpowers (244k stars), and Andrej Karpathy's behavioral principles.
 
@@ -32,7 +32,7 @@
 
 ## 1. Core Purpose
 
-AI Coworker solves four problems:
+Walter Worker solves four problems:
 
 ### Problem 1: AI doesn't know your project
 
@@ -453,7 +453,7 @@ For full interactive setup with interview, use the `walter-worker-setup-in-proje
 
 ## 10. Skill Management
 
-AI Coworker manages skill **distribution**, not skill **creation**. Skills are created in [skill-factory](https://github.com/cicidi/skill-factory).
+Walter Worker manages skill **distribution**, not skill **creation**. Skills are created in [skill-factory](https://github.com/cicidi/skill-factory).
 
 ### Skill lifecycle
 

@@ -28,7 +28,7 @@ warn() { echo -e "${YELLOW}⚠${NC}  $*"; }
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  AI Coworker — Update"
+echo "  Walter Worker — Update"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 

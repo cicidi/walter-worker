@@ -24,7 +24,7 @@ log()   { echo -e "${BLUE}→${NC} $*"; }
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  AI Coworker — Uninstall"
+echo "  Walter Worker — Uninstall"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 RESTORE_PRIS=false

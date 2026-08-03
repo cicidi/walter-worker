@@ -24,7 +24,8 @@ CLAUDE.local.md
 docs/state/
 docs/work-review/
 docs/superpowers/
-pic/
+pic/*
+!pic/walter-worker-logo.png
 .coworker/
 *.bak
 .polish-loop-stop

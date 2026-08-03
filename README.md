@@ -1,144 +1,88 @@
-# AI Coworker
+<p align="center">
+  <img src="pic/walter-worker-logo.png" alt="Walter Worker" width="260">
+</p>
 
-**Project context and memory manager for AI coding assistants.**
+# walter-worker
 
-AI Coworker keeps your IDE (Claude Code, OpenCode, Gemini) aware of your project structure, active initiatives, and available skills. It auto-scans projects, injects context into your AI's config, and connects to [skill-factory](https://github.com/cicidi/skill-factory) for skill lifecycle management.
+**walter-worker** gives your AI coding assistant context, skills, and memory so it stops forgetting between sessions.
 
-It also records your AI sessions (SQLite-backed) — tracking which skills get used, how often, and what patterns emerge — building the data foundation for an autonomous coding agent.
-
-## Self-Evolving Agent (new in feat/self-evolving-agent)
-
-The **self-evolving agent** learns from every session and gets smarter over time:
-
-- **🧠 Cross-session memory** — mem0-powered vector store remembers lessons, patterns, and conventions across sessions
-- **📊 Analytics dashboard** — 16-tab web UI with Projects, Models, Cost/Token, Efficiency, Evolution, and Data Quality views
-- **🔍 Auto-inspection** — `coworker find-issues` audits code against PRD/spec and finds gaps
-- **🔧 Auto-repair** — `coworker run --loop` continuously fixes bugs, runs tests, and maintains health
-- **⚡ Per-turn capture** — PostToolUse hooks extract lessons in real-time ($0.0004/turn)
-- **🔒 Safety gates** — Circuit breaker prevents runaway auto-evolution (>3 skills/24h)
-- **📝 Wrong-history** — Records mistakes so the agent never repeats them
-
-| IDE | Support |
-|-----|---------|
-| Claude Code | Full — config sync, skills, context injection, analytics |
-| OpenCode | Config + skills + context injection |
-| Gemini | Settings / MCP config only |
-
-## What It Does
-
-- **Auto-scan** projects — detect language, framework, dependencies, IDEs
-- **Inject context** into CLAUDE.md — project catalog, initiative status, docs structure
-- **Manage initiatives** — cross-project work with decisions, links, project scope
-- **Track projects** — catalog with upstream/downstream relationships, knowledge pools
-- **Sync skills** from config to all installed IDEs
-- **Record sessions** — sessions are stored in SQLite; dashboard for browsing
-- **Road to autonomy** — data foundation for building an auto-coding agent
-
-## What It Doesn't Do
-
-- Write code or follow a development pipeline
-- Create or edit skills (that's [skill-factory](https://github.com/cicidi/skill-factory))
-- Implement OWASP guardrails or code review (those are skills you get from skill-factory)
+---
 
 ## Install
 
 ```bash
-git clone https://github.com/cicidi/walter-worker.git ~/walter-worker
+git clone git@github.com:cicidi/walter-worker.git ~/walter-worker
 cd ~/walter-worker
-pipx install .           # or: python3 -m venv .venv && source .venv/bin/activate && pip install -e .
-```
-
-After installing the Python package, run the setup script to wire analytics hooks and IDE integration:
-
-```bash
+pipx install .
 bash setup/install.sh --global
 ```
 
 ## Usage
 
+walter-worker **runs inside Claude Code** — invoke skills with `/skill-name` (slash command):
+
 ```bash
-coworker init              # Auto-scan project, generate config + CLAUDE.md context
-coworker sync              # Sync config to all detected IDEs
-coworker status            # Show current config status
-
-# Project catalog
-coworker project add       # Add a project to the catalog
-coworker project list      # List all tracked projects
-coworker project sync      # Inject catalog into IDE configs
-
-# Initiatives (cross-project work)
-coworker initiative start  # Create, add project, activate in one step
-coworker initiative list   # List all initiatives
-
-# Analytics
-coworker analytics create-db   # Initialize session tracking database
-coworker analytics dashboard   # View session stats
+/auto-tdd          # Test-driven development loop
+/bug               # Debug with auto-repair
+/memory            # Search past sessions & knowledge
+/initiative        # Cross-project work tracking
+/project           # Manage project catalog
+/research          # Surface unknowns before coding
+/status            # Show config & initiative progress
+/doc-organize      # Document placement & INDEX.md
+/doc-review        # Adversarial spec/design review
+/knowledge         # Extract insights from sessions
+/dashboard         # Analytics — session stats & trends
 ```
 
-## How Context Injection Works
+Run `coworker sync` to pull latest skills from [the-super-lab](https://github.com/cicidi/the-super-lab) into your IDE — it auto-detects Claude Code, OpenCode, and Gemini CLI.
 
-AI Coworker writes managed sections into your `CLAUDE.md` (or `instructions.md` for OpenCode):
+```bash
+coworker sync          # Sync skills & config to all IDEs
+coworker status        # Show what's configured
+```
+
+## Skill Management
+
+Skills are created, edited, and versioned in **[the-super-lab](https://github.com/cicidi/the-super-lab)** — a curated collection of framework-agnostic SKILL.md files. Fork it, copy skills between projects, or contribute your own. walter-worker handles distribution: it syncs them from the-super-lab into your IDE's config.
+
+## Analytics Dashboard
+
+Every Claude session gets recorded. Browse usage patterns, skill effectiveness, and cost trends:
+
+```bash
+coworker analytics create-db     # Initialize tracking database
+coworker analytics import        # Import session data
+coworker analytics dashboard     # Launch at http://localhost:8080
+```
+
+Tabs: Sessions • Projects • Models • Cost/Token • Efficiency • Evolution • Data Quality
+
+## Testing
+
+```bash
+python -m pytest tests/ -v
+```
+
+## How It Works
+
+walter-worker writes into managed comment blocks inside your `CLAUDE.md` — your own content is never touched:
 
 ```markdown
-# Your CLAUDE.md — user-written content stays untouched
+# Your CLAUDE.md — your content lives here, untouched
 
 <!-- COWORKER:STATIC START -->
 ## Project Catalog
 | Project | Path | Upstream | Downstream |
 |---------|------|----------|------------|
-| walter-worker | ~/walter-worker | - | skill-factory |
-
-## Docs Directory Structure
-...
-
-## Coworker Skills
-Prefer coworker skills for repeatable workflows...
+| walter-worker | ~/walter-worker | — | the-super-lab |
 <!-- COWORKER:STATIC END -->
-```
 
-When you activate an initiative:
-```markdown
-<!-- INITIATIVE:skill-migration START -->
-## Active Initiative: skill-migration
-> Migrate all skills from walter-worker to skill-factory
-...
-<!-- INITIATIVE:skill-migration END -->
-```
-
-Your content outside these comment blocks is never modified.
-
-## Skill Management
-
-Skills are created and edited in the [skill-factory source repo](https://github.com/cicidi/skill-factory), then deployed to IDE configs:
-
-| Task | Tool |
-|------|------|
-| Create a skill | skill-factory `skill-create` |
-| Edit a skill | skill-factory `skill-edit` |
-| Import external skill | skill-factory `skill-import` |
-| List/install skills | `coworker sync` |
-
-## Testing
-
-```bash
-# Run all tests
-python -m pytest tests/ -v
-
-# Run specific test suites
-python -m pytest tests/python/test_models.py -v
-python -m pytest tests/python/test_config.py -v
-python -m pytest tests/python/test_injection.py -v
-python -m pytest tests/python/test_cli.py -v
-python -m pytest tests/python/test_skill_factory_integration.py -v
+<!-- INITIATIVE:self-evolving-agent START -->
+## Active Initiative: self-evolving-agent
+<!-- INITIATIVE:self-evolving-agent END -->
 ```
 
 ## License
 
 MIT
-
-## Roadmap (not shipped yet)
-
-- **Token/cost tracking** — per-session token counts and cost estimates
-- **Knowledge extraction** — LLM-driven session summaries: extract reusable insights into SQLite + Obsidian
-- **Gemini full support** — context injection and skill sync for Gemini CLI
-- **Cursor adapter** — config sync and context injection for Cursor
