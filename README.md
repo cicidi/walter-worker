@@ -2,20 +2,20 @@
 
 # walter-worker
 
-**Claude Code context and memory manager.** walter-worker auto-generates your CLAUDE.md, records every session, tracks which files your AI reads and writes, measures skill usage, and builds cross-session memory so your AI assistant stops forgetting.
+**Claude Code context and memory manager.** walter-worker manages your CLAUDE.md, records every session, tracks file I/O and skill usage, and builds cross-session memory — all through slash commands inside Claude Code.
 
 ---
 
 ## What It Tracks
 
-| Signal | Why It Matters |
-|--------|---------------|
-| **CLAUDE.md** | Auto-generates project catalog, initiative status, docs structure — injected into managed comment blocks so the AI always knows what project it's in |
-| **Sessions** | Every Claude session recorded: messages sent, tool calls made, duration, project context |
-| **File I/O** | Which files the AI reads and writes — spot hot files, track churn, catch accidental writes |
-| **Skills** | Which slash commands get used, how often, by which project — measure what's actually useful |
-| **Memory** | Cross-session vector recall — lessons, patterns, wrong-history are stored and searchable via `/memory` |
-| **Cost & Tokens** | Per-session, per-model token counts and cost estimates |
+| Signal | Skill | What It Does |
+|--------|-------|---------------|
+| **CLAUDE.md** | `/project` `/initiative` `/status` | Auto-generates project catalog, initiatives, docs structure into CLAUDE.md managed blocks |
+| **Sessions** | `/dashboard` | Every Claude session recorded: messages, tool calls, duration, project |
+| **File I/O** | `/dashboard` | Files read/written per session — spot hot files, churn, accidental writes |
+| **Skills** | `/dashboard` | Which slash commands get used, how often, by which project |
+| **Memory** | `/memory` `/knowledge` | Cross-session vector recall — lessons, patterns, wrong-history, knowledge graph |
+| **Cost & Tokens** | `/dashboard` | Per-session, per-model token counts and cost estimates |
 
 ## Install
 
@@ -26,15 +26,35 @@ pipx install .
 bash setup/install.sh --global
 ```
 
-After install, walter-worker hooks into Claude Code's session lifecycle — every session gets recorded automatically.
+## Usage
 
-## How CLAUDE.md Management Works
+walter-worker runs inside Claude Code. Everything is a `/skill`:
 
-walter-worker writes into managed comment blocks inside your `CLAUDE.md` — **your own content outside these blocks is never touched:**
+**CLAUDE.md & context:**
+```
+/project          # Add, list, sync projects — auto-injects into CLAUDE.md
+/initiative       # Create, activate, manage cross-project initiatives
+/status           # Show what's configured and active
+```
+
+**Memory & knowledge:**
+```
+/memory           # Search past sessions, knowledge graph, wrong-history
+/knowledge        # Extract insights from sessions → memory cards
+```
+
+**Analytics:**
+```
+/dashboard        # Setup → Import → Launch web UI (http://localhost:8080)
+```
+
+General-purpose dev skills (`/auto-tdd`, `/bug`, `/wayfinder`, `/research`, …) come from **[the-super-lab](https://github.com/cicidi/the-super-lab)**.
+
+## How CLAUDE.md Works
+
+walter-worker writes into managed comment blocks — your own content is never touched:
 
 ```markdown
-# Your CLAUDE.md — your content lives here, untouched
-
 <!-- COWORKER:STATIC START -->
 ## Project Catalog
 | Project | Path | Upstream | Downstream |
@@ -44,54 +64,14 @@ walter-worker writes into managed comment blocks inside your `CLAUDE.md` — **y
 
 <!-- INITIATIVE:self-evolving-agent START -->
 ## Active Initiative: self-evolving-agent
-> Ship an autonomous agent that self-evolves in a continuous loop
 <!-- INITIATIVE:self-evolving-agent END -->
 ```
 
-Run `coworker sync` to push the latest project catalog, active initiatives, and docs structure into your IDE config.
-
-## Usage
-
-All interaction is through Claude Code slash commands:
-
-**CLAUDE.md & project context:**
-```bash
-/initiative        # Cross-project work tracking — start, activate, list initiatives
-/project           # Manage project catalog — add repos, set upstream/downstream
-/status            # Show what's configured and active right now
-```
-
-**Session memory & knowledge:**
-```bash
-/memory            # Search past sessions, knowledge graph, wrong-history entries
-/knowledge         # Extract insights from sessions → memory cards (Obsidian + SQLite)
-```
-
-**Analytics & tracking:**
-```bash
-/dashboard         # Launch web UI → sessions, file I/O, skills, tokens, cost trends
-```
-
-General-purpose dev skills (`/auto-tdd`, `/bug`, `/wayfinder`, `/research`, …) live in **[the-super-lab](https://github.com/cicidi/the-super-lab)**.
-
-## Analytics Dashboard
-
-```bash
-/dashboard                    # Launch web UI via Claude Code slash command
-
-# Or via CLI:
-coworker analytics create-db     # Initialize tracking database
-coworker analytics import        # Import recorded sessions
-coworker analytics dashboard     # Launch at http://localhost:8080
-```
-
-16 tabs covering: Sessions · Projects · Models · Cost/Token · Efficiency · Skills · Tools · Files · Knowledge · Initiatives · Evolution · Hotspots · Errors · Memory · Data Quality
-
 ## Skill Management
 
-**Operational skills** (dashboard, initiative, project, memory, knowledge, status) wrap `coworker` CLI commands and live in this repo.
+**Operational skills** — `/dashboard` `/initiative` `/project` `/memory` `/knowledge` `/status` — live here.
 
-**Development skills** (auto-tdd, bug, wayfinder, to-spec, implement, …) live in **[the-super-lab](https://github.com/cicidi/the-super-lab)**. `coworker sync` pulls from both.
+**Development skills** — `/auto-tdd` `/bug` `/wayfinder` `/to-spec` `/implement` … — live in **[the-super-lab](https://github.com/cicidi/the-super-lab)**.
 
 ## Testing
 
