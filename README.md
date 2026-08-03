@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="pic/walter-worker-logo.png" alt="Walter Worker" width="260">
-</p>
+<img src="pic/walter-worker-logo.png" alt="Walter Worker" width="100%">
 
 # walter-worker
 
