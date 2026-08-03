@@ -77,6 +77,9 @@ General-purpose dev skills (`/auto-tdd`, `/bug`, `/wayfinder`, `/research`, …)
 ## Analytics Dashboard
 
 ```bash
+/dashboard                    # Launch web UI via Claude Code slash command
+
+# Or via CLI:
 coworker analytics create-db     # Initialize tracking database
 coworker analytics import        # Import recorded sessions
 coworker analytics dashboard     # Launch at http://localhost:8080
