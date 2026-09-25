@@ -2308,3 +2308,38 @@ class TestQueryVectorDoesNotNeedAGraph:
 class _EmptyGraph:
     nodes: list = []
     links: list = []
+
+
+class TestFindIssuesHonoursProject:
+    """--project was accepted, echoed, and had no effect.
+
+    The prd and spec paths were hardcoded to the self-evolving-agent feature,
+    so inspecting any project read that one — and the flag's own default,
+    walter-worker, did not match the path it read either.
+    """
+
+    def _findings(self, tmp_path, project):
+        out = tmp_path / "f.md"
+        result = runner.invoke(
+            main,
+            ["find-issues", "run", "--phases", "prd,spec",
+             "--project", project, "--output", str(out)],
+        )
+        assert result.exit_code == 0, result.output
+        return out.read_text()
+
+    def test_a_different_project_reads_its_own_docs(self, tmp_path):
+        here = self._findings(tmp_path, "walter-worker")
+        other = self._findings(tmp_path, "self-evolving-agent")
+
+        assert "docs/features/walter-worker" in here
+        assert "docs/features/self-evolving-agent" in other
+        assert here != other
+
+    def test_an_unknown_project_says_so_rather_than_reading_another(
+        self, tmp_path
+    ):
+        text = self._findings(tmp_path, "no-such-project-xyz")
+
+        assert "no PRD files under" in text
+        assert "self-evolving-agent" not in text

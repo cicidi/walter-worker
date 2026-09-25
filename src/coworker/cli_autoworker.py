@@ -32,6 +32,7 @@ def register_autoworker(main_group: click.Group) -> None:
     )
     def find_issues_run(project, phases, output):
         """Run a full QA inspection and write findings."""
+        import glob
         import os
         from datetime import datetime, timezone
 
@@ -66,32 +67,45 @@ def register_autoworker(main_group: click.Group) -> None:
         # loop or a CI job, which is the whole point of it.
         problems: list[str] = []
 
+        # Both scans read docs/features/<project>/, which is what --project
+        # selects. The paths were hardcoded to the self-evolving-agent feature,
+        # so --project was accepted, echoed, and had no effect whatsoever — and
+        # the default (walter-worker) did not match the path either.
+        docs_dir = os.path.join("docs", "features", project)
+
         if "all" in phases_list or "prd" in phases_list:
-            prd_path = "docs/features/self-evolving-agent/prd/self-evolving-agent-prd.md"
-            if os.path.exists(prd_path):
-                lines = open(prd_path).readlines()
-                reqs = [
-                    line
-                    for line in lines
-                    if line.strip().startswith("- R") or "R1" in line or "R2" in line
-                ]
+            prd_dir = os.path.join(docs_dir, "prd")
+            prd_files = sorted(glob.glob(os.path.join(prd_dir, "*.md")))
+            if prd_files:
+                reqs = 0
+                for prd_path in prd_files:
+                    with open(prd_path) as f:
+                        reqs += sum(
+                            1 for line in f
+                            if line.strip().startswith("- R")
+                            or "R1" in line or "R2" in line
+                        )
                 findings.append(
-                    f"## PRD Scan: {len(reqs)} requirement references found in {prd_path}"
+                    f"## PRD Scan: {reqs} requirement references in "
+                    f"{len(prd_files)} file(s) under {prd_dir}"
                 )
             else:
-                findings.append(f"## PRD Scan: {prd_path} not found")
+                findings.append(f"## PRD Scan: no PRD files under {prd_dir}")
 
         if "all" in phases_list or "spec" in phases_list:
-            spec_path = "docs/features/self-evolving-agent/spec/self-evolving-agent-spec.md"
-            if os.path.exists(spec_path):
-                sections = [
-                    line for line in open(spec_path).readlines() if line.startswith("## §")
-                ]
+            spec_dir = os.path.join(docs_dir, "spec")
+            spec_files = sorted(glob.glob(os.path.join(spec_dir, "*.md")))
+            if spec_files:
+                sections = 0
+                for spec_path in spec_files:
+                    with open(spec_path) as f:
+                        sections += sum(1 for line in f if line.startswith("## §"))
                 findings.append(
-                    f"## Spec Scan: {len(sections)} sections in {spec_path}"
+                    f"## Spec Scan: {sections} sections in "
+                    f"{len(spec_files)} file(s) under {spec_dir}"
                 )
             else:
-                findings.append(f"## Spec Scan: {spec_path} not found")
+                findings.append(f"## Spec Scan: no spec files under {spec_dir}")
 
         if "all" in phases_list or "web" in phases_list:
             findings.append(
