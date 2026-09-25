@@ -2125,3 +2125,57 @@ class TestMemoryCloseHonoursItsArgument:
 
         assert result.exit_code == 0, result.output
         assert calls.get("all") is True
+
+
+class TestFindIssuesReportsFailure:
+    """The QA inspector exited 0 no matter what it found.
+
+    It even wrote "Tests FAIL" into its findings file and then returned 0, so
+    neither a CI job nor the auto-worker that consumes its output could tell a
+    clean run from a broken one. A typo in --phases produced an empty file and
+    0 as well.
+    """
+
+    def test_unknown_phases_are_an_error(self):
+        result = runner.invoke(
+            main, ["find-issues", "run", "--phases", "nonsense", "--output", "/tmp/x.md"]
+        )
+
+        assert result.exit_code != 0
+        assert "nonsense" in result.output
+
+    def test_failing_tests_exit_non_zero(self, monkeypatch, tmp_path):
+        class _R:
+            def __init__(self, rc, out="", err=""):
+                self.returncode, self.stdout, self.stderr = rc, out, err
+
+        def fake_run(argv, **kw):
+            if argv[0] == "python3":
+                return _R(1, "", "1 failed, 949 passed in 20s")
+            return _R(0, "")
+
+        monkeypatch.setattr("subprocess.run", fake_run)
+        result = runner.invoke(
+            main,
+            ["find-issues", "run", "--phases", "code", "--output", str(tmp_path / "f.md")],
+        )
+
+        assert result.exit_code != 0, "a failing suite must not look like a clean run"
+        # And the reason is recorded, taken from stderr when stdout is empty.
+        assert "949 passed" in (tmp_path / "f.md").read_text()
+
+    def test_a_clean_run_exits_zero(self, monkeypatch, tmp_path):
+        class _R:
+            def __init__(self, rc, out="", err=""):
+                self.returncode, self.stdout, self.stderr = rc, out, err
+
+        monkeypatch.setattr(
+            "subprocess.run",
+            lambda argv, **kw: _R(0, "950 passed in 20s") if argv[0] == "python3" else _R(0, ""),
+        )
+        result = runner.invoke(
+            main,
+            ["find-issues", "run", "--phases", "code", "--output", str(tmp_path / "f.md")],
+        )
+
+        assert result.exit_code == 0, result.output
