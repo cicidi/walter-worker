@@ -152,7 +152,40 @@ not a change to the default.
 
 *Confidence: high on the behaviour, medium on the fix shape.*
 
-### C2. Documented-but-absent commands
+### C2. Two evolution scores, disagreeing — needs a ruling, not a patch
+
+`evolution_score` and `skill_reuse_rate` are each computed twice, differently,
+from different sources. Both surfaces are live, so the dashboard and
+`coworker memory metrics` report different numbers under the same names.
+
+| | Dashboard (`dashboard/queries_evolution.py:56`) | `memory/metrics.py:65` |
+|---|---|---|
+| Inputs | analytics.db: distinct sessions that called the `Skill` tool ÷ all sessions; count of `active` skills | mean of the last 10 recorded `skill_reuse_rate` values |
+| Formula | `reuse*40 + active_skills*5 + 30` | `reuse*30 + first_pass*25 + memory_hit*25 + (1-correction)*15 + no_trips*5` |
+| Floor | **30** — an agent that has done nothing scores 30/100 | 0 |
+
+Three consequences worth separating:
+
+1. `skill_reuse_rate` means *any* `Skill` tool call in the dashboard, but the
+   spec (§7, line 365) defines it as the fraction of sessions invoking an
+   **auto-created** skill. The dashboard overstates it, and cannot compute the
+   spec's version from `tool_calls` alone — that needs the provenance the
+   skills table already carries.
+2. `+ active_skills * 5` rewards *how many* skills exist, not whether the agent
+   got better; ten unused skills raise the score by 50.
+3. The +30 base means the dashboard can never show 0, so a fresh install reads
+   as 30% evolved.
+
+Not patched here: which score is authoritative is a product decision, and the
+spec's own signature — `compute_evolution_score(skills, experiences,
+total_sessions)` — matches neither implementation exactly, so the spec needs a
+ruling too. `memory/metrics.py` additionally reads a store that nothing writes
+(see B4), so until capture lands it will report 0 while the dashboard reports
+30-plus.
+
+*Confidence: high on the divergence; the resolution is a design call.*
+
+### C3. Documented-but-absent commands
 
 `coworker knowledge` was the last one and is now implemented (see D). The scan
 that found it — fenced code blocks only, comments skipped — now runs as

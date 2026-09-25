@@ -387,13 +387,16 @@ if [[ -n "$OPENCODE_DIR" ]]; then
   # Symlinks only. A regular file may be something the user placed there, while
   # a symlink with no CLAUDE_DIR counterpart is one this script created and
   # whose target is now gone.
+  #
+  # Recurses, because an earlier release symlinked whole directories in here, so
+  # a dangling link can sit below the top level. Directories the prune empties
+  # go too, or it would trade dangling links for a tree of empty shells.
   pruned=0
-  for existing in "$OPENCODE_DIR"/*.md; do
-    [[ -L "$existing" ]] || continue
-    [[ -f "$CLAUDE_DIR/${existing##*/}" ]] && continue
+  while IFS= read -r existing; do
     rm -f "$existing"
     pruned=$((pruned + 1))
-  done
+  done < <(find "$OPENCODE_DIR" -xtype l 2>/dev/null)
+  find "$OPENCODE_DIR" -mindepth 1 -type d -empty -delete 2>/dev/null || true
   [[ $pruned -gt 0 ]] && ok "  Pruned $pruned stale OpenCode symlink(s)"
   ok "OpenCode sync complete."
 fi
@@ -595,7 +598,7 @@ if [[ -d "$THE_SUPER_LAB_DIR/skills" ]]; then
 fi
 
 python3 -c "
-import json, os, glob
+import json, os, glob, shutil
 home = os.environ['HOME']
 claude_dir = '${CLAUDE_DIR}'
 selected = '${MANIFEST_SKILLS}'.split()
@@ -639,10 +642,20 @@ for name in deployed:
             claim(os.path.join(root, fn))
     claim(f'{home}/.cursor/rules/{name}.md')
 
-# The walter-worker skill tree this installer owns outright.
-for root, _dirs, fns in os.walk(f'{home}/.config/opencode/skills/walter-worker'):
-    for fn in fns:
-        claim(os.path.join(root, fn))
+# The walter-worker skill tree this installer owns outright. Claim what the
+# rsync in step 6 PRODUCES, read from the source tree rather than from the
+# destination: walking the destination also claimed skills an earlier release
+# had left behind, so every run re-claimed them and the prune below could never
+# retire them.
+_wm_src = '${REPO_ROOT}/skills'
+_wm_dst = f'{home}/.config/opencode/skills/walter-worker'
+for _wm_root, _wm_dirs, _wm_fns in os.walk(_wm_src):
+    _wm_rel = os.path.relpath(_wm_root, _wm_src)
+    for fn in _wm_fns:
+        if _wm_rel == '.':
+            claim(os.path.join(_wm_dst, fn))
+        else:
+            claim(os.path.join(_wm_dst, _wm_rel, fn))
 
 # Deliberately NOT claimed: ~/.coworker/analytics (data), ~/.coworker/backups,
 # ~/.coworker/skills (skills the user accumulated), ~/.claude/{plugins,projects,
@@ -666,6 +679,64 @@ if os.path.isfile(sf):
 for d in [f'{home}/.coworker', f'{home}/.config/opencode/skills/walter-worker']:
     if os.path.isdir(d):
         manifest['owned_dirs'].append(d)
+
+# Prune what an earlier run wrote and this run no longer produces.
+#
+# The manifest is rewritten once per run and lists exactly what that run
+# claimed, so the difference between the previous manifest and the current
+# claim set is precisely the set of paths this installer used to own and has
+# stopped producing: a skill that was renamed, merged, or dropped from the
+# sources. Without this the mirrors only ever grow -- 42 dangling links and 91
+# retired skill directories had accumulated across four of them.
+#
+# Prune is one-directional by construction. A path is removed only because a
+# previous run claimed it, so a file this installer never wrote is never
+# touched: user files, and skills installed by another tool, survive.
+#
+# A failure here must not cost us the manifest, so the block is guarded.
+pruned = []
+try:
+    _prev = {}
+    if os.path.isfile('$MANIFEST'):
+        try:
+            _prev = json.load(open('$MANIFEST')) or {}
+        except (ValueError, OSError):
+            _prev = {}
+
+    # A prune that removes the last file in a skill directory would otherwise
+    # leave the bare directory behind, so emptied ones are retired with it. The
+    # walk stops at each tree root, never above it.
+    _trees = (f'{home}/.claude/skills',
+              f'{home}/.config/opencode/skills/walter-worker')
+
+    def _retire_empty(d):
+        while any(d.startswith(t + os.sep) for t in _trees):
+            try:
+                os.rmdir(d)
+            except OSError:
+                return
+            d = os.path.dirname(d)
+
+    if _prev.get('schema_version') == 2:
+        _current = set(files)
+        for _p in _prev.get('files', []):
+            if _p in _current or not os.path.lexists(_p):
+                continue
+            try:
+                if os.path.isdir(_p) and not os.path.islink(_p):
+                    shutil.rmtree(_p)
+                else:
+                    os.remove(_p)
+            except OSError:
+                continue
+            pruned.append(_p)
+            _retire_empty(os.path.dirname(_p))
+except Exception:
+    pruned = []
+manifest['pruned'] = pruned
+if pruned:
+    print(f'  Retired {len(pruned)} path(s) this install no longer produces')
+
 os.makedirs(f'{home}/.coworker', exist_ok=True)
 json.dump(manifest, open('$MANIFEST', 'w'), indent=2)
 " 2>/dev/null && ok "Install manifest written to $MANIFEST" || warn "Manifest write skipped"
