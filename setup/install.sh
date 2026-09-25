@@ -553,9 +553,27 @@ fi
 # Step 16 — Write install manifest
 # =============================================================================
 MANIFEST="$HOME/.coworker/install-manifest.json"
+
+# What this installer wrote, so the manifest can claim it by name instead of by
+# directory. Used to be an os.walk over ~/.claude, ~/.opencode and
+# ~/.coworker/analytics, which claimed everything under those shared
+# directories — plugin caches, session transcripts, other tools' skills, and the
+# analytics database uninstall's own banner promises to preserve — and then
+# deleted all of it.
+MANIFEST_SKILLS="${SELECTED_SKILLS[*]:-}"
+MANIFEST_SUPERLAB=""
+if [[ -d "$THE_SUPER_LAB_DIR/skills" ]]; then
+  for _d in "$THE_SUPER_LAB_DIR/skills"/*/; do
+    [[ -f "${_d}SKILL.md" ]] && MANIFEST_SUPERLAB+="$(basename "$_d") "
+  done
+fi
+
 python3 -c "
 import json, os, glob
 home = os.environ['HOME']
+claude_dir = '${CLAUDE_DIR}'
+selected = '${MANIFEST_SKILLS}'.split()
+deployed = '${MANIFEST_SUPERLAB}'.split()
 manifest = {
     'install_mode': '${INSTALL_MODE}',
     'repo_root': '${REPO_ROOT}',
@@ -564,31 +582,42 @@ manifest = {
     'owned_dirs': [],
     'project_path': '${PROJECT_PATH}',
 }
-# Files we know were written (conditional on what actually exists).
-# Exclude claude-tmux-config's owned dirs so this manifest never claims them
-# (otherwise walter-worker uninstall could delete the statusline/theme files).
-#
-# The directory form ends in a slash, so it matched only the directory itself —
-# which is empty — while the three statusline files sitting beside it were
-# claimed anyway and uninstall would have removed them. They are listed
-# explicitly now; the statusline-command.sh entry also covers its .bak.
-exclude_prefixes = (
-    f'{home}/.claude/statusline/',
-    f'{home}/.claude/statusline-command.sh',
-    f'{home}/.claude/wrap-statusline.py',
-    f'{home}/.tmux/conf.d/',
-    f'{home}/.tmux/scripts/status_info.sh',
-)
-for d in [f'{home}/.coworker/analytics', f'{home}/.coworker/skills',
-          f'{home}/.claude', f'{home}/.opencode',
-          f'{home}/.config/opencode/skills/walter-worker']:
-    if os.path.isdir(d):
-        for root, dirs, files in os.walk(d):
-            for fn in files:
-                p = os.path.join(root, fn)
-                if p.startswith(exclude_prefixes):
-                    continue
-                manifest['files'].append(p)
+
+# Claim ONLY paths this installer writes. Anything not listed here is left
+# alone, which is the safe direction: an unclaimed file survives uninstall.
+files = []
+def claim(p):
+    if os.path.isfile(p) or os.path.islink(p):
+        files.append(p)
+
+# Hook scripts copied into the analytics dir.
+for p in glob.glob(f'{home}/.coworker/analytics/hooks/*'):
+    claim(p)
+
+# Skills selected in step 10, flattened to <name>.md, plus their OpenCode mirror.
+for name in selected:
+    claim(f'{claude_dir}/{name}.md')
+    claim(f'{home}/.opencode/instructions/{name}.md')
+
+# the-super-lab skills deployed in step 11b, by name: the Claude directory copy
+# and the Cursor rules file. The OpenCode side is a symlink to the source repo
+# and is removed with owned_dirs.
+for name in deployed:
+    for root, _dirs, fns in os.walk(f'{home}/.claude/skills/{name}'):
+        for fn in fns:
+            claim(os.path.join(root, fn))
+    claim(f'{home}/.cursor/rules/{name}.md')
+
+# The walter-worker skill tree this installer owns outright.
+for root, _dirs, fns in os.walk(f'{home}/.config/opencode/skills/walter-worker'):
+    for fn in fns:
+        claim(os.path.join(root, fn))
+
+# Deliberately NOT claimed: ~/.coworker/analytics (data), ~/.coworker/backups,
+# ~/.coworker/skills (skills the user accumulated), ~/.claude/{plugins,projects,
+# file-history,sessions,tasks,docs,backups}, ~/.opencode/node_modules, and any
+# ~/.claude/skills/<name> this install did not deploy.
+manifest['files'] = files
 # Global CLAUDE.md
 md = f'{home}/.claude/CLAUDE.md'
 if os.path.isfile(md): manifest['files'].append(md)

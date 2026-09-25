@@ -99,3 +99,40 @@ teardown() {
   run cat "$HOME/.claude/CLAUDE.md"
   [[ "$output" == *"pre-existing claude md"* ]]
 }
+
+@test "manifest claims only what install.sh wrote, not everything under shared dirs" {
+  # install.sh used to os.walk ~/.claude, ~/.opencode and ~/.coworker/analytics
+  # and claim every file found there; uninstall.sh then removed them all —
+  # plugin caches, session transcripts, other tools' skills, node_modules, and
+  # the analytics database the closing banner promises to preserve.
+  #
+  # The files list had no coverage: setup() writes a manifest with an empty one,
+  # so only the owned_dirs path was ever exercised.
+  mkdir -p "$HOME/.claude/plugins/foreign-plugin" \
+           "$HOME/.claude/projects/some-session/memory" \
+           "$HOME/.claude/skills/foreign-tool" \
+           "$HOME/.opencode/node_modules"
+  echo plugin     > "$HOME/.claude/plugins/foreign-plugin/index.js"
+  echo transcript > "$HOME/.claude/projects/some-session/transcript.jsonl"
+  echo memory     > "$HOME/.claude/projects/some-session/memory/note.md"
+  echo foreign    > "$HOME/.claude/skills/foreign-tool/SKILL.md"
+  echo dep        > "$HOME/.opencode/node_modules/pkg.js"
+
+  # Generate a real manifest, the way an actual install does.
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run bash -c "echo y | bash '$REPO_ROOT/setup/uninstall.sh'"
+  [ "$status" -eq 0 ]
+
+  # Written by install.sh, so it must be removed.
+  [ ! -f "$HOME/.coworker/analytics/hooks/on-stop.sh" ]
+
+  # None of these were written by install.sh, so none may be touched.
+  [ -f "$HOME/.claude/plugins/foreign-plugin/index.js" ]
+  [ -f "$HOME/.claude/projects/some-session/transcript.jsonl" ]
+  [ -f "$HOME/.claude/projects/some-session/memory/note.md" ]
+  [ -f "$HOME/.claude/skills/foreign-tool/SKILL.md" ]
+  [ -f "$HOME/.opencode/node_modules/pkg.js" ]
+  [ -f "$HOME/.coworker/analytics/analytics.db" ]
+}
