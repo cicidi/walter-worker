@@ -69,7 +69,7 @@ These are the ones the standing rule says to repair rather than remove. They are
 listed first in priority because they are the difference between a memory that
 evolves and a memory that only accumulates.
 
-### B1. `coworker/autoworker/` + `cli_autoworker.py` — the loop's driver
+### B1. `coworker/autoworker/` + `cli_autoworker.py` — the loop's driver — **DONE**
 
 ~35 KB: `engine.py` (spawns Claude SDK agents that "autonomously investigate and
 fix"), `rules.py`, `state.py`, plus a complete CLI registering `find-issues run`
@@ -171,7 +171,7 @@ which is the likeliest reason the wiring never happened.
 wiring `process_turn` there means an LLM call per tool call. That is a design
 decision about spend, not a bug fix.
 
-### B3. `engine.reconcile()` — a stub standing where the real code should be
+### B3. `engine.reconcile()` — a stub standing where the real code should be — **DONE**
 
 `engine.py:164` returns `0` unconditionally, with the comment *"For now, just
 note the gap — full re-extraction needs LLM"*. Meanwhile
@@ -183,7 +183,7 @@ stub or have it delegate.
 
 *Confidence: high.*
 
-### B4. `memory/metrics.py` — 118 lines, the "is it actually improving?" gauge
+### B4. `memory/metrics.py` — 118 lines, the "is it actually improving?" gauge — **DONE**
 
 "Collects effectiveness and safety metrics to track whether the agent is
 actually getting 'smarter over time.'" Exposes `record_session_metrics`,
@@ -270,7 +270,7 @@ table in `metrics.py` have no writer and no longer affect the score. Removing
 them is a cleanup, not a fix, and they are the only record of the per-metric
 shape the spec's table describes.
 
-### C3. Documented-but-absent commands
+### C3. Documented-but-absent commands — **DONE**
 
 `coworker knowledge` was the last one and is now implemented (see D). The scan
 that found it — fenced code blocks only, comments skipped — now runs as
