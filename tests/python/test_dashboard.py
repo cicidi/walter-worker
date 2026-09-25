@@ -792,3 +792,52 @@ class TestEvolutionScoreCanBeZero:
         from coworker.dashboard.queries_evolution import _compute_evolution_score
 
         assert _compute_evolution_score([], 5, 10) > 0
+
+
+class TestWriteEndpointsRefuseForeignPages:
+    """Every state-changing endpoint took a bare POST.
+
+    A cross-origin form POST needs no preflight, so any page the user visited
+    could approve skills, rewrite ~/CLAUDE.local.md or reset the circuit breaker
+    on their localhost dashboard. The response would be unreadable to that page,
+    but the side effect is the point. Binding to loopback does not help: the
+    attacker is the user's own browser, which is on loopback.
+
+    The endpoints require X-Coworker-Dashboard now, which forces a preflight
+    this server does not answer.
+    """
+
+    WRITES = [
+        "/api/evolution/approve/anything",
+        "/api/evolution/reject/anything",
+        "/api/evolution/skills/anything/status?status=active",
+        "/api/memory/refresh-snapshot",
+        "/api/memory/reset-circuit",
+    ]
+
+    def test_a_bare_post_is_refused(self, client):
+        for url in self.WRITES:
+            r = client.post(url)
+            assert r.status_code == 403, f"{url} accepted an unmarked POST"
+            assert "X-Coworker-Dashboard" in r.text
+
+    def test_the_header_lets_it_through(self, client):
+        """The guard must not break the dashboard's own calls."""
+        r = client.post(
+            "/api/memory/reset-circuit",
+            headers={"X-Coworker-Dashboard": "1"},
+        )
+
+        assert r.status_code == 200, r.text
+
+    def test_the_dashboards_own_js_sends_the_header(self):
+        from importlib.resources import files as resource_files
+
+        js = (resource_files("coworker.dashboard") / "static" / "dashboard.js").read_text()
+
+        posts = js.count("method:'POST'")
+        assert posts, "expected the dashboard to make POST calls"
+        assert js.count("X-Coworker-Dashboard") == posts, (
+            "every POST in dashboard.js must carry the header, or the guard "
+            "breaks the page it protects"
+        )

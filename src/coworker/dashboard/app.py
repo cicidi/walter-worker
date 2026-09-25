@@ -4,7 +4,7 @@ from pathlib import Path
 from importlib.resources import files as resource_files
 
 
-from fastapi import FastAPI, WebSocket, HTTPException
+from fastapi import Depends, FastAPI, Header, WebSocket, HTTPException
 from fastapi.staticfiles import StaticFiles
 
 from . import queries
@@ -12,6 +12,39 @@ from . import queries
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Coworker Analytics Dashboard")
+
+#: Header every state-changing request must carry. Its only job is to not be
+#: settable by a foreign page.
+CSRF_HEADER = "X-Coworker-Dashboard"
+
+
+async def require_dashboard_header(
+    x_coworker_dashboard: str = Header(default=""),
+) -> None:
+    """Reject a state-changing request a foreign page could have made.
+
+    The write endpoints approve and reject skills, rewrite ~/CLAUDE.local.md and
+    reset the circuit breaker. A cross-origin form POST needs no preflight, so
+    without this any page the user happens to visit could reach them on
+    localhost — the response would be unreadable to that page, but the side
+    effect is the point. Requiring a custom header forces a preflight, which
+    this server does not answer.
+
+    Binding to loopback is not a substitute: the attacker is the user's own
+    browser, which is on loopback.
+    """
+    if x_coworker_dashboard != "1":
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                f"Missing {CSRF_HEADER} header. State-changing endpoints refuse "
+                f"requests a foreign page could have sent."
+            ),
+        )
+
+
+#: Attach to every route that mutates anything.
+RequireDashboard = Depends(require_dashboard_header)
 
 
 @app.get("/api/overview")
@@ -209,7 +242,7 @@ def api_evolution_pending():
     return queries.query_evolution_pending()
 
 
-@app.post("/api/evolution/approve/{item_id}")
+@app.post("/api/evolution/approve/{item_id}", dependencies=[RequireDashboard])
 def api_evolution_approve(item_id: str):
     from coworker.memory.pending import approve
     ok = approve(item_id)
@@ -218,7 +251,7 @@ def api_evolution_approve(item_id: str):
     return {"status": "approved", "id": item_id}
 
 
-@app.post("/api/evolution/reject/{item_id}")
+@app.post("/api/evolution/reject/{item_id}", dependencies=[RequireDashboard])
 def api_evolution_reject(item_id: str):
     from coworker.memory.pending import reject
     ok = reject(item_id)
@@ -227,7 +260,7 @@ def api_evolution_reject(item_id: str):
     return {"status": "rejected", "id": item_id}
 
 
-@app.post("/api/evolution/skills/{name}/status")
+@app.post("/api/evolution/skills/{name}/status", dependencies=[RequireDashboard])
 def api_evolution_skill_status(name: str, status: str = "active"):
     """Change a skill's status: active, pending, or inactive."""
     import json
@@ -287,7 +320,7 @@ def api_memory_stats():
     return queries.query_memory_stats()
 
 
-@app.post("/api/memory/refresh-snapshot")
+@app.post("/api/memory/refresh-snapshot", dependencies=[RequireDashboard])
 def api_memory_refresh():
     """Trigger CLAUDE.local.md snapshot refresh."""
     from coworker.memory.inject import build_snapshot, inject_into_local_md
@@ -303,7 +336,7 @@ def api_memory_refresh():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/api/memory/reset-circuit")
+@app.post("/api/memory/reset-circuit", dependencies=[RequireDashboard])
 def api_memory_reset_circuit():
     """Reset the circuit breaker."""
     from coworker.memory.safety import reset_circuit_breaker
