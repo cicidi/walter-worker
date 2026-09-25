@@ -43,7 +43,7 @@ reverses it.
 
 ```bash
 export DEEPSEEK_API_KEY=...     # preferred
-# fallbacks: GEMINI_API_KEY, ANTHROPIC_API_KEY
+# fallback: GEMINI_API_KEY (the only one implemented)
 ```
 
 Put it in `~/.coworker/.env` to make it persistent. Memory search also uses

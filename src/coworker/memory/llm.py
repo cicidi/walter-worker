@@ -133,9 +133,17 @@ class LLMClient:
             if api_key:
                 providers.append({**cfg, "api_key": api_key})
         if not providers:
+            # Named providers only. This advertised ANTHROPIC_API_KEY, which
+            # no code path reads — FALLBACK_CHAIN holds gemini and nothing
+            # else — so a user who set it got the same error again. The message
+            # is built from the chain instead of listing keys by hand, so it
+            # cannot drift from what actually works.
+            keys = ["DEEPSEEK_API_KEY"] + [
+                str(c["api_key_env"]) for c in FALLBACK_CHAIN
+            ]
             raise RuntimeError(
-                "No LLM provider configured. Set DEEPSEEK_API_KEY, GEMINI_API_KEY, "
-                "or ANTHROPIC_API_KEY in the environment."
+                "No LLM provider configured. Set "
+                + ", ".join(keys[:-1]) + " or " + keys[-1] + " in the environment."
             )
         return providers
 
