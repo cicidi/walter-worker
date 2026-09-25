@@ -1997,3 +1997,30 @@ class TestMemoryCaptureUnderTheStopHook:
 
         assert result.exit_code != 0
         assert "corrupt" in result.output
+
+
+class TestInitProjectPreservesLocalEdits:
+    """Re-running `init --project` destroyed CLAUDE.local.md.
+
+    It regenerated the file from the pristine template and carried over only
+    the feature marker block, so custom rules, a filled-in Active task and any
+    notes were lost. The file is gitignored and no backup was taken, so it was
+    unrecoverable.
+    """
+
+    def test_user_text_survives_a_second_init(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        (tmp_path / "pyproject.toml").write_text("[project]\nname='x'\n")
+
+        assert runner.invoke(main, ["init", "--project"], input="\n").exit_code == 0
+        local = tmp_path / "CLAUDE.local.md"
+        assert local.exists()
+
+        edited = local.read_text() + "\n## My Own Notes\n\nnever deploy on Friday\n"
+        local.write_text(edited)
+
+        assert runner.invoke(main, ["init", "--project"], input="\n").exit_code == 0
+
+        out = local.read_text()
+        assert "never deploy on Friday" in out
+        assert "My Own Notes" in out

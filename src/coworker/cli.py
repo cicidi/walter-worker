@@ -1,6 +1,5 @@
 from __future__ import annotations
 import json
-import re
 import sys
 from pathlib import Path
 
@@ -24,8 +23,6 @@ from .templates.project_claude_md import generate_project_claude_md
 from .templates.local_claude_md import (
     generate_local_claude_md,
     update_project_info,
-    inject_feature_into_local_md,
-    MARKER_DIALECT,
 )
 from .templates.project_claude_md import PROJECT_CLAUDE_MD_SENTINEL
 from . import backup
@@ -287,22 +284,24 @@ def init(is_global, is_project):
         local_md_path = Path.cwd() / "CLAUDE.local.md"
         existing_local = local_md_path.exists()
 
-        # Always generate from fresh template, preserving feature block
+        # Refresh in place. This used to regenerate from the pristine template
+        # and carry over only the feature block, so every other line the user
+        # had written — custom rules, a filled-in Active task, notes — was
+        # destroyed by a routine re-run. CLAUDE.local.md is gitignored, so git
+        # could not recover it either, and no backup was taken.
+        #
+        # update_project_info rewrites just the Project Info section, which is
+        # the part init owns, so the rest of the file is left alone.
         if existing_local:
             old_content = local_md_path.read_text()
-            base_content = generate_local_claude_md()
-            # Extract and preserve existing feature block
-            m = re.search(
-                rf"(<!-- {MARKER_DIALECT}:\S+ START -->.*?<!-- {MARKER_DIALECT}:\S+ END -->)",
-                old_content,
-                re.DOTALL,
-            )
-            if m:
-                base_content = inject_feature_into_local_md(base_content, m.group(1))
-            local_content = update_project_info(base_content, info)
+            local_content = update_project_info(old_content, info)
             if local_content != old_content:
+                backup.snapshot([local_md_path], "init")
                 local_md_path.write_text(local_content)
-                console.print("[green]Updated:[/green] CLAUDE.local.md (regenerated from latest template)")
+                console.print("[green]Updated:[/green] CLAUDE.local.md (project info refreshed)")
+                console.print("[dim]Backup of the original taken.[/dim]")
+            else:
+                console.print("[dim]CLAUDE.local.md already up to date.[/dim]")
         else:
             local_content = update_project_info(generate_local_claude_md(), info)
             local_md_path.write_text(local_content)
