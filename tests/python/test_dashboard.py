@@ -733,3 +733,35 @@ class TestEveryRouteAnswers:
             "/api/data-quality",
         ):
             assert client.get(path).status_code < 500, path
+
+
+class TestSkillSessionIds:
+    """The predicate compared one column to two different values.
+
+        WHERE tool = 'Skill' AND tool = ?
+
+    No row can satisfy that, so the endpoint always returned []. dashboard.js
+    builds its per-skill session counts from it, which is why the Skills table
+    showed "—" for every skill and the green sessions badge never appeared.
+    Its sibling /api/skill-mentions matched args and worked, which is how the
+    difference went unnoticed.
+    """
+
+    def test_a_skill_that_exists_has_sessions(self, client):
+        r = client.get("/api/skill-session-ids", params={"name": "my-skill"})
+
+        assert r.status_code == 200
+        assert r.json(), "a skill present in the fixture must report its sessions"
+
+    def test_an_unknown_skill_has_none(self, client):
+        r = client.get("/api/skill-session-ids", params={"name": "no-such-skill"})
+
+        assert r.status_code == 200
+        assert r.json() == []
+
+    def test_it_agrees_with_the_sibling_endpoint(self, client):
+        """They answer the same question and must not drift apart."""
+        a = client.get("/api/skill-session-ids", params={"name": "my-skill"}).json()
+        b = client.get("/api/skill-mentions", params={"name": "my-skill"}).json()
+
+        assert sorted(a) == sorted(b)
