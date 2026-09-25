@@ -114,6 +114,19 @@ CREATE TABLE IF NOT EXISTS knowledge (
 CREATE INDEX IF NOT EXISTS idx_knowledge_project ON knowledge(project);
 CREATE INDEX IF NOT EXISTS idx_knowledge_session ON knowledge(session_id);
 
+-- Links knowledge cards to the sessions they were derived from. Read by the
+-- feature artifact scan (cli.py) and the dashboard's knowledge-sessions
+-- endpoint, but declared nowhere - so a fresh database lacked the table and
+-- those reads failed with "no such table". Nothing in this codebase writes it;
+-- it is populated out of band, so on a fresh install the reads now correctly
+-- come back empty instead of erroring.
+CREATE TABLE IF NOT EXISTS knowledge_sessions (
+    knowledge_id INTEGER NOT NULL REFERENCES knowledge(id),
+    session_id   TEXT NOT NULL REFERENCES sessions(id),
+    generated_at TEXT NOT NULL,
+    PRIMARY KEY (knowledge_id, session_id)
+);
+
 CREATE TABLE IF NOT EXISTS session_summaries (
     session_id             TEXT PRIMARY KEY REFERENCES sessions(id),
     sop_workflows          TEXT,
@@ -161,9 +174,30 @@ def get_db(db_path: str | Path | None = None) -> sqlite3.Connection:
     # Migration: add graph_enabled column to existing databases (spec §9.5)
     _migrate_add_graph_enabled(conn)
     _migrate_add_session_stat_columns(conn)
+    _migrate_add_session_summary_columns(conn)
     _migrate_rename_initiative_to_feature(conn)
     conn.commit()
     return conn
+
+
+# session_summaries columns added after the table first shipped.
+_SESSION_SUMMARY_COLUMNS = (
+    ("last_guide_attempt", "TEXT"),
+)
+
+
+def _migrate_add_session_summary_columns(conn: sqlite3.Connection) -> None:
+    """Backfill session_summaries columns on databases that predate them.
+
+    CREATE TABLE IF NOT EXISTS never alters an existing table, so a database
+    created before `last_guide_attempt` was declared never received it, and
+    write_summary() then failed with "no such column: last_guide_attempt".
+    """
+    existing = {row[1] for row in conn.execute("PRAGMA table_info(session_summaries)")}
+    for name, decl in _SESSION_SUMMARY_COLUMNS:
+        if name not in existing:
+            conn.execute(f"ALTER TABLE session_summaries ADD COLUMN {name} {decl}")
+    conn.commit()
 
 
 # Token/cost accounting on session_stats, in the order they were introduced.
