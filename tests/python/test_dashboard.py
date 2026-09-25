@@ -9,9 +9,24 @@ from pathlib import Path
 import pytest
 
 from coworker.analytics.db import SCHEMA
-from coworker.dashboard import queries
+from coworker.dashboard import queries, queries_analytics, queries_evolution
 from coworker.dashboard.app import app
 from fastapi.testclient import TestClient
+
+
+def _patch_get_db(monkeypatch):
+    """Point every dashboard module's get_db at the shared in-memory database.
+
+    Each module does `from ..analytics.db import get_db`, binding the name in
+    its own namespace, and queries.py imports _get_db_conn from
+    queries_evolution. Patching only queries.get_db therefore left the 14
+    queries that run through _get_db_conn - query_projects, query_daily_sessions,
+    query_session_errors and others - reading the developer's real
+    ~/.coworker/analytics/analytics.db, so their tests passed or failed
+    depending on local data.
+    """
+    for mod in (queries, queries_analytics, queries_evolution):
+        monkeypatch.setattr(mod, "get_db", _make_shared_conn)
 
 
 # ---------------------------------------------------------------------------
@@ -37,7 +52,7 @@ def test_db(monkeypatch):
     _seed_all(conn)
     conn.commit()
 
-    monkeypatch.setattr(queries, "get_db", _make_shared_conn)
+    _patch_get_db(monkeypatch)
 
     yield conn
     conn.close()
@@ -306,6 +321,51 @@ class TestQueryKnowledge:
         assert entry["merged_to_skill"] == "merged-to-x"
 
 
+class TestQueryProjectsIdeBreakdown:
+    """The per-IDE breakdown must count sessions per IDE, not per project.
+
+    ide_list only records *which* IDEs appear for a project, never how many
+    sessions each has. Deriving the breakdown from it credited every IDE with
+    the project's whole session count, so a project with 78 sessions across
+    3 IDEs reported 78 for each - plausible-looking numbers that summed to 3x
+    the truth. The shared seed data has one IDE per project, which is why the
+    existing tests never caught it.
+    """
+
+    def _add_multi_ide_project(self, conn):
+        conn.executemany(
+            """INSERT INTO sessions
+               (id, ide, project, cwd, model, feature, branch, created_at, closed_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            [
+                ("m1", "claude",   "multi-ide", "/tmp/m", "m", None, "main", "2025-02-01T00:00:00", None),
+                ("m2", "claude",   "multi-ide", "/tmp/m", "m", None, "main", "2025-02-01T00:00:01", None),
+                ("m3", "opencode", "multi-ide", "/tmp/m", "m", None, "main", "2025-02-01T00:00:02", None),
+                ("m4", "gemini",   "multi-ide", "/tmp/m", "m", None, "main", "2025-02-01T00:00:03", None),
+            ],
+        )
+        conn.commit()
+
+    def test_each_ide_reports_its_own_count(self, test_db):
+        self._add_multi_ide_project(test_db)
+
+        row = next(
+            r for r in queries.query_projects() if r["project_name"] == "multi-ide"
+        )
+        assert row["session_count"] == 4
+        assert row["ides"] == {"claude": 2, "opencode": 1, "gemini": 1}, (
+            "each IDE must get its own count, not the project total"
+        )
+
+    def test_breakdown_never_exceeds_project_total(self, test_db):
+        self._add_multi_ide_project(test_db)
+
+        for r in queries.query_projects():
+            assert sum(r["ides"].values()) <= r["session_count"], (
+                f"{r['project_name']}: per-IDE counts exceed the project total"
+            )
+
+
 class TestQueryFeatures:
     def test_returns_features_with_counts(self, test_db):
         result = queries.query_features()
@@ -446,7 +506,7 @@ def client(monkeypatch):
     _seed_all(conn)
     conn.commit()
 
-    monkeypatch.setattr(queries, "get_db", _make_shared_conn)
+    _patch_get_db(monkeypatch)
 
     with TestClient(app) as tc:
         yield tc

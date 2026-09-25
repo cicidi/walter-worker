@@ -456,12 +456,31 @@ def query_knowledge_sessions(knowledge_id: int):
         conn.close()
 
 
+# Normalize cwd to a project name (GitHub repo level):
+#   ~/project/<repo>/... → <repo>
+#   ~/                   → home
+#   otherwise the last path component
+# Shared by the project aggregate and its per-IDE breakdown so the two cannot
+# drift apart; the join below aliases this subquery as ss2.
+_CWD_PROJECT_SQL = """
+        SELECT id,
+          CASE
+            WHEN cwd GLOB '*/project/*' THEN
+              REPLACE(SUBSTR(cwd, INSTR(cwd, '/project/') + 9), '/', '')
+            WHEN cwd LIKE '/home/%' AND LENGTH(cwd) - LENGTH(REPLACE(cwd,'/','')) <= 2 THEN
+              'home'
+            ELSE REPLACE(TRIM(cwd,'/'), '/', '-')
+          END as cwd_proj
+        FROM sessions
+"""
+
+
 def query_projects():
     """Original project query format — used by original dashboard.js loadProjects()."""
     conn = _get_db_conn()
     try:
         rows = conn.execute(
-            """SELECT COALESCE(NULLIF(s.project,''), COALESCE(ss2.cwd_proj,'root')) as project_name,
+            f"""SELECT COALESCE(NULLIF(s.project,''), COALESCE(ss2.cwd_proj,'root')) as project_name,
                       COUNT(*) as session_count,
                       SUM(ss.message_count) as total_messages,
                       SUM(ss.tool_count) as total_tools,
@@ -471,33 +490,33 @@ def query_projects():
                       GROUP_CONCAT(DISTINCT s.ide) as ide_list
                FROM sessions s
                LEFT JOIN session_stats ss ON s.id = ss.session_id
-               LEFT JOIN (
-                   SELECT id,
-                     -- Normalize cwd to project name (GitHub repo level):
-                     -- ~/project/<repo>/... → <repo>
-                     -- ~/ → home
-                     -- last dir component otherwise
-                     CASE
-                       WHEN cwd GLOB '*/project/*' THEN
-                         REPLACE(SUBSTR(cwd, INSTR(cwd, '/project/') + 9), '/', '')
-                       WHEN cwd LIKE '/home/%' AND LENGTH(cwd) - LENGTH(REPLACE(cwd,'/','')) <= 2 THEN
-                         'home'
-                       ELSE REPLACE(TRIM(cwd,'/'), '/', '-')
-                     END as cwd_proj
-                   FROM sessions
-               ) ss2 ON s.id = ss2.id
+               LEFT JOIN ({_CWD_PROJECT_SQL}) ss2 ON s.id = ss2.id
                GROUP BY project_name
                ORDER BY session_count DESC"""
         ).fetchall()
+
+        # Per-IDE counts, keyed by (project, ide). ide_list above records only
+        # *which* IDEs appear for a project, never how many sessions each has, so
+        # the breakdown cannot be derived from it.
+        ide_counts: dict[tuple[str, str], int] = {}
+        for r in conn.execute(
+            f"""SELECT COALESCE(NULLIF(s.project,''), COALESCE(ss2.cwd_proj,'root')) as project_name,
+                       s.ide as ide,
+                       COUNT(*) as n
+                FROM sessions s
+                LEFT JOIN ({_CWD_PROJECT_SQL}) ss2 ON s.id = ss2.id
+                GROUP BY project_name, ide"""
+        ).fetchall():
+            ide_counts[(r["project_name"], r["ide"])] = r["n"]
+
         result = []
         for r in rows:
             d = dict(r)
-            ides = {}
-            if d.get('ide_list'):
-                for ide in d['ide_list'].split(','):
-                    ide = ide.strip()
-                    if ide: ides[ide] = ides.get(ide, 0) + d['session_count']
-            d['ides'] = ides
+            d["ides"] = {
+                ide: n
+                for (proj, ide), n in ide_counts.items()
+                if proj == d["project_name"] and ide
+            }
             result.append(d)
         return result
     finally:

@@ -78,7 +78,18 @@ CREATE TABLE IF NOT EXISTS session_stats (
     write_count   INTEGER DEFAULT 0,
     bash_count    INTEGER DEFAULT 0,
     duration_min  INTEGER,
-    updated_at    TEXT NOT NULL
+    updated_at    TEXT NOT NULL,
+    -- Token/cost accounting. These were present in long-lived databases but
+    -- missing from this schema, so a fresh install got 9 columns while the
+    -- queries referenced 16 and any query touching these crashed with
+    -- "no such column" (query_projects served the dashboard's Projects view).
+    tokens_input       INTEGER DEFAULT 0,
+    tokens_output      INTEGER DEFAULT 0,
+    cost               INTEGER DEFAULT 0,
+    turn_count         INTEGER DEFAULT 0,
+    tokens_reasoning   INTEGER DEFAULT 0,
+    tokens_cache_read  INTEGER DEFAULT 0,
+    tokens_cache_write INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS skills (
@@ -149,9 +160,37 @@ def get_db(db_path: str | Path | None = None) -> sqlite3.Connection:
     conn.executescript(SCHEMA)
     # Migration: add graph_enabled column to existing databases (spec §9.5)
     _migrate_add_graph_enabled(conn)
+    _migrate_add_session_stat_columns(conn)
     _migrate_rename_initiative_to_feature(conn)
     conn.commit()
     return conn
+
+
+# Token/cost accounting on session_stats, in the order they were introduced.
+_SESSION_STAT_COLUMNS = (
+    ("tokens_input", "INTEGER DEFAULT 0"),
+    ("tokens_output", "INTEGER DEFAULT 0"),
+    ("cost", "INTEGER DEFAULT 0"),
+    ("turn_count", "INTEGER DEFAULT 0"),
+    ("tokens_reasoning", "INTEGER DEFAULT 0"),
+    ("tokens_cache_read", "INTEGER DEFAULT 0"),
+    ("tokens_cache_write", "INTEGER DEFAULT 0"),
+)
+
+
+def _migrate_add_session_stat_columns(conn: sqlite3.Connection) -> None:
+    """Add token/cost columns to databases created before SCHEMA declared them.
+
+    These columns existed only in long-lived databases, so a fresh install was
+    missing them while the dashboard queries referenced them - query_projects
+    (which serves /api/projects) failed outright with "no such column". Now that
+    SCHEMA declares them, a fresh database has them already and this is a no-op.
+    """
+    existing = {row[1] for row in conn.execute("PRAGMA table_info(session_stats)")}
+    for name, decl in _SESSION_STAT_COLUMNS:
+        if name not in existing:
+            conn.execute(f"ALTER TABLE session_stats ADD COLUMN {name} {decl}")
+    conn.commit()
 
 
 def _migrate_add_graph_enabled(conn: sqlite3.Connection) -> None:
