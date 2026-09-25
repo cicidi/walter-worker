@@ -662,6 +662,43 @@ coworker status      # Verify everything is set up
 - Global CLAUDE.md content now extracted from `templates/global_claude_md.py` (not hardcoded string)
 - If `~/.claude/CLAUDE.md` already exists: **warn, do NOT override**
 
+### Skill mirror ownership
+
+`install.sh` deploys skills into six mirrors, and the install manifest is what
+makes them reversible:
+
+| Mirror | Step | Form |
+|--------|------|------|
+| `~/.claude/commands/<name>.md` | 10 | file |
+| `~/.opencode/instructions/<name>.md` | 11 | symlink to the above |
+| `~/.claude/skills/<name>/` | 11b | directory copy |
+| `~/.cursor/rules/<name>.md` | 11b | file |
+| `~/.config/opencode/skills/walter-worker/` | 6 | rsync mirror, also an owned dir |
+| `~/.config/opencode/skills/the-super-lab/<name>` | 11b | symlink to the source |
+
+Step 16 writes `~/.coworker/install-manifest.json`, schema version 2, claiming
+each path **by name** — only what that run wrote. `uninstall.sh` reverses the
+manifest, so an unclaimed file survives uninstall, which is the safe direction.
+
+Two rules keep the mirrors from growing without bound. Each was added after the
+growth was measured, not in anticipation:
+
+- **Claim what the run produces, not what is on disk.** The walter-worker mirror
+  is claimed from `$REPO_ROOT/skills`, so a skill an earlier release left there
+  is not re-claimed on every run.
+- **Retire what a previous run claimed and this one does not.** That difference
+  is exactly the set of paths this installer used to own and has stopped
+  producing: a skill renamed, merged, or dropped from the sources. Directories
+  the prune empties are retired with them.
+
+Prune runs in one direction only. A path is removed because a previous run
+claimed it; anything this installer never wrote is never touched, so user files
+and skills installed by another tool survive. That is the managed-vs-user
+distinction, not a change to the union-only default.
+
+Measured before the fix: 42 dangling links and 91 retired skill directories
+across those mirrors.
+
 ---
 
 ## 15. Cross-Tool Compatibility
