@@ -343,3 +343,103 @@ MDEOF
   [ "$status" -eq 0 ]
   [ -f "$HOME/.claude/commands/init.md" ]
 }
+
+# =============================================================================
+# Test: prune — retire what the sources no longer produce
+#
+# The four skill mirrors only ever grew before this: a skill that was renamed,
+# merged, or dropped from the sources stayed deployed forever, so 42 dangling
+# links and 91 retired directories had accumulated across them.
+# =============================================================================
+@test "retires a skill the sources no longer produce" {
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ -f "$HOME/.claude/skills/skill-create/SKILL.md" ]
+  [ -f "$HOME/.cursor/rules/skill-create.md" ]
+
+  # Drop it from the source, the way a rename or a merge would.
+  rm -rf "$SUPERLAB/skills/skill-create"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ ! -e "$HOME/.claude/skills/skill-create/SKILL.md" ]
+  [ ! -e "$HOME/.cursor/rules/skill-create.md" ]
+}
+
+@test "retires the emptied skill directory, not only the file inside it" {
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ -d "$HOME/.claude/skills/skill-create" ]
+
+  rm -rf "$SUPERLAB/skills/skill-create"
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  # A bare directory left behind is the failure this guards: the prune removed
+  # the file and stopped there.
+  [ ! -d "$HOME/.claude/skills/skill-create" ]
+}
+
+@test "retires a path an earlier install claimed and this one does not" {
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  # Stand in for a skill an earlier release claimed. The artifact goes on disk
+  # and into the manifest the way that release would have recorded it; the
+  # current sources do not contain it, so this run does not claim it either.
+  mkdir -p "$HOME/.config/opencode/skills/walter-worker/initiative-edit"
+  echo "stale" > "$HOME/.config/opencode/skills/walter-worker/initiative-edit/SKILL.md"
+  run python3 -c "
+import json, os
+p = os.path.expanduser('~/.coworker/install-manifest.json')
+m = json.load(open(p))
+m['files'].append(os.path.expanduser(
+    '~/.config/opencode/skills/walter-worker/initiative-edit/SKILL.md'))
+json.dump(m, open(p, 'w'))
+"
+  [ "$status" -eq 0 ]
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ ! -e "$HOME/.config/opencode/skills/walter-worker/initiative-edit" ]
+}
+
+@test "leaves a skill this installer never wrote alone" {
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  mkdir -p "$HOME/.claude/skills/someone-elses"
+  echo "not ours" > "$HOME/.claude/skills/someone-elses/SKILL.md"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  # Prune removes only what a previous run claimed. A path this installer never
+  # wrote is not its to delete, however stale it looks.
+  [ -f "$HOME/.claude/skills/someone-elses/SKILL.md" ]
+}
+
+@test "records what it retired in the manifest" {
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  mkdir -p "$HOME/.config/opencode/skills/walter-worker/initiative-edit"
+  echo "stale" > "$HOME/.config/opencode/skills/walter-worker/initiative-edit/SKILL.md"
+  run python3 -c "
+import json, os
+p = os.path.expanduser('~/.coworker/install-manifest.json')
+m = json.load(open(p))
+m['files'].append(os.path.expanduser(
+    '~/.config/opencode/skills/walter-worker/initiative-edit/SKILL.md'))
+json.dump(m, open(p, 'w'))
+"
+  [ "$status" -eq 0 ]
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import json, os
+m = json.load(open(os.path.expanduser('~/.coworker/install-manifest.json')))
+print('pruned=' + str(any('initiative-edit' in x for x in m.get('pruned', []))))
+"
+  [ "$output" = "pruned=True" ]
+}
