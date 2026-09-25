@@ -28,47 +28,49 @@ logger = logging.getLogger(__name__)
 def _spawn_agent(prompt: str, work_dir: str = ".", timeout_sec: int = 300) -> dict:
     """Spawn a Claude Code agent session to perform a task.
 
-    Uses `claude` CLI in SDK mode (pip install @anthropic-ai/claude-code).
-    Falls back to using the LLMClient directly if CLI unavailable.
-
     Returns {"success": bool, "output": str, "tool_calls": int}
+
+    Headless Claude Code is `claude -p`. The argv here used to be
+    `claude agent --prompt … --work-dir … --timeout … --output-format json`,
+    none of which exists: there is no `agent` subcommand, `--work-dir` and
+    `--timeout` are not flags, and `--output-format` works only with `--print`.
+    So the spawn always failed, and the failure was swallowed.
+
+    There is now no toolless fallback. It answered a plain LLM chat and
+    returned success=True, so the loop counted a round as progress on the
+    strength of a chatbot reply — a live run of the old code returned
+    "Hi! Did you mean to type something else?" as a successful agent session.
+    An auto-worker that cannot spawn an agent has failed; saying so is the
+    only honest answer, and the caller needs to be able to tell.
     """
-    # Try Claude Code CLI first
     try:
         result = subprocess.run(
-            [
-                "claude", "agent",
-                "--prompt", prompt,
-                "--work-dir", work_dir,
-                "--timeout", str(timeout_sec),
-                "--output-format", "json",
-            ],
-            capture_output=True, text=True, timeout=timeout_sec + 30,
+            ["claude", "-p", prompt, "--output-format", "json"],
+            capture_output=True, text=True, cwd=work_dir, timeout=timeout_sec + 30,
         )
-        if result.returncode == 0:
-            try:
-                data = json.loads(result.stdout)
-                return {"success": True, "output": data.get("result", result.stdout),
-                        "tool_calls": data.get("tool_calls", 0)}
-            except json.JSONDecodeError:
-                return {"success": True, "output": result.stdout, "tool_calls": 0}
-        return {"success": False, "output": result.stderr, "tool_calls": 0}
     except FileNotFoundError:
-        pass  # Claude CLI not installed, fall back
-    except Exception:
-        pass
-
-    # Fallback: use LLMClient directly (limited — no tool calling)
-    try:
-        from coworker.memory.llm import LLMClient
-        llm = LLMClient()
-        resp = llm.chat(
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=2000,
-        )
-        return {"success": True, "output": resp.content, "tool_calls": 0}
+        return {
+            "success": False,
+            "output": "claude CLI not found on PATH — the auto-worker spawns "
+                      "agents with it and cannot take action without one",
+            "tool_calls": 0,
+        }
     except Exception as exc:
-        return {"success": False, "output": str(exc), "tool_calls": 0}
+        return {"success": False, "output": f"spawning claude failed: {exc}",
+                "tool_calls": 0}
+
+    if result.returncode != 0:
+        return {"success": False,
+                "output": result.stderr or f"claude exited {result.returncode}",
+                "tool_calls": 0}
+
+    try:
+        data = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return {"success": True, "output": result.stdout, "tool_calls": 0}
+
+    return {"success": True, "output": data.get("result", result.stdout),
+            "tool_calls": data.get("tool_calls", 0)}
 
 
 # ---------------------------------------------------------------------------

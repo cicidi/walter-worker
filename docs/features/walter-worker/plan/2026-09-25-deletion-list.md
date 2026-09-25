@@ -88,8 +88,8 @@ This is the highest-value entry on the list: it is the self-evolving loop's
 actual executor. Re-enabling it is a **runtime behaviour change that spends
 money** (it spawns agents in a loop for up to `--max-hours`).
 
-**Do not re-enable it yet — the agent spawn cannot work as written.** Checked
-against the installed CLI rather than assumed:
+**The agent spawn could not work as written — now fixed.** Checked against the
+installed CLI rather than assumed:
 
     engine.py:38   claude agent --prompt P --work-dir D --timeout N \
                                 --output-format json
@@ -100,22 +100,34 @@ against the installed CLI rather than assumed:
 - `--work-dir` and `--timeout` do not exist as flags at all.
 - `--output-format json` is documented as working "only with `--print`".
 
-So the call fails, `_spawn_agent` swallows the failure (`except Exception:
-pass`) and falls through to a plain `LLMClient.chat` with **no tools**. The
-loop would run, report rounds, and be incapable of investigating or fixing
-anything — while looking like it worked. That is the silent-failure shape this
-whole cleanup has been chasing, in the one component whose entire value is
-taking real action.
+So the call failed and was swallowed (`except Exception: pass`), and it fell
+through to a plain `LLMClient.chat` with **no tools** returning
+**`success: True`**. A live run of the old code came back with "Hi! Did you
+mean to type something else? What can I help you with?" as a successful agent
+session. The loop would run, report rounds, and be structurally incapable of
+investigating or fixing anything, while looking like it worked — in the one
+component whose whole value is taking real action.
 
-Whoever picks this up: the headless invocation is `claude -p "<prompt>"
---output-format json`, and the fallback needs to be loud — a toolless chat is
-not a degraded auto-worker, it is a different thing.
+**Both are fixed** (`17ca51c`… `engine.py`): the argv is now `claude -p
+"<prompt>" --output-format json` with the directory and timeout on
+`subprocess.run`, and the toolless fallback is gone — a failed spawn now
+returns `success: False` and names the reason. `tests/python/test_autoworker_engine.py`
+covers both; there was no test for this module before.
 
-Two things were checked and are fine: the CLI registers cleanly and both
+**Only the switch is left, and it is deliberate that it is still off.**
+Commenting the registration in makes `run --loop` reachable, and that command
+spawns agent sessions which modify the repository for up to `--max-hours`,
+defaulting to 12. The spawn is unit-tested; the loop around it is not, and
+cannot be verified without running autonomous agents against a real repo. That
+first run is worth watching, so it should be someone's explicit choice rather
+than a side effect of a cleanup. `cli.py:37` and `cli.py:1265` are the two
+lines.
+
+Also verified, so the entry is accurate: the CLI registers cleanly and both
 commands show correct help, and the earlier 120 s pytest timeout really was
 fixed (`cli_autoworker.py:96` now uses 600).
 
-*Confidence: high — the CLI was inspected directly.*
+*Confidence: high — the CLI was inspected directly and the fix is tested.*
 
 ### B2. `memory/capture.py` — the loop's first stage — **DONE**
 
