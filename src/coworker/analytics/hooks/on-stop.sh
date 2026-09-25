@@ -11,6 +11,15 @@ else
   echo "closed: \"$(date '+%Y-%m-%dT%H:%M:%S%z')\"" >> "$SESSIONS/$SESSION_ID/session.yaml"
 fi
 
+# Curator (spec §4.3, "every 7 days"). Lazy check: the interval lives in
+# curator.py, and --if-due answers from a stamp file without loading mem0, so
+# the usual cost is one short-lived process (~0.1s) that does nothing. It must
+# sit before the dedupe exit below, which skips every turn after the first.
+# Deliberately not backgrounded: a child can be reaped when the hook exits,
+# which would make this silently never run — the failure it exists to fix.
+# The real run happens at most once per 7 days.
+coworker memory curate --if-due >/dev/null 2>&1 || true
+
 # Dedupe index entry — skip if this session is already indexed
 INDEX="$BASE/index.jsonl"
 if [[ -f "$INDEX" ]] && grep -qF "\"$SESSION_ID\"" "$INDEX" 2>/dev/null; then

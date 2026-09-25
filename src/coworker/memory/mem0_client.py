@@ -216,6 +216,36 @@ class Mem0Client:
             logger.error("mem0 search failed: %s", exc)
             return []
 
+    def list_entries(
+        self,
+        filters: dict | None = None,
+        top_k: int = 1000,
+        user_id: str = "default",
+    ) -> list[dict]:
+        """List entries without recording a retrieval.
+
+        Unlike search(), this does not bump use_count or last_used, so a
+        caller that inspects entries to decide their lifecycle does not
+        refresh the evidence it is reading. The curator's staleness sweep
+        used to run through search() and therefore reset last_used on
+        exactly the entries it was about to expire.
+
+        Two mem0 details are handled here: get_all rejects a filter with
+        no scope key, and its top_k defaults to 20, which would silently
+        truncate a larger store.
+        """
+        effective_filters = dict(filters) if filters else {}
+        effective_filters.setdefault("user_id", user_id)
+        try:
+            result = self._memory.get_all(filters=effective_filters, top_k=top_k)
+        except Exception as exc:
+            logger.error("mem0 list_entries failed: %s", exc)
+            return []
+
+        if isinstance(result, dict) and "results" in result:
+            return list(result["results"])
+        return list(result) if result else []
+
     def update(
         self,
         entry_id: str,

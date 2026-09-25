@@ -7,6 +7,7 @@ Each test uses isolated temporary vector stores for determinism.
 from __future__ import annotations
 
 import os
+from unittest.mock import MagicMock
 
 import pytest
 from coworker.memory.mem0_client import ConfigError, Mem0Client, Mem0Error
@@ -515,3 +516,47 @@ class TestMem0ClientErrorHandling:
             ids.append(eid)
         assert len(ids) == 10
         assert len(set(ids)) == 10
+
+
+# ============================================================================
+# Read-only listing
+# ============================================================================
+
+
+class TestListEntries:
+    """list_entries is the read-only listing the curator's sweep needs.
+
+    search() bumps use_count/last_used on every entry it returns, so a
+    staleness sweep built on search() refreshes its own evidence. These
+    tests pin the absence of that side effect.
+    """
+
+    def test_does_not_update_entries(self):
+        memory = MagicMock()
+        memory.get_all.return_value = {"results": [{"id": "1", "metadata": {"state": "active"}}]}
+        client = Mem0Client(memory)
+        client.list_entries()
+        memory.update.assert_not_called()
+
+    def test_returns_entries_and_scopes_to_a_user(self):
+        memory = MagicMock()
+        memory.get_all.return_value = {"results": [{"id": "1", "metadata": {}}]}
+        client = Mem0Client(memory)
+        out = client.list_entries(filters={"state": "active"})
+        assert len(out) == 1
+        kwargs = memory.get_all.call_args.kwargs
+        assert kwargs["filters"]["user_id"] == "default"
+        assert kwargs["filters"]["state"] == "active"
+        assert kwargs["top_k"] > 20  # mem0's default silently truncates
+
+    def test_accepts_plain_list_response(self):
+        memory = MagicMock()
+        memory.get_all.return_value = [{"id": "1", "metadata": {}}]
+        client = Mem0Client(memory)
+        assert len(client.list_entries()) == 1
+
+    def test_error_returns_empty(self):
+        memory = MagicMock()
+        memory.get_all.side_effect = RuntimeError("down")
+        client = Mem0Client(memory)
+        assert client.list_entries() == []

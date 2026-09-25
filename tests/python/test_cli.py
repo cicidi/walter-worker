@@ -5,6 +5,7 @@ import yaml
 from click.testing import CliRunner
 
 from coworker.cli import main
+from coworker.memory.curator import is_due, mark_ran
 
 
 runner = CliRunner()
@@ -1612,7 +1613,7 @@ class TestMemorySubcommands:
     """
 
     EXPECTED = {
-        "close", "init", "query", "refresh", "search",
+        "close", "curate", "init", "query", "refresh", "search",
         "stats", "sync", "train", "validate", "wrong-history",
     }
 
@@ -1641,3 +1642,46 @@ class TestMemorySubcommands:
         assert not orphan.exists(), (
             "src/coworker/cli_memory.py is back; it duplicates the wired module"
         )
+
+    def test_curate_runs_the_curator(self, monkeypatch, tmp_path):
+        """The curator had no caller at all; this is that caller."""
+        calls = {}
+
+        def fake_run(client, **kw):
+            calls["ran"] = True
+            return {"stale_marked": 2, "archived": 1, "exported_entries": 5,
+                    "scored": 3, "errors": []}
+
+        monkeypatch.setattr("coworker.memory.curator.run_curator", fake_run)
+        monkeypatch.setattr("coworker.memory.mem0_client.Mem0Client.from_config",
+                            lambda **kw: object())
+        result = runner.invoke(main, ["memory", "curate", "--state", str(tmp_path / "last")])
+        assert result.exit_code == 0, result.output
+        assert calls.get("ran"), "run_curator was never called"
+        assert "stale" in result.output.lower()
+
+    def test_curate_if_due_skips_when_not_due(self, monkeypatch, tmp_path):
+        """--if-due is the lazy trigger: the mem0 client must not even load."""
+        state = tmp_path / "last"
+        mark_ran(state_path=state)
+
+        def explode(**kw):
+            raise AssertionError("built a mem0 client while not due")
+
+        monkeypatch.setattr("coworker.memory.mem0_client.Mem0Client.from_config", explode)
+        result = runner.invoke(main, ["memory", "curate", "--if-due", "--state", str(state)])
+        assert result.exit_code == 0, result.output
+        assert "not due" in result.output.lower()
+
+    def test_curate_if_due_runs_when_due_and_records(self, monkeypatch, tmp_path):
+        state = tmp_path / "last"  # never written → due
+        monkeypatch.setattr("coworker.memory.curator.run_curator",
+                            lambda client, **kw: {"stale_marked": 0, "archived": 0,
+                                                  "exported_entries": 0, "scored": 0,
+                                                  "errors": []})
+        monkeypatch.setattr("coworker.memory.mem0_client.Mem0Client.from_config",
+                            lambda **kw: object())
+        result = runner.invoke(main, ["memory", "curate", "--if-due", "--state", str(state)])
+        assert result.exit_code == 0, result.output
+        assert state.exists(), "a due run must record that it ran"
+        assert is_due(state_path=state) is False

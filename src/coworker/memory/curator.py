@@ -1,12 +1,28 @@
 """Periodic maintenance — archive stale entries, merge duplicates, export MEMORY.md.
 
-Runs on schedule (every 7 days or after 2h+ idle).  Manages the
-lifecycle: active → stale (30d) → archived (90d).
+Manages the lifecycle: active -> stale (30d) -> archived (90d), and regenerates
+MEMORY.md from mem0.
+
+Spec §4.3 schedules this "every 7 days, after 2h+ idle". The interval half is
+implemented as a lazy check at session end — `coworker memory curate --if-due`,
+wired into the Stop hook — rather than a daemon. The 2h-idle half is not
+implemented.
+
+One constraint shapes how this module reads mem0: it must not use search().
+search() bumps use_count and last_used on every entry it returns, so a sweep
+built on it resets the last_used of exactly the entries it is about to expire,
+and _archive_old's 90-day test can then never be satisfied. Every read here
+goes through Mem0Client.list_entries(), which does not record a retrieval.
+
+Known gap: ARCHIVE_DAYS is in the spec, but the recovery command the spec
+names (§4.3, `coworker memory unarchive`) does not exist anywhere in the
+codebase. Archival is therefore a one-way door.
 """
 
 from __future__ import annotations
 
 import logging
+import time
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
@@ -14,6 +30,38 @@ logger = logging.getLogger(__name__)
 
 STALE_DAYS = 30
 ARCHIVE_DAYS = 90
+CURATOR_INTERVAL_DAYS = 7
+
+_DEFAULT_STATE_PATH = "~/.coworker/memory/.curator_last_run"
+DEFAULT_EXPORT_PATH = "~/.coworker/memory/MEMORY.md"
+
+
+def _resolve_state_path(state_path: str | Path | None = None) -> Path:
+    return Path(state_path).expanduser() if state_path else Path(_DEFAULT_STATE_PATH).expanduser()
+
+
+def is_due(
+    state_path: str | Path | None = None,
+    interval_days: int = CURATOR_INTERVAL_DAYS,
+    now: float | None = None,
+) -> bool:
+    """True when the curator has not run within interval_days.
+
+    Cheap on purpose: this runs at the end of every session, so it must
+    answer before anything imports mem0.
+    """
+    try:
+        last = float(_resolve_state_path(state_path).read_text().strip())
+    except (OSError, ValueError):
+        return True  # never run, or the stamp is unreadable
+    return (now if now is not None else time.time()) - last >= interval_days * 86400
+
+
+def mark_ran(state_path: str | Path | None = None, now: float | None = None) -> None:
+    """Record that the curator ran, so the next check can tell."""
+    path = _resolve_state_path(state_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(str(now if now is not None else time.time()))
 
 
 def run_curator(mem0_client, skills_dir: str | None = None, export_path: str | None = None) -> dict:
@@ -71,11 +119,7 @@ def _mark_stale(mem0_client) -> int:
     cutoff = (datetime.now(timezone.utc) - timedelta(days=STALE_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
     count = 0
     try:
-        results = mem0_client.search(
-            query=".",
-            filters={"state": "active"},
-            top_k=200,
-        )
+        results = mem0_client.list_entries(filters={"state": "active"})
         for entry in results:
             last_used = entry.get("metadata", {}).get("last_used", "")
             if last_used and last_used < cutoff:
@@ -93,11 +137,7 @@ def _archive_old(mem0_client) -> int:
     cutoff = (datetime.now(timezone.utc) - timedelta(days=ARCHIVE_DAYS)).strftime("%Y-%m-%dT%H:%M:%SZ")
     count = 0
     try:
-        results = mem0_client.search(
-            query=".",
-            filters={"state": "stale"},
-            top_k=200,
-        )
+        results = mem0_client.list_entries(filters={"state": "stale"})
         for entry in results:
             last_used = entry.get("metadata", {}).get("last_used", "")
             if last_used and last_used < cutoff:
@@ -122,9 +162,9 @@ def export_memory_md(mem0_client, export_path: str) -> int:
     projects: dict[str, list[dict]] = {}
     try:
         # Fetch active entries for all projects
-        results = mem0_client.search(query="", filters={"state": "active"}, top_k=500)
+        results = mem0_client.list_entries(filters={"state": "active"})
     except Exception as exc:
-        logger.warning("export_memory_md search failed: %s", exc)
+        logger.warning("export_memory_md listing failed: %s", exc)
         results = []
 
     for entry in results:
@@ -172,7 +212,7 @@ def _score_memories(mem0_client) -> int:
     Memories with score=0 and last_used > 60d are auto-marked stale.
     """
     try:
-        results = mem0_client.search(query=".", filters={"state": "active"}, top_k=500)
+        results = mem0_client.list_entries(filters={"state": "active"})
     except Exception:
         return 0
 
@@ -218,9 +258,9 @@ def generate_report(mem0_client, export_dir: str) -> Path:
     report_path.parent.mkdir(parents=True, exist_ok=True)
 
     try:
-        active = len(mem0_client.search(query="", filters={"state": "active"}, top_k=1))
-        stale = len(mem0_client.search(query="", filters={"state": "stale"}, top_k=1))
-        archived = len(mem0_client.search(query="", filters={"state": "archived"}, top_k=1))
+        active = len(mem0_client.list_entries(filters={"state": "active"}))
+        stale = len(mem0_client.list_entries(filters={"state": "stale"}))
+        archived = len(mem0_client.list_entries(filters={"state": "archived"}))
     except Exception:
         active = stale = archived = 0
 
@@ -229,9 +269,9 @@ def generate_report(mem0_client, export_dir: str) -> Path:
         f"> Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC",
         "",
         "## Memory Store",
-        f"- Active: ~{active}",
-        f"- Stale: ~{stale}",
-        f"- Archived: ~{archived}",
+        f"- Active: {active}",
+        f"- Stale: {stale}",
+        f"- Archived: {archived}",
         "",
     ]
 

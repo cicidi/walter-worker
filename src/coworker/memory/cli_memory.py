@@ -292,6 +292,45 @@ def register_memory_commands(main_group: click.Group) -> None:
             console.print("[dim]Both snapshots unchanged.[/dim]")
 
 
+    @memory.command("curate")
+    @click.option("--if-due", is_flag=True,
+                  help="Run only when the 7-day interval (spec §4.3) has elapsed")
+    @click.option("--state", "state_path", default=None, help="Override the last-run stamp path")
+    @click.option("--export", "export_path", default=None, help="Override the MEMORY.md export path")
+    def memory_curate(if_due, state_path, export_path):
+        """Run curator maintenance: mark stale, archive, score, export MEMORY.md."""
+        from coworker.memory.curator import (
+            DEFAULT_EXPORT_PATH,
+            is_due,
+            mark_ran,
+            run_curator,
+        )
+
+        if if_due and not is_due(state_path=state_path):
+            console.print("[dim]Curator not due (last run within 7 days).[/dim]")
+            return
+
+        from coworker.memory.mem0_client import Mem0Client
+
+        try:
+            mem0 = Mem0Client.from_config()
+        except Exception as e:
+            console.print(f"[yellow]Curator skipped (mem0 unavailable): {e}[/yellow]")
+            return
+
+        stats = run_curator(mem0, export_path=export_path or DEFAULT_EXPORT_PATH)
+        # Only a clean run counts as "ran", so a failing one retries next session.
+        if not stats.get("errors"):
+            mark_ran(state_path=state_path)
+
+        if stats.get("errors"):
+            console.print(f"[yellow]Curator finished with errors: {stats['errors']}[/yellow]")
+        console.print(
+            f"[green]Curator:[/green] {stats['stale_marked']} stale, "
+            f"{stats['archived']} archived, {stats.get('scored', 0)} scored, "
+            f"{stats['exported_entries']} exported"
+        )
+
     @memory.command("train")
     @click.option("--limit", default=None, type=int, help="Max sessions to process")
     @click.option("--target-skills", default=10, type=int, help="Target skills to stage")
