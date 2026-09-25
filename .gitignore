@@ -37,7 +37,10 @@ docs/work-review/
 docs/superpowers/
 pic/*
 !pic/walter-worker-logo.png
-.coworker/
+# Anchored: an unanchored ".coworker/" also matches ".coworker/" at any depth,
+# so a stray directory (e.g. a literal "~" path written by a bug) stayed
+# invisible to git status while containing a real file.
+/.coworker/
 *.bak
 .polish-loop-stop
 
