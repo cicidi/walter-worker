@@ -1741,3 +1741,68 @@ class TestShortPath:
 
     def test_empty_stays_empty(self):
         assert _short_path("") == ""
+
+
+class TestKnowledgeCommands:
+    """skills/knowledge tells users to run these; nothing exposed them."""
+
+    def _patch(self, monkeypatch, summarize, sessions=None):
+        monkeypatch.setattr(
+            "coworker.analytics.cli_knowledge.summarize_session", summarize
+        )
+        if sessions is not None:
+            monkeypatch.setattr(
+                "coworker.analytics.cli_knowledge.get_all_sessions_since",
+                lambda since="yesterday": sessions,
+            )
+
+    def test_summarize_reports_the_session(self, monkeypatch):
+        seen = {}
+
+        def fake(session_id, llm=None):
+            seen["id"] = session_id
+            return {"session_id": session_id, "cards": 2}
+
+        self._patch(monkeypatch, fake)
+        result = runner.invoke(main, ["knowledge", "summarize", "s1"])
+
+        assert result.exit_code == 0, result.output
+        assert seen["id"] == "s1"
+        assert "s1" in result.output
+
+    def test_summarize_unknown_session_fails_loudly(self, monkeypatch):
+        self._patch(monkeypatch, lambda session_id, llm=None: None)
+        result = runner.invoke(main, ["knowledge", "summarize", "ghost"])
+
+        assert result.exit_code != 0
+        assert "ghost" in result.output
+
+    def test_analyze_rejects_an_unrecognised_since(self):
+        # Better than answering about a different window than the one asked for.
+        result = runner.invoke(main, ["knowledge", "analyze", "--since", "last tuesday"])
+        assert result.exit_code != 0
+        assert "last tuesday" in result.output
+
+    def test_analyze_says_so_when_nothing_matches(self, monkeypatch):
+        self._patch(monkeypatch, lambda session_id, llm=None: None, sessions=[])
+        result = runner.invoke(main, ["knowledge", "analyze", "--since", "2026-07-01"])
+
+        assert result.exit_code == 0, result.output
+        assert "No sessions" in result.output
+
+    def test_analyze_keeps_going_after_one_bad_session(self, monkeypatch):
+        """A batch over a month must not die on a single unreadable session."""
+        calls = []
+
+        def fake(session_id, llm=None):
+            calls.append(session_id)
+            if session_id == "broken":
+                raise RuntimeError("provider exploded")
+            return {"session_id": session_id, "cards": 0}
+
+        self._patch(monkeypatch, fake, sessions=["ok1", "broken", "ok2"])
+        result = runner.invoke(main, ["knowledge", "analyze", "--all"])
+
+        assert result.exit_code == 0, result.output
+        assert calls == ["ok1", "broken", "ok2"]
+        assert "2/3" in result.output

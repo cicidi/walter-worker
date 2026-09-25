@@ -476,3 +476,168 @@ def test_get_all_sessions_since_all(knowledge_db):
 
     ids = get_all_sessions_since("all")
     assert ids == ["s1", "s2"]
+
+
+def test_build_summary_prompt_carries_the_transcript():
+    """The prompt held only counts — the model was asked to summarise a session
+    it was never shown, so any summary it produced was invented."""
+    from coworker.analytics.knowledge import build_summary_prompt
+
+    data = {
+        "project": "walter-worker",
+        "feature": "test-coverage",
+        "messages": [
+            {"type": "user", "content": "the deploy broke at midnight"},
+            {"type": "assistant", "content": "checking the migration order"},
+        ],
+        "tool_calls": [
+            {"tool": "Bash", "args": '{"command": "pytest"}', "duration_ms": 1200},
+        ],
+    }
+    prompt = build_summary_prompt(data)
+
+    assert "the deploy broke at midnight" in prompt
+    assert "checking the migration order" in prompt
+    assert "Bash" in prompt
+    assert "pytest" in prompt
+    # The counts line the older tests pin must survive alongside the content.
+    assert "Messages: 2" in prompt
+    assert "Tool calls: 1" in prompt
+
+
+def test_build_summary_prompt_is_bounded():
+    """A long session must not build a prompt that cannot be sent."""
+    from coworker.analytics.knowledge import MAX_PROMPT_CHARS, build_summary_prompt
+
+    data = {
+        "messages": [{"type": "user", "content": "x" * 5000} for _ in range(50)],
+        "tool_calls": [],
+    }
+    prompt = build_summary_prompt(data)
+    assert len(prompt) <= MAX_PROMPT_CHARS
+
+
+class _FakeLLM:
+    """Stands in for LLMClient — records the messages it was handed."""
+
+    def __init__(self, reply: str):
+        self.reply = reply
+        self.seen: list[dict] = []
+
+    def chat(self, messages, **kw):
+        self.seen = messages
+        from coworker.memory.llm import LLMResponse
+
+        return LLMResponse(content=self.reply, model="fake", provider="fake")
+
+
+def _seed_session(conn, session_id="s1"):
+    conn.execute(
+        "INSERT INTO sessions (id, ide, created_at, project) VALUES (?, ?, ?, ?)",
+        (session_id, "claude", "2025-01-01", "walter-worker"),
+    )
+    conn.execute(
+        "INSERT INTO messages (session_id, seq, type, content, ts) VALUES (?, ?, ?, ?, ?)",
+        (session_id, 1, "user", "the deploy broke at midnight", "2025-01-01T00:00:00"),
+    )
+    conn.commit()
+
+
+def test_summarize_session_writes_the_summary(knowledge_db):
+    from coworker.analytics.knowledge import summarize_session
+
+    _seed_session(knowledge_db)
+    llm = _FakeLLM(json.dumps({
+        "context_to_remember": "deploys are fragile at midnight",
+        "efficiency_tip": "run the migration tests first",
+        "memory_keywords": "deploy,migration",
+        "efficiency_score": 0.5,
+    }))
+
+    result = summarize_session("s1", llm=llm)
+
+    assert result["session_id"] == "s1"
+    # The model must have been shown the transcript, not just its length.
+    assert "the deploy broke at midnight" in llm.seen[0]["content"]
+
+    row = knowledge_db.execute(
+        "SELECT context_to_remember, memory_keywords FROM session_summaries WHERE session_id = 's1'"
+    ).fetchone()
+    assert row["context_to_remember"] == "deploys are fragile at midnight"
+    assert row["memory_keywords"] == "deploy,migration"
+
+
+def test_summarize_session_unknown_id_returns_none(knowledge_db):
+    from coworker.analytics.knowledge import summarize_session
+
+    assert summarize_session("nope", llm=_FakeLLM("{}")) is None
+
+
+def test_summarize_session_survives_a_non_json_reply(knowledge_db):
+    """A chatty model must not take the whole run down."""
+    from coworker.analytics.knowledge import summarize_session
+
+    _seed_session(knowledge_db)
+    result = summarize_session("s1", llm=_FakeLLM("Sure! Here you go:"))
+
+    assert result["session_id"] == "s1"
+    row = knowledge_db.execute(
+        "SELECT session_id FROM session_summaries WHERE session_id = 's1'"
+    ).fetchone()
+    assert row is not None
+
+
+def test_summarize_session_writes_knowledge_cards(knowledge_db):
+    from coworker.analytics.knowledge import summarize_session
+
+    _seed_session(knowledge_db)
+    llm = _FakeLLM(json.dumps({
+        "context_to_remember": "x",
+        "cards": [{
+            "type": "trap",
+            "title": "midnight deploys break",
+            "summary": "the migration lock is held",
+            "evidence": ["s1"],
+        }],
+    }))
+
+    result = summarize_session("s1", llm=llm)
+
+    assert result["cards"] == 1
+    row = knowledge_db.execute(
+        "SELECT title, type, project FROM knowledge WHERE session_id = 's1'"
+    ).fetchone()
+    assert row["title"] == "midnight deploys break"
+    assert row["type"] == "trap"
+    assert row["project"] == "walter-worker"
+
+
+def test_get_all_sessions_since_honours_an_iso_date(knowledge_db):
+    """`--since 2026-07-01` used yesterday's date for every value but "all",
+    so the documented form silently returned a single day."""
+    from coworker.analytics.knowledge import get_all_sessions_since
+
+    for sid, when in (
+        ("s_ancient", "2020-01-01"),
+        ("s_at_edge", "2026-07-01"),
+        ("s_after", "2026-07-15"),
+    ):
+        knowledge_db.execute(
+            "INSERT INTO sessions (id, ide, created_at) VALUES (?, ?, ?)",
+            (sid, "claude", when),
+        )
+    knowledge_db.commit()
+
+    ids = get_all_sessions_since("2026-07-01")
+
+    assert "s_at_edge" in ids
+    assert "s_after" in ids
+    assert "s_ancient" not in ids
+
+
+def test_get_all_sessions_since_rejects_nonsense(knowledge_db):
+    """Better to refuse than to quietly answer a different question."""
+    from coworker.analytics.knowledge import get_all_sessions_since
+
+    with pytest.raises(ValueError):
+        get_all_sessions_since("last tuesday")
