@@ -234,3 +234,25 @@ print(sum(1 for f in m.get('files', []) if 'skills/the-super-lab/' in f))
   run bash -c "ls -A '$HOME/.config/opencode/skills/the-super-lab' 2>/dev/null | wc -l"
   [ "$output" = "0" ]
 }
+
+@test "a pristine snapshot is taken even when the files do not exist yet" {
+  # The guard was the directory's existence, and mkdir ran unconditionally. On
+  # a fresh machine there was nothing to copy, so the directory was created
+  # empty and `! -d` was false from then on: no snapshot was ever taken and
+  # --restore-pristine found an empty directory forever.
+  rm -rf "$HOME/.coworker/backups/pristine" "$HOME/.coworker/install-manifest.json"
+  rm -f "$HOME/.claude/settings.json" "$HOME/.claude/CLAUDE.md"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  [ -f "$HOME/.coworker/backups/pristine/.taken" ]
+  run cat "$HOME/.coworker/backups/pristine/absent.txt"
+  [[ "$output" == *"settings.json"* ]]
+
+  # Restoring removes what the install created, because that is what pristine
+  # means on a machine that had neither file.
+  run bash -c "echo y | bash '$REPO_ROOT/setup/uninstall.sh' --restore-pristine"
+  [ "$status" -eq 0 ]
+  [ ! -f "$HOME/.claude/settings.json" ]
+}

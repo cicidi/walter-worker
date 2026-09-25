@@ -67,12 +67,26 @@ echo ""
 # here. Nothing created this directory, so that option could only ever end at
 # "No pristine backup found". Taken once, on the first install, while both files
 # are still unmodified — the two the uninstaller restores.
+#
+# Guarded by a marker file rather than the directory's existence. On a fresh
+# machine neither file exists yet, so the loop copied nothing — but mkdir still
+# created the directory, and from then on `! -d` was false forever: the
+# snapshot was never taken, and --restore-pristine found an empty directory on
+# every install. Absence is recorded instead, because "this file was not here"
+# is the pristine state for a fresh machine and restoring it means deleting it.
 PRISTINE_DIR="$HOME/.coworker/backups/pristine"
-if [[ ! -d "$PRISTINE_DIR" ]]; then
+PRISTINE_TAKEN="$PRISTINE_DIR/.taken"
+if [[ ! -f "$PRISTINE_TAKEN" ]]; then
   mkdir -p "$PRISTINE_DIR"
+  : > "$PRISTINE_DIR/absent.txt"
   for f in "$HOME/.claude/settings.json" "$GLOBAL_CLAUDE_MD"; do
-    [[ -f "$f" ]] && cp "$f" "$PRISTINE_DIR/$(basename "$f")"
+    if [[ -f "$f" ]]; then
+      cp "$f" "$PRISTINE_DIR/$(basename "$f")"
+    else
+      echo "$f" >> "$PRISTINE_DIR/absent.txt"
+    fi
   done
+  touch "$PRISTINE_TAKEN"
   log "Saved pristine snapshot to $PRISTINE_DIR"
 fi
 

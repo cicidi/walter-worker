@@ -190,10 +190,24 @@ echo "   Analytics data   : ~/.coworker/analytics/ (preserved — delete manuall
 echo ""
 if $RESTORE_PRIS; then
   PRIS="$HOME/.coworker/backups/pristine"
-  if [[ -d "$PRIS" ]]; then
+  # A marker, or any file actually in it. Snapshots written before the marker
+  # existed have neither the marker nor, on a fresh machine, any file — and an
+  # empty directory is an empty directory, not a backup.
+  if [[ -f "$PRIS/.taken" || -f "$PRIS/settings.json" || -f "$PRIS/CLAUDE.md" ]]; then
     log "Restoring pristine backup from $PRIS..."
     cp "$PRIS/settings.json" "$CLAUDE_SETTINGS" 2>/dev/null || warn "Could not restore settings.json"
     cp "$PRIS/CLAUDE.md" "$HOME/.claude/CLAUDE.md" 2>/dev/null || warn "Could not restore CLAUDE.md"
+
+    # Files that did not exist before the install. "Pristine" for those is
+    # absent, so restoring means removing what we created — otherwise a fresh
+    # machine restores to a state it was never in.
+    if [[ -f "$PRIS/absent.txt" ]]; then
+      while read -r p; do
+        if [[ -n "$p" && -e "$p" ]]; then
+          rm -f "$p" && log "  removed (was absent before install): $p"
+        fi
+      done < "$PRIS/absent.txt"
+    fi
   else
     warn "No pristine backup found at $PRIS"
   fi
