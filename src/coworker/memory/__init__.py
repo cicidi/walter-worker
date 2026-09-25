@@ -13,7 +13,6 @@ Public API:
     validate — Claude SDK validation harness (A/B comparison).
     safety — Circuit breaker. (Sandbox lives in pending; rollback is not
              implemented — see the module docstring.)
-    errors — Namespaced error codes (MEM_E0xx, SYNC_E0xx, SKILL_E0xx, AUTO_E0xx).
     metrics — Evolution metrics collection and scoring.
 
     graph — Memory Graph data model (Node, Edge, Graph).

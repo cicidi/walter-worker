@@ -20,18 +20,33 @@ Each entry names the evidence that established it.
 
 ## A. Delete — dead and not on the loop
 
-### A1. `src/coworker/memory/errors.py` — 61 lines
+### A1. `src/coworker/memory/errors.py` — 61 lines — **DONE** (`0d6c…`)
 
 Error-code registry ("spec §9"). Referenced by nothing: no import, no config, no
-hook. The only file naming it is the generated `SOURCES.txt`.
+hook. The only file naming it was the generated `SOURCES.txt`. `tests/python/
+test_errors.py` covered the registry and nothing else, and went with it.
 
 *Confidence: high.* Vision relevance: none — it is scaffolding for a spec, not a
 stage of the loop.
 
-### A2. `build/` and `src/walter_worker.egg-info/`
+**One thing found after this entry was written, worth recording rather than
+burying:** spec §9 does call for an error-code registry ("reuse the QA `E0xx`
+style registry, namespaced `MEM_E0xx`… Exact table → impl"). So the module was
+not invented — it implemented that line. It was deleted anyway, on the grounds
+that a vocabulary nobody raises is not error handling, and that the spec's own
+"Exact table → impl" leaves the table to the implementation. That does leave
+§9's sentence unmatched. The spec was not edited: it is the authoritative
+statement of intent, and per the doc standard a human rules on code/spec
+conflicts. Reverse with `git revert` if the registry was meant to be adopted
+rather than dropped.
 
-Both are local build artifacts, already gitignored — working-copy cleanup rather
-than a repo change.
+### A2. `build/` and `src/walter_worker.egg-info/` — **DONE**
+
+Both were local build artifacts, already gitignored — working-copy cleanup
+rather than a repo change. 768 KB removed. Verified afterwards that
+`import coworker` and `coworker --help` still work: the editable install keeps
+its metadata in site-packages (`walter_worker-0.1.0.dist-info`), so the
+`egg-info` in the source tree was a leftover, not what the install reads.
 
 One caveat on the diagnosis, because the obvious reading is wrong: running
 `python -m build` inside the checkout fails with `No module named
@@ -161,18 +176,25 @@ shipped skill.
 | `072b4a4` | install no longer registers a gitignored OpenCode plugin path; template no longer ships the author's project names |
 | `9ad28ac` | `coworker knowledge summarize`/`analyze` implemented (+ 3 defects in the module behind them) |
 | `6da17ab` | guard: skill code blocks can no longer reference a nonexistent command |
+| `f90a35b` | this list |
+| `be50f63` | `state-update` wrote state files into the cwd, not the project root |
+| `172bde3` | `record_session_metrics` docstring named keys that do not exist; `engine.reconcile` stub now delegates to the real implementation; `coworker memory metrics` added |
+| `0d6c…` | A1 + A2 of this list |
 
 ---
 
 ## Suggested order
 
-1. **A2** — delete the build artifacts; costs nothing and unbreaks `python -m build`.
-2. **B3** — one stub, one real implementation; smallest change that removes a
-   fake feature.
-3. **B4 → B2 → B1** — instrument, then capture, then the agent loop. Each stage
-   is only worth running once the one before it can be observed.
-4. **A1** — delete the unused error registry.
-5. **C1** — decide `[MCPPrune]`'s shape.
+1. ~~**A2** — delete the build artifacts~~ — **done**
+2. ~~**B3** — the stub delegates to the real implementation~~ — **done**
+3. ~~**B4** — expose the evolution metrics~~ — **done** (`coworker memory metrics`)
+4. ~~**A1** — delete the unused error registry~~ — **done**
+5. **B2 → B1** — capture, then the agent loop. Each stage is only worth
+   switching on once the one before it can be observed, and B4 was the
+   observation.
+6. **C1** — decide `[MCPPrune]`'s shape.
 
-B1 and B2 spend money per invocation. Neither should be switched on by default
-without that being an explicit choice.
+The two that remain both spend money per invocation — B2's per-turn hook would
+be an LLM call on every tool call, and B1 spawns agents in a loop for up to
+`--max-hours`. Neither should be switched on by default without that being an
+explicit choice, which is why they are the only entries still open.
