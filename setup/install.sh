@@ -524,11 +524,9 @@ if command -v coworker &>/dev/null; then
   echo ""
   log "Syncing MCP config via coworker CLI..."
 
-  MCP_JSON="$REPO_ROOT/.mcp.json"
-  if [[ -f "$MCP_JSON" ]]; then
-    :  # (MCP import removed — handled via sync)
-  fi
-    coworker sync && ok "Config synced to all tools"
+  # MCP import lived here and was folded into `coworker sync`; .mcp.json itself
+  # was removed from the repo in 0f5824bf, so the check for it was dead.
+  coworker sync && ok "Config synced to all tools"
 else
   warn "coworker CLI not found. Run: pipx install $REPO_ROOT"
   warn "Then re-run this script to sync MCP config."
