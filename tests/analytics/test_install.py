@@ -175,3 +175,24 @@ def test_install_deploys_python_hooks_too(installed_home):
     assert not missing, f"hooks in the repo but not installed: {missing}"
 
     assert (hooks / "on-correction.py").is_file()
+
+
+def test_install_always_installs_the_core_init_skill(installed_home):
+    """install.sh must install the core `init` skill on every run.
+
+    The step has always existed, but the skill it points at was dropped from the
+    repo in e964925 - the commit that merged 38 skills into 22 accounts for
+    every removal except this one. The step had been warning "not found" and
+    installing nothing ever since.
+    """
+    init_md = installed_home / ".claude" / "commands" / "init.md"
+    assert init_md.is_file(), "core init skill was not installed"
+    assert init_md.read_text(encoding="utf-8").strip(), "init.md is empty"
+
+    from pathlib import Path
+
+    repo_skill = Path(__file__).resolve().parents[2] / "skills" / "init" / "SKILL.md"
+    assert repo_skill.is_file(), (
+        "install.sh step 9 sources skills/init/SKILL.md, so it must exist in the repo"
+    )
+    assert init_md.read_text(encoding="utf-8") == repo_skill.read_text(encoding="utf-8")
