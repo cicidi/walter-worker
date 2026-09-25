@@ -453,8 +453,12 @@ mkdir -p "$ANALYTICS_DIR/hooks"
 
 HOOKS_SRC="$REPO_ROOT/src/coworker/analytics/hooks"
 if [[ -d "$HOOKS_SRC" ]]; then
-  cp "$HOOKS_SRC/"*.sh "$ANALYTICS_DIR/hooks/"
-  chmod +x "$ANALYTICS_DIR/hooks/"*.sh
+  # .py hooks as well as .sh: the repo ships on-correction.py and settings.json
+  # registers it, but this glob only matched shell scripts, so a fresh install
+  # never received it and an existing one never picked up changes to it.
+  cp "$HOOKS_SRC/"*.sh "$HOOKS_SRC/"*.py "$ANALYTICS_DIR/hooks/" 2>/dev/null || \
+    cp "$HOOKS_SRC/"*.sh "$ANALYTICS_DIR/hooks/"
+  chmod +x "$ANALYTICS_DIR/hooks/"*.sh "$ANALYTICS_DIR/hooks/"*.py 2>/dev/null || true
   ok "Hook scripts installed to $ANALYTICS_DIR/hooks/"
 else
   warn "Hook scripts not found — skipping"

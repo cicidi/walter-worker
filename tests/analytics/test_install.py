@@ -150,3 +150,28 @@ def test_install_prunes_stale_opencode_symlinks(tmp_path):
     assert "user-file.md" in remaining, "a regular file must not be pruned"
     assert "gone-a.md" not in remaining, "dangling symlinks must be pruned"
     assert "gone-b.md" not in remaining
+
+
+def test_install_deploys_python_hooks_too(installed_home):
+    """Every hook the repo ships must reach ~/.coworker/analytics/hooks/.
+
+    install.sh copied only *.sh, so on-correction.py - a UserPromptSubmit hook
+    that settings.json registers - was never installed by a fresh run and never
+    updated on an existing one. The gap was hidden on the dev machine by a
+    manual copy that had since gone stale.
+    """
+    from pathlib import Path
+
+    hooks = installed_home / ".coworker" / "analytics" / "hooks"
+    assert hooks.is_dir()
+
+    repo_hooks = Path(__file__).resolve().parents[2] / "src" / "coworker" / "analytics" / "hooks"
+    expected = {p.name for p in repo_hooks.glob("*.sh")} | {
+        p.name for p in repo_hooks.glob("*.py")
+    }
+    assert expected, "no hooks found in the repo to check"
+
+    missing = sorted(name for name in expected if not (hooks / name).is_file())
+    assert not missing, f"hooks in the repo but not installed: {missing}"
+
+    assert (hooks / "on-correction.py").is_file()
