@@ -151,16 +151,16 @@ working directory:
    and placement rules. You cannot infer them from the current project.
 
 3. **If the project has no CLAUDE.md**, check for `CONVENTIONS.md` or similar
-   governance files (e.g., skill-factory has `CONVENTIONS.md`).
+   governance files.
 
 4. **If the target project is not in the Project Catalog**, ask the user which
    project the code belongs to before proceeding.
 
 This applies regardless of which project you're currently in. Example:
-- Current directory: `~/project/deterministic-workflow`
-- Task: "add a skill to walter-worker"
-- Action: Read `~/project/walter-worker/CLAUDE.md` and `CLAUDE.local.md` first,
-  because the code being modified lives in walter-worker.
+- Current directory: `~/project/web-app`
+- Task: "add a migration to the billing service"
+- Action: Read `~/project/billing-service/CLAUDE.md` and `CLAUDE.local.md`
+  first, because the code being modified lives there.
 """
 
 

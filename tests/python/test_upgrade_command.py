@@ -74,3 +74,25 @@ def test_upgrade_no_tty_without_yes_refuses(tmp_path, monkeypatch):
     # CliRunner's stdout is not a TTY by default
     result = runner.invoke(main, ["upgrade"])
     assert "stdout is not a TTY" in result.output
+
+
+class TestShippedGlobalTemplate:
+    """The global template is seeded into every new user's ~/.claude/CLAUDE.md.
+
+    It carried the author's own projects and paths as illustrative examples.
+    A stranger installing walter-worker has never heard of any of them, so the
+    guidance reads as broken rather than as an example.
+    """
+
+    def test_names_no_project_of_the_authors(self):
+        tpl = generate_global_claude_md()
+        leaked = [n for n in ("deterministic-workflow", "skill-factory", "cicidi")
+                  if n in tpl]
+        assert leaked == [], f"author-specific names in the shipped template: {leaked}"
+
+    def test_names_no_absolute_home_path(self):
+        import re
+
+        tpl = generate_global_claude_md()
+        found = re.findall(r"/home/[a-z0-9_-]+/", tpl)
+        assert found == [], f"absolute home paths in the shipped template: {found}"

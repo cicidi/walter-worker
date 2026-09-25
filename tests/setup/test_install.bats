@@ -275,3 +275,53 @@ print('\n'.join(s for s in shipped if s not in registered))
 "
   [ -z "$output" ]
 }
+
+@test "does not register an OpenCode plugin path that does not exist" {
+  # .opencode/ is gitignored and its plugin sources were removed from the repo,
+  # so a fresh clone has no .opencode/coworker-analytics. install.sh registered
+  # the path unconditionally, writing an entry pointing at nothing into the
+  # user's OpenCode config — which OpenCode then failed to load.
+  #
+  # Build a stand-in repo without .opencode/ to stand in for that clone.
+  local fake="$TEST_TMP/fake-repo"
+  mkdir -p "$fake"
+  cp -r "$REPO_ROOT/setup" "$fake/setup"
+  cp -r "$REPO_ROOT/skills" "$fake/skills"
+  cp -r "$REPO_ROOT/src" "$fake/src"
+
+  mkdir -p "$HOME/.config/opencode"
+  echo '{"plugin": []}' > "$HOME/.config/opencode/config.json"
+
+  run bash "$fake/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import json, os
+cfg = json.load(open(os.path.expanduser('~/.config/opencode/config.json')))
+bogus = [p for p in cfg.get('plugin', []) if not os.path.isdir(p)]
+print('bogus=' + ','.join(bogus))
+"
+  [ "$output" = "bogus=" ]
+}
+
+@test "still registers the OpenCode plugin when it is present" {
+  # The guard must not switch the feature off for a checkout that does have it.
+  local fake="$TEST_TMP/fake-repo2"
+  mkdir -p "$fake/.opencode/coworker-analytics"
+  cp -r "$REPO_ROOT/setup" "$fake/setup"
+  cp -r "$REPO_ROOT/skills" "$fake/skills"
+  cp -r "$REPO_ROOT/src" "$fake/src"
+
+  mkdir -p "$HOME/.config/opencode"
+  echo '{"plugin": []}' > "$HOME/.config/opencode/config.json"
+
+  run bash "$fake/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import json, os
+cfg = json.load(open(os.path.expanduser('~/.config/opencode/config.json')))
+print('registered=' + str(any('coworker-analytics' in p for p in cfg.get('plugin', []))))
+"
+  [ "$output" = "registered=True" ]
+}

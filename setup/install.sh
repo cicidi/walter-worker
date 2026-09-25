@@ -516,18 +516,26 @@ with open('$CLAUDE_SETTINGS', 'w') as f: json.dump(cfg, f, indent=2)
 " 2>/dev/null && ok "Claude Code hooks configured" || warn "Failed to configure Claude Code hooks"
 
 # Register OpenCode analytics plugin
+#
+# .opencode/ is gitignored and its plugin sources were removed from the repo,
+# so a fresh clone has no .opencode/coworker-analytics. Registering the path
+# anyway wrote an entry pointing at nothing into the user's OpenCode config,
+# which OpenCode then failed to load. Only claim a plugin that is really there.
 OPENCODE_CONFIG="$HOME/.config/opencode/config.json"
-if [[ -f "$OPENCODE_CONFIG" ]]; then
+OPENCODE_PLUGIN="$REPO_ROOT/.opencode/coworker-analytics"
+if [[ -f "$OPENCODE_CONFIG" && -d "$OPENCODE_PLUGIN" ]]; then
   python3 -c "
 import json
 with open('$OPENCODE_CONFIG') as f: cfg = json.load(f)
 plugins = cfg.setdefault('plugin', [])
-plugin_path = '$REPO_ROOT/.opencode/coworker-analytics'
+plugin_path = '$OPENCODE_PLUGIN'
 if plugin_path not in plugins:
     plugins.append(plugin_path)
 with open('$OPENCODE_CONFIG', 'w') as f: json.dump(cfg, f, indent=2)
 print('OpenCode plugin registered')
 " 2>/dev/null && ok "OpenCode analytics plugin registered" || warn "Failed to register OpenCode plugin"
+elif [[ -f "$OPENCODE_CONFIG" ]]; then
+  warn "No OpenCode plugin at $OPENCODE_PLUGIN — skipping registration"
 fi
 
 # Initialize analytics DB
