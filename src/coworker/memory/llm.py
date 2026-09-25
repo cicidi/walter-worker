@@ -17,8 +17,14 @@ logger = logging.getLogger(__name__)
 
 FALLBACK_CHAIN: list[dict[str, str]] = [
     {
+        # The alias, not a pinned version. This entry was "gemini-2.5-flash",
+        # which the API still lists but now answers 404 for — "no longer
+        # available to new users" — so a user without DEEPSEEK_API_KEY got a
+        # hard failure and no fallback at all. A fallback's whole job is to
+        # work when the primary does not, so it should not be the thing that
+        # expires; the pin is what broke it.
         "provider": "gemini",
-        "model": "gemini-2.5-flash",
+        "model": "gemini-flash-latest",
         "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
         "api_key_env": "GEMINI_API_KEY",
     },
@@ -108,7 +114,7 @@ class LLMClient:
         """Return the ordered list of provider configs to try.
 
         Supports COWORKER_LLM_MODELS env var override:
-        e.g. COWORKER_LLM_MODELS="deepseek-v4-flash,gemini-2.5-flash"
+        e.g. COWORKER_LLM_MODELS="deepseek-v4-flash,gemini-flash-latest"
         """
         providers: list[dict[str, str]] = []
 

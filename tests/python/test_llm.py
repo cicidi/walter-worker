@@ -216,3 +216,29 @@ class TestLLMClientBuildProviderList:
         # primary skipped (empty key), gemini included
         assert all(p["provider"] != "deepseek" for p in providers)
         assert any(p["provider"] == "gemini" for p in providers)
+
+
+class TestFallbackModelIsNotAPinnedVersion:
+    """The fallback named a model that had been retired.
+
+    gemini-2.5-flash still appears in the API's model list but answers 404 for
+    new users — "no longer available to new users. Please update your code to
+    use models/gemini-3.8-flash" — so a user without DEEPSEEK_API_KEY got a
+    hard failure and no fallback at all.
+
+    A fallback exists to work when the primary does not, so it should not be
+    the part that expires. Asserted as a property rather than a name, so
+    replacing one pin with another does not pass this.
+    """
+
+    def test_no_fallback_pins_an_exact_gemini_version(self):
+        from coworker.memory.llm import FALLBACK_CHAIN
+
+        for entry in FALLBACK_CHAIN:
+            model = entry.get("model", "")
+            if entry.get("provider") != "gemini":
+                continue
+            assert model.endswith("-latest") or "preview" in model, (
+                f"gemini fallback pins {model!r}; a retired pin breaks the "
+                f"fallback silently. Use an alias such as gemini-flash-latest."
+            )
