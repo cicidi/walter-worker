@@ -4,30 +4,30 @@ import yaml
 
 
 ROOT = Path(__file__).parent.parent.parent
-SKILL_FACTORY_SRC = Path.home() / ".config/opencode/skills/skill-factory"
+THE_SUPER_LAB_SRC = Path.home() / "project" / "the-super-lab"
 PROJECT_SKILLS_DIR = ROOT / "skills"
 
 
-class TestSkillFactorySource:
+class TestSuperLabSource:
     def test_source_repo_exists(self):
-        assert SKILL_FACTORY_SRC.exists(), (
-            f"Skill-factory source not found at {SKILL_FACTORY_SRC}"
+        assert THE_SUPER_LAB_SRC.exists(), (
+            f"the-super-lab source not found at {THE_SUPER_LAB_SRC}"
         )
 
     def test_source_has_conventions(self):
-        conventions = SKILL_FACTORY_SRC / "CONVENTIONS.md"
+        conventions = THE_SUPER_LAB_SRC / "CONVENTIONS.md"
         assert conventions.exists(), (
-            f"CONVENTIONS.md missing from skill-factory source"
+            f"CONVENTIONS.md missing from the-super-lab source"
         )
 
     def test_source_has_skill_dirs(self):
-        subdirs = {"walter-worker-skills", "personal-skills"}
+        subdirs = {"skills", "personal-skills"}
         for subdir in subdirs:
-            path = SKILL_FACTORY_SRC / subdir
-            assert path.is_dir(), f"Skill-factory missing directory: {subdir}"
+            path = THE_SUPER_LAB_SRC / subdir
+            assert path.is_dir(), f"the-super-lab missing directory: {subdir}"
 
     def test_walter_worker_skills_have_skill_md(self):
-        skills_dir = SKILL_FACTORY_SRC / "walter-worker-skills"
+        skills_dir = THE_SUPER_LAB_SRC / "skills"
         if not skills_dir.is_dir():
             return
         for skill_dir in skills_dir.iterdir():
@@ -38,8 +38,8 @@ class TestSkillFactorySource:
                 )
 
     def test_source_skills_have_valid_frontmatter(self):
-        for skills_sub in ["walter-worker-skills", "personal-skills"]:
-            skills_dir = SKILL_FACTORY_SRC / skills_sub
+        for skills_sub in ["skills", "personal-skills"]:
+            skills_dir = THE_SUPER_LAB_SRC / skills_sub
             if not skills_dir.is_dir():
                 continue
             for skill_dir in skills_dir.iterdir():
@@ -67,7 +67,7 @@ class TestSkillFactorySource:
 
 class TestDeployConsistency:
     def test_deployed_source_skills_match(self):
-        source_skills_dir = SKILL_FACTORY_SRC / "walter-worker-skills"
+        source_skills_dir = THE_SUPER_LAB_SRC / "skills"
         if not source_skills_dir.is_dir():
             return
 
@@ -83,12 +83,13 @@ class TestDeployConsistency:
                 if d.is_dir() and not d.name.startswith(".")
             }
 
-        # For skills present in both source and deployed, verify both are valid
-        common = source_skills & deployed_skills
-        assert len(common) > 0, (
-            "No common skills between source and deployed"
-        )
-        for skill_name in common:
+        # The two repos deliberately share no skill names: walter-worker's
+        # skills moved into this repo, so overlap is not the invariant. What
+        # matters is that any skill present in both is valid on the deployed
+        # side, and that the source itself is populated.
+        assert source_skills, f"No skills found in {source_skills_dir}"
+
+        for skill_name in source_skills & deployed_skills:
             dep_md = PROJECT_SKILLS_DIR / skill_name / "SKILL.md"
             assert dep_md.is_file(), (
                 f"Deployed skill '{skill_name}' missing SKILL.md"
@@ -98,7 +99,7 @@ class TestDeployConsistency:
             )
 
     def test_deployed_personal_skills_have_source(self):
-        source_personal_dir = SKILL_FACTORY_SRC / "personal-skills"
+        source_personal_dir = THE_SUPER_LAB_SRC / "personal-skills"
         if not source_personal_dir.is_dir():
             return
 
@@ -153,14 +154,14 @@ class TestClaudeMdReferences:
                     f"Template path '{path_str}' in CLAUDE.md does not exist: {full_path}"
                 )
 
-    def test_claude_md_skill_factory_references_accurate(self):
+    def test_claude_md_super_lab_references_accurate(self):
         claude_md = ROOT / "CLAUDE.md"
         content = claude_md.read_text()
 
-        # The CLAUDE.md should mention the skill-factory workflow
-        if "skill-factory" in content:
-            assert SKILL_FACTORY_SRC.exists(), (
-                "CLAUDE.md references skill-factory but source does not exist"
+        # The CLAUDE.md should mention the the-super-lab workflow
+        if "the-super-lab" in content:
+            assert THE_SUPER_LAB_SRC.exists(), (
+                "CLAUDE.md references the-super-lab but source does not exist"
             )
 
     def test_claude_md_self_healing_traces_dir_configured(self):

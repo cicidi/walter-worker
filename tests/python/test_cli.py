@@ -88,12 +88,8 @@ class TestSkillReferences:
         assert len(skill_names) > 0, "No skill references found in CLAUDE.local.md"
 
         skills_dir = root / "skills"
-        skill_factory_skills = (
-            Path.home() / ".config/opencode/skills/skill-factory/walter-worker-skills"
-        )
-        skill_factory_personal = (
-            Path.home() / ".config/opencode/skills/skill-factory/personal-skills"
-        )
+        super_lab_skills = Path.home() / "project/the-super-lab/skills"
+        super_lab_personal = Path.home() / "project/the-super-lab/personal-skills"
 
         for skill_name in skill_names:
             found = False
@@ -102,20 +98,15 @@ class TestSkillReferences:
             if (skills_dir / skill_name / "SKILL.md").exists():
                 found = True
 
-            # Check skill-factory source
-            if not found and (skill_factory_skills / skill_name / "SKILL.md").exists():
+            # Check the-super-lab source
+            if not found and (super_lab_skills / skill_name / "SKILL.md").exists():
                 found = True
-            if not found and (skill_factory_personal / skill_name / "SKILL.md").exists():
-                found = True
-
-            # Check for imported skills
-            import_skills = Path.home() / ".config/opencode/skills/skill-factory/import-skills"
-            if not found and (import_skills / skill_name / "SKILL.md").exists():
+            if not found and (super_lab_personal / skill_name / "SKILL.md").exists():
                 found = True
 
             assert found, (
                 f"Skill '{skill_name}' referenced in CLAUDE.md not found "
-                f"in project skills/ or skill-factory"
+                f"in project skills/ or the-super-lab"
             )
 
 

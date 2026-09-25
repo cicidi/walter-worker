@@ -64,6 +64,37 @@ def test_opencode_skills_deployed(installed_home):
     assert skill_mds, "no SKILL.md files deployed under opencode skills dir"
 
 
+def test_super_lab_skills_deploy_to_three_harnesses(installed_home):
+    """the-super-lab skills reach Claude Code, OpenCode, and Cursor.
+
+    Claude and OpenCode receive whole directories so sibling files travel;
+    Cursor receives a flattened verbatim copy.
+    """
+    skill_md = installed_home / "project/the-super-lab/skills/alpha-skill/SKILL.md"
+
+    # Claude Code — directory copy, sibling files travel
+    claude_skill = installed_home / ".claude/skills/alpha-skill"
+    assert (claude_skill / "SKILL.md").is_file(), "Claude SKILL.md missing"
+    assert (claude_skill / "REFERENCE.md").is_file(), \
+        "sibling file did not travel to Claude"
+
+    # OpenCode — symlink to the source directory
+    opencode_skill = (
+        installed_home / ".config/opencode/skills/the-super-lab/alpha-skill"
+    )
+    assert opencode_skill.is_symlink(), "OpenCode entry is not a symlink"
+    assert (opencode_skill / "SKILL.md").is_file()
+    assert (opencode_skill / "REFERENCE.md").is_file(), \
+        "sibling file not reachable through the OpenCode symlink"
+
+    # Cursor — flattened verbatim copy
+    cursor_rule = installed_home / ".cursor/rules/alpha-skill.md"
+    assert cursor_rule.is_file(), "Cursor rule missing"
+    assert cursor_rule.read_text(encoding="utf-8") == skill_md.read_text(
+        encoding="utf-8"
+    ), "Cursor rule is not a verbatim copy"
+
+
 def test_install_creates_hook_scripts(installed_home):
     """The on-user-prompt hook script exists and is executable."""
     hooks_file = installed_home / ".coworker" / "analytics" / "hooks" / "on-user-prompt.sh"

@@ -1,9 +1,8 @@
 """Top-level test config: import paths + the hermetic install fixture.
 
 Every test that needs an "installed" coworker uses `installed_home`, which runs
-setup/install.sh against a throwaway HOME with a local fake skill-factory
-(never touches the network). No test may read the developer's real ~/.claude
-or ~/.coworker.
+setup/install.sh against a throwaway HOME (never touches the network). No test
+may read the developer's real ~/.claude or ~/.coworker.
 """
 from __future__ import annotations
 
@@ -22,34 +21,28 @@ for _p in (str(_SRC), str(_REPO_ROOT)):
         sys.path.insert(0, _p)
 
 
-def _git_env() -> dict:
-    base = {
-        "GIT_AUTHOR_NAME": "test",
-        "GIT_AUTHOR_EMAIL": "test@test",
-        "GIT_COMMITTER_NAME": "test",
-        "GIT_COMMITTER_EMAIL": "test@test",
-    }
-    return {**os.environ, **base}
-
-
 @pytest.fixture(scope="session")
 def installed_home(tmp_path_factory) -> Path:
     """Run setup/install.sh --global into a throwaway HOME.
 
-    Pre-seeds a local fake skill-factory git repo so install.sh takes its
-    'already cloned' branch (git pull fails offline -> warn -> continue) and
-    never clones from GitHub. Yields the temp HOME.
+    Seeds a minimal the-super-lab source under the temp HOME so the skill
+    deployment path runs offline: the directory is deliberately not a git
+    repo, so install.sh skips its pull. Yields the temp HOME.
     """
     home = tmp_path_factory.mktemp("home")
 
-    # Fake skill-factory so install.sh does NOT git clone from GitHub.
-    sf = home / ".config" / "opencode" / "skills" / "skill-factory"
-    sf.mkdir(parents=True)
-    subprocess.run(["git", "init", "-q"], cwd=sf, check=True)
-    (sf / "README.md").write_text("fake skill-factory for tests\n", encoding="utf-8")
-    subprocess.run(["git", "-C", str(sf), "add", "-A"], check=True)
-    subprocess.run(["git", "-C", str(sf), "commit", "-q", "-m", "init"],
-                   check=True, env=_git_env())
+    # One skill carries a sibling file, to prove sibling files travel.
+    source = home / "project" / "the-super-lab" / "skills"
+    for skill, sibling in (("alpha-skill", "REFERENCE.md"), ("beta-skill", None)):
+        d = source / skill
+        d.mkdir(parents=True)
+        (d / "SKILL.md").write_text(
+            f"---\nname: {skill}\ndescription: |\n  Use when testing.\n---\n"
+            f"\n# {skill}\n",
+            encoding="utf-8",
+        )
+        if sibling:
+            (d / sibling).write_text("sibling content\n", encoding="utf-8")
 
     env = {**os.environ, "HOME": str(home)}
     # install.sh reads mode/skill-selection interactively; pipe '1' on stdin.
