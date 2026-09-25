@@ -25,7 +25,7 @@ Search the memory graph and session memories via `coworker memory query`.
 ## When to Use
 
 - Searching past session summaries for what was learned or decided
-- Finding knowledge cards related to a topic or initiative
+- Finding knowledge cards related to a topic or feature
 - Querying the code knowledge graph for relevant files or functions
 - Recalling past work before starting a related task
 

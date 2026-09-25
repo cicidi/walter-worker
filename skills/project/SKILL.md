@@ -29,7 +29,7 @@ a project's local path, repo URL, team, and upstream/downstream relationships.
 
 ## When NOT to Use
 
-- Creating an initiative (cross-project work context) → use /initiative
+- Creating an feature (cross-project work context) → use /feature
 - Managing skills → use /skill
 
 ## Process
