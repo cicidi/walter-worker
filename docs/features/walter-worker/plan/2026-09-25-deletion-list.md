@@ -1,0 +1,178 @@
+# Deletion List — 2026-09-25
+
+> `[DelList]` — over-engineered subsystems, rarely-used features, and code with
+> no path from any entry point. Nothing here is deleted yet; this is the list to
+> rule on.
+
+**Goal:** a small, sharp, publishable coworker. Every entry below was found by
+tracing callers, not by reading and guessing.
+
+**Decision rule** (the one already set for this cleanup):
+
+- Dead **and** unrelated to the self-evolving-agent vision → **delete**
+- Dead **but** vision-relevant → **fix**, do not delete
+- Duplicate / superseded → **merge**, keep the live one
+
+"Dead" here means: no import, no CLI registration, no hook, no config entry.
+Each entry names the evidence that established it.
+
+---
+
+## A. Delete — dead and not on the loop
+
+### A1. `src/coworker/memory/errors.py` — 61 lines
+
+Error-code registry ("spec §9"). Referenced by nothing: no import, no config, no
+hook. The only file naming it is the generated `SOURCES.txt`.
+
+*Confidence: high.* Vision relevance: none — it is scaffolding for a spec, not a
+stage of the loop.
+
+### A2. `build/` and `src/walter_worker.egg-info/`
+
+Both are local build artifacts, already gitignored — working-copy cleanup rather
+than a repo change.
+
+One caveat on the diagnosis, because the obvious reading is wrong: running
+`python -m build` inside the checkout fails with `No module named
+build.__main__; 'build' is a package`, which looks like `build/` shadowing the
+PyPI tool. It is not. `build/` has no `__init__.py`, so it resolves only as a
+namespace package, and `import build` in that interpreter reports
+`__file__ = None` — the `build` tool is simply not installed in that venv
+(CI installs it explicitly before its wheel step). The local directory only
+makes the error message point somewhere misleading.
+
+So: delete it for tidiness, not because it breaks anything.
+
+*Confidence: high — corrected after checking; the first reading of this was wrong.*
+
+---
+
+## B. Fix — dead but vision-central
+
+These are the ones the standing rule says to repair rather than remove. They are
+listed first in priority because they are the difference between a memory that
+evolves and a memory that only accumulates.
+
+### B1. `coworker/autoworker/` + `cli_autoworker.py` — the loop's driver
+
+~35 KB: `engine.py` (spawns Claude SDK agents that "autonomously investigate and
+fix"), `rules.py`, `state.py`, plus a complete CLI registering `find-issues run`
+and `run --loop`.
+
+**It is commented out.** `cli.py:37` and `cli.py:1265` both carry
+`# ... TODO: not yet implemented`, which is stale — it *is* implemented.
+
+The known blocker was a 120 s pytest timeout inside `find-issues`, which the
+wrong-history entry of 2026-07-28 records as fixed. The fix is present
+(`cli_autoworker.py:96`, `timeout=600`), and the command is still disabled — so
+whatever held it back has since been resolved, or was something else that was
+never written down.
+
+This is the highest-value entry on the list: it is the self-evolving loop's
+actual executor. Re-enabling it is a **runtime behaviour change that spends
+money** (it spawns agents in a loop for up to `--max-hours`), so it needs a
+decision, not a silent re-enable.
+
+*Confidence: high on the facts, medium on intent.*
+
+### B2. `memory/capture.py` — the loop's first stage
+
+`process_turn` (per PostToolUse) and `process_session_end` (per Stop) are
+complete and tested. **Zero production callers.** Neither hook calls them.
+
+The design doc is explicit about the intended wiring
+(`design/memory-platform-design.md:89`):
+
+> `coworker memory sync` | PostToolUse / SubagentStop → LLM extraction → `mem0.add`
+
+…and line 320 puts reconciliation on Stop. But `coworker memory sync` already
+exists and means something else entirely — "re-sync Graphify skeleton into the
+memory graph". The name the design reserved was taken by an unrelated command,
+which is the likeliest reason the wiring never happened.
+
+*Confidence: high.* Note the cost: PostToolUse fires on **every tool call**, so
+wiring `process_turn` there means an LLM call per tool call. That is a design
+decision about spend, not a bug fix.
+
+### B3. `engine.reconcile()` — a stub standing where the real code should be
+
+`engine.py:164` returns `0` unconditionally, with the comment *"For now, just
+note the gap — full re-extraction needs LLM"*. Meanwhile
+`capture.process_session_end` **is** the full re-extraction, implemented and
+unused. So the stub and the real thing coexist, neither called.
+
+Per the merge rule: keep `capture.process_session_end`, and either delete the
+stub or have it delegate.
+
+*Confidence: high.*
+
+### B4. `memory/metrics.py` — 118 lines, the "is it actually improving?" gauge
+
+"Collects effectiveness and safety metrics to track whether the agent is
+actually getting 'smarter over time.'" Exposes `record_session_metrics`,
+`compute_evolution_score`, `get_metrics_report`. Nothing calls any of them; the
+single mention in `cli_memory.py` is a comment explaining a removed command.
+
+An evolution loop with no instrument cannot tell whether it is evolving. But it
+is also the piece most likely to be premature — measuring before the loop runs
+produces numbers nobody acts on.
+
+*Confidence: high on deadness; the sequencing call is a judgement.*
+
+---
+
+## C. Over-engineered or rarely used — candidates, not conclusions
+
+### C1. `_sync_mcp` is union-only — outdated MCP servers can never be removed
+
+`adapters/claude.py:97` merges by name and never removes. The comment makes the
+intent explicit: refusing to delete entries the user may have added is the safe
+direction. That is correct as a default and wrong as a permanent limit — a
+server that has been retired from `coworker.yaml` lives in `~/.claude.json`
+forever, which is the `[MCPPrune]` gap.
+
+Not a bug. Wants a deliberate `--prune-mcp` (or a managed-vs-user distinction),
+not a change to the default.
+
+*Confidence: high on the behaviour, medium on the fix shape.*
+
+### C2. Documented-but-absent commands
+
+`coworker knowledge` was the last one and is now implemented (see D). The scan
+that found it — fenced code blocks only, comments skipped — now runs as
+`test_all_skill_code_refs_resolve_in_cli` and reports nothing else across every
+shipped skill.
+
+*Confidence: high; this class is now guarded.*
+
+---
+
+## D. Fixed during this cleanup (for the record)
+
+| Commit | What |
+|---|---|
+| `99c6442` | `docs/features/*/raw/` untracked — 166 files, 4.2 MB, incl. a vendored third-party toolkit with no licence |
+| `663d189` | mem0 tests skip on a missing `[memory]` extra instead of erroring (3 failures + 47 errors) |
+| `3fed5ef` | `on-correction.py` registered on install — the correction detector ran on one machine only |
+| `640d173` | `/home/cicidi` removed from three shipped files |
+| `056a912` | install works without `md5sum` — it exited 127 on macOS, which it claims to support |
+| `170f530` | the two skills the global template invokes are shipped again |
+| `072b4a4` | install no longer registers a gitignored OpenCode plugin path; template no longer ships the author's project names |
+| `9ad28ac` | `coworker knowledge summarize`/`analyze` implemented (+ 3 defects in the module behind them) |
+| `6da17ab` | guard: skill code blocks can no longer reference a nonexistent command |
+
+---
+
+## Suggested order
+
+1. **A2** — delete the build artifacts; costs nothing and unbreaks `python -m build`.
+2. **B3** — one stub, one real implementation; smallest change that removes a
+   fake feature.
+3. **B4 → B2 → B1** — instrument, then capture, then the agent loop. Each stage
+   is only worth running once the one before it can be observed.
+4. **A1** — delete the unused error registry.
+5. **C1** — decide `[MCPPrune]`'s shape.
+
+B1 and B2 spend money per invocation. Neither should be switched on by default
+without that being an explicit choice.
