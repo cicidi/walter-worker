@@ -22,10 +22,10 @@ ensure_session() {
     if [[ ! -d "$SESSIONS/$SESSION_ID" ]]; then
       mkdir -p "$SESSIONS/$SESSION_ID"
       cat > "$SESSIONS/$SESSION_ID/session.yaml" <<YAML
-session_id: "$SESSION_ID"
+session_id: "$(escape_yaml "$SESSION_ID")"
 created: "$(date '+%Y-%m-%dT%H:%M:%S%z')"
 ide: "claude-code"
-cwd: "$(pwd)"
+cwd: "$(escape_yaml "$(pwd)")"
 YAML
     fi
   else
@@ -54,4 +54,12 @@ append_jsonl() {
 
 escape_json() {
   echo "$1" | sed 's/\\/\\\\/g; s/"/\\"/g' | tr -d '\n'
+}
+
+# Escape a value for a double-quoted YAML scalar. session.yaml is written with
+# double quotes, so a value containing one - a cwd like /home/x/dir-with-"quote"
+# - closed the scalar early and made the whole file unparseable, losing the
+# session's metadata to every real YAML reader.
+escape_yaml() {
+  printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
 }
