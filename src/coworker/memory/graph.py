@@ -1,6 +1,6 @@
 """Graph data model — Node, Edge, and Graph types.
 
-Schema version 1.0. See docs/self-evolving-agent/spec/memory-graph-spec.md §1.
+Schema version 1.0. See docs/features/self-evolving-agent/spec/memory-graph-spec.md §1.
 """
 
 from __future__ import annotations

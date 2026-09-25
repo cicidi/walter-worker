@@ -13,7 +13,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-WH_DIR = "docs/self-evolving-agent/wrong-history"
+WH_DIR = "docs/features/self-evolving-agent/wrong-history"
 MARKER_START = "<!-- WRONG-HISTORY START -->"
 MARKER_END = "<!-- WRONG-HISTORY END -->"
 
@@ -216,7 +216,7 @@ def _rebuild_index() -> None:
         "# Wrong History — Index",
         "",
         "> **Purpose:** Prevent repeating past mistakes.",
-        "> **Check before coding:** `grep -rl \"<keyword>\" docs/self-evolving-agent/wrong-history/entries/`",
+        "> **Check before coding:** `grep -rl \"<keyword>\" docs/features/self-evolving-agent/wrong-history/entries/`",
         "",
     ]
 

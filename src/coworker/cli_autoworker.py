@@ -39,7 +39,7 @@ def register_autoworker(main_group: click.Group) -> None:
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         out_path = (
             output
-            or f"docs/self-evolving-agent/state/issues-found-{today}-auto.md"
+            or f"docs/features/self-evolving-agent/state/issues-found-{today}-auto.md"
         )
         os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
 
@@ -52,7 +52,7 @@ def register_autoworker(main_group: click.Group) -> None:
         phases_list = [p.strip() for p in phases.split(",")]
 
         if "all" in phases_list or "prd" in phases_list:
-            prd_path = "docs/self-evolving-agent/prd/self-evolving-agent-prd.md"
+            prd_path = "docs/features/self-evolving-agent/prd/self-evolving-agent-prd.md"
             if os.path.exists(prd_path):
                 lines = open(prd_path).readlines()
                 reqs = [
@@ -67,7 +67,7 @@ def register_autoworker(main_group: click.Group) -> None:
                 findings.append(f"## PRD Scan: {prd_path} not found")
 
         if "all" in phases_list or "spec" in phases_list:
-            spec_path = "docs/self-evolving-agent/spec/self-evolving-agent-spec.md"
+            spec_path = "docs/features/self-evolving-agent/spec/self-evolving-agent-spec.md"
             if os.path.exists(spec_path):
                 sections = [
                     line for line in open(spec_path).readlines() if line.startswith("## §")

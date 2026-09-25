@@ -42,3 +42,36 @@ def test_raw_scratch_is_gitignored():
         cwd=ROOT,
     )
     assert ignored.returncode == 0, "docs/features/*/raw/ must be gitignored"
+
+
+def test_no_source_file_points_at_the_pre_migration_docs_layout():
+    """`docs/<feature>/` became `docs/features/<feature>/`.
+
+    Seven references survived that move, and they fail silently rather than
+    loudly: the wrong-history directory, the auto-worker's state dir, and both
+    scan paths in `find-issues` all named a directory that no longer exists.
+    """
+    offenders = []
+    for path in sorted((ROOT / "src").rglob("*.py")):
+        for i, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            if "docs/self-evolving-agent" in line:
+                offenders.append(f"{path.relative_to(ROOT)}:{i}")
+    assert offenders == [], (
+        "source files still name the pre-migration docs layout "
+        f"(docs/self-evolving-agent/): {offenders}"
+    )
+
+
+def test_wrong_history_default_dir_holds_the_real_entries():
+    """WH_DIR named a directory that does not exist.
+
+    Every read found nothing, so wrong-history looked empty while its entries
+    sat under docs/features/. Worse, `index` does mkdir(parents=True) on the
+    path — it would have created the phantom directory and written an INDEX
+    there, leaving the real one stale.
+    """
+    from coworker.memory import wrong_history
+
+    base = ROOT / wrong_history.WH_DIR
+    assert base.is_dir(), f"WH_DIR {wrong_history.WH_DIR!r} does not exist"
+    assert (base / "entries").is_dir(), "wrong-history entries/ is not there"
