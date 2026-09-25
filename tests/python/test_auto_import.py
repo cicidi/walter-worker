@@ -299,7 +299,14 @@ def test_import_claude_jsonl_basic(auto_db, tmp_path):
         "SELECT * FROM session_stats WHERE session_id = ?", ("session-id",)
     ).fetchone()
     assert stats is not None
-    assert stats["message_count"] == 6
+    # Was 6 — the number of JSONL lines, which counts tool-use and result
+    # events as messages. It now counts the rows actually written to the
+    # messages table, so the sessions list and the detail view agree. This
+    # fixture holds one event carrying text.
+    assert stats["message_count"] == 1
+    assert auto_db.execute(
+        "SELECT COUNT(*) FROM messages WHERE session_id = ?", ("session-id",)
+    ).fetchone()[0] == 1
     assert stats["tool_count"] == 4  # Read + Write + Edit + Bash (Skill counted separately)
     assert stats["skill_count"] == 1  # my-skill
     assert stats["read_count"] == 1  # Read

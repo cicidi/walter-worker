@@ -76,7 +76,11 @@ def import_claude_jsonl(jsonl_file: Path, conn):
     """Store session metadata + stats + file ops from Claude Code JSONL."""
     sid = jsonl_file.stem
     lines = jsonl_file.read_text().strip().split("\n")
-    msg_count = len(lines)
+    # Counted after the loop, from the rows actually stored. It used to be
+    # len(lines), the number of JSONL events — which includes tool results and
+    # summary lines — so the sessions list reported a message count the detail
+    # view could never reproduce.
+    msg_count = 0
 
     created = ""
     model = ""
@@ -92,6 +96,13 @@ def import_claude_jsonl(jsonl_file: Path, conn):
     # raised a foreign-key error on every session that touched a file, which is
     # nearly all of them, and the caller reported success.
     file_ops_rows: list[tuple] = []
+    # The messages and tool_calls tables were never written on this path, only
+    # counted in session_stats. So the sessions list reported "3 messages" from
+    # session_stats while the detail view — which reads the tables — showed
+    # none, and the two could never agree. Both are filled in from the JSONL
+    # now, which is what makes the counts mean anything.
+    tool_call_rows: list[tuple] = []
+    message_rows: list[tuple] = []
 
     for seq, line in enumerate(lines):
         try:
@@ -114,11 +125,26 @@ def import_claude_jsonl(jsonl_file: Path, conn):
             continue
 
         content = msg.get("content", []) if isinstance(msg.get("content"), list) else []
+
+        text = "\n".join(
+            b.get("text", "") for b in content
+            if isinstance(b, dict) and b.get("type") == "text"
+        ).strip()
+        if text:
+            message_rows.append((sid, seq, obj.get("type", "unknown"), text, ts))
+
         for block in content:
             if not isinstance(block, dict):
                 continue
             btype = block.get("type", "")
             tname = block.get("name", "")
+
+            if btype == "tool_use":
+                tool_call_rows.append((
+                    sid, block.get("id", f"{sid}-{seq}"), tname, "builtin", None,
+                    None, active_skill, json.dumps(block.get("input", {})), None,
+                    None, seq, seq, ts,
+                ))
 
             if btype == "tool_use" and tname == "Skill":
                 active_skill = block.get("input", {}).get("name", "") or None
@@ -157,13 +183,29 @@ def import_claude_jsonl(jsonl_file: Path, conn):
         (sid, jsonl_file.parent.name, cwd, model, created or ""),
     )
 
-    # Now that the session row exists, the file ops can reference it.
+    # Now that the session row exists, everything that references it can go in.
+    for row in message_rows:
+        conn.execute(
+            """INSERT OR IGNORE INTO messages (session_id, seq, type, content, ts)
+               VALUES (?, ?, ?, ?, ?)""",
+            row,
+        )
+    for row in tool_call_rows:
+        conn.execute(
+            """INSERT OR IGNORE INTO tool_calls
+               (session_id, call_id, tool, tool_type, server_name, parent_call_id,
+                parent_skill, args, result, duration_ms, seq_before, seq_after, ts)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            row,
+        )
     for row in file_ops_rows:
         conn.execute(
             """INSERT OR IGNORE INTO file_ops (session_id, call_id, op, path, file_type, project, skill_name, seq, ts)
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             row,
         )
+
+    msg_count = len(message_rows)
 
     conn.execute(
         """INSERT OR REPLACE INTO session_stats
