@@ -189,3 +189,32 @@ def test_the_two_scripts_agree_on_which_hooks_are_ours():
         assert "/.coworker/analytics/hooks/" in text, (
             f"{name} no longer recognises our hook directory"
         )
+
+
+def test_the_feature_name_rule_has_one_definition():
+    """config.py and features/manager.py each compiled the kebab-case pattern.
+
+    Two copies of the rule that decides what a feature may be called, with two
+    different error messages. They agreed when this was written, which is
+    exactly the state that makes the next divergence invisible: a name one
+    accepts and the other rejects is a feature that can be created but not
+    loaded.
+
+    Asserted through behaviour — both paths reject the same set — rather than
+    by grepping for a second `re.compile`, so re-adding a copy that happens to
+    agree still passes only until it stops agreeing.
+    """
+    import pytest
+
+    from coworker.config import _validate_feature_name
+    from coworker.features.manager import FeatureManager
+
+    bad = ["My Feature", "my_feature", "my feature", "-lead", "trail-", "UPPER", ""]
+    for name in bad:
+        with pytest.raises(ValueError):
+            _validate_feature_name(name)
+        with pytest.raises(ValueError):
+            FeatureManager().create(name)
+
+    # And they accept the same good name.
+    assert _validate_feature_name("auth-migration") == "auth-migration"
