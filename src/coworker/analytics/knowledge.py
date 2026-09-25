@@ -128,13 +128,13 @@ def get_session_data(session_id: str):
 
 def build_summary_prompt(data: dict) -> str:
     project = data.get("project") or data.get("cwd", "")
-    initiative = data.get("initiative", "")
+    feature = data.get("feature", "")
     messages = data.get("messages", [])
     tools = data.get("tool_calls", [])
 
     return (
         f"Project: {project}\n"
-        f"Initiative: {initiative}\n"
+        f"Feature: {feature}\n"
         f"Messages: {len(messages)}\n"
         f"Tool calls: {len(tools)}\n"
     ).strip()

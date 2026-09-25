@@ -7,7 +7,7 @@ import pytest
 from coworker.adapters import opencode
 from coworker.models import (
     CoworkerConfig,
-    InitiativeConfig,
+    FeatureConfig,
     McpServer,
     OpenCodeOverrides,
     ProjectCatalog,
@@ -329,35 +329,35 @@ class TestInjectStaticContext:
         assert any("injected" in a or "updated" in a for a in actions)
 
 
-# ── inject_initiative() tests ─────────────────────────────────────────────────
+# ── inject_feature() tests ─────────────────────────────────────────────────
 
 
-class TestInjectInitiative:
-    """Tests for opencode.inject_initiative() — delegation to claude adapter."""
+class TestInjectFeature:
+    """Tests for opencode.inject_feature() — delegation to claude adapter."""
 
-    def test_delegates_to_claude_inject_initiative(self, monkeypatch):
-        """inject_initiative delegates to claude.inject_initiative with the same args."""
+    def test_delegates_to_claude_inject_feature(self, monkeypatch):
+        """inject_feature delegates to claude.inject_feature with the same args."""
         called_with = {}
 
         def fake_claude_inject(config, project_dir=None):
             called_with["config"] = config
             called_with["project_dir"] = project_dir
-            return ["injected initiative test-initiative"]
+            return ["injected feature test-feature"]
 
         monkeypatch.setattr(
-            "coworker.adapters.claude.inject_initiative",
+            "coworker.adapters.claude.inject_feature",
             fake_claude_inject,
         )
 
-        config = InitiativeConfig(name="test-initiative", description="A test")
-        result = opencode.inject_initiative(config, project_dir=None)
+        config = FeatureConfig(name="test-feature", description="A test")
+        result = opencode.inject_feature(config, project_dir=None)
 
         assert called_with["config"] is config
         assert called_with["project_dir"] is None
-        assert result == ["injected initiative test-initiative"]
+        assert result == ["injected feature test-feature"]
 
     def test_delegates_with_project_dir(self, monkeypatch, tmp_path):
-        """inject_initiative passes project_dir through to claude.inject_initiative."""
+        """inject_feature passes project_dir through to claude.inject_feature."""
         called_with = {}
 
         def fake_claude_inject(config, project_dir=None):
@@ -366,56 +366,56 @@ class TestInjectInitiative:
             return ["done"]
 
         monkeypatch.setattr(
-            "coworker.adapters.claude.inject_initiative",
+            "coworker.adapters.claude.inject_feature",
             fake_claude_inject,
         )
 
-        config = InitiativeConfig(name="proj-init")
-        result = opencode.inject_initiative(config, project_dir=tmp_path)
+        config = FeatureConfig(name="proj-init")
+        result = opencode.inject_feature(config, project_dir=tmp_path)
 
         assert called_with["project_dir"] == tmp_path
         assert result == ["done"]
 
     def test_returns_claude_inject_return_value(self, monkeypatch):
-        """The return value from claude.inject_initiative is propagated directly."""
+        """The return value from claude.inject_feature is propagated directly."""
         expected = ["action-1", "action-2"]
         monkeypatch.setattr(
-            "coworker.adapters.claude.inject_initiative",
+            "coworker.adapters.claude.inject_feature",
             lambda config, project_dir=None: expected,
         )
 
-        config = InitiativeConfig(name="test")
-        result = opencode.inject_initiative(config)
+        config = FeatureConfig(name="test")
+        result = opencode.inject_feature(config)
 
         assert result == expected
 
 
-# ── remove_initiative() tests ─────────────────────────────────────────────────
+# ── remove_feature() tests ─────────────────────────────────────────────────
 
 
-class TestRemoveInitiative:
-    """Tests for opencode.remove_initiative() — delegation to claude adapter."""
+class TestRemoveFeature:
+    """Tests for opencode.remove_feature() — delegation to claude adapter."""
 
-    def test_delegates_to_claude_remove_initiative(self, monkeypatch):
-        """remove_initiative delegates to claude.remove_initiative."""
+    def test_delegates_to_claude_remove_feature(self, monkeypatch):
+        """remove_feature delegates to claude.remove_feature."""
         called_with = {}
 
         def fake_claude_remove(project_dir=None):
             called_with["project_dir"] = project_dir
-            return ["removed initiative"]
+            return ["removed feature"]
 
         monkeypatch.setattr(
-            "coworker.adapters.claude.remove_initiative",
+            "coworker.adapters.claude.remove_feature",
             fake_claude_remove,
         )
 
-        result = opencode.remove_initiative(project_dir=None)
+        result = opencode.remove_feature(project_dir=None)
 
         assert called_with["project_dir"] is None
-        assert result == ["removed initiative"]
+        assert result == ["removed feature"]
 
     def test_delegates_with_project_dir(self, monkeypatch, tmp_path):
-        """remove_initiative passes project_dir through to claude.remove_initiative."""
+        """remove_feature passes project_dir through to claude.remove_feature."""
         called_with = {}
 
         def fake_claude_remove(project_dir=None):
@@ -423,24 +423,24 @@ class TestRemoveInitiative:
             return ["cleared"]
 
         monkeypatch.setattr(
-            "coworker.adapters.claude.remove_initiative",
+            "coworker.adapters.claude.remove_feature",
             fake_claude_remove,
         )
 
-        result = opencode.remove_initiative(project_dir=tmp_path)
+        result = opencode.remove_feature(project_dir=tmp_path)
 
         assert called_with["project_dir"] == tmp_path
         assert result == ["cleared"]
 
     def test_returns_claude_remove_return_value(self, monkeypatch):
-        """The return value from claude.remove_initiative is propagated directly."""
-        expected = ["removed initiative my-initiative"]
+        """The return value from claude.remove_feature is propagated directly."""
+        expected = ["removed feature my-feature"]
         monkeypatch.setattr(
-            "coworker.adapters.claude.remove_initiative",
+            "coworker.adapters.claude.remove_feature",
             lambda project_dir=None: expected,
         )
 
-        result = opencode.remove_initiative()
+        result = opencode.remove_feature()
 
         assert result == expected
 

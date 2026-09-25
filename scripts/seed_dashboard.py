@@ -6,7 +6,7 @@ Simulates OpenCode and Claude Code sessions with:
 - Skill invocation chains (brainstorming → writing-plans → executing-plans → ...)
 - File operations on real project paths
 - Session summaries and knowledge cards
-- Multiple initiatives across projects
+- Multiple features across projects
 """
 
 import json
@@ -28,7 +28,7 @@ BRANCHES = [
     "fix/config-sync", "feat/init-system", "main",
     "chore/update-deps", "docs/api-reference", "refactor/adapters",
 ]
-INITIATIVES = [
+FEATURES = [
     "dashboard-v1", "listener-v1", "knowledge-skill",
     "init-system", "core-architecture", None,
 ]
@@ -116,7 +116,7 @@ SCENARIOS = {
             "build the dashboard analytics page with real data",
             "I need a new knowledge-skill feature for self-healing",
             "add MCP server for Google Drive integration",
-            "create the initiative management system",
+            "create the feature management system",
             "add WebSocket support to the dashboard for real-time updates",
         ],
         "assistant": [
@@ -239,7 +239,7 @@ KNOWLEDGE_CARDS = [
 # ── Generator ──────────────────────────────────────────────────────────────────
 
 def generate_session_yaml(session_dir: Path, session_id: str, ide: str, project: str,
-                          branch: str, initiative: str | None,
+                          branch: str, feature: str | None,
                           start: datetime, duration_min: int):
     created = start.strftime("%Y-%m-%dT%H:%M:%S+08:00")
     closed = (start + timedelta(minutes=duration_min)).strftime("%Y-%m-%dT%H:%M:%S+08:00")
@@ -252,7 +252,7 @@ def generate_session_yaml(session_dir: Path, session_id: str, ide: str, project:
         f'ide: "{ide}"\n'
         f'cwd: "{cwd}"\n'
         f'project: "{project}"\n'
-        f'initiative: "{initiative or ""}"\n'
+        f'feature: "{feature or ""}"\n'
         f'branch: "{branch}"\n'
         f'model: "deepseek-v4-pro"\n'
     )
@@ -430,14 +430,14 @@ def generate_knowledge_cards(conn, session_id: str, project: str, generated_at: 
 
 
 def generate_full_session(session_id: str, ide: str, project: str, branch: str,
-                          initiative: str | None, start: datetime,
+                          feature: str | None, start: datetime,
                           duration_min: int, scenario_type: str) -> Path:
     """Create a complete session directory with messages.jsonl and tools.jsonl."""
     session_dir = Path(tempfile.mkdtemp()) / "sessions" / session_id
     session_dir.mkdir(parents=True)
 
     created, closed = generate_session_yaml(
-        session_dir, session_id, ide, project, branch, initiative, start, duration_min)
+        session_dir, session_id, ide, project, branch, feature, start, duration_min)
 
     messages = generate_messages(scenario_type, start, duration_min)
     base_seq = len(messages)
@@ -501,13 +501,13 @@ def seed_dashboard(num_sessions: int = 25):
         project = random.choice(PROJECTS)
         ide = random.choice(IDES)
         branch = random.choice(BRANCHES)
-        initiative = random.choice(INITIATIVES)
+        feature = random.choice(FEATURES)
         duration = random.randint(15, 120)
         scenario = random.choice(["feature", "feature", "feature", "bugfix", "review"])
 
         sid = f"{ide}-{start.strftime('%Y%m%dT%H%M%S')}-{random.randint(100, 999)}"
 
-        session_dir = generate_full_session(sid, ide, project, branch, initiative,
+        session_dir = generate_full_session(sid, ide, project, branch, feature,
                                             start, duration, scenario)
         temp_dirs.append(session_dir.parent.parent)
 

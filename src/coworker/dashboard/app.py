@@ -51,9 +51,9 @@ def api_knowledge():
     return queries.query_knowledge()
 
 
-@app.get("/api/initiatives")
-def api_initiatives():
-    return queries.query_initiatives()
+@app.get("/api/features")
+def api_features():
+    return queries.query_features()
 
 
 @app.get("/api/sessions/{session_id}/timeline")

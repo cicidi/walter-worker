@@ -104,7 +104,7 @@ Before any action (code change, commit, config modification, file creation):
    - What exists now (code, tests, config, prior decisions)
    - External references (official docs, best practices, similar OSS projects)
    - Risks and trade-offs
-   - Output: research doc in `docs/<initiative>/research/`
+   - Output: research doc in `docs/<feature>/research/`
 
 2. **Advocate** — Adversarial review:
    - A separate review pass (can be same model in a different role, or a stronger model) must challenge the research conclusions

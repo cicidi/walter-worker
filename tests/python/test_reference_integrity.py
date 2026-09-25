@@ -38,7 +38,7 @@ def _cli_commands():
     cmds = set()
     for m in _CMD_NAME_RE.finditer(runner.invoke(main, ["--help"]).output):
         cmds.add(m.group(1))
-    for grp in ("analytics", "project", "skill", "initiative"):
+    for grp in ("analytics", "project", "skill", "feature"):
         for m in _CMD_NAME_RE.finditer(runner.invoke(main, [grp, "--help"]).output):
             cmds.add(f"{grp} {m.group(1)}")
     return cmds
@@ -51,7 +51,7 @@ def test_all_script_skill_refs_resolve_in_cli():
 
     known = _cli_commands()
     known.add("state-update")  # top-level, may appear differently
-    known.add("initiative")    # group
+    known.add("feature")    # group
     removed = {"import-mcp"}
 
     missing = []

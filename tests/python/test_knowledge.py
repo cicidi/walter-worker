@@ -314,7 +314,7 @@ def test_build_summary_prompt():
 
     data = {
         "project": "walter-worker",
-        "initiative": "test-coverage",
+        "feature": "test-coverage",
         "messages": [{"role": "user"}],
         "tool_calls": [{"tool": "Bash"}],
     }

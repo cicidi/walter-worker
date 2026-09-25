@@ -5,17 +5,17 @@ from pathlib import Path
 
 from ..config import (
     GLOBAL_DIR,
-    INITIATIVES_DIR,
-    load_initiative,
-    save_initiative,
-    list_initiatives,
-    initiative_exists,
+    FEATURES_DIR,
+    load_feature,
+    save_feature,
+    list_features,
+    feature_exists,
 )
 from ..models import (
-    InitiativeConfig,
-    InitiativeProjectRef,
+    FeatureConfig,
+    FeatureProjectRef,
 )
-from ..adapters.claude import inject_initiative, remove_initiative
+from ..adapters.claude import inject_feature, remove_feature
 
 KEBAB_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
@@ -25,38 +25,38 @@ def _local_md_path(project_dir: Path) -> Path:
 
 
 def _extract_active_name(content: str) -> str | None:
-    m = re.search(r"<!--\s*INITIATIVE:(\S+)\s+START\s*-->", content)
+    m = re.search(r"<!--\s*FEATURE:(\S+)\s+START\s*-->", content)
     if m:
         return m.group(1)
     return None
 
 
-class InitiativeManager:
+class FeatureManager:
 
     def __init__(self, project_dir: Path | None = None):
         self.project_dir = Path(project_dir) if project_dir else Path.cwd()
 
     # ── CRUD ────────────────────────────────────────────────────────────
 
-    def create(self, name: str, description: str = "") -> InitiativeConfig:
-        if initiative_exists(name):
-            raise FileExistsError(f"Initiative '{name}' already exists.")
+    def create(self, name: str, description: str = "") -> FeatureConfig:
+        if feature_exists(name):
+            raise FileExistsError(f"Feature '{name}' already exists.")
         if not KEBAB_RE.match(name):
             raise ValueError(f"Name '{name}' must be kebab-case (e.g. 'auth-migration').")
 
-        config = InitiativeConfig(
+        config = FeatureConfig(
             name=name,
             description=description,
             status="active",
             created=datetime.now().strftime("%Y-%m-%d"),
         )
-        save_initiative(config)
+        save_feature(config)
 
         self._scaffold_docs(name)
         return config
 
     def _scaffold_docs(self, name: str) -> None:
-        """Create docs/<initiative>/{prd,plan,spec}/ directories."""
+        """Create docs/<feature>/{prd,plan,spec}/ directories."""
         try:
             from ...constants import DOCS_DISCIPLINES
         except ImportError:
@@ -65,74 +65,74 @@ class InitiativeManager:
             (self.project_dir / "docs" / name / discipline).mkdir(parents=True, exist_ok=True)
 
 
-    def edit(self, name: str, **updates) -> InitiativeConfig:
-        config = load_initiative(name)
+    def edit(self, name: str, **updates) -> FeatureConfig:
+        config = load_feature(name)
         if config is None:
-            raise FileNotFoundError(f"Initiative '{name}' not found.")
+            raise FileNotFoundError(f"Feature '{name}' not found.")
 
         for key, value in updates.items():
             if hasattr(config, key):
                 setattr(config, key, value)
 
-        save_initiative(config)
+        save_feature(config)
         return config
 
-    def show(self, name: str) -> InitiativeConfig | None:
-        return load_initiative(name)
+    def show(self, name: str) -> FeatureConfig | None:
+        return load_feature(name)
 
-    def list_all(self) -> list[InitiativeConfig]:
-        return list_initiatives()
+    def list_all(self) -> list[FeatureConfig]:
+        return list_features()
 
     def remove(self, name: str) -> None:
-        if not initiative_exists(name):
-            raise FileNotFoundError(f"Initiative '{name}' not found.")
+        if not feature_exists(name):
+            raise FileNotFoundError(f"Feature '{name}' not found.")
 
         if self.active_name() == name:
             self.deactivate()
 
-        path = INITIATIVES_DIR / f"{name}.yaml"
+        path = FEATURES_DIR / f"{name}.yaml"
         path.unlink()
 
     # ── Activation ──────────────────────────────────────────────────────
 
     def activate(self, name: str) -> list[str]:
-        config = load_initiative(name)
+        config = load_feature(name)
         if config is None:
-            raise FileNotFoundError(f"Initiative '{name}' not found.")
+            raise FileNotFoundError(f"Feature '{name}' not found.")
 
         actions = []
         self.deactivate()
 
         # Claude injects into CLAUDE.local.md; OpenCode reads the same file.
-        actions += inject_initiative(config, project_dir=self.project_dir)
-        actions.append(f"Activated initiative '{name}'")
+        actions += inject_feature(config, project_dir=self.project_dir)
+        actions.append(f"Activated feature '{name}'")
         return actions
 
     def deactivate(self) -> list[str]:
         actions = []
         had_effect = False
 
-        result = remove_initiative(project_dir=self.project_dir)
+        result = remove_feature(project_dir=self.project_dir)
         for r in result:
             if "removed" in r:
                 had_effect = True
             actions.append(r)
 
         if had_effect:
-            actions.append("Deactivated current initiative")
+            actions.append("Deactivated current feature")
         else:
-            actions.append("No active initiative")
+            actions.append("No active feature")
         return actions
 
     def active_name(self) -> str | None:
-        """Derive the active initiative from the project's CLAUDE.local.md
-        INITIATIVE block.  No global .active marker — single source of truth."""
+        """Derive the active feature from the project's CLAUDE.local.md
+        FEATURE block.  No global .active marker — single source of truth."""
         local_md = _local_md_path(self.project_dir)
         if not local_md.exists():
             return None
         return _extract_active_name(local_md.read_text(encoding="utf-8"))
 
-    def archive(self, name: str) -> InitiativeConfig:
+    def archive(self, name: str) -> FeatureConfig:
         return self.edit(name, status="archived")
 
     def inject_static_context(self) -> list[str]:

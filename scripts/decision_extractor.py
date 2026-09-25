@@ -379,8 +379,8 @@ def generate_doc_organize_output(
     output_dir: Path,
 ):
     """Generate doc-organize compliant decision-history docs."""
-    initiative = project_name
-    dec_dir = output_dir / "docs" / initiative / "decision-history"
+    feature = project_name
+    dec_dir = output_dir / "docs" / feature / "decision-history"
     dec_dir.mkdir(parents=True, exist_ok=True)
 
     # Group decisions by date

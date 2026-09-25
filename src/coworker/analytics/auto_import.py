@@ -176,7 +176,7 @@ def import_claude_hooks(session_dir: Path, conn):
                 k, _, v = line.partition(":")
                 info[k.strip()] = v.strip().strip('"')
 
-    # Delegate to full import_session for complete data (initiative, branch, tokens, messages, tool_calls)
+    # Delegate to full import_session for complete data (feature, branch, tokens, messages, tool_calls)
     from .import_data import import_session as full_import
     try:
         full_import(session_dir, conn)

@@ -78,14 +78,14 @@ def query_knowledge():
     return [dict(r) for r in rows]
 
 
-def query_initiatives():
+def query_features():
     conn = get_db()
     rows = conn.execute(
-        """SELECT s.initiative, s.project, COUNT(DISTINCT s.id) as session_count,
+        """SELECT s.feature, s.project, COUNT(DISTINCT s.id) as session_count,
                   COUNT(DISTINCT t.call_id) as tool_count
            FROM sessions s LEFT JOIN tool_calls t ON s.id = t.session_id
-           WHERE s.initiative IS NOT NULL AND s.initiative != ''
-           GROUP BY s.initiative ORDER BY session_count DESC"""
+           WHERE s.feature IS NOT NULL AND s.feature != ''
+           GROUP BY s.feature ORDER BY session_count DESC"""
     ).fetchall()
     conn.close()
     return [dict(r) for r in rows]
@@ -298,7 +298,7 @@ def query_session_errors(limit: int = 20):
     conn = _get_db_conn()
     try:
         rows = conn.execute(
-            """SELECT s.id, s.ide, s.project, s.initiative, s.created_at,
+            """SELECT s.id, s.ide, s.project, s.feature, s.created_at,
                       COUNT(tc.id) as error_count,
                       GROUP_CONCAT(DISTINCT tc.tool) as failing_tools
                FROM sessions s

@@ -16,17 +16,22 @@ from .config import (
     GLOBAL_DIR, GLOBAL_CONFIG, PROJECT_CONFIG_NAME,
     load_global_config, load_project_config, merged_config, save_config,
     load_project_catalog, save_project_catalog,
-    load_initiative, save_initiative, list_initiatives, initiative_exists,
+    load_feature, save_feature, list_features, feature_exists,
 )
 from .models import (
     CoworkerConfig, ProjectEntry, ProjectRef, ProjectCatalog,
-    InitiativeConfig, InitiativeProjectRef, LinkRef, Decision, ReferenceDoc,
+    FeatureConfig, FeatureProjectRef, LinkRef, Decision, ReferenceDoc,
     KnowledgePoolEntry,
 )
 from .adapters import ADAPTERS
-from .initiatives.manager import InitiativeManager
+from .features.manager import FeatureManager
 from .templates.project_claude_md import generate_project_claude_md
-from .templates.local_claude_md import generate_local_claude_md, update_project_info, inject_initiative_into_local_md
+from .templates.local_claude_md import (
+    generate_local_claude_md,
+    update_project_info,
+    inject_feature_into_local_md,
+    MARKER_DIALECT,
+)
 from .templates.project_claude_md import PROJECT_CLAUDE_MD_SENTINEL
 from . import backup
 from .semantic_merge import classify_sections, apply_merge, verify_protected
@@ -275,14 +280,18 @@ def init(is_global, is_project):
         local_md_path = Path.cwd() / "CLAUDE.local.md"
         existing_local = local_md_path.exists()
 
-        # Always generate from fresh template, preserving initiative block
+        # Always generate from fresh template, preserving feature block
         if existing_local:
             old_content = local_md_path.read_text()
             base_content = generate_local_claude_md()
-            # Extract and preserve existing initiative block
-            m = re.search(r'(<!-- INITIATIVE:\S+ START -->.*?<!-- INITIATIVE:\S+ END -->)', old_content, re.DOTALL)
+            # Extract and preserve existing feature block
+            m = re.search(
+                rf"(<!-- {MARKER_DIALECT}:\S+ START -->.*?<!-- {MARKER_DIALECT}:\S+ END -->)",
+                old_content,
+                re.DOTALL,
+            )
             if m:
-                base_content = inject_initiative_into_local_md(base_content, m.group(1))
+                base_content = inject_feature_into_local_md(base_content, m.group(1))
             local_content = update_project_info(base_content, info)
             if local_content != old_content:
                 local_md_path.write_text(local_content)
@@ -381,10 +390,10 @@ def sync(tool, is_project, is_global):
     console.print("\n[bold green]Done.[/bold green]")
 
 
-def _scan_initiative_progress(initiative_name: str, project_dir: Path, config) -> dict:
-    """Scan project for initiative work artifacts, sessions, and commits.
+def _scan_feature_progress(feature_name: str, project_dir: Path, config) -> dict:
+    """Scan project for feature work artifacts, sessions, and commits.
 
-    Returns a dict with keys: initiative, artifacts, sessions, commits,
+    Returns a dict with keys: feature, artifacts, sessions, commits,
     memory_refs, remaining.
     """
     import subprocess
@@ -392,7 +401,7 @@ def _scan_initiative_progress(initiative_name: str, project_dir: Path, config) -
     from datetime import datetime
 
     result: dict = {
-        "initiative": config,
+        "feature": config,
         "artifacts": {},
         "sessions": 0,
         "commits": 0,
@@ -400,8 +409,8 @@ def _scan_initiative_progress(initiative_name: str, project_dir: Path, config) -
         "remaining": config.remaining if config.remaining else [],
     }
 
-    # ── 1. Artifact scan: check docs/<initiative>/ ──────────────────────
-    docs_dir = project_dir / "docs" / initiative_name
+    # ── 1. Artifact scan: check docs/<feature>/ ──────────────────────
+    docs_dir = project_dir / "docs" / feature_name
     if docs_dir.exists():
         # Known doc disciplines + any others present
         disciplines = ["prd", "spec", "design", "plan", "test-plan", "impl-plan",
@@ -427,7 +436,7 @@ def _scan_initiative_progress(initiative_name: str, project_dir: Path, config) -
     try:
         since_date = config.created or "2025-01-01"
         r = subprocess.run(
-            ["git", "log", "--oneline", "--grep", initiative_name,
+            ["git", "log", "--oneline", "--grep", feature_name,
              f"--since={since_date}"],
             capture_output=True, text=True, cwd=str(project_dir), timeout=5,
         )
@@ -444,8 +453,8 @@ def _scan_initiative_progress(initiative_name: str, project_dir: Path, config) -
             conn = sqlite3.connect(str(db_path))
             row = conn.execute(
                 "SELECT COUNT(DISTINCT id) FROM sessions "
-                "WHERE initiative = ? AND project = ?",
-                (initiative_name, project_dir.name),
+                "WHERE feature = ? AND project = ?",
+                (feature_name, project_dir.name),
             ).fetchone()
             if row:
                 result["sessions"] = row[0]
@@ -458,30 +467,30 @@ def _scan_initiative_progress(initiative_name: str, project_dir: Path, config) -
         db_path = Path.home() / ".coworker" / "analytics" / "analytics.db"
         if db_path.exists():
             conn = sqlite3.connect(str(db_path))
-            # Count session summaries linked to this initiative
+            # Count session summaries linked to this feature
             row = conn.execute(
                 "SELECT COUNT(*) FROM session_summaries ss "
                 "JOIN sessions s ON ss.session_id = s.id "
-                "WHERE s.initiative = ?",
-                (initiative_name,),
+                "WHERE s.feature = ?",
+                (feature_name,),
             ).fetchone()
             result["session_memories"] = row[0] if row else 0
-            # Count knowledge cards linked to this initiative
+            # Count knowledge cards linked to this feature
             row = conn.execute(
                 "SELECT COUNT(DISTINCT k.id) FROM knowledge k "
                 "JOIN knowledge_sessions ks ON k.id = ks.knowledge_id "
                 "JOIN sessions s ON ks.session_id = s.id "
-                "WHERE s.initiative = ?",
-                (initiative_name,),
+                "WHERE s.feature = ?",
+                (feature_name,),
             ).fetchone()
             result["knowledge_cards"] = row[0] if row else 0
             # Recent memory keywords
             keywords = conn.execute(
                 "SELECT ss.memory_keywords FROM session_summaries ss "
                 "JOIN sessions s ON ss.session_id = s.id "
-                "WHERE s.initiative = ? AND ss.memory_keywords IS NOT NULL "
+                "WHERE s.feature = ? AND ss.memory_keywords IS NOT NULL "
                 "ORDER BY s.created_at DESC LIMIT 10",
-                (initiative_name,),
+                (feature_name,),
             ).fetchall()
             result["recent_keywords"] = [kw[0] for kw in keywords if kw[0]]
             conn.close()
@@ -500,9 +509,9 @@ def _scan_initiative_progress(initiative_name: str, project_dir: Path, config) -
         if not result["artifacts"].get("prd") and not result["artifacts"].get("spec"):
             missing.append("No spec/PRD docs found — define scope")
         if result["commits"] == 0:
-            missing.append("No initiative-related commits yet — start implementation")
+            missing.append("No feature-related commits yet — start implementation")
         if result["sessions"] == 0:
-            missing.append("No sessions linked to this initiative — run analytics import")
+            missing.append("No sessions linked to this feature — run analytics import")
         if missing:
             result["remaining"] = missing
 
@@ -511,7 +520,7 @@ def _scan_initiative_progress(initiative_name: str, project_dir: Path, config) -
 
 @main.command()
 def status():
-    """Show current config status and active initiative progress."""
+    """Show current config status and active feature progress."""
     table = Table(title="Coworker Config Status")
     table.add_column("Scope", style="cyan")
     table.add_column("Path")
@@ -542,22 +551,22 @@ def status():
 
     console.print(table)
 
-    # ── Active Initiative ──────────────────────────────────────────────
+    # ── Active Feature ──────────────────────────────────────────────
     cwd = Path.cwd()
-    mgr = InitiativeManager(project_dir=cwd)
+    mgr = FeatureManager(project_dir=cwd)
     active_name = mgr.active_name()
     if not active_name:
-        return  # No active initiative, done
+        return  # No active feature, done
 
-    config = load_initiative(active_name)
+    config = load_feature(active_name)
     if config is None:
         return
 
-    progress = _scan_initiative_progress(active_name, cwd, config)
+    progress = _scan_feature_progress(active_name, cwd, config)
 
-    # Initiative overview
+    # Feature overview
     console.print()
-    itable = Table(title=f"Initiative: [bold cyan]{active_name}[/bold cyan]")
+    itable = Table(title=f"Feature: [bold cyan]{active_name}[/bold cyan]")
     itable.add_column("Field", style="cyan")
     itable.add_column("Value")
     itable.add_row("Status", f"[green]{config.status}[/green]" if config.status == "active" else config.status)
@@ -658,7 +667,7 @@ def status():
             rtable.add_row(str(i), item)
         console.print(rtable)
     elif progress["commits"] > 0 or progress["sessions"] > 0:
-        console.print("\n[dim]No remaining work items defined. Use /initiative edit to add.[/dim]")
+        console.print("\n[dim]No remaining work items defined. Use /feature edit to add.[/dim]")
 
 
 @main.command()
@@ -963,29 +972,29 @@ def project_remove(name):
 @project.command("sync")
 def project_sync():
     """Re-inject static context into IDE configs."""
-    mgr = InitiativeManager()
+    mgr = FeatureManager()
     actions = mgr.inject_static_context()
     for action in actions:
         console.print(f"  [green]✓[/green] {action}")
     console.print("[bold green]Static context synced.[/bold green]")
 
 
-# ── Initiative ─────────────────────────────────────────────────────────────
+# ── Feature ─────────────────────────────────────────────────────────────
 
 
 @main.group()
-def initiative():
-    """Manage initiatives."""
+def feature():
+    """Manage features."""
     pass
 
 
-@initiative.command("start")
+@feature.command("start")
 @click.argument("name")
 @click.option("--description", "-d", default="")
 @click.option("--project", "-p", "proj_dir", default=None, help="Project directory (default: current)")
 @click.option("--role", default="peer", help="Project role: upstream|downstream|peer")
 @click.option("--branch", "-b", "branches", default="main", help="Branches (comma-separated)")
-def initiative_start(name, description, proj_dir, role, branches):
+def feature_start(name, description, proj_dir, role, branches):
     """Quick-start: create, add project, and activate in one step."""
     pd = Path(proj_dir) if proj_dir else Path.cwd()
 
@@ -999,30 +1008,30 @@ def initiative_start(name, description, proj_dir, role, branches):
             pass
         return pp.name
 
-    mgr = InitiativeManager(project_dir=pd)
+    mgr = FeatureManager(project_dir=pd)
 
     try:
         mgr.create(name, description)
     except FileExistsError:
-        console.print(f"[yellow]Initiative '{name}' exists, activating it.[/yellow]")
+        console.print(f"[yellow]Feature '{name}' exists, activating it.[/yellow]")
     except ValueError as e:
         console.print(f"[red]{e}[/red]")
         return
 
     # Always add the current (or -p specified) project
-    config = load_initiative(name)
+    config = load_feature(name)
     if config:
         proj_name = _project_name(pd)
         if not any(p.name == proj_name for p in config.projects):
             branch_list = [b.strip() for b in branches.split(",") if b.strip()]
             config.projects.append(
-                InitiativeProjectRef(
+                FeatureProjectRef(
                     name=proj_name,
                     role=role,
                     branches=branch_list,
                 )
             )
-            save_initiative(config)
+            save_feature(config)
 
     try:
         actions = mgr.activate(name)
@@ -1032,22 +1041,22 @@ def initiative_start(name, description, proj_dir, role, branches):
         console.print(f"[red]{e}[/red]")
 
 
-@initiative.command("create")
+@feature.command("create")
 @click.argument("name")
 @click.option("--description", "-d", default="")
 @click.option("--project", "-p", "proj_dir", default=None, help="Project directory (default: current)")
-def initiative_create(name, description, proj_dir):
-    """Create a new initiative."""
+def feature_create(name, description, proj_dir):
+    """Create a new feature."""
     pd = Path(proj_dir) if proj_dir else Path.cwd()
-    mgr = InitiativeManager(project_dir=pd)
+    mgr = FeatureManager(project_dir=pd)
     try:
         mgr.create(name, description)
-        console.print(f"[green]Created initiative '{name}'[/green]")
+        console.print(f"[green]Created feature '{name}'[/green]")
     except FileExistsError as e:
         console.print(f"[red]{e}[/red]")
 
 
-@initiative.command("edit")
+@feature.command("edit")
 @click.argument("name")
 @click.option("--project", "-p", "proj_dir", default=None, help="Project directory (default: current)")
 @click.option("--description", "-d", default=None)
@@ -1055,13 +1064,13 @@ def initiative_create(name, description, proj_dir):
 @click.option("--add-link", "add_link_spec", default=None, help="Add link (Title|URL)")
 @click.option("--add-decision", "add_decision_spec", default=None, help="Add decision (date|decision|rationale|by)")
 @click.option("--add-doc", "add_doc_spec", default=None, help="Add reference doc (Title|path)")
-@click.option("--archive", "do_archive", is_flag=True, default=False, help="Archive the initiative")
-def initiative_edit(name, proj_dir, description, add_proj, add_link_spec, add_decision_spec, add_doc_spec, do_archive):
-    """Edit an existing initiative."""
+@click.option("--archive", "do_archive", is_flag=True, default=False, help="Archive the feature")
+def feature_edit(name, proj_dir, description, add_proj, add_link_spec, add_decision_spec, add_doc_spec, do_archive):
+    """Edit an existing feature."""
     pd = Path(proj_dir) if proj_dir else Path.cwd()
-    config = load_initiative(name)
+    config = load_feature(name)
     if config is None:
-        console.print(f"[red]Initiative '{name}' not found.[/red]")
+        console.print(f"[red]Feature '{name}' not found.[/red]")
         return
 
     if description is not None:
@@ -1075,10 +1084,10 @@ def initiative_edit(name, proj_dir, description, add_proj, add_link_spec, add_de
         existing = [p for p in config.projects if p.name == proj_name]
         if existing:
             console.print(
-                f"[yellow]Project '{proj_name}' is already in this initiative.[/yellow]"
+                f"[yellow]Project '{proj_name}' is already in this feature.[/yellow]"
             )
             return
-        proj = InitiativeProjectRef(
+        proj = FeatureProjectRef(
             name=proj_name,
             role=parts[1] if len(parts) > 1 else "peer",
             branches=(
@@ -1116,31 +1125,31 @@ def initiative_edit(name, proj_dir, description, add_proj, add_link_spec, add_de
             )
         )
 
-    save_initiative(config)
-    console.print(f"[green]Updated initiative '{name}'.[/green]")
+    save_feature(config)
+    console.print(f"[green]Updated feature '{name}'.[/green]")
 
 
-@initiative.command("list")
+@feature.command("list")
 @click.option("--project", "-p", "proj_dir", default=None, help="Project directory (default: current)")
 @click.option("--verbose", "-v", is_flag=True, default=False)
-def initiative_list(proj_dir, verbose):
-    """List all initiatives for a project."""
+def feature_list(proj_dir, verbose):
+    """List all features for a project."""
     pd = Path(proj_dir) if proj_dir else Path.cwd()
-    mgr = InitiativeManager(project_dir=pd)
+    mgr = FeatureManager(project_dir=pd)
     active = mgr.active_name()
-    initiatives = mgr.list_all()
-    if not initiatives:
-        console.print(f"[dim]No initiatives found. Use 'coworker initiative create'.[/dim]")
+    features = mgr.list_all()
+    if not features:
+        console.print(f"[dim]No features found. Use 'coworker feature create'.[/dim]")
         return
 
-    table = Table(title="Initiatives")
+    table = Table(title="Features")
     table.add_column("Name", style="cyan")
     table.add_column("Status")
     table.add_column("Active")
     if verbose:
         table.add_column("Projects")
     table.add_column("Description")
-    for i in initiatives:
+    for i in features:
         mark = "[green]✓[/green]" if i.name == active else ""
         sc = "green" if i.status == "active" else "dim"
         row = [i.name, f"[{sc}]{i.status}[/{sc}]", mark]
@@ -1152,27 +1161,27 @@ def initiative_list(proj_dir, verbose):
     console.print(table)
 
 
-@initiative.command("show")
+@feature.command("show")
 @click.argument("name")
 @click.option("--project", "-p", "proj_dir", default=None, help="Project directory (default: current)")
-def initiative_show(name, proj_dir):
-    """Show full initiative config."""
-    config = load_initiative(name)
+def feature_show(name, proj_dir):
+    """Show full feature config."""
+    config = load_feature(name)
     if config is None:
-        console.print(f"[red]Initiative '{name}' not found.[/red]")
+        console.print(f"[red]Feature '{name}' not found.[/red]")
         return
     import yaml
     data = config.model_dump(exclude_none=True)
     console.print(yaml.dump(data, default_flow_style=False, allow_unicode=True))
 
 
-@initiative.command("activate")
+@feature.command("activate")
 @click.argument("name")
 @click.option("--project", "-p", "proj_dir", default=None, help="Project directory (default: current)")
-def initiative_activate(name, proj_dir):
-    """Activate an initiative (inject context into IDE configs)."""
+def feature_activate(name, proj_dir):
+    """Activate a feature (inject context into IDE configs)."""
     pd = Path(proj_dir) if proj_dir else Path.cwd()
-    mgr = InitiativeManager(project_dir=pd)
+    mgr = FeatureManager(project_dir=pd)
     try:
         actions = mgr.activate(name)
         for action in actions:
@@ -1181,39 +1190,65 @@ def initiative_activate(name, proj_dir):
         console.print(f"[red]{e}[/red]")
 
 
-@initiative.command("deactivate")
+@feature.command("deactivate")
 @click.option("--project", "-p", "proj_dir", default=None, help="Project directory (default: current)")
-def initiative_deactivate(proj_dir):
-    """Deactivate current initiative."""
+def feature_deactivate(proj_dir):
+    """Deactivate current feature."""
     pd = Path(proj_dir) if proj_dir else Path.cwd()
-    mgr = InitiativeManager(project_dir=pd)
+    mgr = FeatureManager(project_dir=pd)
     actions = mgr.deactivate()
     for action in actions:
         console.print(f"  [green]✓[/green] {action}")
 
 
-@initiative.command("remove")
+@feature.command("remove")
 @click.argument("name")
 @click.option("--project", "-p", "proj_dir", default=None, help="Project directory (default: current)")
 @click.option("--force", is_flag=True, default=False, help="Skip confirmation")
-def initiative_remove(name, proj_dir, force):
-    """Remove an initiative permanently."""
+def feature_remove(name, proj_dir, force):
+    """Remove a feature permanently."""
     pd = Path(proj_dir) if proj_dir else Path.cwd()
-    mgr = InitiativeManager(project_dir=pd)
+    mgr = FeatureManager(project_dir=pd)
     config = mgr.show(name)
     if config is None:
-        console.print(f"[red]Initiative '{name}' not found.[/red]")
+        console.print(f"[red]Feature '{name}' not found.[/red]")
         return
     if not force:
-        ok = click.confirm(f"Remove initiative '{name}' permanently?", default=False)
+        ok = click.confirm(f"Remove feature '{name}' permanently?", default=False)
         if not ok:
             console.print("[dim]Cancelled.[/dim]")
             return
     try:
         mgr.remove(name)
-        console.print(f"[green]Removed initiative '{name}'.[/green]")
+        console.print(f"[green]Removed feature '{name}'.[/green]")
     except FileNotFoundError as e:
         console.print(f"[red]{e}[/red]")
+
+
+# ── Deprecated alias ────────────────────────────────────────────────────────
+# `initiative` was the pre-rename name for this concept. The group stays as a
+# hidden alias so existing scripts keep working, and warns on every use so it
+# can be removed once nothing depends on it.
+
+
+@main.group("initiative", hidden=True)
+def initiative_alias():
+    """Deprecated alias for `feature`."""
+    click.secho(
+        "`coworker initiative` is deprecated — use `coworker feature` instead.",
+        fg="yellow",
+        err=True,
+    )
+
+
+def _register_deprecated_alias() -> None:
+    """Mirror every `feature` subcommand onto the deprecated alias group."""
+    for name, command in feature.commands.items():
+        initiative_alias.add_command(command, name)
+
+
+_register_deprecated_alias()
+
 
 # Register sub-command groups from split-out modules
 register_memory_commands(main)

@@ -420,7 +420,7 @@ tr:hover td{background:var(--bg-hover);color:var(--text-primary)}
 ::-webkit-scrollbar-thumb:hover{background:var(--text-muted)}
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   Evolution + Control Panel tags (added by self-evolving-agent initiative)
+   Evolution + Control Panel tags (added by self-evolving-agent feature)
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .tag-auto{background:var(--green-bg);border:1px solid var(--green);color:var(--green);padding:1px 6px;border-radius:3px;font-size:10px;font-weight:500}

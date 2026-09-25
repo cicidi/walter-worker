@@ -56,31 +56,31 @@ def import_session(session_dir: Path, conn_or_path=None):
         except Exception:
             pass
 
-    # Auto-detect initiative from CLAUDE.local.md if not set
-    initiative = info.get("initiative", "")
-    if not initiative:
+    # Auto-detect feature from CLAUDE.local.md if not set
+    feature = info.get("feature", "")
+    if not feature:
         try:
             local_md = Path(info.get("cwd", "")) / "CLAUDE.local.md"
             if local_md.exists():
                 import re
                 content = local_md.read_text()
-                m = re.search(r'## Active Initiative:\s*(\S+)', content)
+                m = re.search(r'## Active Feature:\s*(\S+)', content)
                 if m:
-                    initiative = m.group(1)
-                    info["initiative"] = initiative
+                    feature = m.group(1)
+                    info["feature"] = feature
         except Exception:
             pass
-    if not initiative and branch:
+    if not feature and branch:
         # e.g., "feat/self-evolving-agent" → "self-evolving-agent"
         if branch.startswith("feat/") or branch.startswith("fix/") or branch.startswith("feature/"):
-            initiative = branch.split("/", 1)[1] if "/" in branch else branch
-            info["initiative"] = initiative
+            feature = branch.split("/", 1)[1] if "/" in branch else branch
+            info["feature"] = feature
 
     conn.execute(
-        """INSERT OR REPLACE INTO sessions (id, ide, project, cwd, model, initiative, branch, created_at, closed_at)
+        """INSERT OR REPLACE INTO sessions (id, ide, project, cwd, model, feature, branch, created_at, closed_at)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (session_id, info.get("ide", ""), info.get("project", ""), info.get("cwd", ""),
-         info.get("model", ""), info.get("initiative", ""), info.get("branch", ""),
+         info.get("model", ""), info.get("feature", ""), info.get("branch", ""),
          info.get("created", ""), info.get("closed", "")),
     )
 

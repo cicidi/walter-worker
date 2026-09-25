@@ -107,14 +107,14 @@ def query_data_quality():
         total = conn.execute("SELECT COUNT(*) FROM sessions").fetchone()[0]
         def pct(n): return round(n / max(total, 1) * 100, 1)
         with_project = conn.execute("SELECT COUNT(*) FROM sessions WHERE project IS NOT NULL AND project != ''").fetchone()[0]
-        with_initiative = conn.execute("SELECT COUNT(*) FROM sessions WHERE initiative IS NOT NULL AND initiative != ''").fetchone()[0]
+        with_feature = conn.execute("SELECT COUNT(*) FROM sessions WHERE feature IS NOT NULL AND feature != ''").fetchone()[0]
         with_closed = conn.execute("SELECT COUNT(*) FROM sessions WHERE closed_at IS NOT NULL AND closed_at != ''").fetchone()[0]
         with_tokens = conn.execute("""SELECT COUNT(DISTINCT s.id) FROM sessions s JOIN session_stats ss ON s.id = ss.session_id WHERE ss.tokens_input > 0""").fetchone()[0]
         with_summaries = conn.execute("SELECT COUNT(*) FROM session_summaries").fetchone()[0]
         return {
             "total_sessions": total,
             "project": {"covered": with_project, "missing": total - with_project, "pct": pct(with_project)},
-            "initiative": {"covered": with_initiative, "missing": total - with_initiative, "pct": pct(with_initiative)},
+            "feature": {"covered": with_feature, "missing": total - with_feature, "pct": pct(with_feature)},
             "closed": {"covered": with_closed, "missing": total - with_closed, "pct": pct(with_closed)},
             "tokens": {"covered": with_tokens, "missing": total - with_tokens, "pct": pct(with_tokens)},
             "summaries": {"covered": with_summaries, "missing": total - with_summaries, "pct": pct(with_summaries)},

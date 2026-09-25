@@ -201,8 +201,15 @@ def classify_sections(current: str, future: str) -> list[SectionClassification]:
             ))
             continue
 
-        # Legacy heuristic — kept for backward compat with pre-P4 markers
-        if "<!-- PROTECTED" in s.body or "<!-- INITIATIVE:" in s.body:
+        # Legacy heuristic — kept for backward compat with pre-P4 markers.
+        # Both marker dialects are protected: INITIATIVE is what CLAUDE.local.md
+        # files created before the rename still carry, and letting `coworker
+        # upgrade` merge over one would destroy the user's active context.
+        if (
+            "<!-- PROTECTED" in s.body
+            or "<!-- FEATURE:" in s.body
+            or "<!-- INITIATIVE:" in s.body
+        ):
             classifications.append(SectionClassification(
                 heading=s.heading, category=KEEP, current_content=s.body,
             ))

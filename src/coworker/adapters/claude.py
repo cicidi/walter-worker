@@ -5,7 +5,8 @@ import shutil
 import re
 import tempfile
 from pathlib import Path
-from ..models import CoworkerConfig, ProjectCatalog, InitiativeConfig
+from ..models import CoworkerConfig, ProjectCatalog, FeatureConfig
+from ..templates.local_claude_md import MARKER_DIALECT
 from .. import backup
 
 CLAUDE_GLOBAL_DIR = Path.home() / ".claude"
@@ -15,8 +16,9 @@ CLAUDE_GLOBAL_MCP = Path.home() / ".claude.json"
 
 STATIC_START = "<!-- COWORKER:STATIC START -->"
 STATIC_END = "<!-- COWORKER:STATIC END -->"
-INITIATIVE_MARKER_RE = re.compile(
-    r"<!-- INITIATIVE:.*? START -->.*?<!-- INITIATIVE:.*? END -->", re.DOTALL
+FEATURE_MARKER_RE = re.compile(
+    rf"<!-- {MARKER_DIALECT}:.*? START -->.*?<!-- {MARKER_DIALECT}:.*? END -->",
+    re.DOTALL,
 )
 
 
@@ -211,11 +213,11 @@ def inject_static_context(
     return actions
 
 
-def inject_initiative(
-    config: InitiativeConfig, project_dir: Path | None = None
+def inject_feature(
+    config: FeatureConfig, project_dir: Path | None = None
 ) -> list[str]:
     actions = []
-    block = _build_initiative_block(config)
+    block = _build_feature_block(config)
     target = _resolve_local_md(project_dir)
 
     if target.exists():
@@ -224,15 +226,15 @@ def inject_initiative(
         from ..templates.local_claude_md import generate_local_claude_md
         content = generate_local_claude_md()
 
-    from ..templates.local_claude_md import inject_initiative_into_local_md
-    updated = inject_initiative_into_local_md(content, block)
+    from ..templates.local_claude_md import inject_feature_into_local_md
+    updated = inject_feature_into_local_md(content, block)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(updated)
-    actions.append(f"injected initiative '{config.name}' into {target.name}")
+    actions.append(f"injected feature '{config.name}' into {target.name}")
     return actions
 
 
-def remove_initiative(project_dir: Path | None = None) -> list[str]:
+def remove_feature(project_dir: Path | None = None) -> list[str]:
     actions = []
     target = _resolve_local_md(project_dir)
     if not target.exists():
@@ -241,24 +243,24 @@ def remove_initiative(project_dir: Path | None = None) -> list[str]:
 
     content = target.read_text()
     name = None
-    match = re.search(r"<!-- INITIATIVE:(\S+) START -->", content)
+    match = re.search(rf"<!-- {MARKER_DIALECT}:(\S+) START -->", content)
     if match:
         name = match.group(1)
     if name:
-        from ..templates.local_claude_md import remove_initiative_from_local_md
-        updated = remove_initiative_from_local_md(content, name)
+        from ..templates.local_claude_md import remove_feature_from_local_md
+        updated = remove_feature_from_local_md(content, name)
         if updated != content:
             target.write_text(updated)
-            actions.append(f"removed initiative '{name}' from {target.name}")
+            actions.append(f"removed feature '{name}' from {target.name}")
         else:
-            actions.append(f"no initiative in {target.name}")
+            actions.append(f"no feature in {target.name}")
     else:
-        actions.append(f"no initiative in {target.name}")
+        actions.append(f"no feature in {target.name}")
     return actions
 
 
-def _remove_all_initiative_blocks(content: str) -> str:
-    result = INITIATIVE_MARKER_RE.sub("", content)
+def _remove_all_feature_blocks(content: str) -> str:
+    result = FEATURE_MARKER_RE.sub("", content)
     # collapse multiple blank lines left by removed blocks
     result = re.sub(r"\n{3,}", "\n\n", result)
     return result.rstrip() + "\n"
@@ -313,9 +315,9 @@ def _build_static_block(catalog: ProjectCatalog) -> str:
     lines.append("")
     from ..constants import DOCS_DISCIPLINES
     disciplines = ", ".join(DOCS_DISCIPLINES)
-    lines.append(f"Docs organized by topic: `docs/<initiative>/{{{disciplines}}}/`")
+    lines.append(f"Docs organized by topic: `docs/<feature>/{{{disciplines}}}/`")
     lines.append("")
-    lines.append("Each initiative creates its own docs folder with prd/plan/spec subdirectories.")
+    lines.append("Each feature creates its own docs folder with prd/plan/spec subdirectories.")
     lines.append("")
     lines.append("## Coworker Skills")
     lines.append("")
@@ -329,10 +331,10 @@ def _build_static_block(catalog: ProjectCatalog) -> str:
     return "\n".join(lines) + "\n"
 
 
-def _build_initiative_block(config: InitiativeConfig) -> str:
-    start = f"<!-- INITIATIVE:{config.name} START -->"
-    end = f"<!-- INITIATIVE:{config.name} END -->"
-    lines = [start, f"## Active Initiative: {config.name}", ""]
+def _build_feature_block(config: FeatureConfig) -> str:
+    start = f"<!-- FEATURE:{config.name} START -->"
+    end = f"<!-- FEATURE:{config.name} END -->"
+    lines = [start, f"## Active Feature: {config.name}", ""]
     if config.description:
         lines.append(f"> {config.description}")
         lines.append("")
@@ -354,7 +356,7 @@ def _build_initiative_block(config: InitiativeConfig) -> str:
 
     if config.recommended_skills:
         lines.append("### Recommended Skills")
-        lines.append("_User-reviewed skills for this initiative. Invoke when relevant._")
+        lines.append("_User-reviewed skills for this feature. Invoke when relevant._")
         lines.append("")
         for skill in config.recommended_skills:
             lines.append(f"- `{skill}`")

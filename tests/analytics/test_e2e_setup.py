@@ -67,7 +67,7 @@ def test_dashboard_api():
 
         endpoints = [
             "/api/overview", "/api/sessions", "/api/skills",
-            "/api/tools", "/api/files", "/api/knowledge", "/api/initiatives",
+            "/api/tools", "/api/files", "/api/knowledge", "/api/features",
         ]
         for ep in endpoints:
             r = client.get(ep)

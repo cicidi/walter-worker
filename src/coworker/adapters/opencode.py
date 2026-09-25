@@ -1,7 +1,7 @@
 from __future__ import annotations
 import json
 from pathlib import Path
-from ..models import CoworkerConfig, ProjectCatalog, InitiativeConfig
+from ..models import CoworkerConfig, ProjectCatalog, FeatureConfig
 
 OPENCODE_DIR = Path.home() / ".config" / "opencode"
 OPENCODE_CONFIG = OPENCODE_DIR / "config.json"
@@ -87,13 +87,13 @@ def inject_static_context(
     return actions
 
 
-def inject_initiative(
-    config: InitiativeConfig, project_dir: Path | None = None
+def inject_feature(
+    config: FeatureConfig, project_dir: Path | None = None
 ) -> list[str]:
-    from .claude import inject_initiative as claude_inject
+    from .claude import inject_feature as claude_inject
     return claude_inject(config, project_dir=project_dir)
 
 
-def remove_initiative(project_dir: Path | None = None) -> list[str]:
-    from .claude import remove_initiative as claude_remove
+def remove_feature(project_dir: Path | None = None) -> list[str]:
+    from .claude import remove_feature as claude_remove
     return claude_remove(project_dir=project_dir)

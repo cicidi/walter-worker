@@ -61,15 +61,15 @@ def _seed_all(conn: sqlite3.Connection) -> None:
 
 def _seed_sessions(conn: sqlite3.Connection) -> None:
     rows = [
-        ("s1", "claude", "test-project", "/tmp/proj", "claude-3", "my-initiative",
+        ("s1", "claude", "test-project", "/tmp/proj", "claude-3", "my-feature",
          "feat/test", "2025-01-01T10:00:00", "2025-01-01T10:30:00"),
         ("s2", "opencode", "other-project", "/tmp/other", "gpt-4", None,
          "fix/bug", "2025-01-02T12:00:00", None),
-        ("s3", "claude", "test-project", "/tmp/proj", "claude-3", "my-initiative",
+        ("s3", "claude", "test-project", "/tmp/proj", "claude-3", "my-feature",
          "feat/test2", "2025-01-03T08:00:00", "2025-01-03T09:00:00"),
     ]
     conn.executemany(
-        """INSERT INTO sessions (id, ide, project, cwd, model, initiative, branch, created_at, closed_at)
+        """INSERT INTO sessions (id, ide, project, cwd, model, feature, branch, created_at, closed_at)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         rows,
     )
@@ -306,11 +306,11 @@ class TestQueryKnowledge:
         assert entry["merged_to_skill"] == "merged-to-x"
 
 
-class TestQueryInitiatives:
-    def test_returns_initiatives_with_counts(self, test_db):
-        result = queries.query_initiatives()
-        assert len(result) == 1  # only "my-initiative"
-        assert result[0]["initiative"] == "my-initiative"
+class TestQueryFeatures:
+    def test_returns_features_with_counts(self, test_db):
+        result = queries.query_features()
+        assert len(result) == 1  # only "my-feature"
+        assert result[0]["feature"] == "my-feature"
         assert result[0]["session_count"] == 2
         # s1 has 3 tool calls, s3 has 0 → 3 distinct call_ids
         assert result[0]["tool_count"] == 3
@@ -575,13 +575,13 @@ class TestApiKnowledge:
         assert len(data) == 2
 
 
-class TestApiInitiatives:
-    def test_returns_200_with_initiatives(self, client):
-        resp = client.get("/api/initiatives")
+class TestApiFeatures:
+    def test_returns_200_with_features(self, client):
+        resp = client.get("/api/features")
         assert resp.status_code == 200
         data = resp.json()
         assert len(data) == 1
-        assert data[0]["initiative"] == "my-initiative"
+        assert data[0]["feature"] == "my-feature"
 
 
 class TestApiSkillSessions:

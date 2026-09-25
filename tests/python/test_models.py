@@ -12,8 +12,8 @@ from coworker.models import (
     KnowledgePoolEntry,
     GitHubRef,
     SlackRef,
-    InitiativeConfig,
-    InitiativeProjectRef,
+    FeatureConfig,
+    FeatureProjectRef,
     LinkRef,
     Decision,
     ReferenceDoc,
@@ -92,21 +92,21 @@ class TestProjectCatalog:
         assert loaded.projects[0].upstream[0].name == "dep1"
 
 
-class TestInitiativeConfig:
+class TestFeatureConfig:
     def test_minimal_creation(self):
-        config = InitiativeConfig(name="test-init")
+        config = FeatureConfig(name="test-init")
         assert config.name == "test-init"
         assert config.status == "active"
         assert config.projects == []
 
     def test_full_config(self):
-        config = InitiativeConfig(
+        config = FeatureConfig(
             name="auth-migration",
             description="Migrate auth to OAuth2",
             status="active",
             created="2026-06-11",
             projects=[
-                InitiativeProjectRef(
+                FeatureProjectRef(
                     name="auth-service",
                     role="upstream",
                     branches=["main", "feat/oauth2"],
@@ -128,20 +128,20 @@ class TestInitiativeConfig:
         assert config.decisions[0].by == "cicidi"
 
     def test_default_role(self):
-        ref = InitiativeProjectRef(name="svc")
+        ref = FeatureProjectRef(name="svc")
         assert ref.role == "peer"
 
     def test_yaml_roundtrip(self):
-        config = InitiativeConfig(
+        config = FeatureConfig(
             name="test-init",
             description="Test",
             projects=[
-                InitiativeProjectRef(name="svc", branches=["main"])
+                FeatureProjectRef(name="svc", branches=["main"])
             ],
             links=[LinkRef(url="https://x.com", title="X")],
         )
         data = config.model_dump(exclude_none=True)
         yaml_str = yaml.dump(data, default_flow_style=False)
-        loaded = InitiativeConfig(**yaml.safe_load(yaml_str))
+        loaded = FeatureConfig(**yaml.safe_load(yaml_str))
         assert loaded.name == "test-init"
         assert loaded.projects[0].name == "svc"

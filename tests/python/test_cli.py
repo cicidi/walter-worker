@@ -321,68 +321,68 @@ class TestSkillNew:
         assert "Created:" in result.output
 
 
-# ── Initiative List ──────────────────────────────────────────────────────
+# ── Feature List ──────────────────────────────────────────────────────
 
 
-class TestInitiativeList:
-    def test_initiative_list_empty(self, temp_initiatives_dir, temp_project_dir, monkeypatch):
-        """List initiatives when none exist."""
+class TestFeatureList:
+    def test_feature_list_empty(self, temp_features_dir, temp_project_dir, monkeypatch):
+        """List features when none exist."""
         monkeypatch.chdir(temp_project_dir)
-        result = runner.invoke(main, ["initiative", "list"])
+        result = runner.invoke(main, ["feature", "list"])
         assert result.exit_code == 0
-        assert "No initiatives" in result.output
+        assert "No features" in result.output
 
-    def test_initiative_list(self, temp_initiatives_dir, temp_project_dir, monkeypatch):
-        """List existing initiatives."""
-        from coworker.config import save_initiative
-        from coworker.models import InitiativeConfig
+    def test_feature_list(self, temp_features_dir, temp_project_dir, monkeypatch):
+        """List existing features."""
+        from coworker.config import save_feature
+        from coworker.models import FeatureConfig
 
-        save_initiative(InitiativeConfig(name="test-it", description="A test initiative"))
+        save_feature(FeatureConfig(name="test-it", description="A test feature"))
         monkeypatch.chdir(temp_project_dir)
-        result = runner.invoke(main, ["initiative", "list"])
+        result = runner.invoke(main, ["feature", "list"])
         assert result.exit_code == 0
         assert "test-it" in result.output
 
-    def test_initiative_list_verbose(self, temp_initiatives_dir, temp_project_dir, monkeypatch):
-        """List initiatives with --verbose flag."""
-        from coworker.config import save_initiative
-        from coworker.models import InitiativeConfig
+    def test_feature_list_verbose(self, temp_features_dir, temp_project_dir, monkeypatch):
+        """List features with --verbose flag."""
+        from coworker.config import save_feature
+        from coworker.models import FeatureConfig
 
-        save_initiative(InitiativeConfig(name="verbose-it", description="verbose test"))
+        save_feature(FeatureConfig(name="verbose-it", description="verbose test"))
         monkeypatch.chdir(temp_project_dir)
-        result = runner.invoke(main, ["initiative", "list", "--verbose"])
+        result = runner.invoke(main, ["feature", "list", "--verbose"])
         assert result.exit_code == 0
         assert "verbose-it" in result.output
 
 
-# ── Initiative Create ────────────────────────────────────────────────────
+# ── Feature Create ────────────────────────────────────────────────────
 
 
-class TestInitiativeCreate:
-    def test_initiative_create(self, temp_initiatives_dir, temp_project_dir, monkeypatch):
-        """Create a new initiative."""
+class TestFeatureCreate:
+    def test_feature_create(self, temp_features_dir, temp_project_dir, monkeypatch):
+        """Create a new feature."""
         monkeypatch.chdir(temp_project_dir)
         result = runner.invoke(
             main,
-            ["initiative", "create", "new-init", "--description", "A test initiative"],
+            ["feature", "create", "new-init", "--description", "A test feature"],
         )
         assert result.exit_code == 0
         assert "Created" in result.output
 
-    def test_initiative_create_duplicate(self, temp_initiatives_dir, temp_project_dir, monkeypatch):
-        """Creating a duplicate initiative shows error."""
+    def test_feature_create_duplicate(self, temp_features_dir, temp_project_dir, monkeypatch):
+        """Creating a duplicate feature shows error."""
         monkeypatch.chdir(temp_project_dir)
-        runner.invoke(main, ["initiative", "create", "dup-init"])
-        result = runner.invoke(main, ["initiative", "create", "dup-init"])
+        runner.invoke(main, ["feature", "create", "dup-init"])
+        result = runner.invoke(main, ["feature", "create", "dup-init"])
         assert result.exit_code == 0
         assert "exists" in result.output.lower()
 
-    def test_initiative_create_with_project_dir(self, temp_initiatives_dir, temp_project_dir):
-        """Create an initiative using --project option."""
+    def test_feature_create_with_project_dir(self, temp_features_dir, temp_project_dir):
+        """Create a feature using --project option."""
         result = runner.invoke(
             main,
             [
-                "initiative", "create", "proj-init",
+                "feature", "create", "proj-init",
                 "--description", "Project specific",
                 "--project", str(temp_project_dir),
             ],
@@ -391,191 +391,191 @@ class TestInitiativeCreate:
         assert "Created" in result.output
 
 
-# ── Initiative Show ──────────────────────────────────────────────────────
+# ── Feature Show ──────────────────────────────────────────────────────
 
 
-class TestInitiativeShow:
-    def test_initiative_show(self, temp_initiatives_dir, monkeypatch):
-        """Show an existing initiative."""
-        from coworker.config import save_initiative
-        from coworker.models import InitiativeConfig
+class TestFeatureShow:
+    def test_feature_show(self, temp_features_dir, monkeypatch):
+        """Show an existing feature."""
+        from coworker.config import save_feature
+        from coworker.models import FeatureConfig
 
-        save_initiative(InitiativeConfig(name="show-it", description="To be shown"))
-        result = runner.invoke(main, ["initiative", "show", "show-it"])
+        save_feature(FeatureConfig(name="show-it", description="To be shown"))
+        result = runner.invoke(main, ["feature", "show", "show-it"])
         assert result.exit_code == 0
         assert "show-it" in result.output
 
-    def test_initiative_show_missing(self, temp_initiatives_dir, monkeypatch):
-        """Show a non-existent initiative."""
-        result = runner.invoke(main, ["initiative", "show", "no-such"])
+    def test_feature_show_missing(self, temp_features_dir, monkeypatch):
+        """Show a non-existent feature."""
+        result = runner.invoke(main, ["feature", "show", "no-such"])
         assert result.exit_code == 0
         assert "not found" in result.output.lower()
 
 
-# ── Initiative Edit ──────────────────────────────────────────────────────
+# ── Feature Edit ──────────────────────────────────────────────────────
 
 
-class TestInitiativeEdit:
-    def test_initiative_edit_description(self, temp_initiatives_dir, monkeypatch):
-        """Edit an initiative's description."""
-        from coworker.config import save_initiative
-        from coworker.models import InitiativeConfig
+class TestFeatureEdit:
+    def test_feature_edit_description(self, temp_features_dir, monkeypatch):
+        """Edit a feature's description."""
+        from coworker.config import save_feature
+        from coworker.models import FeatureConfig
 
-        save_initiative(InitiativeConfig(name="edit-it", description="Before"))
+        save_feature(FeatureConfig(name="edit-it", description="Before"))
         result = runner.invoke(
             main,
-            ["initiative", "edit", "edit-it", "--description", "After"],
+            ["feature", "edit", "edit-it", "--description", "After"],
         )
         assert result.exit_code == 0
         assert "Updated" in result.output
 
-    def test_initiative_edit_add_project(self, temp_initiatives_dir, monkeypatch):
-        """Add a project to an initiative."""
-        from coworker.config import save_initiative
-        from coworker.models import InitiativeConfig
+    def test_feature_edit_add_project(self, temp_features_dir, monkeypatch):
+        """Add a project to a feature."""
+        from coworker.config import save_feature
+        from coworker.models import FeatureConfig
 
-        save_initiative(InitiativeConfig(name="add-proj-it", description="test"))
+        save_feature(FeatureConfig(name="add-proj-it", description="test"))
         result = runner.invoke(
             main,
             [
-                "initiative", "edit", "add-proj-it",
+                "feature", "edit", "add-proj-it",
                 "--add-project", "my-project:peer:main,dev",
             ],
         )
         assert result.exit_code == 0
 
-    def test_initiative_edit_add_link(self, temp_initiatives_dir, monkeypatch):
-        """Add a link to an initiative."""
-        from coworker.config import save_initiative
-        from coworker.models import InitiativeConfig
+    def test_feature_edit_add_link(self, temp_features_dir, monkeypatch):
+        """Add a link to a feature."""
+        from coworker.config import save_feature
+        from coworker.models import FeatureConfig
 
-        save_initiative(InitiativeConfig(name="add-link-it", description="test"))
+        save_feature(FeatureConfig(name="add-link-it", description="test"))
         result = runner.invoke(
             main,
             [
-                "initiative", "edit", "add-link-it",
+                "feature", "edit", "add-link-it",
                 "--add-link", "Example|https://example.com",
             ],
         )
         assert result.exit_code == 0
 
-    def test_initiative_edit_missing(self, temp_initiatives_dir, monkeypatch):
-        """Edit a non-existent initiative."""
-        result = runner.invoke(main, ["initiative", "edit", "no-such"])
+    def test_feature_edit_missing(self, temp_features_dir, monkeypatch):
+        """Edit a non-existent feature."""
+        result = runner.invoke(main, ["feature", "edit", "no-such"])
         assert result.exit_code == 0
         assert "not found" in result.output.lower()
 
 
-# ── Initiative Remove ────────────────────────────────────────────────────
+# ── Feature Remove ────────────────────────────────────────────────────
 
 
-class TestInitiativeRemove:
-    def test_initiative_remove_with_force(self, temp_initiatives_dir, temp_project_dir, monkeypatch):
-        """Remove an initiative with --force."""
-        from coworker.config import save_initiative
-        from coworker.models import InitiativeConfig
+class TestFeatureRemove:
+    def test_feature_remove_with_force(self, temp_features_dir, temp_project_dir, monkeypatch):
+        """Remove a feature with --force."""
+        from coworker.config import save_feature
+        from coworker.models import FeatureConfig
 
-        save_initiative(InitiativeConfig(name="remove-it", description="to remove"))
+        save_feature(FeatureConfig(name="remove-it", description="to remove"))
         monkeypatch.chdir(temp_project_dir)
         result = runner.invoke(
-            main, ["initiative", "remove", "remove-it", "--force"]
+            main, ["feature", "remove", "remove-it", "--force"]
         )
         assert result.exit_code == 0
         assert "Removed" in result.output
 
-    def test_initiative_remove_missing(self, temp_initiatives_dir, temp_project_dir, monkeypatch):
-        """Remove a non-existent initiative."""
+    def test_feature_remove_missing(self, temp_features_dir, temp_project_dir, monkeypatch):
+        """Remove a non-existent feature."""
         monkeypatch.chdir(temp_project_dir)
         result = runner.invoke(
-            main, ["initiative", "remove", "no-such", "--force"]
+            main, ["feature", "remove", "no-such", "--force"]
         )
         assert result.exit_code == 0
         assert "not found" in result.output.lower()
 
 
-# ── Initiative Start ─────────────────────────────────────────────────────
+# ── Feature Start ─────────────────────────────────────────────────────
 
 
-class TestInitiativeStart:
-    def test_initiative_start(self, temp_initiatives_dir, temp_project_dir, monkeypatch):
-        """Quick-start an initiative: create, add project, and activate."""
+class TestFeatureStart:
+    def test_feature_start(self, temp_features_dir, temp_project_dir, monkeypatch):
+        """Quick-start a feature: create, add project, and activate."""
         monkeypatch.chdir(temp_project_dir)
         monkeypatch.setattr(
-            "coworker.initiatives.manager.inject_initiative",
+            "coworker.features.manager.inject_feature",
             lambda config, project_dir: ["injected"],
         )
         monkeypatch.setattr(
-            "coworker.initiatives.manager.remove_initiative",
-            lambda project_dir: ["no initiative"],
+            "coworker.features.manager.remove_feature",
+            lambda project_dir: ["no feature"],
         )
         result = runner.invoke(
             main,
             [
-                "initiative", "start", "quick-start",
+                "feature", "start", "quick-start",
                 "--description", "Quick start test",
             ],
         )
         assert result.exit_code == 0
 
 
-# ── Initiative Activate ──────────────────────────────────────────────────
+# ── Feature Activate ──────────────────────────────────────────────────
 
 
-class TestInitiativeActivate:
-    def test_initiative_activate(self, temp_initiatives_dir, temp_project_dir, monkeypatch):
-        """Activate an initiative."""
-        from coworker.config import save_initiative
-        from coworker.models import InitiativeConfig
+class TestFeatureActivate:
+    def test_feature_activate(self, temp_features_dir, temp_project_dir, monkeypatch):
+        """Activate a feature."""
+        from coworker.config import save_feature
+        from coworker.models import FeatureConfig
 
-        save_initiative(InitiativeConfig(name="activate-it", description="test"))
+        save_feature(FeatureConfig(name="activate-it", description="test"))
         monkeypatch.chdir(temp_project_dir)
         monkeypatch.setattr(
-            "coworker.initiatives.manager.inject_initiative",
+            "coworker.features.manager.inject_feature",
             lambda config, project_dir: ["injected"],
         )
         monkeypatch.setattr(
-            "coworker.initiatives.manager.remove_initiative",
-            lambda project_dir: ["no initiative"],
+            "coworker.features.manager.remove_feature",
+            lambda project_dir: ["no feature"],
         )
         result = runner.invoke(
-            main, ["initiative", "activate", "activate-it"]
+            main, ["feature", "activate", "activate-it"]
         )
         assert result.exit_code == 0
         assert "Activated" in result.output
 
-    def test_initiative_activate_missing(self, temp_initiatives_dir, temp_project_dir, monkeypatch):
-        """Activate a non-existent initiative."""
+    def test_feature_activate_missing(self, temp_features_dir, temp_project_dir, monkeypatch):
+        """Activate a non-existent feature."""
         monkeypatch.chdir(temp_project_dir)
-        result = runner.invoke(main, ["initiative", "activate", "no-such"])
+        result = runner.invoke(main, ["feature", "activate", "no-such"])
         assert result.exit_code == 0
         assert "not found" in result.output.lower()
 
 
-# ── Initiative Deactivate ────────────────────────────────────────────────
+# ── Feature Deactivate ────────────────────────────────────────────────
 
 
-class TestInitiativeDeactivate:
-    def test_initiative_deactivate(self, temp_initiatives_dir, temp_project_dir, monkeypatch):
-        """Deactivate current initiative (no active initiative path)."""
+class TestFeatureDeactivate:
+    def test_feature_deactivate(self, temp_features_dir, temp_project_dir, monkeypatch):
+        """Deactivate current feature (no active feature path)."""
         monkeypatch.chdir(temp_project_dir)
         monkeypatch.setattr(
-            "coworker.initiatives.manager.remove_initiative",
-            lambda project_dir: ["no initiative"],
+            "coworker.features.manager.remove_feature",
+            lambda project_dir: ["no feature"],
         )
-        result = runner.invoke(main, ["initiative", "deactivate"])
+        result = runner.invoke(main, ["feature", "deactivate"])
         assert result.exit_code == 0
-        assert "No active initiative" in result.output
+        assert "No active feature" in result.output
 
-    def test_initiative_deactivate_with_active(self, temp_initiatives_dir, temp_project_dir, monkeypatch):
-        """Deactivate when an initiative is active."""
+    def test_feature_deactivate_with_active(self, temp_features_dir, temp_project_dir, monkeypatch):
+        """Deactivate when a feature is active."""
         monkeypatch.chdir(temp_project_dir)
         monkeypatch.setattr(
-            "coworker.initiatives.manager.remove_initiative",
+            "coworker.features.manager.remove_feature",
             lambda project_dir: [
-                "removed initiative 'active-one' from CLAUDE.local.md"
+                "removed feature 'active-one' from CLAUDE.local.md"
             ],
         )
-        result = runner.invoke(main, ["initiative", "deactivate"])
+        result = runner.invoke(main, ["feature", "deactivate"])
         assert result.exit_code == 0
         assert "Deactivated" in result.output
 
@@ -673,40 +673,40 @@ class TestHelpCov:
         result = runner.invoke(main, ["project", "sync", "--help"])
         assert result.exit_code == 0
 
-    def test_help_initiative(self):
-        result = runner.invoke(main, ["initiative", "--help"])
+    def test_help_feature(self):
+        result = runner.invoke(main, ["feature", "--help"])
         assert result.exit_code == 0
 
-    def test_help_initiative_start(self):
-        result = runner.invoke(main, ["initiative", "start", "--help"])
+    def test_help_feature_start(self):
+        result = runner.invoke(main, ["feature", "start", "--help"])
         assert result.exit_code == 0
 
-    def test_help_initiative_create(self):
-        result = runner.invoke(main, ["initiative", "create", "--help"])
+    def test_help_feature_create(self):
+        result = runner.invoke(main, ["feature", "create", "--help"])
         assert result.exit_code == 0
 
-    def test_help_initiative_edit(self):
-        result = runner.invoke(main, ["initiative", "edit", "--help"])
+    def test_help_feature_edit(self):
+        result = runner.invoke(main, ["feature", "edit", "--help"])
         assert result.exit_code == 0
 
-    def test_help_initiative_list(self):
-        result = runner.invoke(main, ["initiative", "list", "--help"])
+    def test_help_feature_list(self):
+        result = runner.invoke(main, ["feature", "list", "--help"])
         assert result.exit_code == 0
 
-    def test_help_initiative_show(self):
-        result = runner.invoke(main, ["initiative", "show", "--help"])
+    def test_help_feature_show(self):
+        result = runner.invoke(main, ["feature", "show", "--help"])
         assert result.exit_code == 0
 
-    def test_help_initiative_activate(self):
-        result = runner.invoke(main, ["initiative", "activate", "--help"])
+    def test_help_feature_activate(self):
+        result = runner.invoke(main, ["feature", "activate", "--help"])
         assert result.exit_code == 0
 
-    def test_help_initiative_deactivate(self):
-        result = runner.invoke(main, ["initiative", "deactivate", "--help"])
+    def test_help_feature_deactivate(self):
+        result = runner.invoke(main, ["feature", "deactivate", "--help"])
         assert result.exit_code == 0
 
-    def test_help_initiative_remove(self):
-        result = runner.invoke(main, ["initiative", "remove", "--help"])
+    def test_help_feature_remove(self):
+        result = runner.invoke(main, ["feature", "remove", "--help"])
         assert result.exit_code == 0
 
     def test_help_analytics(self):
@@ -1041,16 +1041,16 @@ class TestScanProjectErrors:
         pass
 
 
-# ── InitiativeManager coverage ────────────────────────────────────────────────
+# ── FeatureManager coverage ────────────────────────────────────────────────
 
 
-class TestInitiativeArchive:
+class TestFeatureArchive:
     """Cover archive() method."""
 
-    def test_archive_initiative(self, temp_initiatives_dir, temp_project_dir, monkeypatch):
-        from coworker.initiatives.manager import InitiativeManager
+    def test_archive_feature(self, temp_features_dir, temp_project_dir, monkeypatch):
+        from coworker.features.manager import FeatureManager
 
-        manager = InitiativeManager(project_dir=temp_project_dir)
+        manager = FeatureManager(project_dir=temp_project_dir)
         monkeypatch.setattr(manager, "_scaffold_docs", lambda name: None)
         config = manager.create("test-archived", description="will be archived")
         assert config.status == "active"
@@ -1064,7 +1064,7 @@ class TestInitiativeArchive:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# ── Coverage additions: sync error, upgrade, analytics bodies, initiative ────
+# ── Coverage additions: sync error, upgrade, analytics bodies, feature ────
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
@@ -1293,66 +1293,66 @@ class TestAnalyticsCommandBodies:
         assert os.environ.get("COWORKER_ANALYTICS_DB") == "/tmp/test.db"
 
 
-# ── Initiative Start Edge Cases (lines 687-688, 697-701, 722-723) ──────────
+# ── Feature Start Edge Cases (lines 687-688, 697-701, 722-723) ──────────
 
-class TestInitiativeStartEdgeCases:
-    """Cover initiative start: existing initiative, invalid name, activate
+class TestFeatureStartEdgeCases:
+    """Cover feature start: existing feature, invalid name, activate
     error, and project-name resolution from catalog."""
 
     @staticmethod
-    def _mock_initiative_inject_remove(monkeypatch):
+    def _mock_feature_inject_remove(monkeypatch):
         monkeypatch.setattr(
-            "coworker.initiatives.manager.inject_initiative",
+            "coworker.features.manager.inject_feature",
             lambda config, project_dir: ["injected"],
         )
         monkeypatch.setattr(
-            "coworker.initiatives.manager.remove_initiative",
-            lambda project_dir: ["no initiative"],
+            "coworker.features.manager.remove_feature",
+            lambda project_dir: ["no feature"],
         )
 
-    def test_start_existing_initiative(self, temp_initiatives_dir, temp_project_dir, monkeypatch):
-        """Lines 697-698: initiative already exists, falls through to activate."""
-        from coworker.config import save_initiative
-        from coworker.models import InitiativeConfig
+    def test_start_existing_feature(self, temp_features_dir, temp_project_dir, monkeypatch):
+        """Lines 697-698: feature already exists, falls through to activate."""
+        from coworker.config import save_feature
+        from coworker.models import FeatureConfig
 
-        save_initiative(InitiativeConfig(name="existing-start", description="already here"))
+        save_feature(FeatureConfig(name="existing-start", description="already here"))
         monkeypatch.chdir(temp_project_dir)
-        self._mock_initiative_inject_remove(monkeypatch)
+        self._mock_feature_inject_remove(monkeypatch)
         result = runner.invoke(
             main,
-            ["initiative", "start", "existing-start", "--description", "redundant"],
+            ["feature", "start", "existing-start", "--description", "redundant"],
         )
         assert result.exit_code == 0
         assert "exists, activating it" in result.output
 
-    def test_start_invalid_name(self, temp_initiatives_dir, temp_project_dir, monkeypatch):
+    def test_start_invalid_name(self, temp_features_dir, temp_project_dir, monkeypatch):
         """Lines 699-701: non-kebab-case name triggers ValueError."""
         monkeypatch.chdir(temp_project_dir)
         result = runner.invoke(
             main,
-            ["initiative", "start", "Bad Name!", "--description", "bad name"],
+            ["feature", "start", "Bad Name!", "--description", "bad name"],
         )
         assert result.exit_code == 0
         assert "kebab-case" in result.output.lower()
 
-    def test_start_activate_error(self, temp_initiatives_dir, temp_project_dir, monkeypatch):
+    def test_start_activate_error(self, temp_features_dir, temp_project_dir, monkeypatch):
         """Lines 722-723: mgr.activate raises FileNotFoundError."""
-        from coworker.initiatives.manager import InitiativeManager
+        from coworker.features.manager import FeatureManager
 
         def fake_activate(self, name):
-            raise FileNotFoundError(f"Initiative '{name}' not found.")
-        monkeypatch.setattr(InitiativeManager, "activate", fake_activate)
+            raise FileNotFoundError(f"Feature '{name}' not found.")
+        monkeypatch.setattr(FeatureManager, "activate", fake_activate)
 
         monkeypatch.chdir(temp_project_dir)
         result = runner.invoke(
             main,
-            ["initiative", "start", "activate-fail", "--description", "will fail"],
+            ["feature", "start", "activate-fail", "--description", "will fail"],
         )
         assert result.exit_code == 0
         assert "not found" in result.output.lower()
 
     def test_start_resolves_project_name_from_catalog(
-        self, temp_initiatives_dir, temp_coworker_dir, temp_project_dir, monkeypatch,
+        self, temp_features_dir, temp_coworker_dir, temp_project_dir, monkeypatch,
     ):
         """Lines 687-688: _project_name finds catalog entry by local_path.
 
@@ -1361,7 +1361,7 @@ class TestInitiativeStartEdgeCases:
         load_project_catalog to return a mock whose ``.entries`` iterates
         real ProjectEntry objects so lines 687-688 are exercised.
         """
-        from coworker.config import load_initiative
+        from coworker.config import load_feature
         from coworker.models import ProjectEntry, ProjectCatalog
 
         # Build a real catalog, then wrap it in a mock that exposes .entries
@@ -1380,84 +1380,84 @@ class TestInitiativeStartEdgeCases:
         monkeypatch.setattr("coworker.cli.load_project_catalog", lambda: mock_catalog)
 
         monkeypatch.chdir(temp_project_dir)
-        self._mock_initiative_inject_remove(monkeypatch)
+        self._mock_feature_inject_remove(monkeypatch)
         result = runner.invoke(
             main,
-            ["initiative", "start", "catalog-resolve", "--description", "test"],
+            ["feature", "start", "catalog-resolve", "--description", "test"],
         )
         assert result.exit_code == 0
 
-        config = load_initiative("catalog-resolve")
+        config = load_feature("catalog-resolve")
         assert config is not None
         assert any(p.name == "catalog-project-name" for p in config.projects)
 
 
-# ── Initiative Edit Edge Cases (lines 761, 768-771, 791-792, 802-803) ──────
+# ── Feature Edit Edge Cases (lines 761, 768-771, 791-792, 802-803) ──────
 
-class TestInitiativeEditEdgeCases:
-    """Cover initiative edit: archive, duplicate project, decision, doc."""
+class TestFeatureEditEdgeCases:
+    """Cover feature edit: archive, duplicate project, decision, doc."""
 
-    def test_edit_archive(self, temp_initiatives_dir, monkeypatch):
+    def test_edit_archive(self, temp_features_dir, monkeypatch):
         """Line 761: --archive sets status to archived."""
-        from coworker.config import save_initiative, load_initiative
-        from coworker.models import InitiativeConfig
+        from coworker.config import save_feature, load_feature
+        from coworker.models import FeatureConfig
 
-        save_initiative(InitiativeConfig(name="archive-me", description="will archive"))
+        save_feature(FeatureConfig(name="archive-me", description="will archive"))
         result = runner.invoke(
             main,
-            ["initiative", "edit", "archive-me", "--archive"],
+            ["feature", "edit", "archive-me", "--archive"],
         )
         assert result.exit_code == 0
         assert "Updated" in result.output
-        assert load_initiative("archive-me").status == "archived"
+        assert load_feature("archive-me").status == "archived"
 
-    def test_edit_duplicate_project(self, temp_initiatives_dir, monkeypatch):
+    def test_edit_duplicate_project(self, temp_features_dir, monkeypatch):
         """Lines 768-771: adding an already-present project warns and returns."""
-        from coworker.config import save_initiative
-        from coworker.models import InitiativeConfig, InitiativeProjectRef
+        from coworker.config import save_feature
+        from coworker.models import FeatureConfig, FeatureProjectRef
 
-        config = InitiativeConfig(name="dup-proj-it", description="test")
+        config = FeatureConfig(name="dup-proj-it", description="test")
         config.projects.append(
-            InitiativeProjectRef(name="already-there", role="peer", branches=["main"])
+            FeatureProjectRef(name="already-there", role="peer", branches=["main"])
         )
-        save_initiative(config)
+        save_feature(config)
 
         result = runner.invoke(
             main,
             [
-                "initiative", "edit", "dup-proj-it",
+                "feature", "edit", "dup-proj-it",
                 "--add-project", "already-there:peer:main",
             ],
         )
         assert result.exit_code == 0
-        assert "already in this initiative" in result.output
+        assert "already in this feature" in result.output
 
-    def test_edit_add_decision(self, temp_initiatives_dir, monkeypatch):
+    def test_edit_add_decision(self, temp_features_dir, monkeypatch):
         """Lines 791-792: --add-decision splits date|decision|rationale|by."""
-        from coworker.config import save_initiative
-        from coworker.models import InitiativeConfig
+        from coworker.config import save_feature
+        from coworker.models import FeatureConfig
 
-        save_initiative(InitiativeConfig(name="dec-it", description="test"))
+        save_feature(FeatureConfig(name="dec-it", description="test"))
         result = runner.invoke(
             main,
             [
-                "initiative", "edit", "dec-it",
+                "feature", "edit", "dec-it",
                 "--add-decision", "2024-01-15|Use PostgreSQL|Better JSON support|Walter",
             ],
         )
         assert result.exit_code == 0
         assert "Updated" in result.output
 
-    def test_edit_add_doc(self, temp_initiatives_dir, monkeypatch):
+    def test_edit_add_doc(self, temp_features_dir, monkeypatch):
         """Lines 802-803: --add-doc splits Title|path."""
-        from coworker.config import save_initiative
-        from coworker.models import InitiativeConfig
+        from coworker.config import save_feature
+        from coworker.models import FeatureConfig
 
-        save_initiative(InitiativeConfig(name="doc-it", description="test"))
+        save_feature(FeatureConfig(name="doc-it", description="test"))
         result = runner.invoke(
             main,
             [
-                "initiative", "edit", "doc-it",
+                "feature", "edit", "doc-it",
                 "--add-doc", "Architecture Overview|docs/architecture.md",
             ],
         )
@@ -1465,39 +1465,39 @@ class TestInitiativeEditEdgeCases:
         assert "Updated" in result.output
 
 
-# ── Initiative Remove Edge Cases (lines 899-902, 906-907) ──────────────────
+# ── Feature Remove Edge Cases (lines 899-902, 906-907) ──────────────────
 
-class TestInitiativeRemoveEdgeCases:
-    """Cover initiative remove: decline confirmation and FileNotFoundError."""
+class TestFeatureRemoveEdgeCases:
+    """Cover feature remove: decline confirmation and FileNotFoundError."""
 
-    def test_remove_decline_confirmation(self, temp_initiatives_dir, temp_project_dir, monkeypatch):
+    def test_remove_decline_confirmation(self, temp_features_dir, temp_project_dir, monkeypatch):
         """Lines 899-902: user declines removal confirmation."""
-        from coworker.config import save_initiative
-        from coworker.models import InitiativeConfig
+        from coworker.config import save_feature
+        from coworker.models import FeatureConfig
 
-        save_initiative(InitiativeConfig(name="keep-me", description="don't remove"))
+        save_feature(FeatureConfig(name="keep-me", description="don't remove"))
         monkeypatch.chdir(temp_project_dir)
         result = runner.invoke(
-            main, ["initiative", "remove", "keep-me"], input="n\n",
+            main, ["feature", "remove", "keep-me"], input="n\n",
         )
         assert result.exit_code == 0
         assert "Cancelled" in result.output
 
-    def test_remove_file_not_found_error(self, temp_initiatives_dir, temp_project_dir, monkeypatch):
+    def test_remove_file_not_found_error(self, temp_features_dir, temp_project_dir, monkeypatch):
         """Lines 906-907: mgr.remove raises FileNotFoundError."""
-        from coworker.initiatives.manager import InitiativeManager
-        from coworker.config import save_initiative
-        from coworker.models import InitiativeConfig
+        from coworker.features.manager import FeatureManager
+        from coworker.config import save_feature
+        from coworker.models import FeatureConfig
 
-        save_initiative(InitiativeConfig(name="vanish-me", description="poof"))
+        save_feature(FeatureConfig(name="vanish-me", description="poof"))
 
         def fake_remove(self, name):
-            raise FileNotFoundError(f"Initiative '{name}' not found.")
-        monkeypatch.setattr(InitiativeManager, "remove", fake_remove)
+            raise FileNotFoundError(f"Feature '{name}' not found.")
+        monkeypatch.setattr(FeatureManager, "remove", fake_remove)
 
         monkeypatch.chdir(temp_project_dir)
         result = runner.invoke(
-            main, ["initiative", "remove", "vanish-me", "--force"],
+            main, ["feature", "remove", "vanish-me", "--force"],
         )
         assert result.exit_code == 0
         assert "not found" in result.output.lower()
@@ -1539,3 +1539,30 @@ class TestSkillListEmpty:
         result = runner.invoke(main, ["skill", "list"])
         assert result.exit_code == 0
         assert "No skills configured" in result.output
+
+
+# ── Deprecated `initiative` alias ──────────────────────────────────────────
+
+class TestDeprecatedInitiativeAlias:
+    """`coworker initiative` stays working after the rename, and warns."""
+
+    def test_alias_group_exists_and_is_hidden(self):
+        assert "initiative" in main.commands
+        assert main.commands["initiative"].hidden is True
+
+    def test_alias_mirrors_every_feature_subcommand(self):
+        assert set(main.commands["initiative"].commands) == set(
+            main.commands["feature"].commands
+        )
+        assert len(main.commands["feature"].commands) == 8
+
+    def test_alias_warns_on_use(self):
+        result = runner.invoke(main, ["initiative", "list"])
+        assert result.exit_code == 0
+        assert "deprecated" in result.output
+        assert "coworker feature" in result.output
+
+    def test_feature_is_not_marked_deprecated(self):
+        result = runner.invoke(main, ["feature", "list"])
+        assert result.exit_code == 0
+        assert "deprecated" not in result.output

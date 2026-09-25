@@ -12,7 +12,7 @@ from coworker.models import (
     Permissions,
     ProjectEntry,
     ProjectCatalog,
-    InitiativeConfig,
+    FeatureConfig,
     Skill,
 )
 import coworker.config as cfg
@@ -45,31 +45,31 @@ class TestProjectCatalogConfig:
         assert loaded.projects[0].name == "new"
 
 
-class TestInitiativeConfig:
-    def test_save_and_load(self, temp_initiatives_dir):
-        cfg.save_initiative(
-            InitiativeConfig(name="test-init", description="Test"),
+class TestFeatureConfig:
+    def test_save_and_load(self, temp_features_dir):
+        cfg.save_feature(
+            FeatureConfig(name="test-init", description="Test"),
         )
-        loaded = cfg.load_initiative("test-init")
+        loaded = cfg.load_feature("test-init")
         assert loaded is not None
         assert loaded.name == "test-init"
         assert loaded.description == "Test"
 
-    def test_initiative_exists(self, temp_initiatives_dir):
-        assert not cfg.initiative_exists("test-init")
-        cfg.save_initiative(InitiativeConfig(name="test-init"))
-        assert cfg.initiative_exists("test-init")
+    def test_feature_exists(self, temp_features_dir):
+        assert not cfg.feature_exists("test-init")
+        cfg.save_feature(FeatureConfig(name="test-init"))
+        assert cfg.feature_exists("test-init")
 
-    def test_list_initiatives(self, temp_initiatives_dir):
-        cfg.save_initiative(InitiativeConfig(name="init-a"))
-        cfg.save_initiative(InitiativeConfig(name="init-b"))
-        results = cfg.list_initiatives()
+    def test_list_features(self, temp_features_dir):
+        cfg.save_feature(FeatureConfig(name="init-a"))
+        cfg.save_feature(FeatureConfig(name="init-b"))
+        results = cfg.list_features()
         assert len(results) == 2
         names = {i.name for i in results}
         assert names == {"init-a", "init-b"}
 
-    def test_load_nonexistent(self, temp_initiatives_dir):
-        assert cfg.load_initiative("does-not-exist") is None
+    def test_load_nonexistent(self, temp_features_dir):
+        assert cfg.load_feature("does-not-exist") is None
 
 
 class TestMergedConfig:

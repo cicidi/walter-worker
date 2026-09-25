@@ -4,7 +4,7 @@ from pathlib import Path
 from coworker.analytics.auto_import import run_once
 from coworker.analytics.db import get_db
 from coworker.dashboard import queries
-from coworker.templates.local_claude_md import inject_initiative_into_local_md
+from coworker.templates.local_claude_md import inject_feature_into_local_md
 
 
 def test_run_once_returns_expected_keys():
@@ -22,17 +22,17 @@ def test_query_overview_works_on_empty_db(tmp_path, monkeypatch):
 
 
 def test_idempotent_injection():
-    content = "# Claude\n\n<!-- INITIATIVE_PLACEHOLDER -->\n\n## More\n"
-    block = "<!-- INITIATIVE:foo START -->\n## foo\nstuff\n<!-- INITIATIVE:foo END -->"
-    first = inject_initiative_into_local_md(content, block)
+    content = "# Claude\n\n<!-- FEATURE_PLACEHOLDER -->\n\n## More\n"
+    block = "<!-- FEATURE:foo START -->\n## foo\nstuff\n<!-- FEATURE:foo END -->"
+    first = inject_feature_into_local_md(content, block)
     for _ in range(5):
-        result = inject_initiative_into_local_md(first, block)
+        result = inject_feature_into_local_md(first, block)
         assert "foo" in result
-        assert "INITIATIVE:foo" in result
+        assert "FEATURE:foo" in result
 
 
 def test_injection_adds_block():
     content = "# No placeholder\n\n## Done\n"
-    block = "<!-- INITIATIVE:x START -->\nx\n<!-- INITIATIVE:x END -->"
-    result = inject_initiative_into_local_md(content, block)
-    assert "INITIATIVE:x" in result
+    block = "<!-- FEATURE:x START -->\nx\n<!-- FEATURE:x END -->"
+    result = inject_feature_into_local_md(content, block)
+    assert "FEATURE:x" in result

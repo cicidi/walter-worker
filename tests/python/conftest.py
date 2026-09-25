@@ -41,14 +41,14 @@ def temp_project_dir():
 
 
 @pytest.fixture
-def temp_initiatives_dir(monkeypatch, tmp_path):
-    """Redirect INITIATIVES_DIR to a temp directory for isolated tests."""
+def temp_features_dir(monkeypatch, tmp_path):
+    """Redirect FEATURES_DIR to a temp directory for isolated tests."""
     import coworker.config as cfg
-    init_dir = tmp_path / "initiatives"
+    init_dir = tmp_path / "features"
     init_dir.mkdir()
-    monkeypatch.setattr(cfg, "INITIATIVES_DIR", init_dir)
+    monkeypatch.setattr(cfg, "FEATURES_DIR", init_dir)
     monkeypatch.setattr(
-        "coworker.initiatives.manager.INITIATIVES_DIR", init_dir
+        "coworker.features.manager.FEATURES_DIR", init_dir
     )
     yield init_dir
 

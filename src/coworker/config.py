@@ -182,66 +182,77 @@ def save_project_catalog(catalog: ProjectCatalog) -> None:
         yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
 
 
-# ── Initiative (global) ──────────────────────────────────────────────────────
+# ── Feature (global) ──────────────────────────────────────────────────────
 
-from .models import InitiativeConfig
+from .models import FeatureConfig
 
-INITIATIVES_DIR = GLOBAL_DIR / "initiatives"
-_INITIATIVE_NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
-
-
-def _initiatives_dir() -> Path:
-    INITIATIVES_DIR.mkdir(parents=True, exist_ok=True)
-    return INITIATIVES_DIR
+FEATURES_DIR = GLOBAL_DIR / "features"
+# Pre-rename location. Still resolved so that upgrading the tool does not orphan
+# an existing data directory; `coworker feature migrate` moves it across.
+LEGACY_FEATURES_DIR = GLOBAL_DIR / "initiatives"
+_FEATURE_NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
 
-def _validate_initiative_name(name: str) -> str:
-    if not name or not _INITIATIVE_NAME_RE.match(name):
+def _features_dir() -> Path:
+    """Feature config directory, honouring the pre-rename location.
+
+    Reads *and* writes follow the legacy directory while it is the only one
+    present, so an unmigrated machine neither loses data nor splits it across
+    two trees. Once features/ exists, it wins.
+    """
+    if not FEATURES_DIR.exists() and LEGACY_FEATURES_DIR.exists():
+        return LEGACY_FEATURES_DIR
+    FEATURES_DIR.mkdir(parents=True, exist_ok=True)
+    return FEATURES_DIR
+
+
+def _validate_feature_name(name: str) -> str:
+    if not name or not _FEATURE_NAME_RE.match(name):
         raise ValueError(
-            f"Invalid initiative name: {name!r}. "
+            f"Invalid feature name: {name!r}. "
             f"Must be kebab-case (e.g. 'my-project')."
         )
     return name
 
 
-def _safe_initiative_path(name: str) -> Path:
-    return _initiatives_dir() / f"{_validate_initiative_name(name)}.yaml"
+def _safe_feature_path(name: str) -> Path:
+    return _features_dir() / f"{_validate_feature_name(name)}.yaml"
 
 
-def list_initiatives() -> list[InitiativeConfig]:
-    d = _initiatives_dir()
+def list_features() -> list[FeatureConfig]:
+    d = _features_dir()
     results = []
     for f in sorted(d.glob("*.yaml")):
         try:
             with open(f) as fh:
                 data = yaml.safe_load(fh) or {}
-            results.append(InitiativeConfig(**data))
+            results.append(FeatureConfig(**data))
         except Exception as e:
             results.append(
-                InitiativeConfig(name=f.stem, description=f"[error: {e}]")
+                FeatureConfig(name=f.stem, description=f"[error: {e}]")
             )
     return results
 
 
-def load_initiative(name: str) -> InitiativeConfig | None:
-    path = _safe_initiative_path(name)
+def load_feature(name: str) -> FeatureConfig | None:
+    path = _safe_feature_path(name)
     if not path.exists():
         return None
     with open(path) as f:
         data = yaml.safe_load(f) or {}
-    return InitiativeConfig(**data)
+    return FeatureConfig(**data)
 
 
-def save_initiative(config: InitiativeConfig) -> None:
-    path = _safe_initiative_path(config.name)
+def save_feature(config: FeatureConfig) -> None:
+    path = _safe_feature_path(config.name)
     data = config.model_dump(exclude_none=True)
     with open(path, "w") as f:
         yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
 
 
-def initiative_path(name: str) -> Path:
-    return _safe_initiative_path(name)
+def feature_path(name: str) -> Path:
+    return _safe_feature_path(name)
 
 
-def initiative_exists(name: str) -> bool:
-    return _safe_initiative_path(name).exists()
+def feature_exists(name: str) -> bool:
+    return _safe_feature_path(name).exists()

@@ -4,8 +4,8 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from coworker.models import (
-    InitiativeConfig,
-    InitiativeProjectRef,
+    FeatureConfig,
+    FeatureProjectRef,
     Decision,
     LinkRef,
     ReferenceDoc,
@@ -18,8 +18,8 @@ from coworker.models import (
 )
 from coworker.adapters.claude import (
     _build_static_block,
-    _build_initiative_block,
-    _remove_all_initiative_blocks,
+    _build_feature_block,
+    _remove_all_feature_blocks,
     _replace_or_append_block,
     STATIC_START,
     STATIC_END,
@@ -140,20 +140,20 @@ class TestStaticBlock:
         assert "Think Before Coding" not in block
 
 
-class TestInitiativeBlock:
-    def test_minimal_initiative(self):
-        config = InitiativeConfig(name="test")
-        block = _build_initiative_block(config)
-        assert "<!-- INITIATIVE:test START -->" in block
-        assert "<!-- INITIATIVE:test END -->" in block
-        assert "## Active Initiative: test" in block
+class TestFeatureBlock:
+    def test_minimal_feature(self):
+        config = FeatureConfig(name="test")
+        block = _build_feature_block(config)
+        assert "<!-- FEATURE:test START -->" in block
+        assert "<!-- FEATURE:test END -->" in block
+        assert "## Active Feature: test" in block
 
-    def test_full_initiative(self):
-        config = InitiativeConfig(
+    def test_full_feature(self):
+        config = FeatureConfig(
             name="auth-migration",
             description="Migrate auth",
             projects=[
-                InitiativeProjectRef(
+                FeatureProjectRef(
                     name="auth-service",
                     role="upstream",
                     branches=["main", "feat/oauth2"],
@@ -172,7 +172,7 @@ class TestInitiativeBlock:
                 ReferenceDoc(path="~/docs/spec.md", title="Spec")
             ],
         )
-        block = _build_initiative_block(config)
+        block = _build_feature_block(config)
         assert "Migrate auth" in block
         assert "auth-service" in block
         assert "upstream" in block
@@ -183,35 +183,35 @@ class TestInitiativeBlock:
         assert "Spec" in block
 
 
-class TestRemoveInitiativeBlocks:
+class TestRemoveFeatureBlocks:
     def test_remove_single_block(self):
         content = (
             "# My Project\n\n"
-            "<!-- INITIATIVE:test START -->\n"
-            "## Active Initiative: test\n"
-            "<!-- INITIATIVE:test END -->\n\n"
+            "<!-- FEATURE:test START -->\n"
+            "## Active Feature: test\n"
+            "<!-- FEATURE:test END -->\n\n"
             "## End\n"
         )
-        result = _remove_all_initiative_blocks(content)
-        assert "INITIATIVE" not in result
+        result = _remove_all_feature_blocks(content)
+        assert "FEATURE" not in result
         assert "# My Project" in result
         assert "## End" in result
 
     def test_remove_multiple_blocks(self):
         content = (
             "start\n"
-            "<!-- INITIATIVE:a START -->\nblock a\n<!-- INITIATIVE:a END -->\n"
+            "<!-- FEATURE:a START -->\nblock a\n<!-- FEATURE:a END -->\n"
             "middle\n"
-            "<!-- INITIATIVE:b START -->\nblock b\n<!-- INITIATIVE:b END -->\n"
+            "<!-- FEATURE:b START -->\nblock b\n<!-- FEATURE:b END -->\n"
             "end\n"
         )
-        result = _remove_all_initiative_blocks(content)
-        assert "INITIATIVE" not in result
+        result = _remove_all_feature_blocks(content)
+        assert "FEATURE" not in result
         assert "start" in result
         assert "middle" in result
         assert "end" in result
 
     def test_no_blocks_unchanged(self):
-        content = "# My Project\n\n## No initiatives\n"
-        result = _remove_all_initiative_blocks(content)
+        content = "# My Project\n\n## No features\n"
+        result = _remove_all_feature_blocks(content)
         assert result.strip() == content.strip()

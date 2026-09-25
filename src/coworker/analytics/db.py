@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     project       TEXT,
     cwd           TEXT,
     model         TEXT,
-    initiative    TEXT,
+    feature    TEXT,
     branch        TEXT,
     created_at    TEXT NOT NULL,
     closed_at     TEXT,
