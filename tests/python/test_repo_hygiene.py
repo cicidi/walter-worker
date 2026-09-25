@@ -245,3 +245,36 @@ def test_the_self_evolving_docs_path_is_defined_once():
 
     # And the path it names exists in this repo, which is what broke before.
     assert (ROOT / wrong_history.WH_DIR).is_dir()
+
+
+def test_every_file_a_hook_writes_is_one_an_importer_reads():
+    """The hooks write these in shell; the importers read them in Python.
+
+    Nothing connects the two but the literal spelling, and a rename on one side
+    loses records silently — the hook writes a file nobody reads, or the
+    importer looks for one that is never written. Same shape as the
+    payload-field mismatch that had the hooks recording empty prompts.
+
+    Checked per write site, not as a union of both sides: an earlier version
+    compared the sets of names mentioned anywhere, so renaming one hook's
+    target passed because another hook still used the old name.
+    """
+    import re
+
+    hooks = sorted((ROOT / "src" / "coworker" / "analytics" / "hooks").glob("*.sh"))
+    importers = sorted((ROOT / "src" / "coworker" / "analytics").glob("*.py"))
+
+    written = {}  # filename -> where it is written
+    for h in hooks:
+        for m in re.finditer(r"append_jsonl\s+\"([^\"]+)\"", h.read_text(encoding="utf-8", errors="ignore")):
+            written.setdefault(m.group(1), h.name)
+
+    read = set()
+    for p in importers:
+        read |= set(re.findall(r"[\"']([a-z_]+\.jsonl|session\.yaml)[\"']", p.read_text(encoding="utf-8", errors="ignore")))
+
+    assert written, "expected the hooks to write at least one file"
+    orphans = {name: src for name, src in written.items() if name not in read}
+    assert not orphans, (
+        f"hooks write files no importer reads: {orphans}. Importers read {sorted(read)}."
+    )
