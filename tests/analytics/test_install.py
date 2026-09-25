@@ -107,3 +107,46 @@ def test_session_dir_exists(installed_home):
     """sessions directory created."""
     sessions = installed_home / ".coworker" / "analytics" / "sessions"
     assert sessions.is_dir()
+
+
+def test_install_prunes_stale_opencode_symlinks(tmp_path):
+    """install.sh must not let the OpenCode mirror grow without bound.
+
+    It synced CLAUDE_DIR -> OPENCODE_DIR additively, so a symlink created by an
+    earlier run kept pointing at CLAUDE_DIR after its target was deleted, and
+    nothing removed it. 78 such dangling links had accumulated, which is what
+    the 30-minute health check reported as COMMANDS_DIFF.
+    """
+    import os
+    import subprocess
+    from pathlib import Path
+
+    repo = Path(__file__).resolve().parents[2]
+    home = tmp_path / "home"
+    claude = home / ".claude" / "commands"
+    opencode = home / ".opencode" / "instructions"
+    claude.mkdir(parents=True)
+    opencode.mkdir(parents=True)
+
+    # A current skill and its working link.
+    (claude / "kept.md").write_text("---\nname: kept\n---\n", encoding="utf-8")
+    os.symlink(claude / "kept.md", opencode / "kept.md")
+    # Two links whose targets no longer exist.
+    for stale in ("gone-a.md", "gone-b.md"):
+        os.symlink(claude / stale, opencode / stale)
+    # A regular file is not install.sh's to delete.
+    (opencode / "user-file.md").write_text("mine\n", encoding="utf-8")
+
+    env = {**os.environ, "HOME": str(home)}
+    proc = subprocess.run(
+        ["bash", str(repo / "setup" / "install.sh"), "--global"],
+        input="0\n", text=True, env=env, cwd=str(repo),
+        capture_output=True, timeout=120,
+    )
+    assert proc.returncode == 0, proc.stderr
+
+    remaining = sorted(p.name for p in opencode.iterdir())
+    assert "kept.md" in remaining, "a live skill link must survive"
+    assert "user-file.md" in remaining, "a regular file must not be pruned"
+    assert "gone-a.md" not in remaining, "dangling symlinks must be pruned"
+    assert "gone-b.md" not in remaining

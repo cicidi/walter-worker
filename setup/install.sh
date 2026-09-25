@@ -351,6 +351,23 @@ if [[ -n "$OPENCODE_DIR" ]]; then
       cp "$skill_file" "$OPENCODE_DIR/$name"
     fi
   done
+
+  # Prune entries this sync no longer produces. Without this the directory only
+  # ever grows: a symlink made by an earlier run keeps pointing at CLAUDE_DIR
+  # after its target is deleted or renamed, and nothing ever removes it. 78 such
+  # dangling links had accumulated here.
+  #
+  # Symlinks only. A regular file may be something the user placed there, while
+  # a symlink with no CLAUDE_DIR counterpart is one this script created and
+  # whose target is now gone.
+  pruned=0
+  for existing in "$OPENCODE_DIR"/*.md; do
+    [[ -L "$existing" ]] || continue
+    [[ -f "$CLAUDE_DIR/${existing##*/}" ]] && continue
+    rm -f "$existing"
+    pruned=$((pruned + 1))
+  done
+  [[ $pruned -gt 0 ]] && ok "  Pruned $pruned stale OpenCode symlink(s)"
   ok "OpenCode sync complete."
 fi
 
