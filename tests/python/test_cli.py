@@ -1898,3 +1898,63 @@ class TestSyncReportsFailureHonestly:
 
         assert result.exit_code == 0
         assert "Done." in result.output
+
+
+class TestMemoryCaptureCommand:
+    """capture.process_session_end — the session-end stage — had no caller.
+
+    The design reserved `coworker memory close` for it, but that name was
+    already taken by the graph command, so the stage stayed unreachable. It
+    reads the same stdin payload the hooks get.
+    """
+
+    def _patch(self, monkeypatch, result):
+        seen = {}
+
+        def fake(**kw):
+            seen.update(kw)
+            return result
+
+        monkeypatch.setattr("coworker.memory.capture.process_session_end", fake)
+        monkeypatch.setattr(
+            "coworker.memory.mem0_client.Mem0Client.from_config",
+            lambda **kw: object(),
+        )
+        monkeypatch.setattr("coworker.memory.llm.LLMClient", lambda *a, **k: object())
+        return seen
+
+    def test_summarises_the_session_named_on_stdin(self, monkeypatch, tmp_path):
+        import json
+
+        from coworker.memory.capture import SessionEndResult
+
+        transcript = tmp_path / "t.txt"
+        transcript.write_text("x" * 600)
+        seen = self._patch(monkeypatch, SessionEndResult(reconciled=2, lessons=[{}, {}]))
+
+        payload = json.dumps({"session_id": "s1", "transcript_path": str(transcript)})
+        result = runner.invoke(main, ["memory", "capture"], input=payload)
+
+        assert result.exit_code == 0, result.output
+        assert seen["session_id"] == "s1"
+        assert seen["transcript_path"] == str(transcript)
+        assert "2" in result.output
+
+    def test_empty_stdin_is_an_error_not_a_silent_pass(self):
+        result = runner.invoke(main, ["memory", "capture"], input="")
+
+        assert result.exit_code != 0
+        assert "stdin" in result.output.lower()
+
+    def test_payload_without_a_transcript_is_an_error(self, monkeypatch):
+        import json
+
+        from coworker.memory.capture import SessionEndResult
+
+        self._patch(monkeypatch, SessionEndResult(reconciled=0))
+        result = runner.invoke(
+            main, ["memory", "capture"], input=json.dumps({"session_id": "s1"})
+        )
+
+        assert result.exit_code != 0
+        assert "transcript" in result.output.lower()

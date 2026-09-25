@@ -91,7 +91,22 @@ decision, not a silent re-enable.
 
 *Confidence: high on the facts, medium on intent.*
 
-### B2. `memory/capture.py` — the loop's first stage
+### B2. `memory/capture.py` — the loop's first stage — **REACHABLE, not enabled**
+
+`process_session_end` is now callable as `coworker memory capture`, reading the
+same flat stdin payload the hooks get. Verified end to end: a transcript in, a
+lesson stored in mem0 out.
+
+It is deliberately **not** wired to the Stop hook. That wiring costs one LLM
+call per session, and enabling recurring spend on someone's account is their
+call, not an inherited default. The one-line hook entry is in the command's
+docstring.
+
+`process_turn` (the per-PostToolUse half) is still uncalled, and should stay
+that way until capture-at-session-end has been observed working — it costs an
+LLM call per *tool call*, which is a different order of magnitude.
+
+The rest of this entry stands as the reason it was unreachable:
 
 `process_turn` (per PostToolUse) and `process_session_end` (per Stop) are
 complete and tested. **Zero production callers.** Neither hook calls them.

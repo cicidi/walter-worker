@@ -198,6 +198,74 @@ def register_memory_commands(main_group: click.Group) -> None:
 
         console.print(get_metrics_report())
 
+    @memory.command("capture")
+    def memory_capture():
+        """Session-end capture: read the hook payload on stdin, then reconcile.
+
+        process_session_end is the loop's session-end stage — it back-fills
+        missed captures from the transcript and assesses whether a pattern is
+        skill-worthy — and nothing called it. The design reserved
+        `coworker memory close` for this, but that name went to the graph
+        command, so the stage was unreachable rather than missing.
+
+        Reads {"session_id", "transcript_path"} from stdin: the same flat
+        payload every Claude Code hook receives.
+
+        Deliberately not wired to the Stop hook. It costs one LLM call per
+        session, and spending on every session is a choice to make rather than
+        one to inherit. To turn it on, add to hooks.Stop in settings.json:
+
+            {"matcher": "", "hooks": [{"type": "command",
+             "command": "coworker memory capture"}]}
+        """
+        import json as _json
+        import sys
+
+        raw = sys.stdin.read()
+        if not raw.strip():
+            raise click.ClickException("No hook payload on stdin")
+
+        try:
+            payload = _json.loads(raw)
+        except _json.JSONDecodeError as exc:
+            raise click.ClickException(f"Invalid JSON on stdin: {exc}")
+
+        session_id = payload.get("session_id") or ""
+        transcript_path = payload.get("transcript_path") or ""
+        if not session_id:
+            raise click.ClickException("Hook payload has no session_id")
+        if not transcript_path:
+            raise click.ClickException("Hook payload has no transcript_path")
+
+        from coworker.memory.capture import process_session_end
+        from coworker.memory.llm import LLMClient
+        from coworker.memory.mem0_client import Mem0Client
+
+        try:
+            mem0 = Mem0Client.from_config()
+        except Exception as exc:
+            raise click.ClickException(f"mem0 unavailable: {exc}")
+
+        try:
+            result = process_session_end(
+                mem0_client=mem0,
+                llm_client=LLMClient(),
+                session_id=session_id,
+                transcript_path=transcript_path,
+                audit_dir="~/.coworker/memory/",
+            )
+        except Exception as exc:
+            raise click.ClickException(f"{session_id}: {exc}")
+
+        if result.error:
+            raise click.ClickException(result.error)
+
+        console.print(
+            f"Reconciled: {result.reconciled}, "
+            f"Lessons: {len(result.lessons)}, "
+            f"Skills staged: {len(result.skills_staged)}"
+        )
+
     @memory.command("stats")
     def memory_stats():
         """Show memory graph statistics."""
