@@ -95,6 +95,48 @@ def test_replace_or_append_no_block_appends():
     assert "new block" in result
 
 
+def test_replace_or_append_is_idempotent():
+    """Replacing an existing block must not change the file.
+
+    The pattern did not consume the newlines after END, so the block's own
+    trailing newline stacked on them: each call added one blank line, and a
+    CLAUDE.md grew by a byte every time `coworker project sync` ran.
+    """
+    start, end = "<!-- START -->", "<!-- END -->"
+    new_block = "<!-- START -->\nnew block\n<!-- END -->\n"
+
+    content = "before\n\n" + start + "\nold\n" + end + "\n\n"
+    first = claude._replace_or_append_block(content, start, end, new_block)
+    second = claude._replace_or_append_block(first, start, end, new_block)
+    third = claude._replace_or_append_block(second, start, end, new_block)
+
+    assert first == second == third, "repeated replacement must be stable"
+
+
+def test_replace_or_append_collapses_accumulated_blank_lines():
+    """Blank lines left by the old behaviour get cleaned up on the next run."""
+    start, end = "<!-- START -->", "<!-- END -->"
+    bloated = "before\n" + start + "\nold\n" + end + "\n" + "\n" * 5 + "after\n"
+
+    result = claude._replace_or_append_block(
+        bloated, start, end, "<!-- START -->\nnew\n<!-- END -->"
+    )
+
+    assert "after" in result, "content after the block must survive"
+    assert "\n\n\n" not in result, "accumulated blank lines should collapse"
+
+
+def test_replace_or_append_keeps_content_after_midfile_block():
+    start, end = "<!-- START -->", "<!-- END -->"
+    content = "top\n" + start + "\nold\n" + end + "\n\nKEEP ME\ntail\n"
+
+    result = claude._replace_or_append_block(
+        content, start, end, "<!-- START -->\nnew\n<!-- END -->"
+    )
+
+    assert "KEEP ME" in result and "tail" in result
+
+
 # ── _had_block ────────────────────────────────────────────────────────────────
 
 

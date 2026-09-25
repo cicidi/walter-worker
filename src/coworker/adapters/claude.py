@@ -39,19 +39,26 @@ def _replace_or_append_block(
 ) -> str:
     """Replace content between start..end markers with new_block.
     Handles truncated blocks (START present, END missing) by appending.
-    Uses a single regex for the full range."""
+    Uses a single regex for the full range.
+
+    Idempotent: every branch produces the same text for a given block, and the
+    pattern consumes the blank lines that follow END. Leaving them behind made
+    the block's own trailing newline stack on top of them, so each call added
+    one blank line to the file - a CLAUDE.md grew by a byte on every sync.
+    """
     escaped_start = re.escape(start)
     escaped_end = re.escape(end)
     pattern = re.compile(
-        escaped_start + r".*?" + escaped_end, re.DOTALL
+        escaped_start + r".*?" + escaped_end + r"\n*", re.DOTALL
     )
+    block_text = new_block.rstrip("\n") + "\n\n"
     if pattern.search(content):
-        return pattern.sub(new_block, content)
+        return pattern.sub(block_text, content)
     # No full match — could be truncated (START without END)
     if start in content:
         idx = content.index(start)
-        return content[:idx] + new_block + "\n"
-    return content.rstrip() + "\n\n" + new_block + "\n"
+        return content[:idx] + block_text
+    return content.rstrip() + "\n\n" + block_text
 
 
 def _had_block(content: str, start: str) -> bool:
