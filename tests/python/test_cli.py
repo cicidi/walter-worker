@@ -2463,3 +2463,44 @@ class TestSkillNewTellsTheTruthAboutWhereItWrote:
 
         assert result.exit_code == 0, result.output
         assert "relative to ~/.coworker" in result.output
+
+
+class TestStatusHonoursTheConfiguredDatabase:
+    """The feature scan built the analytics path by hand.
+
+    Path.home() / ".coworker" / "analytics" / "analytics.db", twice, while
+    analytics/db.py resolves COWORKER_ANALYTICS_DB. So `coworker status`
+    counted sessions from the real database even when the variable pointed
+    elsewhere — and reported zero when that database did not exist, rather
+    than the configured one's count.
+    """
+
+    def test_the_scan_reads_the_resolved_path(self, tmp_path, monkeypatch):
+        import sqlite3
+
+        from coworker import cli as cli_mod
+        from coworker.analytics.db import SCHEMA
+
+        db = tmp_path / "configured.db"
+        conn = sqlite3.connect(db)
+        conn.executescript(SCHEMA)
+        conn.execute(
+            "INSERT INTO sessions (id, ide, project, feature, created_at) "
+            "VALUES ('s1','claude',?,'feat','2026-01-01')",
+            (tmp_path.name,)
+        )
+        conn.commit()
+        conn.close()
+
+        monkeypatch.setattr(
+            "coworker.analytics.db._default_db_path", lambda: db
+        )
+        from coworker.models import FeatureConfig
+
+        result = cli_mod._scan_feature_progress(
+            "feat", tmp_path, FeatureConfig(name="feat")
+        )
+
+        assert result["sessions"] == 1, (
+            "the scan must count the configured database, not a hardcoded one"
+        )

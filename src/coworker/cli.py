@@ -478,7 +478,13 @@ def _scan_feature_progress(feature_name: str, project_dir: Path, config) -> dict
 
     # ── 3. Session scan from analytics.db ───────────────────────────────
     try:
-        db_path = Path.home() / ".coworker" / "analytics" / "analytics.db"
+        # Resolved, not spelled out: this ignored COWORKER_ANALYTICS_DB, so
+        # status read the real database even when the variable pointed
+        # elsewhere — and reported zero sessions when that database did not
+        # exist, rather than the configured one's count.
+        from .analytics.db import _default_db_path
+
+        db_path = _default_db_path()
         if db_path.exists():
             conn = sqlite3.connect(str(db_path))
             row = conn.execute(
@@ -494,7 +500,13 @@ def _scan_feature_progress(feature_name: str, project_dir: Path, config) -> dict
 
     # ── 4. Memory scan: session summaries + knowledge from analytics.db ──
     try:
-        db_path = Path.home() / ".coworker" / "analytics" / "analytics.db"
+        # Resolved, not spelled out: this ignored COWORKER_ANALYTICS_DB, so
+        # status read the real database even when the variable pointed
+        # elsewhere — and reported zero sessions when that database did not
+        # exist, rather than the configured one's count.
+        from .analytics.db import _default_db_path
+
+        db_path = _default_db_path()
         if db_path.exists():
             conn = sqlite3.connect(str(db_path))
             # Count session summaries linked to this feature
