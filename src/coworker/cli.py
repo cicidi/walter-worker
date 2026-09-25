@@ -703,7 +703,12 @@ def status():
 @main.command()
 @click.option("--dry-run", is_flag=True, help="Print the merge plan without writing")
 @click.option("--yes", "-y", "auto_confirm", is_flag=True, help="Skip confirmation prompts")
-def upgrade(dry_run, auto_confirm):
+@click.option(
+    "--force",
+    is_flag=True,
+    help="Take the template's version of sections you have edited, discarding your lines",
+)
+def upgrade(dry_run, auto_confirm, force):
     """Merge template updates into ~/.claude/CLAUDE.md."""
     global_md = Path.home() / ".claude" / "CLAUDE.md"
     if not global_md.exists():
@@ -714,6 +719,14 @@ def upgrade(dry_run, auto_confirm):
     future = generate_global_claude_md()
 
     cls = classify_sections(current, future)
+    if force:
+        # CONFLICT means "taking the template's would drop your lines". --force
+        # is the user saying they know, so the decision flips here rather than
+        # in the classifier, which has no way to be told.
+        for c in cls:
+            if c.category == "CONFLICT":
+                c.category = "OVERWRITE"
+                c.at_risk = []
     table = Table(title="Merge Plan")
     table.add_column("Section", style="cyan")
     table.add_column("Action")
@@ -726,8 +739,31 @@ def upgrade(dry_run, auto_confirm):
             detail = "new section"
         elif c.category == "OUTDATED":
             detail = "report-only (not auto-deleted)"
+        elif c.category == "CONFLICT":
+            # "content differs" was all this used to say, and it was a lie of
+            # omission: the section was about to be replaced by the template's,
+            # taking the user's lines with it.
+            detail = f"yours kept — would drop {len(c.at_risk)} line(s)"
         table.add_row(c.heading, c.category, detail)
     console.print(table)
+
+    conflicts = [c for c in cls if c.category == "CONFLICT"]
+    if conflicts and not force:
+        console.print()
+        console.print(
+            f"[yellow]{len(conflicts)} section(s) you have edited were left as "
+            f"yours.[/yellow] Taking the template's version would delete:"
+        )
+        for c in conflicts:
+            console.print(f"  [dim]{c.heading}[/dim]")
+            for line in c.at_risk[:5]:
+                console.print(f"    [red]-[/red] {line[:100]}")
+            if len(c.at_risk) > 5:
+                console.print(f"    [dim]… and {len(c.at_risk) - 5} more[/dim]")
+        console.print(
+            "  [dim]Re-run with --force to take the template's version anyway, "
+            "or wrap your text in <!-- PROTECTED --> to keep it quietly.[/dim]"
+        )
 
     if dry_run:
         console.print("[dim](--dry-run — no changes written)[/dim]")
