@@ -28,7 +28,7 @@ _(project-specific principles — add yours here)_
 Active task: _(none)_
 Goal: _(what this task is trying to achieve)_
 State: `docs/state/state-{taskname}.md`
-Docs convention: `docs/<feature>/{prd,plan,spec}/`
+Docs convention: `docs/features/<feature>/<doc-type>/`
 
 ## Current Workflow
 

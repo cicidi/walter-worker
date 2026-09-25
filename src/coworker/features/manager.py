@@ -56,13 +56,15 @@ class FeatureManager:
         return config
 
     def _scaffold_docs(self, name: str) -> None:
-        """Create docs/<feature>/{prd,plan,spec}/ directories."""
+        """Create docs/features/<feature>/<doc-type>/ directories."""
         try:
             from ...constants import DOCS_DISCIPLINES
         except ImportError:
             from ..constants import DOCS_DISCIPLINES
         for discipline in DOCS_DISCIPLINES:
-            (self.project_dir / "docs" / name / discipline).mkdir(parents=True, exist_ok=True)
+            (self.project_dir / "docs" / "features" / name / discipline).mkdir(
+                parents=True, exist_ok=True
+            )
 
 
     def edit(self, name: str, **updates) -> FeatureConfig:

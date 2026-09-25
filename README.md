@@ -10,7 +10,7 @@
 
 | Signal | Skill | What It Does |
 |--------|-------|---------------|
-| **CLAUDE.md** | `/project` `/initiative` `/status` | Auto-generates project catalog, initiatives, docs structure into CLAUDE.md managed blocks |
+| **CLAUDE.md** | `/project` `/feature` `/status` | Auto-generates project catalog, features, docs structure into CLAUDE.md managed blocks |
 | **Sessions** | `/dashboard` | Every Claude session recorded: messages, tool calls, duration, project |
 | **File I/O** | `/dashboard` | Files read/written per session — spot hot files, churn, accidental writes |
 | **Skills** | `/dashboard` | Which slash commands get used, how often, by which project |
@@ -33,7 +33,7 @@ walter-worker runs inside Claude Code. Everything is a `/skill`:
 **CLAUDE.md & context:**
 ```
 /project          # Add, list, sync projects — auto-injects into CLAUDE.md
-/initiative       # Create, activate, manage cross-project initiatives
+/feature       # Create, activate, manage cross-project features
 /status           # Show what's configured and active
 ```
 
@@ -62,14 +62,14 @@ walter-worker writes into managed comment blocks — your own content is never t
 | walter-worker | ~/walter-worker | — | the-super-lab |
 <!-- COWORKER:STATIC END -->
 
-<!-- INITIATIVE:self-evolving-agent START -->
-## Active Initiative: self-evolving-agent
-<!-- INITIATIVE:self-evolving-agent END -->
+<!-- FEATURE:self-evolving-agent START -->
+## Active Feature: self-evolving-agent
+<!-- FEATURE:self-evolving-agent END -->
 ```
 
 ## Skill Management
 
-**Operational skills** — `/dashboard` `/initiative` `/project` `/memory` `/knowledge` `/status` — live here.
+**Operational skills** — `/dashboard` `/feature` `/project` `/memory` `/knowledge` `/status` — live here.
 
 **Development skills** — `/auto-tdd` `/bug` `/wayfinder` `/to-spec` `/implement` … — live in **[the-super-lab](https://github.com/cicidi/the-super-lab)**.
 

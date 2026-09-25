@@ -409,12 +409,13 @@ def _scan_feature_progress(feature_name: str, project_dir: Path, config) -> dict
         "remaining": config.remaining if config.remaining else [],
     }
 
-    # ── 1. Artifact scan: check docs/<feature>/ ──────────────────────
-    docs_dir = project_dir / "docs" / feature_name
+    # ── 1. Artifact scan: check docs/features/<feature>/ ─────────────
+    docs_dir = project_dir / "docs" / "features" / feature_name
     if docs_dir.exists():
-        # Known doc disciplines + any others present
-        disciplines = ["prd", "spec", "design", "plan", "test-plan", "impl-plan",
-                       "research", "decision-history"]
+        # Canonical doc types, plus the gitignored working dirs, plus any others
+        # present (caught by the loop below).
+        disciplines = ["prd", "spec", "impl-plan", "test-plan", "decision-history",
+                       "how-to", "research", "discussion", "design", "plan"]
         for discipline in disciplines:
             dpath = docs_dir / discipline
             if dpath.is_dir():

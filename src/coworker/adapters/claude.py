@@ -315,7 +315,7 @@ def _build_static_block(catalog: ProjectCatalog) -> str:
     lines.append("")
     from ..constants import DOCS_DISCIPLINES
     disciplines = ", ".join(DOCS_DISCIPLINES)
-    lines.append(f"Docs organized by topic: `docs/<feature>/{{{disciplines}}}/`")
+    lines.append(f"Docs organized by feature: `docs/features/<feature>/{{{disciplines}}}/`")
     lines.append("")
     lines.append("Each feature creates its own docs folder with prd/plan/spec subdirectories.")
     lines.append("")
