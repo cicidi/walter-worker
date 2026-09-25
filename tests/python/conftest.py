@@ -162,3 +162,22 @@ def real_llm():
     if "DEEPSEEK_API_KEY" not in os.environ:
         pytest.skip("DEEPSEEK_API_KEY not set")
     return LLMClient()
+
+
+@pytest.fixture(autouse=True)
+def _isolate_managed_mcp_store(tmp_path, monkeypatch):
+    """Keep adapter syncs out of the real ~/.coworker.
+
+    _sync_mcp records which MCP entries it wrote, keyed by the absolute path of
+    the file it wrote them to, so it can retire its own later without touching
+    the user's. That record lives in the real home, so without this every test
+    that calls an adapter's sync — including ones written long before the store
+    existed — deposits temp paths into the user's own state file. Autouse
+    rather than per-test: the next adapter to sync will need it too, and this
+    is the kind of side effect nobody notices until their home directory has
+    a hundred stale keys in it.
+    """
+    monkeypatch.setattr(
+        "coworker.adapters.claude._managed_mcp_path",
+        lambda: tmp_path / "mcp-managed.json",
+    )

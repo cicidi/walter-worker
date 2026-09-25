@@ -1067,3 +1067,71 @@ def test_sync_preserves_user_settings_it_does_not_own(tmp_path, monkeypatch):
         "sync() removed a setting the user had set"
     )
     assert data.get("theme") == "dark"
+
+
+class TestManagedMcpPruning:
+    """_sync_mcp was union-only, so a retired server lived in ~/.claude.json for ever.
+
+    The refusal to delete is right — those entries may be the user's own — but
+    it was unconditional, so there was no way to retire one of ours either.
+    The fix is to remember what we wrote, exactly as we wrote it, and prune
+    only that.
+    """
+
+    def _config(self, *names):
+        from coworker.models import CoworkerConfig, McpServer
+
+        return CoworkerConfig(
+            name="t",
+            mcp=[McpServer(name=n, command="npx", args=["-y", n], enabled=True)
+                 for n in names],
+        )
+
+    def test_a_server_we_wrote_and_no_longer_produce_is_removed(
+        self, tmp_path, monkeypatch
+    ):
+        from coworker.adapters.claude import _sync_mcp
+
+        monkeypatch.setenv("HOME", str(tmp_path))
+        mcp = tmp_path / ".claude.json"
+
+        _sync_mcp(self._config("keeper", "retired"), mcp)
+        _sync_mcp(self._config("keeper"), mcp)
+
+        doc = json.loads(mcp.read_text())
+        assert "keeper" in doc["mcpServers"]
+        assert "retired" not in doc["mcpServers"], "our own retired server must go"
+
+    def test_a_server_the_user_added_is_never_removed(self, tmp_path, monkeypatch):
+        from coworker.adapters.claude import _sync_mcp
+
+        monkeypatch.setenv("HOME", str(tmp_path))
+        mcp = tmp_path / ".claude.json"
+        mcp.write_text(json.dumps({"mcpServers": {
+            "theirs": {"command": "their-own", "args": []},
+        }}))
+
+        _sync_mcp(self._config("ours"), mcp)
+        _sync_mcp(self._config("ours"), mcp)
+
+        doc = json.loads(mcp.read_text())
+        assert "theirs" in doc["mcpServers"], "a server we never wrote is not ours"
+
+    def test_a_server_the_user_edited_is_left_alone(self, tmp_path, monkeypatch):
+        """Once it stops being what we wrote, it is theirs."""
+        from coworker.adapters.claude import _sync_mcp
+
+        monkeypatch.setenv("HOME", str(tmp_path))
+        mcp = tmp_path / ".claude.json"
+
+        _sync_mcp(self._config("shared"), mcp)
+
+        doc = json.loads(mcp.read_text())
+        doc["mcpServers"]["shared"] = {"command": "user-changed-it", "args": []}
+        mcp.write_text(json.dumps(doc))
+
+        _sync_mcp(self._config("other"), mcp)
+
+        doc = json.loads(mcp.read_text())
+        assert "shared" in doc["mcpServers"], "a user-edited entry must survive"
+        assert "other" in doc["mcpServers"]

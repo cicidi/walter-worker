@@ -155,3 +155,47 @@ def test_sync_with_extra_fields(gemini_home, monkeypatch):
     with open(gemini_home / ".gemini" / "settings.json") as f:
         data = json.load(f)
     assert data["theme"] == "dark"
+
+
+class TestManagedMcpPruning:
+    """Merging kept the user's servers but could never retire one of ours.
+
+    Union-only is the safe half: it refuses to delete anything. Without a
+    record of what we wrote, it also refuses to delete our own, so a server
+    dropped from coworker.yaml stayed in Gemini's config for ever.
+    """
+
+    def _config(self, *names):
+        from coworker.models import CoworkerConfig, McpServer
+
+        return CoworkerConfig(
+            name="t",
+            mcp=[McpServer(name=n, command="npx", args=[n], enabled=True) for n in names],
+        )
+
+    def test_our_retired_server_is_removed(self, gemini_home, monkeypatch):
+        import coworker.adapters.gemini as g
+
+        # The managed-entry store keys off Path.home(); without this the test
+        # writes its temp paths into the real ~/.coworker/mcp-managed.json.
+        monkeypatch.setenv("HOME", str(gemini_home))
+        g.sync(self._config("keeper", "retired"))
+        g.sync(self._config("keeper"))
+
+        data = json.loads((gemini_home / ".gemini" / "settings.json").read_text())
+        assert "keeper" in data["mcpServers"]
+        assert "retired" not in data["mcpServers"]
+
+    def test_the_users_server_is_never_removed(self, gemini_home, monkeypatch):
+        import coworker.adapters.gemini as g
+
+        monkeypatch.setenv("HOME", str(gemini_home))
+        (gemini_home / ".gemini" / "settings.json").write_text(json.dumps({
+            "mcpServers": {"theirs": {"command": "their-own", "args": []}},
+        }))
+
+        g.sync(self._config("ours"))
+        g.sync(self._config("ours"))
+
+        data = json.loads((gemini_home / ".gemini" / "settings.json").read_text())
+        assert "theirs" in data["mcpServers"]

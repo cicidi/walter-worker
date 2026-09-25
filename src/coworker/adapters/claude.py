@@ -94,8 +94,64 @@ def _write_json_atomic(path: Path, data: object) -> bool:
     return True
 
 
+def _managed_mcp_path() -> Path:
+    """Where we remember which MCP entries are ours."""
+    return Path.home() / ".coworker" / "mcp-managed.json"
+
+
+def _load_managed_mcp(mcp_path: Path) -> dict:
+    """Entries we wrote to `mcp_path`, keyed by name, exactly as we wrote them."""
+    try:
+        doc = json.loads(_managed_mcp_path().read_text(encoding="utf-8"))
+        entry = doc.get(str(mcp_path), {})
+        return entry if isinstance(entry, dict) else {}
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+#: Keys kept in the managed-MCP store. It is keyed by the absolute path of the
+#: file we synced, so without a bound it grows by one entry for every distinct
+#: path ever touched — a deleted project, a temp checkout, every test run — and
+#: nothing ever removed them.
+_MAX_MANAGED_MCP_TARGETS = 32
+
+
+def _save_managed_mcp(mcp_path: Path, entries: dict) -> None:
+    path = _managed_mcp_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(doc, dict):
+            doc = {}
+    except (OSError, json.JSONDecodeError):
+        doc = {}
+
+    doc[str(mcp_path)] = entries
+
+    # Drop targets that no longer exist — their entries can never be pruned
+    # anyway, since the file they describe is gone. The one we are recording
+    # is always kept: on a first sync it does not exist yet, and dropping it
+    # here would silently discard the record we just made.
+    live = {
+        k: v for k, v in doc.items()
+        if k == str(mcp_path) or Path(k).exists()
+    }
+    if len(live) > _MAX_MANAGED_MCP_TARGETS:
+        others = [k for k in live if k != str(mcp_path)]
+        keep = others[len(others) - (_MAX_MANAGED_MCP_TARGETS - 1):]
+        live = {**{k: live[k] for k in keep}, str(mcp_path): entries}
+
+    path.write_text(json.dumps(live, indent=2) + "\n", encoding="utf-8")
+
+
 def _sync_mcp(config: CoworkerConfig, mcp_path: Path) -> list[str]:
-    """Write MCP servers to mcp_path (union by server name)."""
+    """Write MCP servers to mcp_path, and retire the ones we no longer ship.
+
+    Merging by name alone meant a server dropped from coworker.yaml stayed in
+    the user's config for ever, because removing entries risks deleting ones
+    the user added. Remembering what we wrote separates the two: we prune our
+    own, and leave everything else untouched.
+    """
     existing_mcp = {}
     if mcp_path.exists():
         try:
@@ -112,9 +168,23 @@ def _sync_mcp(config: CoworkerConfig, mcp_path: Path) -> list[str]:
             entry["env"] = server.env
         ours[server.name] = entry
 
+    # Prune, but only what is unambiguously ours: a name we wrote before, that
+    # we no longer produce, and that still holds byte-for-byte what we wrote.
+    # If the user has edited it since, it is theirs now.
+    managed = _load_managed_mcp(mcp_path)
+    removed = []
+    for name, written in managed.items():
+        if name in ours:
+            continue
+        if existing_mcp.get(name) == written:
+            existing_mcp.pop(name)
+            removed.append(name)
+
     merged = {**existing_mcp, **ours}  # our entries win on name collision
     mcp_doc = {"mcpServers": merged}
     _write_json_atomic(mcp_path, mcp_doc)
+    _save_managed_mcp(mcp_path, ours)
+
     added = [k for k in ours if k not in existing_mcp]
     updated = [k for k in ours if k in existing_mcp]
     actions = []
@@ -122,6 +192,8 @@ def _sync_mcp(config: CoworkerConfig, mcp_path: Path) -> list[str]:
         actions.append(f"MCP servers added: {', '.join(added)}")
     if updated:
         actions.append(f"MCP servers kept: {', '.join(updated)}")
+    if removed:
+        actions.append(f"MCP servers removed: {', '.join(sorted(removed))}")
     return actions
 
 
