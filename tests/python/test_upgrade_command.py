@@ -96,3 +96,27 @@ class TestShippedGlobalTemplate:
         tpl = generate_global_claude_md()
         found = re.findall(r"/home/[a-z0-9_-]+/", tpl)
         assert found == [], f"absolute home paths in the shipped template: {found}"
+
+
+class TestTemplateSkillReferences:
+    """Section 9 of the template sends the agent to skills by name.
+
+    walter-worker-fix and walter-worker-upgrade were dropped from skills/ in a
+    consolidation pass, and the template went on promising them — so on every
+    install the instruction pointed at a skill nobody had. Reinstating the
+    skills is only half the fix; this is the half that notices next time.
+    """
+
+    def test_every_walter_worker_skill_the_template_names_is_shipped(self):
+        import re
+
+        skills_dir = Path(__file__).resolve().parents[2] / "skills"
+        shipped = {p.parent.name for p in skills_dir.glob("*/SKILL.md")}
+
+        named = set(re.findall(r"`(walter-worker-[a-z-]+)`", generate_global_claude_md()))
+        assert named, "expected the template to name at least one skill"
+
+        missing = sorted(named - shipped)
+        assert missing == [], (
+            f"the global template invokes skills that are not shipped: {missing}"
+        )
