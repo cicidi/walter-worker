@@ -52,9 +52,20 @@ def register_analytics(main_group: click.Group) -> None:
     def analytics_dashboard(port, db):
         """Start the analytics dashboard."""
         import os
+        # COWORKER_ANALYTICS_DB is process-global and _default_db_path() reads it,
+        # so leaving it set would silently redirect every later analytics call in
+        # this process — and every subprocess it spawns — at this database.
+        previous = os.environ.get("COWORKER_ANALYTICS_DB")
         if db:
             os.environ["COWORKER_ANALYTICS_DB"] = db
-        import uvicorn
-        from .dashboard.app import app
-        console.print(f"[green]Dashboard: http://localhost:{port}[/green]")
-        uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
+        try:
+            import uvicorn
+            from .dashboard.app import app
+            console.print(f"[green]Dashboard: http://localhost:{port}[/green]")
+            uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
+        finally:
+            if db:
+                if previous is None:
+                    os.environ.pop("COWORKER_ANALYTICS_DB", None)
+                else:
+                    os.environ["COWORKER_ANALYTICS_DB"] = previous

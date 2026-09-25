@@ -1275,22 +1275,52 @@ class TestAnalyticsCommandBodies:
         assert result.exit_code == 0
         assert "Dashboard: http://localhost:9999" in result.output
 
-    def test_analytics_dashboard_with_db(self, monkeypatch):
-        """Lines 953-959: dashboard with --db sets env var."""
+    def _invoke_dashboard(self, monkeypatch, args, during):
+        """Run analytics dashboard with a stubbed uvicorn.
+
+        `during` collects the env var as observed while uvicorn would be running.
+        """
         import types, sys, os
         fake_uvicorn = types.ModuleType("uvicorn")
-        captured = {}
+
         def fake_run(app, **kwargs):
-            captured.update(kwargs)
+            during["value"] = os.environ.get("COWORKER_ANALYTICS_DB")
+
         fake_uvicorn.run = fake_run
         monkeypatch.setitem(sys.modules, "uvicorn", fake_uvicorn)
-        result = runner.invoke(
-            main,
-            ["analytics", "dashboard", "--port", "8888", "--db", "/tmp/test.db"],
+        return runner.invoke(main, ["analytics", "dashboard"] + args)
+
+    def test_analytics_dashboard_with_db(self, monkeypatch):
+        """--db redirects for the duration of the run, then restores.
+
+        COWORKER_ANALYTICS_DB is process-global and _default_db_path() reads it,
+        so leaving it set would silently redirect every later analytics call -
+        and every subprocess spawned afterwards - at this database.
+        """
+        import os
+        monkeypatch.delenv("COWORKER_ANALYTICS_DB", raising=False)
+        during = {}
+        result = self._invoke_dashboard(
+            monkeypatch, ["--port", "8888", "--db", "/tmp/test.db"], during
         )
         assert result.exit_code == 0
         assert "Dashboard: http://localhost:8888" in result.output
-        assert os.environ.get("COWORKER_ANALYTICS_DB") == "/tmp/test.db"
+        assert during["value"] == "/tmp/test.db", "redirect must apply while running"
+        assert os.environ.get("COWORKER_ANALYTICS_DB") is None, (
+            "must not leak: it would redirect later analytics calls"
+        )
+
+    def test_analytics_dashboard_restores_previous_db(self, monkeypatch):
+        """An existing value is restored, not merely cleared."""
+        import os
+        monkeypatch.setenv("COWORKER_ANALYTICS_DB", "/tmp/original.db")
+        during = {}
+        result = self._invoke_dashboard(
+            monkeypatch, ["--db", "/tmp/override.db"], during
+        )
+        assert result.exit_code == 0
+        assert during["value"] == "/tmp/override.db"
+        assert os.environ.get("COWORKER_ANALYTICS_DB") == "/tmp/original.db"
 
 
 # ── Feature Start Edge Cases (lines 687-688, 697-701, 722-723) ──────────
