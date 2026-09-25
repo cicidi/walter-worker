@@ -1,6 +1,33 @@
 from __future__ import annotations
 from ..analytics.db import get_db
-from .queries_evolution import _get_db_conn
+
+# Re-exported for app.py, which routes these through queries.<name>:
+#   /api/evolution/*        -> query_evolution_*
+#   /api/cost-analytics     -> query_cost_analytics
+#   /api/models             -> query_models
+#   /api/model-usage        -> query_model_usage
+#   /api/efficiency         -> query_efficiency_insights
+#   /api/data-quality       -> query_data_quality
+#
+# They are unused *within this file*, so an unused-import sweep deletes them and
+# every one of those endpoints starts returning 500. That is exactly what
+# happened in cdd0636 - nine routes broke and nothing noticed for two commits,
+# because the only endpoint test lists seven routes by hand. The noqa marks
+# these as deliberate re-exports.
+from .queries_evolution import (  # noqa: F401
+    _get_db_conn,
+    query_evolution_experiences,
+    query_evolution_overview,
+    query_evolution_pending,
+    query_evolution_skills,
+)
+from .queries_analytics import (  # noqa: F401
+    query_cost_analytics,
+    query_data_quality,
+    query_efficiency_insights,
+    query_model_usage,
+    query_models,
+)
 
 
 def query_sessions(limit: int = 50):

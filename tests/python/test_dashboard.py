@@ -692,3 +692,44 @@ class TestWebSocket:
             ws.send_text("refresh")
             data = ws.receive_json()
             assert "total_sessions" in data
+
+
+class TestEveryRouteAnswers:
+    """Sweep every GET route instead of a hand-picked sample.
+
+    test_e2e_setup.py lists seven endpoints by hand, so routes added later are
+    never exercised. Five of them - /api/cost-analytics, /api/models,
+    /api/model-usage, /api/efficiency and /api/data-quality - returned 500 for
+    two commits: queries.py re-exports their handlers for app.py, an
+    unused-import sweep removed that re-export because the names are unused
+    *within queries.py*, and nothing hit the routes to notice.
+    """
+
+    def test_no_get_route_returns_5xx(self, client):
+        from coworker.dashboard.app import app
+
+        routes = [
+            r.path for r in app.routes
+            if "GET" in getattr(r, "methods", set()) and "{" not in r.path
+        ]
+        assert routes, "no GET routes found to check"
+
+        failures = []
+        for path in sorted(routes):
+            response = client.get(path)
+            if response.status_code >= 500:
+                failures.append((path, response.status_code))
+
+        assert not failures, f"GET routes returning 5xx: {failures}"
+
+    def test_the_five_that_broke_are_covered(self, client):
+        """Name them explicitly — a sweep that silently stops covering them
+        would pass while they are broken again."""
+        for path in (
+            "/api/cost-analytics",
+            "/api/models",
+            "/api/model-usage",
+            "/api/efficiency",
+            "/api/data-quality",
+        ):
+            assert client.get(path).status_code < 500, path
