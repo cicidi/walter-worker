@@ -3,8 +3,9 @@ set -euo pipefail
 
 # =============================================================================
 # walter-worker install.sh
-# Installs coworker skills from skill-factory to Claude Code (primary) and
-# OpenCode (symlink/copy).
+# Installs coworker skills. Skills sourced from the-super-lab are deployed to
+# Claude Code, OpenCode, and Cursor; walter-worker's own bundle skills go to
+# Claude Code (primary) and OpenCode (symlink/copy).
 #
 # Usage:
 #   ./setup/install.sh              # interactive mode
@@ -14,16 +15,12 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-SKILL_FACTORY_URL="https://github.com/cicidi/skill-factory"
-SKILL_FACTORY_DIR="$HOME/.config/opencode/skills/skill-factory"
+# the-super-lab is the source of truth for skills. Edit there first; this
+# script deploys its skills to Claude Code, OpenCode, and Cursor.
+THE_SUPER_LAB_DIR="${THE_SUPER_LAB_DIR:-$HOME/project/the-super-lab}"
+THE_SUPER_LAB_OPENCODE_DIR="$HOME/.config/opencode/skills/the-super-lab"
+CURSOR_RULES_DIR="$HOME/.cursor/rules"
 GLOBAL_CLAUDE_MD="$HOME/.claude/CLAUDE.md"
-
-default_branch() {
-    local ref
-    ref=$(git ls-remote --symref origin HEAD 2>/dev/null | \
-          awk '/^ref:/ {sub("refs/heads/","",$2); print $2}')
-    echo "${ref:-main}"
-}
 
 INSTALL_MODE=""
 PROJECT_PATH=""
@@ -86,24 +83,21 @@ else
 fi
 
 # =============================================================================
-# Step 3 — Clone/update skill-factory
+# Step 3 — Update the-super-lab (skill source of truth)
 # =============================================================================
-log "Setting up skill-factory..."
+log "Checking the-super-lab..."
 
-if [[ -d "$SKILL_FACTORY_DIR" ]]; then
-  log "Updating skill-factory from GitHub..."
-  git -C "$SKILL_FACTORY_DIR" pull --ff-only origin "$(default_branch)" 2>/dev/null || \
-    warn "Could not update skill-factory (dirty or offline). Continuing with current version."
+if [[ -d "$THE_SUPER_LAB_DIR/.git" ]]; then
+  log "Updating the-super-lab..."
+  git -C "$THE_SUPER_LAB_DIR" pull --ff-only 2>/dev/null || \
+    warn "Could not update the-super-lab (dirty or offline). Continuing with current version."
+  ok "the-super-lab ready at $THE_SUPER_LAB_DIR"
+elif [[ -d "$THE_SUPER_LAB_DIR" ]]; then
+  warn "the-super-lab at $THE_SUPER_LAB_DIR is not a git repo — using it as-is."
 else
-  log "Cloning skill-factory from $SKILL_FACTORY_URL..."
-  mkdir -p "$(dirname "$SKILL_FACTORY_DIR")"
-  git clone "$SKILL_FACTORY_URL" "$SKILL_FACTORY_DIR" 2>/dev/null || {
-    error "Failed to clone skill-factory. Check your internet connection and git config."
-    exit 1
-  }
+  warn "the-super-lab not found at $THE_SUPER_LAB_DIR — skills will not be deployed."
+  warn "Clone it with: git clone git@github.com:cicidi/the-super-lab.git \"$THE_SUPER_LAB_DIR\""
 fi
-
-ok "Skill-factory ready at $SKILL_FACTORY_DIR"
 
 # =============================================================================
 # Step 4 — Install mode
@@ -200,9 +194,9 @@ else
 fi
 
 # =============================================================================
-# Step 7 — List available skills from skill-factory
+# Step 7 — List available skills from the-super-lab
 # =============================================================================
-log "Loading available skills from skill-factory..."
+log "Loading available skills from the-super-lab..."
 
 declare -a AVAILABLE_SKILLS=()
 declare -a SKILL_PATHS=()
@@ -224,15 +218,14 @@ index_skills() {
   done
 }
 
-index_skills "$SKILL_FACTORY_DIR/walter-worker-skills" "[factory] "
-index_skills "$SKILL_FACTORY_DIR/personal-skills" "[personal] "
-index_skills "$SKILL_FACTORY_DIR/import-skills" "[import] "
+index_skills "$THE_SUPER_LAB_DIR/skills" "[superlab] "
+index_skills "$THE_SUPER_LAB_DIR/personal-skills" "[personal] "
 index_skills "$REPO_ROOT/skills" "[bundle] "
 
 if [[ ${#AVAILABLE_SKILLS[@]} -eq 0 ]]; then
-  warn "No skills found in skill-factory."
+  warn "No skills found in the-super-lab or the local bundle."
 else
-  ok "Found ${#AVAILABLE_SKILLS[@]} skills in skill-factory."
+  ok "Found ${#AVAILABLE_SKILLS[@]} available skills."
 fi
 
 # =============================================================================
@@ -359,6 +352,54 @@ if [[ -n "$OPENCODE_DIR" ]]; then
     fi
   done
   ok "OpenCode sync complete."
+fi
+
+# =============================================================================
+# Step 11b — Deploy the-super-lab skills to Claude, OpenCode, and Cursor
+# =============================================================================
+# the-super-lab is the source of truth. Each skill deploys to three harnesses:
+#   Claude Code  ~/.claude/skills/<name>/SKILL.md                (directory copy)
+#   OpenCode     ~/.config/opencode/skills/the-super-lab/<name>  (symlink to source)
+#   Cursor       ~/.cursor/rules/<name>.md                       (verbatim copy)
+# Claude and OpenCode receive whole directories so sibling files (for example
+# domain-modeling/ADR-FORMAT.md) travel with the skill. A flattened SKILL.md
+# copy silently drops them.
+if [[ -d "$THE_SUPER_LAB_DIR/skills" ]]; then
+  echo ""
+  log "Deploying the-super-lab skills to Claude, OpenCode, Cursor..."
+
+  mkdir -p "$HOME/.claude/skills" "$THE_SUPER_LAB_OPENCODE_DIR" "$CURSOR_RULES_DIR"
+  DEPLOYED=0
+
+  for skill_dir in "$THE_SUPER_LAB_DIR/skills"/*/; do
+    [[ -d "$skill_dir" ]] || continue
+    skill_file="${skill_dir}SKILL.md"
+    [[ -f "$skill_file" ]] || continue
+    name="$(basename "$skill_dir")"
+
+    # Claude Code — directory, so sibling files travel
+    mkdir -p "$HOME/.claude/skills/$name"
+    cp "$skill_file" "$HOME/.claude/skills/$name/SKILL.md"
+    for sibling in "$skill_dir"*; do
+      [[ -f "$sibling" ]] || continue
+      [[ "$(basename "$sibling")" == "SKILL.md" ]] && continue
+      cp "$sibling" "$HOME/.claude/skills/$name/"
+    done
+
+    # OpenCode — symlink the whole directory to the source
+    opencode_target="$THE_SUPER_LAB_OPENCODE_DIR/$name"
+    if [[ -e "$opencode_target" && ! -L "$opencode_target" ]]; then
+      rm -rf "$opencode_target"
+    fi
+    ln -sfn "${skill_dir%/}" "$opencode_target"
+
+    # Cursor — verbatim flattened copy
+    cp "$skill_file" "$CURSOR_RULES_DIR/$name.md"
+
+    ((DEPLOYED++)) || true
+  done
+
+  ok "Deployed $DEPLOYED the-super-lab skills to Claude, OpenCode, and Cursor."
 fi
 
 # =============================================================================

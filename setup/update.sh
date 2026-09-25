@@ -8,7 +8,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-SKILL_FACTORY_DIR="$HOME/.config/opencode/skills/skill-factory"
+THE_SUPER_LAB_DIR="${THE_SUPER_LAB_DIR:-$HOME/project/the-super-lab}"
 
 default_branch() {
     local ref
@@ -87,22 +87,22 @@ else
 fi
 
 # =============================================================================
-# Step 3 — Optionally update skill-factory
+# Step 3 — Optionally update the-super-lab
 # =============================================================================
 echo ""
-if [[ -d "$SKILL_FACTORY_DIR" ]]; then
-  read -rp "  Update skill-factory from GitHub? (y/n) [n]: " UPDATE_SF || UPDATE_SF=""
-  UPDATE_SF="${UPDATE_SF:-n}"
-  if [[ "$UPDATE_SF" == "y" || "$UPDATE_SF" == "Y" ]]; then
-    log "Updating skill-factory..."
-    git -C "$SKILL_FACTORY_DIR" pull --ff-only origin "$(default_branch)" 2>/dev/null && \
-      ok "Skill-factory updated" || \
-      warn "Could not update skill-factory (dirty, offline, or no upstream)."
+if [[ -d "$THE_SUPER_LAB_DIR/.git" ]]; then
+  read -rp "  Update the-super-lab from GitHub? (y/n) [n]: " UPDATE_SL || UPDATE_SL=""
+  UPDATE_SL="${UPDATE_SL:-n}"
+  if [[ "$UPDATE_SL" == "y" || "$UPDATE_SL" == "Y" ]]; then
+    log "Updating the-super-lab..."
+    git -C "$THE_SUPER_LAB_DIR" pull --ff-only 2>/dev/null && \
+      ok "the-super-lab updated" || \
+      warn "Could not update the-super-lab (dirty, offline, or no upstream)."
   else
-    log "Skipped skill-factory update."
+    log "Skipped the-super-lab update."
   fi
 else
-  log "Skill-factory not installed. Run install.sh first to set it up."
+  log "the-super-lab not found at $THE_SUPER_LAB_DIR. Run install.sh first to set it up."
 fi
 
 echo ""
