@@ -101,6 +101,20 @@ print(json.load(open(sys.argv[1])).get('install_mode') or '')
 import json, sys
 print(json.load(open(sys.argv[1])).get('project_path') or '')
 " "$MANIFEST" 2>/dev/null || true)
+  # The skills the last install selected, derived from the files it claimed.
+  # Passed back so the re-install does not re-ask a question whose answer is on
+  # disk — and cannot take the default answer, which is None, on a run nobody
+  # is watching. That default is what let an update uninstall every skill.
+  SAVED_SKILLS=$(python3 -c "
+import json, os, sys
+m = json.load(open(sys.argv[1]))
+names = []
+for f in m.get('files', []):
+    parts = os.path.normpath(f).split(os.sep)
+    if len(parts) >= 2 and parts[-2] == 'commands' and f.endswith('.md'):
+        names.append(os.path.basename(f)[:-3])
+print(' '.join(dict.fromkeys(names)))
+" "$MANIFEST" 2>/dev/null || true)
 fi
 # Fall back to the yaml for manifests predating schema_version, then to global.
 if [[ -z "$SAVED_MODE" && -f "$CONFIG" ]]; then
@@ -111,10 +125,16 @@ log "Resuming install in mode: $SAVED_MODE"
 
 # --project takes its path as an argument, so project mode has to pass the
 # recorded one; `--project` alone would fail the same way `--` did.
+SKILLS_ARG=()
+if [[ -n "${SAVED_SKILLS:-}" ]]; then
+  SKILLS_ARG=(--skills "$SAVED_SKILLS")
+  log "Reusing the previous skill selection: ${SAVED_SKILLS// /, }"
+fi
+
 if [[ "$SAVED_MODE" == "project" && -n "$PROJECT_PATH" ]]; then
-  bash "$SCRIPT_DIR/install.sh" --project "$PROJECT_PATH"
+  bash "$SCRIPT_DIR/install.sh" --project "$PROJECT_PATH" "${SKILLS_ARG[@]+"${SKILLS_ARG[@]}"}"
 else
-  bash "$SCRIPT_DIR/install.sh" --global
+  bash "$SCRIPT_DIR/install.sh" --global "${SKILLS_ARG[@]+"${SKILLS_ARG[@]}"}"
 fi
 
 # =============================================================================

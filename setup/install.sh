@@ -44,6 +44,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --global)   INSTALL_MODE="global"; shift ;;
     --project)  INSTALL_MODE="project"; PROJECT_PATH="$2"; shift 2 ;;
+    --skills)   PRESELECTED_SKILLS="$2"; shift 2 ;;
     --help|-h)
       echo "Usage: install.sh [--global | --project /path]"
       exit 0 ;;
@@ -278,6 +279,28 @@ fi
 # =============================================================================
 # Step 8 — Skill selection
 # =============================================================================
+SELECTED_SKILLS=()
+
+# A caller that knows the previous selection passes it, so an update does not
+# re-ask a question it already has the answer to — and cannot take the default
+# answer by accident on a run nobody is watching. It skips the prompt entirely
+# rather than answering it: routing it through SKILL_CHOICE=1 would mean "All"
+# to the case below, which silently overrode the selection.
+if [[ -n "${PRESELECTED_SKILLS:-}" ]]; then
+  for name in $PRESELECTED_SKILLS; do
+    for i in "${!AVAILABLE_SKILLS[@]}"; do
+      if [[ "${AVAILABLE_SKILLS[$i]}" == "$name" ]]; then
+        SELECTED_SKILLS+=("$name")
+        break
+      fi
+    done
+  done
+  # Set as well as used: the manifest block below reads it, and under set -u an
+  # unset variable aborts the script there. 2 is "selected individually", which
+  # is what a passed-in list is — and it is not 0, so the prune still runs.
+  SKILL_CHOICE=2
+  log "Reusing the previous selection: ${#SELECTED_SKILLS[@]} skill(s)."
+else
 echo ""
 echo "Skill selection:"
 echo "  0) None — skip skill installation [default]"
@@ -285,8 +308,6 @@ echo "  1) All — install all available skills"
 echo "  2) Select — pick individual skills"
 read -rp "  Choose [0]: " SKILL_CHOICE || SKILL_CHOICE=""
 SKILL_CHOICE="${SKILL_CHOICE:-0}"
-
-SELECTED_SKILLS=()
 
 case "$SKILL_CHOICE" in
   0)
@@ -314,6 +335,7 @@ case "$SKILL_CHOICE" in
   *)
     error "Invalid choice"; exit 1 ;;
 esac
+fi
 
 # =============================================================================
 # Step 9 — Always install the core init skill

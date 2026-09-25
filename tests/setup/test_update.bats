@@ -112,3 +112,4 @@ json.dump({'schema_version': 2, 'install_mode': 'project',
   [[ "$output" == *"Resuming install in mode: project"* ]]
   [[ "$output" != *"Unknown argument"* ]]
 }
+

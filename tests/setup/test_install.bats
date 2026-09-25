@@ -532,3 +532,21 @@ print(n)
   [ "$output" -eq "$before" ]
   [ -f "$HOME/.claude/commands/init.md" ]
 }
+
+@test "install --skills reuses a selection without prompting" {
+  # update.sh re-runs the installer, which re-asked the skill question with
+  # None as the default. Passing the previous selection back means the question
+  # is not asked at all — and cannot be answered by accident, which is what let
+  # an update uninstall every skill.
+  #
+  # Skipped rather than answered: routing it through SKILL_CHOICE=1 would mean
+  # "All" to the case below, which silently overrode the selection.
+  run bash "$REPO_ROOT/setup/install.sh" --global --skills skill-create < /dev/null
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Reusing the previous selection"* ]]
+  [[ "$output" != *"Skill selection:"* ]]
+
+  [ -f "$HOME/.claude/commands/skill-create.md" ]
+  [ -f "$HOME/.claude/commands/init.md" ]
+  [ ! -f "$HOME/.claude/commands/tdd.md" ]
+}
