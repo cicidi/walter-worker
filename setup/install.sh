@@ -61,6 +61,22 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 
 # =============================================================================
+# Step 1b — Save a pristine snapshot before touching anything
+# =============================================================================
+# uninstall.sh --restore-pristine copies settings.json and CLAUDE.md back out of
+# here. Nothing created this directory, so that option could only ever end at
+# "No pristine backup found". Taken once, on the first install, while both files
+# are still unmodified — the two the uninstaller restores.
+PRISTINE_DIR="$HOME/.coworker/backups/pristine"
+if [[ ! -d "$PRISTINE_DIR" ]]; then
+  mkdir -p "$PRISTINE_DIR"
+  for f in "$HOME/.claude/settings.json" "$GLOBAL_CLAUDE_MD"; do
+    [[ -f "$f" ]] && cp "$f" "$PRISTINE_DIR/$(basename "$f")"
+  done
+  log "Saved pristine snapshot to $PRISTINE_DIR"
+fi
+
+# =============================================================================
 # Step 2 — Ensure global CLAUDE.md exists
 # =============================================================================
 log "Checking global CLAUDE.md..."

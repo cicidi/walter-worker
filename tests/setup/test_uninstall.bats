@@ -72,3 +72,30 @@ teardown() {
   [ -f "$HOME/.coworker/analytics/analytics.db" ]
   [ -f "$HOME/.coworker/scripts/thing.sh" ]
 }
+
+@test "install saves a pristine snapshot that uninstall can restore" {
+  # Start from a pre-existing setup and no snapshot, the state a first install
+  # sees. The snapshot has to be taken before install.sh mutates either file.
+  rm -rf "$HOME/.coworker/backups/pristine"
+  rm -f "$HOME/.coworker/install-manifest.json"
+  echo '{"pre":"existing"}' > "$HOME/.claude/settings.json"
+  echo '# pre-existing claude md' > "$HOME/.claude/CLAUDE.md"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  [ -f "$HOME/.coworker/backups/pristine/settings.json" ]
+  [ -f "$HOME/.coworker/backups/pristine/CLAUDE.md" ]
+  run cat "$HOME/.coworker/backups/pristine/settings.json"
+  [[ "$output" == *'"pre":"existing"'* ]]
+
+  # install.sh added hooks to settings.json; the restore must undo that.
+  run bash -c "echo y | bash '$REPO_ROOT/setup/uninstall.sh' --restore-pristine"
+  [ "$status" -eq 0 ]
+
+  run cat "$HOME/.claude/settings.json"
+  [[ "$output" == *'"pre":"existing"'* ]]
+  [[ "$output" != *hooks* ]]
+  run cat "$HOME/.claude/CLAUDE.md"
+  [[ "$output" == *"pre-existing claude md"* ]]
+}
