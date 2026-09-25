@@ -198,3 +198,37 @@ SKEOF
   run bash "$REPO_ROOT/setup/install.sh" <<< $'99'
   [ "$status" -ne 0 ]
 }
+
+@test "manifest never claims claude-tmux-config's statusline files" {
+  # The exclusion used a trailing slash, so it matched only the (empty)
+  # statusline/ directory while the three files beside it were claimed anyway -
+  # and uninstall.sh removes every file the manifest lists.
+  mkdir -p "$HOME/.claude/statusline"
+  echo 'x' > "$HOME/.claude/statusline-command.sh"
+  echo 'x' > "$HOME/.claude/statusline-command.sh.bak"
+  echo 'x' > "$HOME/.claude/wrap-statusline.py"
+  echo 'x' > "$HOME/.claude/statusline/inner.sh"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import json, os
+m = json.load(open(os.path.expanduser('~/.coworker/install-manifest.json')))
+print(len([f for f in m.get('files', []) if 'statusline' in f]))
+"
+  [ "$output" = "0" ]
+}
+
+@test "manifest still records ordinary claude files" {
+  # The guard must not have grown so wide it stops tracking anything.
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import json, os
+m = json.load(open(os.path.expanduser('~/.coworker/install-manifest.json')))
+print('yes' if any(f.endswith('CLAUDE.md') for f in m.get('files', [])) else 'no')
+"
+  [ "$output" = "yes" ]
+}

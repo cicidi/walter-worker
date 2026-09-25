@@ -567,8 +567,18 @@ manifest = {
 # Files we know were written (conditional on what actually exists).
 # Exclude claude-tmux-config's owned dirs so this manifest never claims them
 # (otherwise walter-worker uninstall could delete the statusline/theme files).
-exclude_prefixes = (f'{home}/.claude/statusline/', f'{home}/.tmux/conf.d/',
-                    f'{home}/.tmux/scripts/status_info.sh')
+#
+# The directory form ends in a slash, so it matched only the directory itself —
+# which is empty — while the three statusline files sitting beside it were
+# claimed anyway and uninstall would have removed them. They are listed
+# explicitly now; the statusline-command.sh entry also covers its .bak.
+exclude_prefixes = (
+    f'{home}/.claude/statusline/',
+    f'{home}/.claude/statusline-command.sh',
+    f'{home}/.claude/wrap-statusline.py',
+    f'{home}/.tmux/conf.d/',
+    f'{home}/.tmux/scripts/status_info.sh',
+)
 for d in [f'{home}/.coworker/analytics', f'{home}/.coworker/skills',
           f'{home}/.claude', f'{home}/.opencode',
           f'{home}/.config/opencode/skills/walter-worker']:
