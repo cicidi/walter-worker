@@ -126,18 +126,76 @@ def get_session_data(session_id: str):
     return data
 
 
+#: Ceiling on the rendered prompt. A long session can hold thousands of
+#: messages; without a bound the request is rejected by the provider and the
+#: session can never be summarised at all.
+MAX_PROMPT_CHARS = 12000
+
+#: Per-message share of the transcript budget, so one enormous paste cannot
+#: crowd out the rest of the session.
+_MAX_MESSAGE_CHARS = 1500
+
+#: What the summariser must return. write_summary reads these keys by name.
+_SUMMARY_FIELDS = (
+    '{"context_to_remember": "", "efficiency_tip": "", '
+    '"memory_keywords": "", "efficiency_score": 0.0}'
+)
+
+
+def _clip(text: str, limit: int) -> str:
+    """Shorten text to at most `limit` characters, marker included.
+
+    The marker has to come out of the budget rather than be appended past it,
+    or a "bounded" prompt overshoots by its own marker.
+    """
+    if len(text) <= limit:
+        return text
+    marker = "…[truncated]"
+    if limit <= len(marker):
+        return text[:limit]
+    return text[: limit - len(marker)] + marker
+
+
 def build_summary_prompt(data: dict) -> str:
+    """Render one session as a prompt the summariser can actually work from.
+
+    This returned the counts line and nothing else, so the model was asked to
+    summarise a session it had not been shown. The header it produced is kept
+    as-is; the transcript below it is what made the call meaningful.
+    """
     project = data.get("project") or data.get("cwd", "")
-    initiative = data.get("initiative", "")
+    feature = data.get("feature", "")
     messages = data.get("messages", [])
     tools = data.get("tool_calls", [])
 
-    return (
+    header = (
         f"Project: {project}\n"
-        f"Initiative: {initiative}\n"
+        f"Feature: {feature}\n"
         f"Messages: {len(messages)}\n"
         f"Tool calls: {len(tools)}\n"
-    ).strip()
+    )
+
+    body: list[str] = []
+    for m in messages:
+        content = (m.get("content") or "").strip()
+        if not content:
+            continue
+        kind = m.get("type") or m.get("role") or "?"
+        body.append(f"[{kind}] {_clip(content, _MAX_MESSAGE_CHARS)}")
+
+    for t in tools:
+        name = t.get("tool") or "?"
+        args = (t.get("args") or "").strip()
+        ms = t.get("duration_ms")
+        suffix = f" ({ms}ms)" if ms else ""
+        body.append(f"[tool] {name}{suffix} {_clip(args, 400)}".rstrip())
+
+    prompt = header
+    if body:
+        prompt += "\n## Transcript\n" + "\n".join(body)
+    prompt += f"\n\n## Task\nSummarise the session above. Reply with JSON only:\n{_SUMMARY_FIELDS}\n"
+
+    return _clip(prompt, MAX_PROMPT_CHARS)
 
 
 def write_summary(session_id: str, result: dict):
@@ -195,14 +253,121 @@ def write_knowledge(cards: list[dict]):
     conn.close()
 
 
+def _since_to_date(since: str) -> str | None:
+    """Lower bound as an ISO date, or None meaning "no lower bound".
+
+    Raises ValueError rather than guessing: this used to accept any string and
+    answer with yesterday's date for all of them, so `--since 2026-07-01`
+    quietly returned one day's sessions and looked like it had worked.
+    """
+    text = (since or "").strip()
+    lowered = text.lower()
+    if lowered == "all":
+        return None
+
+    now = datetime.now()
+    if lowered in ("", "today"):
+        return now.strftime("%Y-%m-%d")
+    if lowered == "yesterday":
+        return (now - timedelta(days=1)).strftime("%Y-%m-%d")
+    if lowered.endswith(" days ago"):
+        try:
+            days = int(lowered[: -len(" days ago")].strip())
+        except ValueError:
+            raise ValueError(f"Unrecognised --since value: {since!r}") from None
+        return (now - timedelta(days=days)).strftime("%Y-%m-%d")
+
+    for fmt in ("%Y-%m-%d", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S"):
+        try:
+            return datetime.strptime(text, fmt).strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+
+    raise ValueError(
+        f"Unrecognised --since value: {since!r}. Use 'all', 'today', "
+        f"'yesterday', 'N days ago', or an ISO date such as 2026-07-01."
+    )
+
+
 def get_all_sessions_since(since: str = "yesterday"):
     conn = get_db()
-    if since == "all":
+    lower = _since_to_date(since)
+    if lower is None:
         rows = conn.execute("SELECT id FROM sessions ORDER BY created_at").fetchall()
     else:
-        date = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
         rows = conn.execute(
-            "SELECT id FROM sessions WHERE created_at >= ? ORDER BY created_at", (date,)
+            "SELECT id FROM sessions WHERE created_at >= ? ORDER BY created_at",
+            (lower,),
         ).fetchall()
     conn.close()
     return [r["id"] for r in rows]
+
+
+def _parse_summary(content: str) -> dict:
+    """Read the model's JSON reply, tolerating prose wrapped around it.
+
+    A model answering conversationally must not take the run down: the session
+    still gets its summary row, and the caller sees the same shape either way.
+    """
+    text = (content or "").strip()
+    if not text:
+        return {}
+    try:
+        parsed = json.loads(text)
+    except json.JSONDecodeError:
+        start, end = text.find("{"), text.rfind("}")
+        if start == -1 or end <= start:
+            return {}
+        try:
+            parsed = json.loads(text[start : end + 1])
+        except json.JSONDecodeError:
+            return {}
+    return parsed if isinstance(parsed, dict) else {}
+
+
+def _valid_cards(cards, session_id: str, project: str) -> list[dict]:
+    """Keep the cards write_knowledge can actually store.
+
+    It indexes card["type"] and card["title"] directly, so a model that omits
+    either would raise KeyError mid-run and abandon the remaining sessions.
+    """
+    kept = []
+    for card in cards or []:
+        if not isinstance(card, dict):
+            continue
+        if not card.get("title") or not card.get("type"):
+            continue
+        card.setdefault("session_id", session_id)
+        card.setdefault("project", project)
+        kept.append(card)
+    return kept
+
+
+def summarize_session(session_id: str, llm=None) -> dict | None:
+    """Summarise one session, plus any knowledge cards it produced.
+
+    Returns None for an unknown session, so a caller can tell "no such
+    session" apart from "summarised, with nothing to say".
+    """
+    data = get_session_data(session_id)
+    if data is None:
+        return None
+
+    if llm is None:
+        from ..memory.llm import LLMClient
+
+        llm = LLMClient()
+
+    response = llm.chat(
+        [{"role": "user", "content": build_summary_prompt(data)}],
+        response_format={"type": "json_object"},
+    )
+    result = _parse_summary(getattr(response, "content", ""))
+
+    write_summary(session_id, result)
+
+    cards = _valid_cards(result.get("cards"), session_id, data.get("project", ""))
+    if cards:
+        write_knowledge(cards)
+
+    return {"session_id": session_id, "cards": len(cards)}

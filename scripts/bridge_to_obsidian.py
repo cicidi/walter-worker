@@ -131,8 +131,8 @@ def export_sessions(conn):
 
         # Build entity wikilinks
         wikilinks = [f"[[projects/{s['project']}]]"] if s["project"] else []
-        if s.get("initiative"):
-            wikilinks.append(f"[[initiatives/{s['initiative']}]]")
+        if s.get("feature"):
+            wikilinks.append(f"[[features/{s['feature']}]]")
 
         body = f"""# Session: {slug}
 
@@ -140,7 +140,7 @@ def export_sessions(conn):
 - **IDE:** {s['ide']}
 - **Project:** [[projects/{s['project']}]]
 - **Branch:** `{s['branch'] or 'N/A'}`
-- **Initiative:** {f'[[initiatives/{s["initiative"]}]]' if s.get('initiative') else 'N/A'}
+- **Feature:** {f'[[features/{s["feature"]}]]' if s.get('feature') else 'N/A'}
 - **Started:** {s['created_at']}
 - **Duration:** {s.get('duration_min', 'N/A')} minutes
 - **Model:** {s.get('model', 'N/A')}
@@ -170,7 +170,7 @@ def export_sessions(conn):
             "date": date_str,
             "ide": s["ide"],
             "project": s["project"] or "",
-            "initiative": s.get("initiative", ""),
+            "feature": s.get("feature", ""),
             "branch": s.get("branch", ""),
             "tags": [
                 f"ide/{s['ide']}",
@@ -179,12 +179,12 @@ def export_sessions(conn):
             ],
             "status": "complete",
         }
-        if s.get("initiative"):
-            frontmatter["tags"].append(f"initiative/{s['initiative']}")
+        if s.get("feature"):
+            frontmatter["tags"].append(f"feature/{s['feature']}")
 
         write_markdown(SESSIONS_PATH / f"{slug}.md", frontmatter, body)
         exported.append({"slug": slug, "project": s["project"], "date": date_str,
-                        "ide": s["ide"], "initiative": s.get("initiative", ""),
+                        "ide": s["ide"], "feature": s.get("feature", ""),
                         "duration": s.get("duration_min", 0)})
 
     return exported
@@ -365,53 +365,53 @@ See [[sources/sessions/]] for all sessions related to this project.
     return projects
 
 
-def export_initiatives(conn):
-    """Create initiative entity pages."""
+def export_features(conn):
+    """Create feature entity pages."""
     rows = conn.execute(
-        """SELECT s.initiative, s.project, COUNT(*) as session_count
+        """SELECT s.feature, s.project, COUNT(*) as session_count
            FROM sessions s
-           WHERE s.initiative IS NOT NULL AND s.initiative != ''
-           GROUP BY s.initiative ORDER BY session_count DESC"""
+           WHERE s.feature IS NOT NULL AND s.feature != ''
+           GROUP BY s.feature ORDER BY session_count DESC"""
     ).fetchall()
 
-    path = WIKI_PATH / "entities" / "initiatives"
+    path = WIKI_PATH / "entities" / "features"
     path.mkdir(parents=True, exist_ok=True)
     for f in path.glob("*.md"):
         f.unlink()
 
-    initiatives = []
+    features = []
     for row in rows:
         i = dict(row)
-        body = f"""# Initiative: {i['initiative']}
+        body = f"""# Feature: {i['feature']}
 
 **Project:** [[projects/{i.get('project', '')}]]
 **Sessions:** {i.get('session_count', 0)}
 
 ## Sessions
-See [[sources/sessions/]] for all sessions in this initiative.
+See [[sources/sessions/]] for all sessions in this feature.
 
 ## Related
 - [[projects/{i.get('project', '')}]]
 - [[index]]
 """
         fm = {
-            "type": "initiative",
-            "title": f"Initiative: {i['initiative']}",
-            "initiative_name": i["initiative"],
+            "type": "feature",
+            "title": f"Feature: {i['feature']}",
+            "feature_name": i["feature"],
             "project": i.get("project", ""),
             "session_count": i.get("session_count", 0),
-            "tags": ["entity/initiative", f"initiative/{i['initiative']}"],
+            "tags": ["entity/feature", f"feature/{i['feature']}"],
             "status": "active",
         }
-        write_markdown(path / f"{i['initiative']}.md", fm, body)
-        initiatives.append({"name": i["initiative"], "sessions": i.get("session_count", 0)})
+        write_markdown(path / f"{i['feature']}.md", fm, body)
+        features.append({"name": i["feature"], "sessions": i.get("session_count", 0)})
 
-    return initiatives
+    return features
 
 
-def update_index(sessions, skills, tools, projects, initiatives):
+def update_index(sessions, skills, tools, projects, features):
     """Update wiki/index.md with exported content."""
-    total_pages = (len(sessions) + len(skills) + len(tools) + len(projects) + len(initiatives))
+    total_pages = (len(sessions) + len(skills) + len(tools) + len(projects) + len(features))
 
     session_links = "\n".join(
         f"- [[sources/sessions/{s['slug']}]] — {s['date']} | {s['ide']} | {s['project']} | {s['duration']}min"
@@ -433,9 +433,9 @@ def update_index(sessions, skills, tools, projects, initiatives):
         for p in projects
     )
 
-    initiative_links = "\n".join(
-        f"- [[entities/initiatives/{i['name']}]] — {i['sessions']} sessions"
-        for i in initiatives
+    feature_links = "\n".join(
+        f"- [[entities/features/{i['name']}]] — {i['sessions']} sessions"
+        for i in features
     )
 
     content = f"""---
@@ -468,8 +468,8 @@ Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M')} | Total pages: {total_
 ## Projects
 {project_links}
 
-## Initiatives
-{initiative_links}
+## Features
+{feature_links}
 """
     (WIKI_PATH / "index.md").write_text(content)
 
@@ -526,7 +526,7 @@ def update_log(counts: dict):
 - **Skills:** {counts.get('skills', 0)}
 - **Tools:** {counts.get('tools', 0)}
 - **Projects:** {counts.get('projects', 0)}
-- **Initiatives:** {counts.get('initiatives', 0)}
+- **Features:** {counts.get('features', 0)}
 - **Total messages:** {counts.get('messages', 0)}
 - **Total tool calls:** {counts.get('tool_calls', 0)}
 """
@@ -580,12 +580,12 @@ def bridge_export():
     print("  → Projects...")
     projects = export_projects(conn)
 
-    print("  → Initiatives...")
-    initiatives = export_initiatives(conn)
+    print("  → Features...")
+    features = export_features(conn)
 
     # Update meta files
     print("  → Updating index...")
-    update_index(sessions, skills, tools, projects, initiatives)
+    update_index(sessions, skills, tools, projects, features)
 
     print("  → Updating hot cache...")
     update_hot(sessions, skills, projects)
@@ -596,7 +596,7 @@ def bridge_export():
         "skills": len(skills),
         "tools": len(tools),
         "projects": len(projects),
-        "initiatives": len(initiatives),
+        "features": len(features),
         "messages": total_msgs,
         "tool_calls": total_tools,
     }
@@ -612,7 +612,7 @@ def bridge_export():
     print(f"   Skills: {len(skills)}")
     print(f"   Tools: {len(tools)}")
     print(f"   Projects: {len(projects)}")
-    print(f"   Initiatives: {len(initiatives)}")
+    print(f"   Features: {len(features)}")
     print(f"\nOpen Obsidian: ~/.local/bin/obsidian --vault {VAULT_PATH}")
 
 

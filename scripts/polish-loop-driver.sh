@@ -5,7 +5,11 @@
 # Cap:   POLISH_MAX_CYCLES (default 20)
 set -u
 
-REPO="${POLISH_REPO:-/home/cicidi/project/walter-worker}"
+# Default to the checkout this script lives in. It used to name the author's
+# absolute path, so on any other machine the default pointed at a directory
+# that does not exist and the driver failed on its first mkdir.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="${POLISH_REPO:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 STATE="$REPO/docs/state/polish-loop.md"
 RUNNER="$REPO/docs/state/RUNNER.md"
 STOP="$REPO/.polish-loop-stop"

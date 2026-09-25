@@ -19,15 +19,16 @@ logger = logging.getLogger(__name__)
 def _run_agent(prompt: str, work_dir: str = ".", timeout_sec: int = 600) -> dict:
     """Run a single Claude agent session. Returns result dict."""
     try:
+        # Headless Claude Code is `claude -p`. The previous argv was
+        # `claude agent --prompt … --work-dir … --timeout …`, none of which
+        # exists: there is no `agent` subcommand (`claude --help` lists agents,
+        # attach, auth, auto-mode, doctor, …), --work-dir and --timeout are not
+        # flags, and --output-format is documented as working only with
+        # --print. The working directory and the timeout are subprocess's, not
+        # claude's.
         result = subprocess.run(
-            [
-                "claude", "agent",
-                "--prompt", prompt,
-                "--work-dir", work_dir,
-                "--timeout", str(timeout_sec),
-                "--output-format", "json",
-            ],
-            capture_output=True, text=True, timeout=timeout_sec + 30,
+            ["claude", "-p", prompt, "--output-format", "json"],
+            capture_output=True, text=True, cwd=work_dir, timeout=timeout_sec + 30,
         )
         if result.returncode == 0:
             try:
@@ -76,6 +77,19 @@ def _extract_memory_searches(text: str) -> list[str]:
 # ---------------------------------------------------------------------------
 # Main API
 # ---------------------------------------------------------------------------
+
+
+def _verdict(result_a: dict, result_b: dict, baseline_tc: int, memory_tc: int) -> str:
+    """Compare the two runs, or decline to.
+
+    Two failed runs leave both tool-call counts at 0; `memory_tc < baseline_tc`
+    is then False, so the harness reported "no_change" — a measured-looking
+    verdict on two sessions that never happened. A harness that cannot run its
+    subjects must say so rather than report the absence of a difference.
+    """
+    if not (result_a["success"] and result_b["success"]):
+        return "inconclusive"
+    return "improved" if memory_tc < baseline_tc else "no_change"
 
 
 def run_validation(task_definition: str, task_file: str | None = None,
@@ -142,8 +156,13 @@ def run_validation(task_definition: str, task_file: str | None = None,
             "success": result_b["success"],
         },
         "tool_call_reduction": baseline_tc - memory_tc,
-        "verdict": "improved" if memory_tc < baseline_tc else "no_change",
+        "verdict": _verdict(result_a, result_b, baseline_tc, memory_tc),
     }
+    if report["verdict"] == "inconclusive":
+        # Say which side failed. "no_change" from two runs that never happened
+        # is the worst possible answer: it reads as a measured comparison.
+        failed = result_a if not result_a["success"] else result_b
+        report["verdict_reason"] = (failed.get("output") or "")[:300]
 
     logger.info(
         "Validation complete: baseline=%d tools, memory=%d tools, verdict=%s",

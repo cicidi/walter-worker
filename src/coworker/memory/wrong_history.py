@@ -8,12 +8,17 @@ snapshot.  Runs at session start so the agent always sees what NOT to do.
 from __future__ import annotations
 
 import logging
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-WH_DIR = "docs/self-evolving-agent/wrong-history"
+#: A field label at the start of a line, e.g. `**Anti-pattern:**`. Marks where
+#: a wrapped multi-line value ends.
+_FIELD_LABEL_RE = re.compile(r"^\*\*[^*]+:\*\*")
+
+WH_DIR = "docs/features/self-evolving-agent/wrong-history"
 MARKER_START = "<!-- WRONG-HISTORY START -->"
 MARKER_END = "<!-- WRONG-HISTORY END -->"
 
@@ -42,10 +47,23 @@ def extract_rules(entries_dir: str | None = None) -> list[dict]:
         category = _extract_field(text, "category", "unknown")
         summary = _extract_field(text, "# ", "")
         rule = ""
-        for line in text.split("\n"):
-            if "**Prevention rule:**" in line:
-                rule = line.split("**Prevention rule:**")[-1].strip()
-                break
+        lines = text.split("\n")
+        for i, line in enumerate(lines):
+            if "**Prevention rule:**" not in line:
+                continue
+            # A rule routinely wraps across several lines. Reading only the
+            # first one cut it off mid-sentence: the shipped adversarial-review
+            # rule came out as "In any adversarial review (devil-advocate,
+            # con/pro/judge)," and prevented nothing. It runs until a blank
+            # line or the next **Field:** label.
+            parts = [line.split("**Prevention rule:**")[-1].strip()]
+            for cont in lines[i + 1:]:
+                stripped = cont.strip()
+                if not stripped or _FIELD_LABEL_RE.match(stripped):
+                    break
+                parts.append(stripped)
+            rule = " ".join(p for p in parts if p)
+            break
 
         if rule:
             rules.append({
@@ -216,7 +234,7 @@ def _rebuild_index() -> None:
         "# Wrong History — Index",
         "",
         "> **Purpose:** Prevent repeating past mistakes.",
-        "> **Check before coding:** `grep -rl \"<keyword>\" docs/self-evolving-agent/wrong-history/entries/`",
+        "> **Check before coding:** `grep -rl \"<keyword>\" docs/features/self-evolving-agent/wrong-history/entries/`",
         "",
     ]
 

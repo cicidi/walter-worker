@@ -3,11 +3,9 @@ import logging
 from pathlib import Path
 from importlib.resources import files as resource_files
 
-import yaml
 
 from fastapi import FastAPI, WebSocket, HTTPException
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
 
 from . import queries
 
@@ -51,9 +49,9 @@ def api_knowledge():
     return queries.query_knowledge()
 
 
-@app.get("/api/initiatives")
-def api_initiatives():
-    return queries.query_initiatives()
+@app.get("/api/features")
+def api_features():
+    return queries.query_features()
 
 
 @app.get("/api/sessions/{session_id}/timeline")
@@ -394,30 +392,41 @@ def api_daily_sessions(days: int = 14):
     return queries.query_daily_sessions(days)
 
 
-@app.get("/api/skill-session-ids")
-def api_skill_session_ids(name: str):
+def _sessions_using_skill(name: str) -> list[str]:
+    """Session ids in which this skill appears.
+
+    A Skill tool call names its target in the args JSON — `{"skill": "name"}` —
+    and calls made *inside* a skill carry it in parent_skill, so both are
+    matched.
+
+    Both endpoints that need this share the predicate. One of them compared
+    `tool` to two different values, which no row can satisfy: it returned
+    nothing always, so the dashboard's per-skill session count read "—" for
+    every skill and the green sessions badge never rendered.
+
+    Do not "simplify" this to `tool = ?`. It reads like the obvious spelling and
+    is unsatisfiable, since `tool` is already known to be 'Skill'.
+    """
     conn = queries._get_db_conn()
     try:
         rows = conn.execute(
-            "SELECT DISTINCT session_id FROM tool_calls WHERE tool = 'Skill' AND tool = ?",
-            (name,),
+            "SELECT DISTINCT session_id FROM tool_calls "
+            "WHERE (tool = 'Skill' AND args LIKE ?) OR parent_skill = ?",
+            (f"%{name}%", name),
         ).fetchall()
         return [r[0] for r in rows]
     finally:
         conn.close()
+
+
+@app.get("/api/skill-session-ids")
+def api_skill_session_ids(name: str):
+    return _sessions_using_skill(name)
 
 
 @app.get("/api/skill-mentions")
 def api_skill_mentions(name: str):
-    conn = queries._get_db_conn()
-    try:
-        rows = conn.execute(
-            "SELECT DISTINCT session_id FROM tool_calls WHERE tool = 'Skill' AND (tool = ? OR args LIKE ?)",
-            (name, f"%{name}%"),
-        ).fetchall()
-        return [r[0] for r in rows]
-    finally:
-        conn.close()
+    return _sessions_using_skill(name)
 
 
 @app.get("/api/knowledge/{knowledge_id}/sessions")

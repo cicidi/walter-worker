@@ -79,3 +79,63 @@ class TestCheckGaps:
         write_audit_record(str(path), "posttooluse", "sess_test", "Read", 0, 200, "ok", ts="2026-07-25T10:00:00Z")
         gaps = check_gaps(str(path))
         assert gaps == []
+
+
+class TestRebuildIndex:
+    """rebuild_index deletes every mem0 entry before rebuilding.
+
+    It called get_transcript as a method on the connection, but that is a
+    module-level function taking (conn, session_id) - so the first iteration
+    raised AttributeError, after delete_all() had already wiped the index.
+    """
+
+    @pytest.fixture
+    def db(self):
+        import sqlite3
+
+        from coworker.analytics.db import SCHEMA
+
+        conn = sqlite3.connect(":memory:")
+        conn.row_factory = sqlite3.Row
+        conn.executescript(SCHEMA)
+        conn.execute(
+            "INSERT INTO sessions (id, ide, created_at) "
+            "VALUES ('s1', 'claude', '2026-01-01')"
+        )
+        conn.execute(
+            "INSERT INTO messages (session_id, seq, type, content, ts) "
+            "VALUES ('s1', 1, 'user', 'hi', 't')"
+        )
+        conn.commit()
+        return conn
+
+    def test_does_not_raise(self, db):
+        from coworker.memory.audit import rebuild_index
+
+        class FakeMem0:
+            def delete_all(self): pass
+
+            def add(self, **kwargs): pass
+
+        rebuild_index(db, FakeMem0())  # would raise AttributeError before
+
+    def test_rebuilds_from_transcripts(self, db):
+        from coworker.memory.audit import rebuild_index
+
+        class FakeMem0:
+            def __init__(self):
+                self.deleted = False
+                self.added = []
+
+            def delete_all(self):
+                self.deleted = True
+
+            def add(self, **kwargs):
+                self.added.append(kwargs)
+
+        mem0 = FakeMem0()
+        rebuild_index(db, mem0)
+
+        assert mem0.deleted is True
+        assert len(mem0.added) == 1, "the session was not re-indexed"
+        assert mem0.added[0]["run_id"] == "s1"

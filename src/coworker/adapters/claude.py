@@ -5,7 +5,8 @@ import shutil
 import re
 import tempfile
 from pathlib import Path
-from ..models import CoworkerConfig, ProjectCatalog, InitiativeConfig
+from ..models import CoworkerConfig, ProjectCatalog, FeatureConfig
+from ..templates.local_claude_md import MARKER_DIALECT
 from .. import backup
 
 CLAUDE_GLOBAL_DIR = Path.home() / ".claude"
@@ -15,8 +16,9 @@ CLAUDE_GLOBAL_MCP = Path.home() / ".claude.json"
 
 STATIC_START = "<!-- COWORKER:STATIC START -->"
 STATIC_END = "<!-- COWORKER:STATIC END -->"
-INITIATIVE_MARKER_RE = re.compile(
-    r"<!-- INITIATIVE:.*? START -->.*?<!-- INITIATIVE:.*? END -->", re.DOTALL
+FEATURE_MARKER_RE = re.compile(
+    rf"<!-- {MARKER_DIALECT}:.*? START -->.*?<!-- {MARKER_DIALECT}:.*? END -->",
+    re.DOTALL,
 )
 
 
@@ -37,42 +39,119 @@ def _replace_or_append_block(
 ) -> str:
     """Replace content between start..end markers with new_block.
     Handles truncated blocks (START present, END missing) by appending.
-    Uses a single regex for the full range."""
+    Uses a single regex for the full range.
+
+    Idempotent: every branch produces the same text for a given block, and the
+    pattern consumes the blank lines that follow END. Leaving them behind made
+    the block's own trailing newline stack on top of them, so each call added
+    one blank line to the file - a CLAUDE.md grew by a byte on every sync.
+    """
     escaped_start = re.escape(start)
     escaped_end = re.escape(end)
     pattern = re.compile(
-        escaped_start + r".*?" + escaped_end, re.DOTALL
+        escaped_start + r".*?" + escaped_end + r"\n*", re.DOTALL
     )
+    block_text = new_block.rstrip("\n") + "\n\n"
     if pattern.search(content):
-        return pattern.sub(new_block, content)
+        return pattern.sub(block_text, content)
     # No full match — could be truncated (START without END)
     if start in content:
         idx = content.index(start)
-        return content[:idx] + new_block + "\n"
-    return content.rstrip() + "\n\n" + new_block + "\n"
+        return content[:idx] + block_text
+    return content.rstrip() + "\n\n" + block_text
 
 
 def _had_block(content: str, start: str) -> bool:
     return start in content
 
 
-def _write_json_atomic(path: Path, data: object) -> None:
-    """Write JSON to path atomically (tmp + rename) and keep a .bak."""
+def _write_json_atomic(path: Path, data: object) -> bool:
+    """Write JSON to path atomically (tmp + rename), keeping a backup.
+
+    Returns True if the file was changed. When the serialised content already
+    matches what is on disk, neither the backup nor the write happens. Sync runs
+    on every install, and it was re-backing-up identical settings.json each
+    time: 1813 json-sync backups on this machine held only 44 distinct
+    contents, one of them 645 times over.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
+    payload = json.dumps(data, indent=2)
     if path.exists():
+        try:
+            if path.read_text(encoding="utf-8") == payload:
+                return False
+        except OSError:
+            pass  # unreadable — fall through and rewrite it
         backup.snapshot([path], "json-sync")
     fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=path.name + ".", suffix=".tmp")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
+            f.write(payload)
         os.replace(tmp, path)
     except BaseException:
         os.unlink(tmp)
         raise
+    return True
+
+
+def _managed_mcp_path() -> Path:
+    """Where we remember which MCP entries are ours."""
+    return Path.home() / ".coworker" / "mcp-managed.json"
+
+
+def _load_managed_mcp(mcp_path: Path) -> dict:
+    """Entries we wrote to `mcp_path`, keyed by name, exactly as we wrote them."""
+    try:
+        doc = json.loads(_managed_mcp_path().read_text(encoding="utf-8"))
+        entry = doc.get(str(mcp_path), {})
+        return entry if isinstance(entry, dict) else {}
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+#: Keys kept in the managed-MCP store. It is keyed by the absolute path of the
+#: file we synced, so without a bound it grows by one entry for every distinct
+#: path ever touched — a deleted project, a temp checkout, every test run — and
+#: nothing ever removed them.
+_MAX_MANAGED_MCP_TARGETS = 32
+
+
+def _save_managed_mcp(mcp_path: Path, entries: dict) -> None:
+    path = _managed_mcp_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(doc, dict):
+            doc = {}
+    except (OSError, json.JSONDecodeError):
+        doc = {}
+
+    doc[str(mcp_path)] = entries
+
+    # Drop targets that no longer exist — their entries can never be pruned
+    # anyway, since the file they describe is gone. The one we are recording
+    # is always kept: on a first sync it does not exist yet, and dropping it
+    # here would silently discard the record we just made.
+    live = {
+        k: v for k, v in doc.items()
+        if k == str(mcp_path) or Path(k).exists()
+    }
+    if len(live) > _MAX_MANAGED_MCP_TARGETS:
+        others = [k for k in live if k != str(mcp_path)]
+        keep = others[len(others) - (_MAX_MANAGED_MCP_TARGETS - 1):]
+        live = {**{k: live[k] for k in keep}, str(mcp_path): entries}
+
+    path.write_text(json.dumps(live, indent=2) + "\n", encoding="utf-8")
 
 
 def _sync_mcp(config: CoworkerConfig, mcp_path: Path) -> list[str]:
-    """Write MCP servers to mcp_path (union by server name)."""
+    """Write MCP servers to mcp_path, and retire the ones we no longer ship.
+
+    Merging by name alone meant a server dropped from coworker.yaml stayed in
+    the user's config for ever, because removing entries risks deleting ones
+    the user added. Remembering what we wrote separates the two: we prune our
+    own, and leave everything else untouched.
+    """
     existing_mcp = {}
     if mcp_path.exists():
         try:
@@ -89,9 +168,23 @@ def _sync_mcp(config: CoworkerConfig, mcp_path: Path) -> list[str]:
             entry["env"] = server.env
         ours[server.name] = entry
 
+    # Prune, but only what is unambiguously ours: a name we wrote before, that
+    # we no longer produce, and that still holds byte-for-byte what we wrote.
+    # If the user has edited it since, it is theirs now.
+    managed = _load_managed_mcp(mcp_path)
+    removed = []
+    for name, written in managed.items():
+        if name in ours:
+            continue
+        if existing_mcp.get(name) == written:
+            existing_mcp.pop(name)
+            removed.append(name)
+
     merged = {**existing_mcp, **ours}  # our entries win on name collision
     mcp_doc = {"mcpServers": merged}
     _write_json_atomic(mcp_path, mcp_doc)
+    _save_managed_mcp(mcp_path, ours)
+
     added = [k for k in ours if k not in existing_mcp]
     updated = [k for k in ours if k in existing_mcp]
     actions = []
@@ -99,6 +192,8 @@ def _sync_mcp(config: CoworkerConfig, mcp_path: Path) -> list[str]:
         actions.append(f"MCP servers added: {', '.join(added)}")
     if updated:
         actions.append(f"MCP servers kept: {', '.join(updated)}")
+    if removed:
+        actions.append(f"MCP servers removed: {', '.join(sorted(removed))}")
     return actions
 
 
@@ -139,8 +234,10 @@ def sync(config: CoworkerConfig, project_dir: Path | None = None) -> list[str]:
         mcp_actions = _sync_mcp(config, mcp_path)
         actions.extend(mcp_actions)
     existing.pop("mcpServers", None)
-    existing.pop("effortLevel", None)
-    existing.pop("skipDangerousModePermissionPrompt", None)
+    # effortLevel and skipDangerousModePermissionPrompt are deliberately not
+    # touched: both are the user's own settings, and popping them made the
+    # user's configuration disappear silently on every sync. mcpServers above
+    # is different — Claude Code reads MCP from ~/.claude.json, not from here.
 
     # State-update hook (correctly-shaped — already fixed in prior WIP)
     existing.setdefault("hooks", {})
@@ -211,11 +308,11 @@ def inject_static_context(
     return actions
 
 
-def inject_initiative(
-    config: InitiativeConfig, project_dir: Path | None = None
+def inject_feature(
+    config: FeatureConfig, project_dir: Path | None = None
 ) -> list[str]:
     actions = []
-    block = _build_initiative_block(config)
+    block = _build_feature_block(config)
     target = _resolve_local_md(project_dir)
 
     if target.exists():
@@ -224,15 +321,15 @@ def inject_initiative(
         from ..templates.local_claude_md import generate_local_claude_md
         content = generate_local_claude_md()
 
-    from ..templates.local_claude_md import inject_initiative_into_local_md
-    updated = inject_initiative_into_local_md(content, block)
+    from ..templates.local_claude_md import inject_feature_into_local_md
+    updated = inject_feature_into_local_md(content, block)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(updated)
-    actions.append(f"injected initiative '{config.name}' into {target.name}")
+    actions.append(f"injected feature '{config.name}' into {target.name}")
     return actions
 
 
-def remove_initiative(project_dir: Path | None = None) -> list[str]:
+def remove_feature(project_dir: Path | None = None) -> list[str]:
     actions = []
     target = _resolve_local_md(project_dir)
     if not target.exists():
@@ -241,24 +338,24 @@ def remove_initiative(project_dir: Path | None = None) -> list[str]:
 
     content = target.read_text()
     name = None
-    match = re.search(r"<!-- INITIATIVE:(\S+) START -->", content)
+    match = re.search(rf"<!-- {MARKER_DIALECT}:(\S+) START -->", content)
     if match:
         name = match.group(1)
     if name:
-        from ..templates.local_claude_md import remove_initiative_from_local_md
-        updated = remove_initiative_from_local_md(content, name)
+        from ..templates.local_claude_md import remove_feature_from_local_md
+        updated = remove_feature_from_local_md(content, name)
         if updated != content:
             target.write_text(updated)
-            actions.append(f"removed initiative '{name}' from {target.name}")
+            actions.append(f"removed feature '{name}' from {target.name}")
         else:
-            actions.append(f"no initiative in {target.name}")
+            actions.append(f"no feature in {target.name}")
     else:
-        actions.append(f"no initiative in {target.name}")
+        actions.append(f"no feature in {target.name}")
     return actions
 
 
-def _remove_all_initiative_blocks(content: str) -> str:
-    result = INITIATIVE_MARKER_RE.sub("", content)
+def _remove_all_feature_blocks(content: str) -> str:
+    result = FEATURE_MARKER_RE.sub("", content)
     # collapse multiple blank lines left by removed blocks
     result = re.sub(r"\n{3,}", "\n\n", result)
     return result.rstrip() + "\n"
@@ -313,9 +410,9 @@ def _build_static_block(catalog: ProjectCatalog) -> str:
     lines.append("")
     from ..constants import DOCS_DISCIPLINES
     disciplines = ", ".join(DOCS_DISCIPLINES)
-    lines.append(f"Docs organized by topic: `docs/<initiative>/{{{disciplines}}}/`")
+    lines.append(f"Docs organized by feature: `docs/features/<feature>/{{{disciplines}}}/`")
     lines.append("")
-    lines.append("Each initiative creates its own docs folder with prd/plan/spec subdirectories.")
+    lines.append("Each feature creates its own docs folder with prd/plan/spec subdirectories.")
     lines.append("")
     lines.append("## Coworker Skills")
     lines.append("")
@@ -329,10 +426,10 @@ def _build_static_block(catalog: ProjectCatalog) -> str:
     return "\n".join(lines) + "\n"
 
 
-def _build_initiative_block(config: InitiativeConfig) -> str:
-    start = f"<!-- INITIATIVE:{config.name} START -->"
-    end = f"<!-- INITIATIVE:{config.name} END -->"
-    lines = [start, f"## Active Initiative: {config.name}", ""]
+def _build_feature_block(config: FeatureConfig) -> str:
+    start = f"<!-- FEATURE:{config.name} START -->"
+    end = f"<!-- FEATURE:{config.name} END -->"
+    lines = [start, f"## Active Feature: {config.name}", ""]
     if config.description:
         lines.append(f"> {config.description}")
         lines.append("")
@@ -354,7 +451,7 @@ def _build_initiative_block(config: InitiativeConfig) -> str:
 
     if config.recommended_skills:
         lines.append("### Recommended Skills")
-        lines.append("_User-reviewed skills for this initiative. Invoke when relevant._")
+        lines.append("_User-reviewed skills for this feature. Invoke when relevant._")
         lines.append("")
         for skill in config.recommended_skills:
             lines.append(f"- `{skill}`")

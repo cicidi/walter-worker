@@ -13,11 +13,11 @@ This file is NOT committed to git. Your personal working context for this projec
 
 _(auto-discovered by `coworker init`)_
 
-<!-- INITIATIVE_PLACEHOLDER -->
+<!-- FEATURE_PLACEHOLDER -->
 
 ## Reference Docs
 
-_(initiative reference docs appear here when activated)_
+_(feature reference docs appear here when activated)_
 
 ## Principles
 
@@ -28,20 +28,27 @@ _(project-specific principles — add yours here)_
 Active task: _(none)_
 Goal: _(what this task is trying to achieve)_
 State: `docs/state/state-{taskname}.md`
-Docs convention: `docs/<initiative>/{prd,plan,spec}/`
+Docs convention: `docs/features/<feature>/<doc-type>/`
 
 ## Current Workflow
 
 Approach: _(e.g., TDD, direct impl, brainstorming → spec)_
 Testing: _(how this task is tested)_
-Skills: _(set during initiative activation)_
+Skills: _(set during feature activation)_
 """
 
-INITIATIVE_PLACEHOLDER = "<!-- INITIATIVE_PLACEHOLDER -->"
+FEATURE_PLACEHOLDER = "<!-- FEATURE_PLACEHOLDER -->"
+# Written before the initiative→feature rename. Still read so an existing
+# CLAUDE.local.md keeps working, and upgraded on its next write.
+LEGACY_FEATURE_PLACEHOLDER = "<!-- INITIATIVE_PLACEHOLDER -->"
 
-_INITIATIVE_ANY_RE = re.compile(
-    r"<!--\s*INITIATIVE:\S+\s+START\s*-->.*?"
-    r"<!--\s*INITIATIVE:\S+\s+END\s*-->\n?",
+# Marker dialect: FEATURE is what we write, INITIATIVE is what older files carry.
+# Shared with the Claude adapter so both agree on what counts as a block.
+MARKER_DIALECT = r"(?:FEATURE|INITIATIVE)"
+
+_FEATURE_ANY_RE = re.compile(
+    rf"<!--\s*{MARKER_DIALECT}:\S+\s+START\s*-->.*?"
+    rf"<!--\s*{MARKER_DIALECT}:\S+\s+END\s*-->\n?",
     re.DOTALL,
 )
 
@@ -81,35 +88,36 @@ def update_project_info(content: str, project_info: dict) -> str:
         new_section = "## Project Info\n\n_(auto-discovered by `coworker init`)_\n"
 
     pattern = re.compile(
-        r"## Project Info\n.*?(?=\n(?:<!-- INITIATIVE_PLACEHOLDER-->|## ))",
+        rf"## Project Info\n.*?(?=\n(?:<!--\s*{MARKER_DIALECT}_PLACEHOLDER\s*-->|## ))",
         re.DOTALL,
     )
     if pattern.search(content):
         return pattern.sub(new_section, content)
-    else:
-        return content.replace(
-            "<!-- INITIATIVE_PLACEHOLDER -->",
-            new_section + "\n<!-- INITIATIVE_PLACEHOLDER -->",
-        )
+    for placeholder in (FEATURE_PLACEHOLDER, LEGACY_FEATURE_PLACEHOLDER):
+        if placeholder in content:
+            return content.replace(
+                placeholder, new_section + "\n" + FEATURE_PLACEHOLDER
+            )
+    return content
 
 
-def inject_initiative_into_local_md(content: str, initiative_block: str) -> str:
-    cleaned = _INITIATIVE_ANY_RE.sub("", content)
-    if INITIATIVE_PLACEHOLDER in cleaned:
-        cleaned = cleaned.replace(
-            INITIATIVE_PLACEHOLDER,
-            initiative_block.strip() + "\n\n" + INITIATIVE_PLACEHOLDER,
-        )
-    else:
-        cleaned = cleaned.rstrip() + "\n\n" + initiative_block.strip() + "\n"
-    return cleaned
+def inject_feature_into_local_md(content: str, feature_block: str) -> str:
+    cleaned = _FEATURE_ANY_RE.sub("", content)
+    # A legacy placeholder is replaced and upgraded to the current spelling.
+    for placeholder in (FEATURE_PLACEHOLDER, LEGACY_FEATURE_PLACEHOLDER):
+        if placeholder in cleaned:
+            return cleaned.replace(
+                placeholder,
+                feature_block.strip() + "\n\n" + FEATURE_PLACEHOLDER,
+            )
+    return cleaned.rstrip() + "\n\n" + feature_block.strip() + "\n"
 
 
-def remove_initiative_from_local_md(content: str, name: str) -> str:
+def remove_feature_from_local_md(content: str, name: str) -> str:
     escaped = re.escape(name)
     pattern = re.compile(
-        r"<!--\s*INITIATIVE:" + escaped + r"\s+START\s*-->.*?"
-        r"<!--\s*INITIATIVE:" + escaped + r"\s+END\s*-->\n?",
+        rf"<!--\s*{MARKER_DIALECT}:" + escaped + r"\s+START\s*-->.*?"
+        rf"<!--\s*{MARKER_DIALECT}:" + escaped + r"\s+END\s*-->\n?",
         re.DOTALL,
     )
     result = pattern.sub("", content)

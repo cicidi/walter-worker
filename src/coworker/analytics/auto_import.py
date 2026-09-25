@@ -49,7 +49,7 @@ def _get_skills(jsonl_file: Path) -> set:
 def _count_jsonl_lines(path: Path) -> int:
     if not path.exists():
         return 0
-    return len([l for l in path.read_text().strip().split("\n") if l.strip()])
+    return len([line for line in path.read_text().strip().split("\n") if line.strip()])
 
 
 def _count_jsonl_skill_calls(path: Path) -> set:
@@ -76,7 +76,11 @@ def import_claude_jsonl(jsonl_file: Path, conn):
     """Store session metadata + stats + file ops from Claude Code JSONL."""
     sid = jsonl_file.stem
     lines = jsonl_file.read_text().strip().split("\n")
-    msg_count = len(lines)
+    # Counted after the loop, from the rows actually stored. It used to be
+    # len(lines), the number of JSONL events — which includes tool results and
+    # summary lines — so the sessions list reported a message count the detail
+    # view could never reproduce.
+    msg_count = 0
 
     created = ""
     model = ""
@@ -85,6 +89,20 @@ def import_claude_jsonl(jsonl_file: Path, conn):
     file_count = 0
     read_count = 0
     write_count = 0
+    bash_count = 0
+    # file_ops.session_id references sessions(id), and the session row is only
+    # written once the loop has read the timestamp, model and cwd out of it. So
+    # these are collected here and inserted after it. Inserting them inline
+    # raised a foreign-key error on every session that touched a file, which is
+    # nearly all of them, and the caller reported success.
+    file_ops_rows: list[tuple] = []
+    # The messages and tool_calls tables were never written on this path, only
+    # counted in session_stats. So the sessions list reported "3 messages" from
+    # session_stats while the detail view — which reads the tables — showed
+    # none, and the two could never agree. Both are filled in from the JSONL
+    # now, which is what makes the counts mean anything.
+    tool_call_rows: list[tuple] = []
+    message_rows: list[tuple] = []
 
     for seq, line in enumerate(lines):
         try:
@@ -107,11 +125,26 @@ def import_claude_jsonl(jsonl_file: Path, conn):
             continue
 
         content = msg.get("content", []) if isinstance(msg.get("content"), list) else []
+
+        text = "\n".join(
+            b.get("text", "") for b in content
+            if isinstance(b, dict) and b.get("type") == "text"
+        ).strip()
+        if text:
+            message_rows.append((sid, seq, obj.get("type", "unknown"), text, ts))
+
         for block in content:
             if not isinstance(block, dict):
                 continue
             btype = block.get("type", "")
             tname = block.get("name", "")
+
+            if btype == "tool_use":
+                tool_call_rows.append((
+                    sid, block.get("id", f"{sid}-{seq}"), tname, "builtin", None,
+                    None, active_skill, json.dumps(block.get("input", {})), None,
+                    None, seq, seq, ts,
+                ))
 
             if btype == "tool_use" and tname == "Skill":
                 active_skill = block.get("input", {}).get("name", "") or None
@@ -130,14 +163,14 @@ def import_claude_jsonl(jsonl_file: Path, conn):
                     read_count += 1
                 elif tname in ("Write", "Edit"):
                     write_count += 1
+                elif tname == "Bash":
+                    bash_count += 1
 
                 if fpath:
                     file_type = Path(fpath).suffix.lstrip(".") or None
-                    conn.execute(
-                        """INSERT OR IGNORE INTO file_ops (session_id, call_id, op, path, file_type, project, skill_name, seq, ts)
-                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    file_ops_rows.append(
                         (sid, block.get("id", f"{sid}-{seq}"), op, fpath, file_type,
-                         jsonl_file.parent.name, active_skill, seq, ts),
+                         jsonl_file.parent.name, active_skill, seq, ts)
                     )
 
             elif btype == "tool_use" and tname not in ("Skill", "Read", "Write", "Edit", "Glob", "Bash"):
@@ -150,18 +183,46 @@ def import_claude_jsonl(jsonl_file: Path, conn):
         (sid, jsonl_file.parent.name, cwd, model, created or ""),
     )
 
+    # Now that the session row exists, everything that references it can go in.
+    for row in message_rows:
+        conn.execute(
+            """INSERT OR IGNORE INTO messages (session_id, seq, type, content, ts)
+               VALUES (?, ?, ?, ?, ?)""",
+            row,
+        )
+    for row in tool_call_rows:
+        conn.execute(
+            """INSERT OR IGNORE INTO tool_calls
+               (session_id, call_id, tool, tool_type, server_name, parent_call_id,
+                parent_skill, args, result, duration_ms, seq_before, seq_after, ts)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            row,
+        )
+    for row in file_ops_rows:
+        conn.execute(
+            """INSERT OR IGNORE INTO file_ops (session_id, call_id, op, path, file_type, project, skill_name, seq, ts)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            row,
+        )
+
+    msg_count = len(message_rows)
+
     conn.execute(
         """INSERT OR REPLACE INTO session_stats
            (session_id, message_count, tool_count, skill_count, read_count, write_count, bash_count, updated_at)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-        (sid, msg_count, file_count, len(_get_skills(jsonl_file)), read_count, write_count, 0, datetime.now().isoformat()),
+        (sid, msg_count, file_count, len(_get_skills(jsonl_file)), read_count, write_count,
+         bash_count, datetime.now().isoformat()),
     )
     conn.commit()
 
 
 def import_claude_hooks(session_dir: Path, conn):
     """Store metadata from Claude Code hooks session directory."""
-    sid = session_dir.name
+    # Must match _parse_session_id, which is what run_once dedups against. Using
+    # the directory name here instead would insert under an id the dedup never
+    # looks for, so every run would re-import the same session.
+    sid = _parse_session_id(session_dir)
     yaml_file = session_dir / "session.yaml"
     msgs_file = session_dir / "messages.jsonl"
     tools_file = session_dir / "tools.jsonl"
@@ -176,7 +237,7 @@ def import_claude_hooks(session_dir: Path, conn):
                 k, _, v = line.partition(":")
                 info[k.strip()] = v.strip().strip('"')
 
-    # Delegate to full import_session for complete data (initiative, branch, tokens, messages, tool_calls)
+    # Delegate to full import_session for complete data (feature, branch, tokens, messages, tool_calls)
     from .import_data import import_session as full_import
     try:
         full_import(session_dir, conn)
@@ -308,7 +369,6 @@ def run_daemon(interval: int = POLL_INTERVAL):
 
     while True:
         stats = run_once(verbose=True)
-        total = stats["claude_jsonl"] + stats["claude_hooks"] + stats["opencode"]
         print(f"[daemon] {datetime.now().strftime('%H:%M:%S')} "
               f"claude_jsonl={stats['claude_jsonl']} claude_hooks={stats['claude_hooks']} "
               f"opencode={stats['opencode']} skipped={stats['skipped']}")

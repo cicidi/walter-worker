@@ -15,7 +15,7 @@ FILES = [
     "coworker-blueprint.md", "pyproject.toml", "setup/install.sh",
 ]
 BRANCHES = ["feat/dashboard", "feat/listener", "fix/config", "main"]
-INITIATIVES = ["dashboard-v1", "listener-v1", None]
+FEATURES = ["dashboard-v1", "listener-v1", None]
 
 USER_MSGS = [
     "help me build a dashboard", "analyze the codebase first",
@@ -36,7 +36,7 @@ ASSISTANT_MSGS = [
 
 
 def generate_test_session(
-    session_id: str, project: str, branch: str, initiative: str | None,
+    session_id: str, project: str, branch: str, feature: str | None,
     start: datetime, duration_min: int = 30,
 ) -> Path:
     session_dir = Path(tempfile.mkdtemp()) / "sessions" / session_id
@@ -52,7 +52,7 @@ def generate_test_session(
         f'ide: "opencode"\n'
         f'cwd: "/home/cicidi/project/{project}"\n'
         f'project: "{project}"\n'
-        f'initiative: "{initiative or ""}"\n'
+        f'feature: "{feature or ""}"\n'
         f'branch: "{branch}"\n'
     )
 
@@ -117,9 +117,9 @@ def generate_test_dataset(db_path: str, num_sessions: int = 10):
         sid = f"test-{i:03d}-{random.randint(1000, 9999)}"
         project = random.choice(PROJECTS)
         branch = random.choice(BRANCHES)
-        initiative = random.choice(INITIATIVES)
+        feature = random.choice(FEATURES)
         start = base_time + timedelta(hours=i * 3)
-        session_dir = generate_test_session(sid, project, branch, initiative, start, random.randint(10, 90))
+        session_dir = generate_test_session(sid, project, branch, feature, start, random.randint(10, 90))
         import_session(session_dir, conn)
     conn.close()
     print(f"Generated {num_sessions} test sessions in {db_path}")

@@ -9,9 +9,24 @@ from pathlib import Path
 import pytest
 
 from coworker.analytics.db import SCHEMA
-from coworker.dashboard import queries
+from coworker.dashboard import queries, queries_analytics, queries_evolution
 from coworker.dashboard.app import app
 from fastapi.testclient import TestClient
+
+
+def _patch_get_db(monkeypatch):
+    """Point every dashboard module's get_db at the shared in-memory database.
+
+    Each module does `from ..analytics.db import get_db`, binding the name in
+    its own namespace, and queries.py imports _get_db_conn from
+    queries_evolution. Patching only queries.get_db therefore left the 14
+    queries that run through _get_db_conn - query_projects, query_daily_sessions,
+    query_session_errors and others - reading the developer's real
+    ~/.coworker/analytics/analytics.db, so their tests passed or failed
+    depending on local data.
+    """
+    for mod in (queries, queries_analytics, queries_evolution):
+        monkeypatch.setattr(mod, "get_db", _make_shared_conn)
 
 
 # ---------------------------------------------------------------------------
@@ -37,7 +52,7 @@ def test_db(monkeypatch):
     _seed_all(conn)
     conn.commit()
 
-    monkeypatch.setattr(queries, "get_db", _make_shared_conn)
+    _patch_get_db(monkeypatch)
 
     yield conn
     conn.close()
@@ -61,15 +76,15 @@ def _seed_all(conn: sqlite3.Connection) -> None:
 
 def _seed_sessions(conn: sqlite3.Connection) -> None:
     rows = [
-        ("s1", "claude", "test-project", "/tmp/proj", "claude-3", "my-initiative",
+        ("s1", "claude", "test-project", "/tmp/proj", "claude-3", "my-feature",
          "feat/test", "2025-01-01T10:00:00", "2025-01-01T10:30:00"),
         ("s2", "opencode", "other-project", "/tmp/other", "gpt-4", None,
          "fix/bug", "2025-01-02T12:00:00", None),
-        ("s3", "claude", "test-project", "/tmp/proj", "claude-3", "my-initiative",
+        ("s3", "claude", "test-project", "/tmp/proj", "claude-3", "my-feature",
          "feat/test2", "2025-01-03T08:00:00", "2025-01-03T09:00:00"),
     ]
     conn.executemany(
-        """INSERT INTO sessions (id, ide, project, cwd, model, initiative, branch, created_at, closed_at)
+        """INSERT INTO sessions (id, ide, project, cwd, model, feature, branch, created_at, closed_at)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         rows,
     )
@@ -306,11 +321,56 @@ class TestQueryKnowledge:
         assert entry["merged_to_skill"] == "merged-to-x"
 
 
-class TestQueryInitiatives:
-    def test_returns_initiatives_with_counts(self, test_db):
-        result = queries.query_initiatives()
-        assert len(result) == 1  # only "my-initiative"
-        assert result[0]["initiative"] == "my-initiative"
+class TestQueryProjectsIdeBreakdown:
+    """The per-IDE breakdown must count sessions per IDE, not per project.
+
+    ide_list only records *which* IDEs appear for a project, never how many
+    sessions each has. Deriving the breakdown from it credited every IDE with
+    the project's whole session count, so a project with 78 sessions across
+    3 IDEs reported 78 for each - plausible-looking numbers that summed to 3x
+    the truth. The shared seed data has one IDE per project, which is why the
+    existing tests never caught it.
+    """
+
+    def _add_multi_ide_project(self, conn):
+        conn.executemany(
+            """INSERT INTO sessions
+               (id, ide, project, cwd, model, feature, branch, created_at, closed_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            [
+                ("m1", "claude",   "multi-ide", "/tmp/m", "m", None, "main", "2025-02-01T00:00:00", None),
+                ("m2", "claude",   "multi-ide", "/tmp/m", "m", None, "main", "2025-02-01T00:00:01", None),
+                ("m3", "opencode", "multi-ide", "/tmp/m", "m", None, "main", "2025-02-01T00:00:02", None),
+                ("m4", "gemini",   "multi-ide", "/tmp/m", "m", None, "main", "2025-02-01T00:00:03", None),
+            ],
+        )
+        conn.commit()
+
+    def test_each_ide_reports_its_own_count(self, test_db):
+        self._add_multi_ide_project(test_db)
+
+        row = next(
+            r for r in queries.query_projects() if r["project_name"] == "multi-ide"
+        )
+        assert row["session_count"] == 4
+        assert row["ides"] == {"claude": 2, "opencode": 1, "gemini": 1}, (
+            "each IDE must get its own count, not the project total"
+        )
+
+    def test_breakdown_never_exceeds_project_total(self, test_db):
+        self._add_multi_ide_project(test_db)
+
+        for r in queries.query_projects():
+            assert sum(r["ides"].values()) <= r["session_count"], (
+                f"{r['project_name']}: per-IDE counts exceed the project total"
+            )
+
+
+class TestQueryFeatures:
+    def test_returns_features_with_counts(self, test_db):
+        result = queries.query_features()
+        assert len(result) == 1  # only "my-feature"
+        assert result[0]["feature"] == "my-feature"
         assert result[0]["session_count"] == 2
         # s1 has 3 tool calls, s3 has 0 → 3 distinct call_ids
         assert result[0]["tool_count"] == 3
@@ -446,7 +506,7 @@ def client(monkeypatch):
     _seed_all(conn)
     conn.commit()
 
-    monkeypatch.setattr(queries, "get_db", _make_shared_conn)
+    _patch_get_db(monkeypatch)
 
     with TestClient(app) as tc:
         yield tc
@@ -575,13 +635,13 @@ class TestApiKnowledge:
         assert len(data) == 2
 
 
-class TestApiInitiatives:
-    def test_returns_200_with_initiatives(self, client):
-        resp = client.get("/api/initiatives")
+class TestApiFeatures:
+    def test_returns_200_with_features(self, client):
+        resp = client.get("/api/features")
         assert resp.status_code == 200
         data = resp.json()
         assert len(data) == 1
-        assert data[0]["initiative"] == "my-initiative"
+        assert data[0]["feature"] == "my-feature"
 
 
 class TestApiSkillSessions:
@@ -632,3 +692,76 @@ class TestWebSocket:
             ws.send_text("refresh")
             data = ws.receive_json()
             assert "total_sessions" in data
+
+
+class TestEveryRouteAnswers:
+    """Sweep every GET route instead of a hand-picked sample.
+
+    test_e2e_setup.py lists seven endpoints by hand, so routes added later are
+    never exercised. Five of them - /api/cost-analytics, /api/models,
+    /api/model-usage, /api/efficiency and /api/data-quality - returned 500 for
+    two commits: queries.py re-exports their handlers for app.py, an
+    unused-import sweep removed that re-export because the names are unused
+    *within queries.py*, and nothing hit the routes to notice.
+    """
+
+    def test_no_get_route_returns_5xx(self, client):
+        from coworker.dashboard.app import app
+
+        routes = [
+            r.path for r in app.routes
+            if "GET" in getattr(r, "methods", set()) and "{" not in r.path
+        ]
+        assert routes, "no GET routes found to check"
+
+        failures = []
+        for path in sorted(routes):
+            response = client.get(path)
+            if response.status_code >= 500:
+                failures.append((path, response.status_code))
+
+        assert not failures, f"GET routes returning 5xx: {failures}"
+
+    def test_the_five_that_broke_are_covered(self, client):
+        """Name them explicitly — a sweep that silently stops covering them
+        would pass while they are broken again."""
+        for path in (
+            "/api/cost-analytics",
+            "/api/models",
+            "/api/model-usage",
+            "/api/efficiency",
+            "/api/data-quality",
+        ):
+            assert client.get(path).status_code < 500, path
+
+
+class TestSkillSessionIds:
+    """The predicate compared one column to two different values.
+
+        WHERE tool = 'Skill' AND tool = ?
+
+    No row can satisfy that, so the endpoint always returned []. dashboard.js
+    builds its per-skill session counts from it, which is why the Skills table
+    showed "—" for every skill and the green sessions badge never appeared.
+    Its sibling /api/skill-mentions matched args and worked, which is how the
+    difference went unnoticed.
+    """
+
+    def test_a_skill_that_exists_has_sessions(self, client):
+        r = client.get("/api/skill-session-ids", params={"name": "my-skill"})
+
+        assert r.status_code == 200
+        assert r.json(), "a skill present in the fixture must report its sessions"
+
+    def test_an_unknown_skill_has_none(self, client):
+        r = client.get("/api/skill-session-ids", params={"name": "no-such-skill"})
+
+        assert r.status_code == 200
+        assert r.json() == []
+
+    def test_it_agrees_with_the_sibling_endpoint(self, client):
+        """They answer the same question and must not drift apart."""
+        a = client.get("/api/skill-session-ids", params={"name": "my-skill"}).json()
+        b = client.get("/api/skill-mentions", params={"name": "my-skill"}).json()
+
+        assert sorted(a) == sorted(b)

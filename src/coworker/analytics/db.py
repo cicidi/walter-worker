@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     project       TEXT,
     cwd           TEXT,
     model         TEXT,
-    initiative    TEXT,
+    feature       TEXT,
     branch        TEXT,
     created_at    TEXT NOT NULL,
     closed_at     TEXT,
@@ -78,7 +78,18 @@ CREATE TABLE IF NOT EXISTS session_stats (
     write_count   INTEGER DEFAULT 0,
     bash_count    INTEGER DEFAULT 0,
     duration_min  INTEGER,
-    updated_at    TEXT NOT NULL
+    updated_at    TEXT NOT NULL,
+    -- Token/cost accounting. These were present in long-lived databases but
+    -- missing from this schema, so a fresh install got 9 columns while the
+    -- queries referenced 16 and any query touching these crashed with
+    -- "no such column" (query_projects served the dashboard's Projects view).
+    tokens_input       INTEGER DEFAULT 0,
+    tokens_output      INTEGER DEFAULT 0,
+    cost               INTEGER DEFAULT 0,
+    turn_count         INTEGER DEFAULT 0,
+    tokens_reasoning   INTEGER DEFAULT 0,
+    tokens_cache_read  INTEGER DEFAULT 0,
+    tokens_cache_write INTEGER DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS skills (
@@ -102,6 +113,19 @@ CREATE TABLE IF NOT EXISTS knowledge (
 );
 CREATE INDEX IF NOT EXISTS idx_knowledge_project ON knowledge(project);
 CREATE INDEX IF NOT EXISTS idx_knowledge_session ON knowledge(session_id);
+
+-- Links knowledge cards to the sessions they were derived from. Read by the
+-- feature artifact scan (cli.py) and the dashboard's knowledge-sessions
+-- endpoint, but declared nowhere - so a fresh database lacked the table and
+-- those reads failed with "no such table". Nothing in this codebase writes it;
+-- it is populated out of band, so on a fresh install the reads now correctly
+-- come back empty instead of erroring.
+CREATE TABLE IF NOT EXISTS knowledge_sessions (
+    knowledge_id INTEGER NOT NULL REFERENCES knowledge(id),
+    session_id   TEXT NOT NULL REFERENCES sessions(id),
+    generated_at TEXT NOT NULL,
+    PRIMARY KEY (knowledge_id, session_id)
+);
 
 CREATE TABLE IF NOT EXISTS session_summaries (
     session_id             TEXT PRIMARY KEY REFERENCES sessions(id),
@@ -149,8 +173,58 @@ def get_db(db_path: str | Path | None = None) -> sqlite3.Connection:
     conn.executescript(SCHEMA)
     # Migration: add graph_enabled column to existing databases (spec §9.5)
     _migrate_add_graph_enabled(conn)
+    _migrate_add_session_stat_columns(conn)
+    _migrate_add_session_summary_columns(conn)
+    _migrate_rename_initiative_to_feature(conn)
     conn.commit()
     return conn
+
+
+# session_summaries columns added after the table first shipped.
+_SESSION_SUMMARY_COLUMNS = (
+    ("last_guide_attempt", "TEXT"),
+)
+
+
+def _migrate_add_session_summary_columns(conn: sqlite3.Connection) -> None:
+    """Backfill session_summaries columns on databases that predate them.
+
+    CREATE TABLE IF NOT EXISTS never alters an existing table, so a database
+    created before `last_guide_attempt` was declared never received it, and
+    write_summary() then failed with "no such column: last_guide_attempt".
+    """
+    existing = {row[1] for row in conn.execute("PRAGMA table_info(session_summaries)")}
+    for name, decl in _SESSION_SUMMARY_COLUMNS:
+        if name not in existing:
+            conn.execute(f"ALTER TABLE session_summaries ADD COLUMN {name} {decl}")
+    conn.commit()
+
+
+# Token/cost accounting on session_stats, in the order they were introduced.
+_SESSION_STAT_COLUMNS = (
+    ("tokens_input", "INTEGER DEFAULT 0"),
+    ("tokens_output", "INTEGER DEFAULT 0"),
+    ("cost", "INTEGER DEFAULT 0"),
+    ("turn_count", "INTEGER DEFAULT 0"),
+    ("tokens_reasoning", "INTEGER DEFAULT 0"),
+    ("tokens_cache_read", "INTEGER DEFAULT 0"),
+    ("tokens_cache_write", "INTEGER DEFAULT 0"),
+)
+
+
+def _migrate_add_session_stat_columns(conn: sqlite3.Connection) -> None:
+    """Add token/cost columns to databases created before SCHEMA declared them.
+
+    These columns existed only in long-lived databases, so a fresh install was
+    missing them while the dashboard queries referenced them - query_projects
+    (which serves /api/projects) failed outright with "no such column". Now that
+    SCHEMA declares them, a fresh database has them already and this is a no-op.
+    """
+    existing = {row[1] for row in conn.execute("PRAGMA table_info(session_stats)")}
+    for name, decl in _SESSION_STAT_COLUMNS:
+        if name not in existing:
+            conn.execute(f"ALTER TABLE session_stats ADD COLUMN {name} {decl}")
+    conn.commit()
 
 
 def _migrate_add_graph_enabled(conn: sqlite3.Connection) -> None:
@@ -159,6 +233,19 @@ def _migrate_add_graph_enabled(conn: sqlite3.Connection) -> None:
         conn.execute("SELECT graph_enabled FROM sessions LIMIT 0")
     except sqlite3.OperationalError:
         conn.execute("ALTER TABLE sessions ADD COLUMN graph_enabled INTEGER DEFAULT 0")
+        conn.commit()
+
+
+def _migrate_rename_initiative_to_feature(conn: sqlite3.Connection) -> None:
+    """Rename sessions.initiative -> feature on pre-rename databases.
+
+    Data is preserved in place; only the column name changes. Idempotent — a
+    fresh database already has `feature`, and an already-migrated one has no
+    `initiative`, so both paths are no-ops.
+    """
+    columns = {row[1] for row in conn.execute("PRAGMA table_info(sessions)")}
+    if "initiative" in columns and "feature" not in columns:
+        conn.execute("ALTER TABLE sessions RENAME COLUMN initiative TO feature")
         conn.commit()
 
 

@@ -63,8 +63,24 @@ log "Removing files..."
 
 REMOVED_FILES=0
 python3 -c "
-import json, os
+import json, os, sys
 m = json.load(open('$MANIFEST'))
+
+# Manifest schema 1 claimed files by directory: everything under ~/.claude,
+# ~/.opencode and ~/.coworker/analytics, which on a real machine is 27k+ paths
+# including plugin caches, session transcripts and the analytics database the
+# closing banner promises to keep. Removing from one of those destroys data
+# this script exists to preserve, so refuse it and say what to do instead.
+# Skipping is the safe direction: nothing is lost, and re-running install.sh
+# regenerates the manifest in the current form.
+if m.get('schema_version') != 2:
+    print('  SKIPPED: this manifest has no schema_version, so it predates the')
+    print('           fix that stopped it claiming files walter-worker never')
+    print('           wrote, and may list files belonging to other tools.')
+    print('           Nothing was removed. Run setup/install.sh to regenerate')
+    print('           the manifest, then uninstall again.')
+    sys.exit(0)
+
 for f in m.get('files', []):
     p = os.path.normpath(f)
     if os.path.isfile(p) or os.path.islink(p):
@@ -129,14 +145,35 @@ done
 fi
 
 # Clean up owned directories
+#
+# ~/.coworker is recorded as an owned dir, but it also holds data this script
+# promises to keep: analytics/ is reported as "preserved", and backups/ holds
+# the pristine snapshot --restore-pristine needs. Removing the directory whole
+# deleted both, so the closing message was false and the restore below could
+# never find its source.
 echo ""
 log "Cleaning directories..."
 python3 -c "
 import json, shutil, os
 m = json.load(open('$MANIFEST'))
+PRESERVE = {os.path.normpath(os.path.expanduser('~/.coworker')): {'analytics', 'backups'}}
 for d in reversed(sorted(m.get('owned_dirs', []))):
     d = os.path.normpath(d)
-    if os.path.isdir(d):
+    if not os.path.isdir(d):
+        continue
+    keep = PRESERVE.get(d, set())
+    if keep:
+        for entry in sorted(os.listdir(d)):
+            if entry in keep:
+                print(f'  preserved: {os.path.join(d, entry)}')
+                continue
+            p = os.path.join(d, entry)
+            try:
+                shutil.rmtree(p) if os.path.isdir(p) else os.remove(p)
+                print(f'  removed: {p}')
+            except OSError:
+                pass  # permission issue — leave it
+    else:
         try:
             shutil.rmtree(d)
             print(f'  removed dir: {d}')

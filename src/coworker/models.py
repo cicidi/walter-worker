@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class McpServer(BaseModel):
@@ -100,10 +100,10 @@ class ProjectCatalog(BaseModel):
     projects: list[ProjectEntry] = Field(default_factory=list)
 
 
-# ── Initiative (Level 2 — Dynamic) ──────────────────────────────────────────
+# ── Feature (Level 2 — Dynamic) ──────────────────────────────────────────
 
 
-class InitiativeProjectRef(BaseModel):
+class FeatureProjectRef(BaseModel):
     name: str
     role: str = "peer"
     branches: list[str] = Field(default_factory=list)
@@ -127,7 +127,13 @@ class ReferenceDoc(BaseModel):
     title: str
 
 
-class InitiativeConfig(BaseModel):
+class FeatureConfig(BaseModel):
+    # User-editable YAML lives on disk and may carry keys this model does not
+    # know (e.g. llm_effort). Pydantic's default is extra="ignore", and because
+    # save_feature() writes model_dump() straight back, a plain load/save cycle
+    # would silently delete them. Keep them instead.
+    model_config = ConfigDict(extra="allow")
+
     name: str
     description: str = ""
     goal: str = ""
@@ -136,7 +142,7 @@ class InitiativeConfig(BaseModel):
     recommended_skills: list[str] = Field(default_factory=list)
     status: str = "active"
     created: str = ""
-    projects: list[InitiativeProjectRef] = Field(default_factory=list)
+    projects: list[FeatureProjectRef] = Field(default_factory=list)
     links: list[LinkRef] = Field(default_factory=list)
     decisions: list[Decision] = Field(default_factory=list)
     reference_docs: list[ReferenceDoc] = Field(default_factory=list)

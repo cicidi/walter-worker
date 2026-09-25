@@ -1,7 +1,9 @@
+#!/usr/bin/env python3
 """G12: Correction detector hook script (runs on UserPromptSubmit).
 
-Reads a Claude Code hook JSON payload from stdin, inspects data.prompt,
-and decides whether the user's message indicates a correction. Writes a
+Reads a Claude Code hook JSON payload from stdin, inspects the top-level
+`prompt` field, and decides whether the user's message indicates a
+correction. (Hook payloads are flat — there is no `data` wrapper.) Writes a
 trace file with status:draft if it does — the self-heal skill then picks
 it up and instructs the AI to either fill in the detail or delete the
 file as a false positive.
@@ -62,7 +64,10 @@ def main() -> None:
     if payload is None:
         sys.exit(0)
 
-    prompt = payload.get("data", {}).get("prompt", "")
+    # Top-level: Claude Code nests nothing under `data`. Reading data.prompt
+    # here meant this detector returned "" and exited on every prompt, so it
+    # never fired even once it was registered on install.
+    prompt = payload.get("prompt", "")
     if not prompt.strip():
         sys.exit(0)
 

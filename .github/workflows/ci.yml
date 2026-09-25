@@ -44,3 +44,19 @@ jobs:
         with:
           severity: warning
           additional_files: "setup/install.sh setup/update.sh setup/uninstall.sh"
+
+  bats:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # tests/setup/*.bats are the only coverage of install.sh's install modes,
+      # CLAUDE.md handling and skill selection. Nothing ran them - pytest does
+      # not collect .bats - so nine of the sixteen had been failing on stale
+      # assertions with no sign of it anywhere.
+      #
+      # tests/hooks/*.bats cover the hooks the same way. That directory did not
+      # exist, and the hooks had no test at all, which is how a GNU-only sed -i
+      # and a redirection error survived in on-stop.sh: both fail silently, on
+      # a supported platform and on every session respectively.
+      - run: sudo apt-get update && sudo apt-get install -y bats
+      - run: bats tests/setup/ tests/hooks/

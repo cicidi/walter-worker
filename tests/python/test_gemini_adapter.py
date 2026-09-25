@@ -22,7 +22,9 @@ def test_sync_basic(gemini_home, monkeypatch):
     from coworker.adapters import gemini as gm
     from coworker.models import CoworkerConfig, McpServer
 
-    monkeypatch.setattr(gm.backup, "snapshot", lambda *a, **kw: None)
+    # snapshot now happens in the shared writer (adapters.claude), so patch the
+    # source module rather than a module-level re-export
+    monkeypatch.setattr("coworker.backup.snapshot", lambda *a, **kw: None)
 
     config = CoworkerConfig(mcp=[
         McpServer(name="test-server", command="echo", args=["hello"], enabled=True)
@@ -41,7 +43,9 @@ def test_sync_project_dir(tmp_path, monkeypatch):
     from coworker.adapters import gemini as gm
     from coworker.models import CoworkerConfig
 
-    monkeypatch.setattr(gm.backup, "snapshot", lambda *a, **kw: None)
+    # snapshot now happens in the shared writer (adapters.claude), so patch the
+    # source module rather than a module-level re-export
+    monkeypatch.setattr("coworker.backup.snapshot", lambda *a, **kw: None)
 
     project = tmp_path / "project"
     config = CoworkerConfig()
@@ -54,7 +58,9 @@ def test_sync_disabled_server_skipped(gemini_home, monkeypatch):
     from coworker.adapters import gemini as gm
     from coworker.models import CoworkerConfig, McpServer
 
-    monkeypatch.setattr(gm.backup, "snapshot", lambda *a, **kw: None)
+    # snapshot now happens in the shared writer (adapters.claude), so patch the
+    # source module rather than a module-level re-export
+    monkeypatch.setattr("coworker.backup.snapshot", lambda *a, **kw: None)
 
     config = CoworkerConfig(mcp=[
         McpServer(name="disabled", command="echo", args=[], enabled=False)
@@ -71,7 +77,9 @@ def test_sync_server_with_env(gemini_home, monkeypatch):
     from coworker.adapters import gemini as gm
     from coworker.models import CoworkerConfig, McpServer
 
-    monkeypatch.setattr(gm.backup, "snapshot", lambda *a, **kw: None)
+    # snapshot now happens in the shared writer (adapters.claude), so patch the
+    # source module rather than a module-level re-export
+    monkeypatch.setattr("coworker.backup.snapshot", lambda *a, **kw: None)
 
     config = CoworkerConfig(mcp=[
         McpServer(name="with-env", command="cmd", args=[], env={"KEY": "val"}, enabled=True)
@@ -84,11 +92,18 @@ def test_sync_server_with_env(gemini_home, monkeypatch):
 
 
 def test_write_json_atomic_exception(gemini_home, monkeypatch):
-    """_write_json_atomic cleans up temp file on exception."""
+    """The shared writer cleans up its temp file on exception.
+
+    _write_json_atomic now lives in adapters.claude and is imported here, so
+    patch through that module rather than this one's namespace.
+    """
     from coworker.adapters import gemini as gm
 
-    monkeypatch.setattr(gm.backup, "snapshot", lambda *a, **kw: None)
-    monkeypatch.setattr(gm.os, "replace", lambda src, dst: (_ for _ in ()).throw(RuntimeError("fail")))
+    monkeypatch.setattr("coworker.backup.snapshot", lambda *a, **kw: None)
+    monkeypatch.setattr(
+        "coworker.adapters.claude.os.replace",
+        lambda src, dst: (_ for _ in ()).throw(RuntimeError("fail")),
+    )
 
     target = gemini_home / ".gemini" / "test.json"
     target.write_text("{}")
@@ -102,7 +117,9 @@ def test_sync_merges_existing_mcp(gemini_home, monkeypatch):
     from coworker.adapters import gemini as gm
     from coworker.models import CoworkerConfig, McpServer
 
-    monkeypatch.setattr(gm.backup, "snapshot", lambda *a, **kw: None)
+    # snapshot now happens in the shared writer (adapters.claude), so patch the
+    # source module rather than a module-level re-export
+    monkeypatch.setattr("coworker.backup.snapshot", lambda *a, **kw: None)
 
     # Write existing settings with a user MCP server
     settings_path = gemini_home / ".gemini" / "settings.json"
@@ -127,7 +144,9 @@ def test_sync_with_extra_fields(gemini_home, monkeypatch):
     from coworker.adapters import gemini as gm
     from coworker.models import CoworkerConfig
 
-    monkeypatch.setattr(gm.backup, "snapshot", lambda *a, **kw: None)
+    # snapshot now happens in the shared writer (adapters.claude), so patch the
+    # source module rather than a module-level re-export
+    monkeypatch.setattr("coworker.backup.snapshot", lambda *a, **kw: None)
 
     config = CoworkerConfig()
     config.gemini.extra = {"theme": "dark"}
@@ -136,3 +155,47 @@ def test_sync_with_extra_fields(gemini_home, monkeypatch):
     with open(gemini_home / ".gemini" / "settings.json") as f:
         data = json.load(f)
     assert data["theme"] == "dark"
+
+
+class TestManagedMcpPruning:
+    """Merging kept the user's servers but could never retire one of ours.
+
+    Union-only is the safe half: it refuses to delete anything. Without a
+    record of what we wrote, it also refuses to delete our own, so a server
+    dropped from coworker.yaml stayed in Gemini's config for ever.
+    """
+
+    def _config(self, *names):
+        from coworker.models import CoworkerConfig, McpServer
+
+        return CoworkerConfig(
+            name="t",
+            mcp=[McpServer(name=n, command="npx", args=[n], enabled=True) for n in names],
+        )
+
+    def test_our_retired_server_is_removed(self, gemini_home, monkeypatch):
+        import coworker.adapters.gemini as g
+
+        # The managed-entry store keys off Path.home(); without this the test
+        # writes its temp paths into the real ~/.coworker/mcp-managed.json.
+        monkeypatch.setenv("HOME", str(gemini_home))
+        g.sync(self._config("keeper", "retired"))
+        g.sync(self._config("keeper"))
+
+        data = json.loads((gemini_home / ".gemini" / "settings.json").read_text())
+        assert "keeper" in data["mcpServers"]
+        assert "retired" not in data["mcpServers"]
+
+    def test_the_users_server_is_never_removed(self, gemini_home, monkeypatch):
+        import coworker.adapters.gemini as g
+
+        monkeypatch.setenv("HOME", str(gemini_home))
+        (gemini_home / ".gemini" / "settings.json").write_text(json.dumps({
+            "mcpServers": {"theirs": {"command": "their-own", "args": []}},
+        }))
+
+        g.sync(self._config("ours"))
+        g.sync(self._config("ours"))
+
+        data = json.loads((gemini_home / ".gemini" / "settings.json").read_text())
+        assert "theirs" in data["mcpServers"]

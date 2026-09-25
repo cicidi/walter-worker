@@ -3,8 +3,9 @@ set -euo pipefail
 
 # =============================================================================
 # walter-worker install.sh
-# Installs coworker skills from skill-factory to Claude Code (primary) and
-# OpenCode (symlink/copy).
+# Installs coworker skills. Skills sourced from the-super-lab are deployed to
+# Claude Code, OpenCode, and Cursor; walter-worker's own bundle skills go to
+# Claude Code (primary) and OpenCode (symlink/copy).
 #
 # Usage:
 #   ./setup/install.sh              # interactive mode
@@ -14,16 +15,12 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-SKILL_FACTORY_URL="https://github.com/cicidi/skill-factory"
-SKILL_FACTORY_DIR="$HOME/.config/opencode/skills/skill-factory"
+# the-super-lab is the source of truth for skills. Edit there first; this
+# script deploys its skills to Claude Code, OpenCode, and Cursor.
+THE_SUPER_LAB_DIR="${THE_SUPER_LAB_DIR:-$HOME/project/the-super-lab}"
+THE_SUPER_LAB_OPENCODE_DIR="$HOME/.config/opencode/skills/the-super-lab"
+CURSOR_RULES_DIR="$HOME/.cursor/rules"
 GLOBAL_CLAUDE_MD="$HOME/.claude/CLAUDE.md"
-
-default_branch() {
-    local ref
-    ref=$(git ls-remote --symref origin HEAD 2>/dev/null | \
-          awk '/^ref:/ {sub("refs/heads/","",$2); print $2}')
-    echo "${ref:-main}"
-}
 
 INSTALL_MODE=""
 PROJECT_PATH=""
@@ -64,6 +61,22 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 
 # =============================================================================
+# Step 1b — Save a pristine snapshot before touching anything
+# =============================================================================
+# uninstall.sh --restore-pristine copies settings.json and CLAUDE.md back out of
+# here. Nothing created this directory, so that option could only ever end at
+# "No pristine backup found". Taken once, on the first install, while both files
+# are still unmodified — the two the uninstaller restores.
+PRISTINE_DIR="$HOME/.coworker/backups/pristine"
+if [[ ! -d "$PRISTINE_DIR" ]]; then
+  mkdir -p "$PRISTINE_DIR"
+  for f in "$HOME/.claude/settings.json" "$GLOBAL_CLAUDE_MD"; do
+    [[ -f "$f" ]] && cp "$f" "$PRISTINE_DIR/$(basename "$f")"
+  done
+  log "Saved pristine snapshot to $PRISTINE_DIR"
+fi
+
+# =============================================================================
 # Step 2 — Ensure global CLAUDE.md exists
 # =============================================================================
 log "Checking global CLAUDE.md..."
@@ -75,6 +88,11 @@ from coworker.templates.global_claude_md import generate_global_claude_md
 print(generate_global_claude_md())
 ")
 
+# Whether this run created it, which decides if the manifest may claim it. An
+# existing CLAUDE.md is deliberately left alone here, so it is the user's and
+# uninstall has no business deleting it — but the manifest used to claim the
+# file whenever it existed, and a plain uninstall then removed it silently.
+CREATED_GLOBAL_MD=0
 if [[ -f "$GLOBAL_CLAUDE_MD" ]]; then
   ok "Global CLAUDE.md already exists at $GLOBAL_CLAUDE_MD"
   log "Run 'coworker upgrade' to merge template updates into your existing CLAUDE.md."
@@ -83,27 +101,25 @@ else
   mkdir -p "$(dirname "$GLOBAL_CLAUDE_MD")"
   echo "$CLAUDE_MD_CONTENT" > "$GLOBAL_CLAUDE_MD"
   ok "Created $GLOBAL_CLAUDE_MD"
+  CREATED_GLOBAL_MD=1
 fi
 
 # =============================================================================
-# Step 3 — Clone/update skill-factory
+# Step 3 — Update the-super-lab (skill source of truth)
 # =============================================================================
-log "Setting up skill-factory..."
+log "Checking the-super-lab..."
 
-if [[ -d "$SKILL_FACTORY_DIR" ]]; then
-  log "Updating skill-factory from GitHub..."
-  git -C "$SKILL_FACTORY_DIR" pull --ff-only origin "$(default_branch)" 2>/dev/null || \
-    warn "Could not update skill-factory (dirty or offline). Continuing with current version."
+if [[ -d "$THE_SUPER_LAB_DIR/.git" ]]; then
+  log "Updating the-super-lab..."
+  git -C "$THE_SUPER_LAB_DIR" pull --ff-only 2>/dev/null || \
+    warn "Could not update the-super-lab (dirty or offline). Continuing with current version."
+  ok "the-super-lab ready at $THE_SUPER_LAB_DIR"
+elif [[ -d "$THE_SUPER_LAB_DIR" ]]; then
+  warn "the-super-lab at $THE_SUPER_LAB_DIR is not a git repo — using it as-is."
 else
-  log "Cloning skill-factory from $SKILL_FACTORY_URL..."
-  mkdir -p "$(dirname "$SKILL_FACTORY_DIR")"
-  git clone "$SKILL_FACTORY_URL" "$SKILL_FACTORY_DIR" 2>/dev/null || {
-    error "Failed to clone skill-factory. Check your internet connection and git config."
-    exit 1
-  }
+  warn "the-super-lab not found at $THE_SUPER_LAB_DIR — skills will not be deployed."
+  warn "Clone it with: git clone git@github.com:cicidi/the-super-lab.git \"$THE_SUPER_LAB_DIR\""
 fi
-
-ok "Skill-factory ready at $SKILL_FACTORY_DIR"
 
 # =============================================================================
 # Step 4 — Install mode
@@ -141,6 +157,17 @@ fi
 mkdir -p "$CLAUDE_DIR"
 ok "Claude Code skills dir: $CLAUDE_DIR"
 
+# Content hash for a file, portable across GNU and BSD userlands.
+#
+# This used `md5sum | cut`, which is GNU coreutils. macOS has no md5sum, and
+# under `set -euo pipefail` the failed command substitution aborted the whole
+# install — on the very platform this script goes out of its way to support
+# (see the bash-3.2 note below). python3 is already required throughout this
+# script, so it is the one hashing tool guaranteed to be present.
+_hash_file() {
+  python3 -c "import hashlib, sys; print(hashlib.md5(open(sys.argv[1], 'rb').read()).hexdigest())" "$1"
+}
+
 # =============================================================================
 # Step 6 — Deploy walter-worker skills to OpenCode skill directory
 # =============================================================================
@@ -161,7 +188,7 @@ else
       skill_file="${skill_dir}SKILL.md"
       [[ -f "$skill_file" ]] || continue
       OLD_DIRS+=("$(basename "$skill_dir")")
-      OLD_DIR_HASHES+=("$(md5sum "$skill_file" | cut -d' ' -f1)")
+      OLD_DIR_HASHES+=("$(_hash_file "$skill_file")")
     done
   fi
 
@@ -176,7 +203,7 @@ else
     skill_file="${skill_dir}SKILL.md"
     [[ -f "$skill_file" ]] || continue
     SRC_DIRS+=("$(basename "$skill_dir")")
-    SRC_DIR_HASHES+=("$(md5sum "$skill_file" | cut -d' ' -f1)")
+    SRC_DIR_HASHES+=("$(_hash_file "$skill_file")")
   done
 
   # Detect renames: old dir gone from source, content moved to new dir.
@@ -200,9 +227,9 @@ else
 fi
 
 # =============================================================================
-# Step 7 — List available skills from skill-factory
+# Step 7 — List available skills from the-super-lab
 # =============================================================================
-log "Loading available skills from skill-factory..."
+log "Loading available skills from the-super-lab..."
 
 declare -a AVAILABLE_SKILLS=()
 declare -a SKILL_PATHS=()
@@ -224,15 +251,14 @@ index_skills() {
   done
 }
 
-index_skills "$SKILL_FACTORY_DIR/walter-worker-skills" "[factory] "
-index_skills "$SKILL_FACTORY_DIR/personal-skills" "[personal] "
-index_skills "$SKILL_FACTORY_DIR/import-skills" "[import] "
+index_skills "$THE_SUPER_LAB_DIR/skills" "[superlab] "
+index_skills "$THE_SUPER_LAB_DIR/personal-skills" "[personal] "
 index_skills "$REPO_ROOT/skills" "[bundle] "
 
 if [[ ${#AVAILABLE_SKILLS[@]} -eq 0 ]]; then
-  warn "No skills found in skill-factory."
+  warn "No skills found in the-super-lab or the local bundle."
 else
-  ok "Found ${#AVAILABLE_SKILLS[@]} skills in skill-factory."
+  ok "Found ${#AVAILABLE_SKILLS[@]} available skills."
 fi
 
 # =============================================================================
@@ -358,7 +384,75 @@ if [[ -n "$OPENCODE_DIR" ]]; then
       cp "$skill_file" "$OPENCODE_DIR/$name"
     fi
   done
+
+  # Prune entries this sync no longer produces. Without this the directory only
+  # ever grows: a symlink made by an earlier run keeps pointing at CLAUDE_DIR
+  # after its target is deleted or renamed, and nothing ever removes it. 78 such
+  # dangling links had accumulated here.
+  #
+  # Symlinks only. A regular file may be something the user placed there, while
+  # a symlink with no CLAUDE_DIR counterpart is one this script created and
+  # whose target is now gone.
+  #
+  # Recurses, because an earlier release symlinked whole directories in here, so
+  # a dangling link can sit below the top level. Directories the prune empties
+  # go too, or it would trade dangling links for a tree of empty shells.
+  pruned=0
+  while IFS= read -r existing; do
+    rm -f "$existing"
+    pruned=$((pruned + 1))
+  done < <(find "$OPENCODE_DIR" -xtype l 2>/dev/null)
+  find "$OPENCODE_DIR" -mindepth 1 -type d -empty -delete 2>/dev/null || true
+  [[ $pruned -gt 0 ]] && ok "  Pruned $pruned stale OpenCode symlink(s)"
   ok "OpenCode sync complete."
+fi
+
+# =============================================================================
+# Step 11b — Deploy the-super-lab skills to Claude, OpenCode, and Cursor
+# =============================================================================
+# the-super-lab is the source of truth. Each skill deploys to three harnesses:
+#   Claude Code  ~/.claude/skills/<name>/SKILL.md                (directory copy)
+#   OpenCode     ~/.config/opencode/skills/the-super-lab/<name>  (symlink to source)
+#   Cursor       ~/.cursor/rules/<name>.md                       (verbatim copy)
+# Claude and OpenCode receive whole directories so sibling files (for example
+# domain-modeling/ADR-FORMAT.md) travel with the skill. A flattened SKILL.md
+# copy silently drops them.
+if [[ -d "$THE_SUPER_LAB_DIR/skills" ]]; then
+  echo ""
+  log "Deploying the-super-lab skills to Claude, OpenCode, Cursor..."
+
+  mkdir -p "$HOME/.claude/skills" "$THE_SUPER_LAB_OPENCODE_DIR" "$CURSOR_RULES_DIR"
+  DEPLOYED=0
+
+  for skill_dir in "$THE_SUPER_LAB_DIR/skills"/*/; do
+    [[ -d "$skill_dir" ]] || continue
+    skill_file="${skill_dir}SKILL.md"
+    [[ -f "$skill_file" ]] || continue
+    name="$(basename "$skill_dir")"
+
+    # Claude Code — directory, so sibling files travel
+    mkdir -p "$HOME/.claude/skills/$name"
+    cp "$skill_file" "$HOME/.claude/skills/$name/SKILL.md"
+    for sibling in "$skill_dir"*; do
+      [[ -f "$sibling" ]] || continue
+      [[ "$(basename "$sibling")" == "SKILL.md" ]] && continue
+      cp "$sibling" "$HOME/.claude/skills/$name/"
+    done
+
+    # OpenCode — symlink the whole directory to the source
+    opencode_target="$THE_SUPER_LAB_OPENCODE_DIR/$name"
+    if [[ -e "$opencode_target" && ! -L "$opencode_target" ]]; then
+      rm -rf "$opencode_target"
+    fi
+    ln -sfn "${skill_dir%/}" "$opencode_target"
+
+    # Cursor — verbatim flattened copy
+    cp "$skill_file" "$CURSOR_RULES_DIR/$name.md"
+
+    ((DEPLOYED++)) || true
+  done
+
+  ok "Deployed $DEPLOYED the-super-lab skills to Claude, OpenCode, and Cursor."
 fi
 
 # =============================================================================
@@ -395,8 +489,12 @@ mkdir -p "$ANALYTICS_DIR/hooks"
 
 HOOKS_SRC="$REPO_ROOT/src/coworker/analytics/hooks"
 if [[ -d "$HOOKS_SRC" ]]; then
-  cp "$HOOKS_SRC/"*.sh "$ANALYTICS_DIR/hooks/"
-  chmod +x "$ANALYTICS_DIR/hooks/"*.sh
+  # .py hooks as well as .sh: the repo ships on-correction.py and settings.json
+  # registers it, but this glob only matched shell scripts, so a fresh install
+  # never received it and an existing one never picked up changes to it.
+  cp "$HOOKS_SRC/"*.sh "$HOOKS_SRC/"*.py "$ANALYTICS_DIR/hooks/" 2>/dev/null || \
+    cp "$HOOKS_SRC/"*.sh "$ANALYTICS_DIR/hooks/"
+  chmod +x "$ANALYTICS_DIR/hooks/"*.sh "$ANALYTICS_DIR/hooks/"*.py 2>/dev/null || true
   ok "Hook scripts installed to $ANALYTICS_DIR/hooks/"
 else
   warn "Hook scripts not found — skipping"
@@ -423,26 +521,63 @@ def _merge_hook(event, cmd):
         entries.append({'matcher': '', 'hooks': [{'type': 'command', 'command': cmd}]})
 
 _merge_hook('UserPromptSubmit', '$HOME/.coworker/analytics/hooks/on-user-prompt.sh')
+# The correction detector is the first stage of the self-heal loop: it reads
+# the prompt, writes a draft trace when the user is correcting the agent, and
+# the self-heal skill picks that up. The file was being copied into the hooks
+# dir but never wired to an event, so it ran only on machines where someone
+# had registered it by hand. python3 is explicit rather than relying on the
+# shebang and the exec bit, which install.sh only sets best-effort.
+_merge_hook('UserPromptSubmit', 'python3 $HOME/.coworker/analytics/hooks/on-correction.py')
 _merge_hook('PreToolUse',        '$HOME/.coworker/analytics/hooks/on-pre-tool.sh')
 _merge_hook('PostToolUse',       '$HOME/.coworker/analytics/hooks/on-post-tool.sh')
 _merge_hook('Stop',              '$HOME/.coworker/analytics/hooks/on-stop.sh')
+# Session-end capture: the memory loop's first stage. It reads the hook
+# payload on stdin, back-fills captures missed during the session and stages
+# skill candidates for review. One LLM call per session, so it is the cheap
+# half of capture; the per-tool-call half is deliberately left unwired.
+#
+# The command is invoked as plain coworker, matching the state-update hook that
+# sync() manages. It exits 0 without a word when no API key is configured, so an
+# unconfigured machine is quiet rather than nagging after every session.
+#
+# NOTE: this block is a double-quoted bash string. A double quote in these
+# comments ends it early; a backtick or dollar-paren runs a command and splices
+# the output in. A previous pair of backticks here executed the coworker CLI and
+# pasted its usage text into the middle of the Python, so the hooks silently
+# stopped being written while the installer still reported success. Describe
+# such characters in words; never write them.
+_merge_hook('Stop',              'coworker memory capture')
+# And the merge that gives capture somewhere to land. capture writes a pending
+# dump; close is the only thing that folds those into graph.json, and nothing
+# called it — so every session added one more file to pending/ and the graph
+# stayed empty for ever. The memory-graph spec names this command as the Stop
+# hook; it was simply never wired.
+_merge_hook('Stop',              'coworker memory close')
 
 with open('$CLAUDE_SETTINGS', 'w') as f: json.dump(cfg, f, indent=2)
 " 2>/dev/null && ok "Claude Code hooks configured" || warn "Failed to configure Claude Code hooks"
 
 # Register OpenCode analytics plugin
+#
+# .opencode/ is gitignored and its plugin sources were removed from the repo,
+# so a fresh clone has no .opencode/coworker-analytics. Registering the path
+# anyway wrote an entry pointing at nothing into the user's OpenCode config,
+# which OpenCode then failed to load. Only claim a plugin that is really there.
 OPENCODE_CONFIG="$HOME/.config/opencode/config.json"
-if [[ -f "$OPENCODE_CONFIG" ]]; then
+OPENCODE_PLUGIN="$REPO_ROOT/.opencode/coworker-analytics"
+if [[ -f "$OPENCODE_CONFIG" && -d "$OPENCODE_PLUGIN" ]]; then
   python3 -c "
 import json
 with open('$OPENCODE_CONFIG') as f: cfg = json.load(f)
 plugins = cfg.setdefault('plugin', [])
-plugin_path = '$REPO_ROOT/.opencode/coworker-analytics'
+plugin_path = '$OPENCODE_PLUGIN'
 if plugin_path not in plugins:
     plugins.append(plugin_path)
 with open('$OPENCODE_CONFIG', 'w') as f: json.dump(cfg, f, indent=2)
 print('OpenCode plugin registered')
 " 2>/dev/null && ok "OpenCode analytics plugin registered" || warn "Failed to register OpenCode plugin"
+elif [[ -f "$OPENCODE_CONFIG" ]]; then
+  warn "No OpenCode plugin at $OPENCODE_PLUGIN — skipping registration"
 fi
 
 # Initialize analytics DB
@@ -462,11 +597,9 @@ if command -v coworker &>/dev/null; then
   echo ""
   log "Syncing MCP config via coworker CLI..."
 
-  MCP_JSON="$REPO_ROOT/.mcp.json"
-  if [[ -f "$MCP_JSON" ]]; then
-    :  # (MCP import removed — handled via sync)
-  fi
-    coworker sync && ok "Config synced to all tools"
+  # MCP import lived here and was folded into `coworker sync`; .mcp.json itself
+  # was removed from the repo in 0f5824bf, so the check for it was dead.
+  coworker sync && ok "Config synced to all tools"
 else
   warn "coworker CLI not found. Run: pipx install $REPO_ROOT"
   warn "Then re-run this script to sync MCP config."
@@ -477,10 +610,33 @@ fi
 # Step 16 — Write install manifest
 # =============================================================================
 MANIFEST="$HOME/.coworker/install-manifest.json"
+
+# What this installer wrote, so the manifest can claim it by name instead of by
+# directory. Used to be an os.walk over ~/.claude, ~/.opencode and
+# ~/.coworker/analytics, which claimed everything under those shared
+# directories — plugin caches, session transcripts, other tools' skills, and the
+# analytics database uninstall's own banner promises to preserve — and then
+# deleted all of it.
+MANIFEST_SKILLS="${SELECTED_SKILLS[*]:-}"
+MANIFEST_SUPERLAB=""
+if [[ -d "$THE_SUPER_LAB_DIR/skills" ]]; then
+  for _d in "$THE_SUPER_LAB_DIR/skills"/*/; do
+    [[ -f "${_d}SKILL.md" ]] && MANIFEST_SUPERLAB+="$(basename "$_d") "
+  done
+fi
+
 python3 -c "
-import json, os, glob
+import json, os, glob, shutil
 home = os.environ['HOME']
+claude_dir = '${CLAUDE_DIR}'
+selected = '${MANIFEST_SKILLS}'.split()
+deployed = '${MANIFEST_SUPERLAB}'.split()
 manifest = {
+    # 2 = files are claimed by name, only what this installer wrote. Manifest 1
+    # claimed every file found under ~/.claude, ~/.opencode and
+    # ~/.coworker/analytics, which uninstall would then delete. uninstall.sh
+    # refuses to remove anything from a manifest without this key.
+    'schema_version': 2,
     'install_mode': '${INSTALL_MODE}',
     'repo_root': '${REPO_ROOT}',
     'hook_commands': [],
@@ -488,26 +644,66 @@ manifest = {
     'owned_dirs': [],
     'project_path': '${PROJECT_PATH}',
 }
-# Files we know were written (conditional on what actually exists).
-# Exclude claude-tmux-config's owned dirs so this manifest never claims them
-# (otherwise walter-worker uninstall could delete the statusline/theme files).
-exclude_prefixes = (f'{home}/.claude/statusline/', f'{home}/.tmux/conf.d/',
-                    f'{home}/.tmux/scripts/status_info.sh')
-for d in [f'{home}/.coworker/analytics', f'{home}/.coworker/skills',
-          f'{home}/.claude', f'{home}/.opencode',
-          f'{home}/.config/opencode/skills/walter-worker']:
-    if os.path.isdir(d):
-        for root, dirs, files in os.walk(d):
-            for fn in files:
-                p = os.path.join(root, fn)
-                if p.startswith(exclude_prefixes):
-                    continue
-                manifest['files'].append(p)
-# Global CLAUDE.md
+
+# Claim ONLY paths this installer writes. Anything not listed here is left
+# alone, which is the safe direction: an unclaimed file survives uninstall.
+files = []
+def claim(p):
+    if os.path.isfile(p) or os.path.islink(p):
+        files.append(p)
+
+# Hook scripts copied into the analytics dir.
+for p in glob.glob(f'{home}/.coworker/analytics/hooks/*'):
+    claim(p)
+
+# Skills selected in step 10, flattened to <name>.md, plus their OpenCode mirror.
+for name in selected:
+    claim(f'{claude_dir}/{name}.md')
+    claim(f'{home}/.opencode/instructions/{name}.md')
+
+# the-super-lab skills deployed in step 11b, by name: the Claude directory copy
+# and the Cursor rules file. The OpenCode side is a symlink to the source repo
+# and is removed with owned_dirs.
+for name in deployed:
+    for root, _dirs, fns in os.walk(f'{home}/.claude/skills/{name}'):
+        for fn in fns:
+            claim(os.path.join(root, fn))
+    claim(f'{home}/.cursor/rules/{name}.md')
+
+# The walter-worker skill tree this installer owns outright. Claim what the
+# rsync in step 6 PRODUCES, read from the source tree rather than from the
+# destination: walking the destination also claimed skills an earlier release
+# had left behind, so every run re-claimed them and the prune below could never
+# retire them.
+_wm_src = '${REPO_ROOT}/skills'
+_wm_dst = f'{home}/.config/opencode/skills/walter-worker'
+for _wm_root, _wm_dirs, _wm_fns in os.walk(_wm_src):
+    _wm_rel = os.path.relpath(_wm_root, _wm_src)
+    for fn in _wm_fns:
+        if _wm_rel == '.':
+            claim(os.path.join(_wm_dst, fn))
+        else:
+            claim(os.path.join(_wm_dst, _wm_rel, fn))
+
+# Deliberately NOT claimed: ~/.coworker/analytics (data), ~/.coworker/backups,
+# ~/.coworker/skills (skills the user accumulated), ~/.claude/{plugins,projects,
+# file-history,sessions,tasks,docs,backups}, ~/.opencode/node_modules, and any
+# ~/.claude/skills/<name> this install did not deploy.
+manifest['files'] = files
+# Global CLAUDE.md — only if this run created it. Claiming it whenever it
+# existed meant a user's own hand-written CLAUDE.md was deleted by uninstall,
+# on a file install.sh had just deliberately declined to touch.
 md = f'{home}/.claude/CLAUDE.md'
-if os.path.isfile(md): manifest['files'].append(md)
-# Hook commands from settings.json
+if '$CREATED_GLOBAL_MD' == '1' and os.path.isfile(md):
+    manifest['files'].append(md)
+# Hook commands from settings.json — only the ones this project installs.
+#
+# This used to claim every hook in the file, including the user's own, so
+# uninstall stripped their hooks along with ours. Ours are identifiable: they
+# point into our hooks directory, or they are our own CLI subcommands.
 sf = f'{home}/.claude/settings.json'
+OUR_HOOK_PATH = '/.coworker/analytics/hooks/'
+OUR_HOOK_CMDS = ('coworker memory capture', 'coworker memory close', 'coworker state-update')
 if os.path.isfile(sf):
     cfg = json.load(open(sf))
     for entries in cfg.get('hooks', {}).values():
@@ -515,11 +711,89 @@ if os.path.isfile(sf):
             for g in entries:
                 if isinstance(g, dict):
                     for h in g.get('hooks', []):
-                        manifest['hook_commands'].append(h.get('command', ''))
+                        cmd = h.get('command', '')
+                        if OUR_HOOK_PATH in cmd or cmd in OUR_HOOK_CMDS:
+                            manifest['hook_commands'].append(cmd)
 # Owned dirs
 for d in [f'{home}/.coworker', f'{home}/.config/opencode/skills/walter-worker']:
     if os.path.isdir(d):
         manifest['owned_dirs'].append(d)
+
+# Prune what an earlier run wrote and this run no longer produces.
+#
+# The manifest is rewritten once per run and lists exactly what that run
+# claimed, so the difference between the previous manifest and the current
+# claim set is precisely the set of paths this installer used to own and has
+# stopped producing: a skill that was renamed, merged, or dropped from the
+# sources. Without this the mirrors only ever grow -- 42 dangling links and 91
+# retired skill directories had accumulated across four of them.
+#
+# Prune is one-directional by construction. A path is removed only because a
+# previous run claimed it, so a file this installer never wrote is never
+# touched: user files, and skills installed by another tool, survive.
+#
+# A failure here must not cost us the manifest, so the block is guarded.
+pruned = []
+try:
+    _prev = {}
+    if os.path.isfile('$MANIFEST'):
+        try:
+            _prev = json.load(open('$MANIFEST')) or {}
+        except (ValueError, OSError):
+            _prev = {}
+
+    # A prune that removes the last file in a skill directory would otherwise
+    # leave the bare directory behind, so emptied ones are retired with it. The
+    # walk stops at each tree root, never above it.
+    _trees = (f'{home}/.claude/skills',
+              f'{home}/.config/opencode/skills/walter-worker')
+
+    def _retire_empty(d):
+        while any(d.startswith(t + os.sep) for t in _trees):
+            try:
+                os.rmdir(d)
+            except OSError:
+                return
+            d = os.path.dirname(d)
+
+    # Answering None means do not install skills — it is not an instruction to
+    # delete the ones already present. The prune is a diff against what this run
+    # claimed, and a run that skipped skills claims none of them, so they were
+    # all retired. update.sh re-invokes this installer with None as the default
+    # answer, so pressing Enter during an update wiped every skill on the
+    # machine, including the core init skill the same run had just reported
+    # installing. Carry the previous bundle skills forward instead; the mirrors
+    # the-super-lab feeds are deployed regardless of this answer and are still
+    # pruned normally below.
+    _carried = 0
+    if '$SKILL_CHOICE' == '0':
+        for _p in _prev.get('files', []):
+            if _p.startswith(f'{home}/.claude/commands/') and os.path.lexists(_p):
+                files.append(_p)
+                _carried += 1
+        if _carried:
+            print(f'  Skills skipped, so {_carried} existing skill(s) were kept.')
+
+    if _prev.get('schema_version') == 2:
+        _current = set(files)
+        for _p in _prev.get('files', []):
+            if _p in _current or not os.path.lexists(_p):
+                continue
+            try:
+                if os.path.isdir(_p) and not os.path.islink(_p):
+                    shutil.rmtree(_p)
+                else:
+                    os.remove(_p)
+            except OSError:
+                continue
+            pruned.append(_p)
+            _retire_empty(os.path.dirname(_p))
+except Exception:
+    pruned = []
+manifest['pruned'] = pruned
+if pruned:
+    print(f'  Retired {len(pruned)} path(s) this install no longer produces')
+
 os.makedirs(f'{home}/.coworker', exist_ok=True)
 json.dump(manifest, open('$MANIFEST', 'w'), indent=2)
 " 2>/dev/null && ok "Install manifest written to $MANIFEST" || warn "Manifest write skipped"
@@ -538,11 +812,9 @@ echo "   Updated : $UPDATED files"
 echo "   Skipped : $SKIPPED files (already up-to-date)"
 echo ""
 echo "Next steps:"
-echo "  Add env vars to ~/.coworker/.env or ~/.zshrc:"
-echo "    GITHUB_PERSONAL_ACCESS_TOKEN=..."
-echo "    SLACK_BOT_TOKEN=..."
-echo "    TELEGRAM_BOT_TOKEN=..."
-echo "    DISCORD_TOKEN=..."
+echo "  Add env vars to ~/.coworker/.env:"
+echo "    DEEPSEEK_API_KEY=...     # required by /memory and /knowledge;"
+echo "                             # fallbacks: GEMINI_API_KEY, ANTHROPIC_API_KEY"
 echo "  Run: coworker sync"
 echo "  Analytics: coworker analytics dashboard"
 echo "  Sessions recorded to: ~/.coworker/analytics/sessions/"

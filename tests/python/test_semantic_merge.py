@@ -219,27 +219,27 @@ class TestClassifySectionsEdgeCases:
         """Lines 213-215: when future body is a placeholder,
         the section is classified as KEEP with current content preserved."""
         current = (
-            "## Active Initiative: test\n"
+            "## Active Feature: test\n"
             "_(none configured)_\n"
         )
         future = (
-            "## Active Initiative: test\n"
+            "## Active Feature: test\n"
             "_(none configured)_\n"
         )
         # current == future, so it's already KEEP via the equality branch.
         # Force the placeholder path: modify current so it differs.
         current = (
-            "## Active Initiative: test\n"
-            "user's real initiative content\n"
+            "## Active Feature: test\n"
+            "user's real feature content\n"
         )
         # future still has the placeholder — the tool template
         c = classify_sections(current, future)
-        section = [x for x in c if x.heading == "## Active Initiative: test"]
+        section = [x for x in c if x.heading == "## Active Feature: test"]
         assert len(section) == 1
         assert section[0].category == KEEP, (
             "Placeholder future body should not overwrite user content"
         )
-        assert section[0].current_content == "user's real initiative content\n"
+        assert section[0].current_content == "user's real feature content\n"
 
     def test_non_placeholder_different_body_triggers_overwrite(self):
         """Contrast: when future body is NOT a placeholder and differs,
@@ -361,3 +361,85 @@ class TestVerifyProtected:
         )
         violations = verify_protected(original, original)
         assert violations == []
+
+
+class TestMarkerDialectProtection:
+    """Both marker dialects must survive a merge.
+
+    `coworker upgrade` merges the generated CLAUDE.md over the user's file.
+    A block written before the initiative→feature rename carries INITIATIVE
+    markers; if the protection check only recognised FEATURE, the merge would
+    overwrite the user's active context without warning.
+    """
+
+    @pytest.mark.parametrize("dialect", ["FEATURE", "INITIATIVE"])
+    def test_marker_block_is_kept(self, dialect):
+        current = (
+            f"## Active {dialect.title()}: demo\n"
+            f"<!-- {dialect}:demo START -->\n"
+            "the user's real active context\n"
+            f"<!-- {dialect}:demo END -->\n"
+        )
+        # The tool's generated future has a placeholder body for this section.
+        future = "## Active Feature: demo\n_(none configured)_\n"
+
+        classifications = classify_sections(current, future)
+        section = [
+            x for x in classifications
+            if x.heading.startswith(("## Active Feature", "## Active Initiative"))
+        ]
+        assert section, f"section not classified for dialect {dialect}"
+        assert section[0].category == KEEP, (
+            f"{dialect} marker block must be protected, got {section[0].category}"
+        )
+        assert "the user's real active context" in section[0].current_content
+
+
+class TestProtectedMarkerSpellings:
+    """Both PROTECTED spellings must delimit one span, not run to EOF.
+
+    The start pattern used to match an end marker written as
+    `<!-- PROTECTED END -->`, because `PROTECTED[^>]*` swallowed the "END" too.
+    That opened a second span running to EOF, and the end pattern - which only
+    knew `<!-- END PROTECTED -->` - never closed it. Everything after the block
+    was silently over-protected: pinned to its old content, with no update ever
+    applied and no violation reported.
+    """
+
+    CANONICAL = ("<!-- PROTECTED -->", "<!-- END PROTECTED -->")
+    START_END = ("<!-- PROTECTED START -->", "<!-- PROTECTED END -->")
+
+    def _doc(self, start, end):
+        return (
+            "# T\n\n## Notes\n\nmine\n\n"
+            f"{start}\nsecret\n{end}\n\n"
+            "## Stale\n\nold tool content\n"
+        )
+
+    @pytest.mark.parametrize("spelling", [CANONICAL, START_END])
+    def test_one_span_not_two(self, spelling):
+        ranges = protected_ranges(self._doc(*spelling))
+        assert ranges == [(7, 9)], (
+            f"{spelling[0]} should delimit exactly one span, got {ranges}"
+        )
+
+    @pytest.mark.parametrize("spelling", [CANONICAL, START_END])
+    def test_content_after_block_still_updates(self, spelling):
+        current = self._doc(*spelling)
+        future = "# T\n\n## Stale\n\nNEW tool content\n"
+
+        merged = apply_merge(classify_sections(current, future), current, future)
+
+        assert "secret" in merged, "protected content must survive"
+        assert "NEW tool content" in merged, (
+            "a section after the protected block must still receive updates; "
+            "the block used to extend to EOF and pin it"
+        )
+
+    def test_end_marker_does_not_start_a_span(self):
+        """`<!-- PROTECTED END -->` must never be read as a start marker."""
+        from coworker.semantic_merge import _PROTECTED_END_RE, _PROTECTED_START_RE
+
+        end_marker = "<!-- PROTECTED END -->"
+        assert _PROTECTED_END_RE.search(end_marker)
+        assert not _PROTECTED_START_RE.search(end_marker)

@@ -15,6 +15,13 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 DEFAULT_PENDING_DIR = "~/.coworker/pending/skills"
+# Where approve() promotes a skill to. A module constant like the one above so
+# tests can redirect it; it was hardcoded to Path.home(), so exercising approve
+# wrote real skills into the user's ~/.coworker/skills/.
+DEFAULT_ACTIVE_DIR = "~/.coworker/skills"
+# The IDE command directories install.sh keeps identical; a promoted skill has
+# to be written to both or the two drift apart.
+DEFAULT_IDE_COMMAND_DIRS = ("~/.claude/commands", "~/.opencode/instructions")
 AUTO_EXPIRE_DAYS = 30
 
 
@@ -64,7 +71,7 @@ def _promote_to_active(data: dict) -> None:
     if not skill_name:
         return
     skill_id = skill_name.replace(" ", "-").lower()
-    active_dir = Path.home() / ".coworker" / "skills" / skill_id
+    active_dir = Path(DEFAULT_ACTIVE_DIR).expanduser() / skill_id
     active_dir.mkdir(parents=True, exist_ok=True)
 
     # Write SKILL.md stub
@@ -91,29 +98,55 @@ def _promote_to_active(data: dict) -> None:
     (active_dir / "usage.json").write_text(json.dumps(usage, indent=2))
 
     # Install to ~/.claude/commands/ so Claude Code can load it as a slash command
-    _install_to_commands(skill_id, skill_md)
+    _install_to_ide_dirs(skill_id, skill_md)
 
     logger.info("Promoted skill %s to active skills directory", skill_id)
 
 
-def _install_to_commands(skill_id: str, skill_md_path: Path) -> None:
-    """Copy promoted skill to ~/.claude/commands/ for Claude Code loading."""
-    try:
-        commands_dir = Path.home() / ".claude" / "commands"
-        commands_dir.mkdir(parents=True, exist_ok=True)
-        dst = commands_dir / f"{skill_id}.md"
-        if not dst.exists():
-            dst.write_text(skill_md_path.read_text())
-            logger.info("Installed skill %s to ~/.claude/commands/", skill_id)
-    except Exception as e:
-        logger.warning("Failed to install skill %s to commands: %s", skill_id, e)
+def _install_to_ide_dirs(skill_id: str, skill_md_path: Path) -> None:
+    """Copy a promoted skill into both IDE command directories.
+
+    install.sh keeps ~/.claude/commands/ and ~/.opencode/instructions/ identical
+    - its step 11 mirrors the first into the second, and the 30-minute health
+    check reports any difference as COMMANDS_DIFF. This copied to the Claude dir
+    only, so promoting a skill (the dashboard's approve button, `memory train`)
+    left the two out of step until the next `coworker sync`.
+    """
+    content = skill_md_path.read_text()
+    for target in (Path(p).expanduser() for p in DEFAULT_IDE_COMMAND_DIRS):
+        try:
+            target.mkdir(parents=True, exist_ok=True)
+            dst = target / f"{skill_id}.md"
+            if not dst.exists():
+                dst.write_text(content)
+                logger.info("Installed skill %s to %s", skill_id, target)
+        except Exception as e:
+            logger.warning("Failed to install skill %s to %s: %s", skill_id, target, e)
 
 
 def stage_skill(name: str, description: str, tool_call_count: int, session_id: str) -> str:
     """Stage a new skill candidate to the pending queue.
 
-    Returns the skill ID (filename without .json).
+    Returns the skill ID (filename without .json). Raises RuntimeError when the
+    circuit breaker has tripped.
+
+    The breaker caps auto-evolution at 3 skills per 24h (spec §6/§9). It was
+    implemented and tested in memory/safety.py but nothing consulted it: this
+    function staged unconditionally, and capture.py wrote the pending file
+    itself without even calling here.
     """
+    from coworker.memory.safety import (
+        CIRCUIT_BREAKER_LIMIT,
+        CIRCUIT_BREAKER_WINDOW_HOURS,
+        record_auto_evolution,
+    )
+
+    if not record_auto_evolution("create", name, description):
+        raise RuntimeError(
+            f"Circuit breaker tripped - refusing to stage skill {name!r} "
+            f"(limit {CIRCUIT_BREAKER_LIMIT} per {CIRCUIT_BREAKER_WINDOW_HOURS}h)"
+        )
+
     skill_id = name.replace(" ", "-").lower()
     payload = {
         "name": name,
@@ -234,20 +267,31 @@ def record_patch(skill_name: str) -> None:
     path = _pending_dir() / f"{skill_name}-patches.json"
     patches = []
     if path.exists():
-        try: patches = json.loads(path.read_text())
-        except: pass
+        try:
+            patches = json.loads(path.read_text())
+        except (json.JSONDecodeError, OSError):
+            pass  # unreadable or corrupt — start a fresh list
     patches.append({"timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "skill": skill_name})
     path.write_text(json.dumps(patches, indent=2))
 
 def record_version(skill_name: str, version: int = 1) -> None:
-    """Record skill version for rollback (PRD §5.6, S-8)."""
+    """Record a skill's version number and timestamp.
+
+    Named for PRD §5.6 / S-8 rollback, but no rollback exists and this is not
+    called from anywhere. It also records only a number - not the promoted
+    SKILL.md - so a rollback could not restore anything from it as it stands.
+    Storing content here is the prerequisite for implementing one.
+    """
     import json
     from datetime import datetime, timezone
     path = _pending_dir() / f"{skill_name}-versions.json"
     versions = []
     if path.exists():
-        try: versions = json.loads(path.read_text())
-        except: pass
+        try:
+            versions = json.loads(path.read_text())
+        except (json.JSONDecodeError, OSError):
+            pass  # unreadable or corrupt — start a fresh list
     versions.append({"version": version, "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")})
-    if len(versions) > 5: versions = versions[-5:]  # keep last 5
+    if len(versions) > 5:
+        versions = versions[-5:]  # keep last 5
     path.write_text(json.dumps(versions, indent=2))

@@ -1,7 +1,11 @@
 from __future__ import annotations
 import json
 from pathlib import Path
-from ..models import CoworkerConfig, ProjectCatalog, InitiativeConfig
+from ..models import CoworkerConfig, ProjectCatalog, FeatureConfig
+# Shared with the Claude adapter rather than duplicated, as gemini.py already
+# does for _write_json_atomic: the managed-entry bookkeeping has to mean the
+# same thing wherever it is read.
+from .claude import _load_managed_mcp, _save_managed_mcp
 
 OPENCODE_DIR = Path.home() / ".config" / "opencode"
 OPENCODE_CONFIG = OPENCODE_DIR / "config.json"
@@ -42,7 +46,22 @@ def sync(config: CoworkerConfig, project_dir: Path | None = None) -> list[str]:
             if server.env:
                 entry["env"] = server.env
             mcp_servers[server.name] = entry
-        existing["mcp"] = mcp_servers
+
+        # Merge, don't replace. Assigning the map outright deleted every server
+        # the user had added to their own OpenCode config, on every sync — the
+        # same silent loss of the user's configuration that the Claude settings
+        # path was fixed for. Only entries we wrote, and that still hold
+        # exactly what we wrote, are ours to retire.
+        user_mcp = existing.get("mcp", {})
+        if not isinstance(user_mcp, dict):
+            user_mcp = {}
+        managed = _load_managed_mcp(config_path)
+        for name, written in managed.items():
+            if name not in mcp_servers and user_mcp.get(name) == written:
+                user_mcp.pop(name)
+
+        existing["mcp"] = {**user_mcp, **mcp_servers}
+        _save_managed_mcp(config_path, mcp_servers)
 
     with open(config_path, "w") as f:
         json.dump(existing, f, indent=2)
@@ -87,13 +106,13 @@ def inject_static_context(
     return actions
 
 
-def inject_initiative(
-    config: InitiativeConfig, project_dir: Path | None = None
+def inject_feature(
+    config: FeatureConfig, project_dir: Path | None = None
 ) -> list[str]:
-    from .claude import inject_initiative as claude_inject
+    from .claude import inject_feature as claude_inject
     return claude_inject(config, project_dir=project_dir)
 
 
-def remove_initiative(project_dir: Path | None = None) -> list[str]:
-    from .claude import remove_initiative as claude_remove
+def remove_feature(project_dir: Path | None = None) -> list[str]:
+    from .claude import remove_feature as claude_remove
     return claude_remove(project_dir=project_dir)

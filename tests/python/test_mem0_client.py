@@ -7,9 +7,25 @@ Each test uses isolated temporary vector stores for determinism.
 from __future__ import annotations
 
 import os
+from unittest.mock import MagicMock
 
 import pytest
 from coworker.memory.mem0_client import ConfigError, Mem0Client, Mem0Error
+
+
+def _require_mem0_and_key() -> None:
+    """Skip unless this test can actually run.
+
+    Order matters. mem0ai lives in the optional [memory] extra, so a venv
+    built with `pip install -e ".[test]"` has no mem0 even when the shell
+    exports DEEPSEEK_API_KEY. Checking the key first let these tests walk
+    past the guard and die at `from mem0 import Memory` with
+    ModuleNotFoundError instead of skipping — a red run that says nothing
+    about the code.
+    """
+    pytest.importorskip("mem0", reason="mem0ai is in the optional [memory] extra")
+    if "DEEPSEEK_API_KEY" not in os.environ:
+        pytest.skip("DEEPSEEK_API_KEY not set")
 
 
 # ============================================================================
@@ -23,8 +39,7 @@ class TestMem0ClientInit:
 
     def test_from_config_creates_valid_client(self, tmp_path):
         """Base happy path: valid config → usable client."""
-        if "DEEPSEEK_API_KEY" not in os.environ:
-            pytest.skip("DEEPSEEK_API_KEY not set")
+        _require_mem0_and_key()
         client = Mem0Client.from_config(
             llm_provider="openai",
             llm_model="deepseek-v4-flash",
@@ -38,21 +53,23 @@ class TestMem0ClientInit:
 
     def test_missing_api_key_raises_config_error(self, monkeypatch, tmp_path):
         """Edge case: no DEEPSEEK_API_KEY → ConfigError."""
+        # mem0ai lives in the optional [memory] extra, so a plain
+        # `pip install -e ".[test]"` cannot run this. Skip rather than error —
+        # the missing-key check itself needs no key, but it does need mem0.
+        pytest.importorskip("mem0", reason="mem0ai is in the optional [memory] extra")
         monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
         with pytest.raises(ConfigError, match="DEEPSEEK_API_KEY"):
             Mem0Client.from_config(vector_store_path=str(tmp_path / "mem0_no_key"))
 
     def test_from_config_defaults(self, tmp_path):
         """Inference 1: all defaults → still works."""
-        if "DEEPSEEK_API_KEY" not in os.environ:
-            pytest.skip("DEEPSEEK_API_KEY not set")
+        _require_mem0_and_key()
         client = Mem0Client.from_config(vector_store_path=str(tmp_path / "mem0_defaults"))
         assert client is not None
 
     def test_custom_vector_store_path_created(self, tmp_path):
         """Inference 2: custom path is auto-created if missing."""
-        if "DEEPSEEK_API_KEY" not in os.environ:
-            pytest.skip("DEEPSEEK_API_KEY not set")
+        _require_mem0_and_key()
         custom_path = tmp_path / "nested" / "custom" / "store"
         client = Mem0Client.from_config(vector_store_path=str(custom_path))
         assert custom_path.exists()
@@ -515,3 +532,47 @@ class TestMem0ClientErrorHandling:
             ids.append(eid)
         assert len(ids) == 10
         assert len(set(ids)) == 10
+
+
+# ============================================================================
+# Read-only listing
+# ============================================================================
+
+
+class TestListEntries:
+    """list_entries is the read-only listing the curator's sweep needs.
+
+    search() bumps use_count/last_used on every entry it returns, so a
+    staleness sweep built on search() refreshes its own evidence. These
+    tests pin the absence of that side effect.
+    """
+
+    def test_does_not_update_entries(self):
+        memory = MagicMock()
+        memory.get_all.return_value = {"results": [{"id": "1", "metadata": {"state": "active"}}]}
+        client = Mem0Client(memory)
+        client.list_entries()
+        memory.update.assert_not_called()
+
+    def test_returns_entries_and_scopes_to_a_user(self):
+        memory = MagicMock()
+        memory.get_all.return_value = {"results": [{"id": "1", "metadata": {}}]}
+        client = Mem0Client(memory)
+        out = client.list_entries(filters={"state": "active"})
+        assert len(out) == 1
+        kwargs = memory.get_all.call_args.kwargs
+        assert kwargs["filters"]["user_id"] == "default"
+        assert kwargs["filters"]["state"] == "active"
+        assert kwargs["top_k"] > 20  # mem0's default silently truncates
+
+    def test_accepts_plain_list_response(self):
+        memory = MagicMock()
+        memory.get_all.return_value = [{"id": "1", "metadata": {}}]
+        client = Mem0Client(memory)
+        assert len(client.list_entries()) == 1
+
+    def test_error_returns_empty(self):
+        memory = MagicMock()
+        memory.get_all.side_effect = RuntimeError("down")
+        client = Mem0Client(memory)
+        assert client.list_entries() == []

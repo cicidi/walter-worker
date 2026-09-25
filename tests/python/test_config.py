@@ -12,7 +12,7 @@ from coworker.models import (
     Permissions,
     ProjectEntry,
     ProjectCatalog,
-    InitiativeConfig,
+    FeatureConfig,
     Skill,
 )
 import coworker.config as cfg
@@ -45,31 +45,66 @@ class TestProjectCatalogConfig:
         assert loaded.projects[0].name == "new"
 
 
-class TestInitiativeConfig:
-    def test_save_and_load(self, temp_initiatives_dir):
-        cfg.save_initiative(
-            InitiativeConfig(name="test-init", description="Test"),
+class TestFeatureConfig:
+    def test_save_and_load(self, temp_features_dir):
+        cfg.save_feature(
+            FeatureConfig(name="test-init", description="Test"),
         )
-        loaded = cfg.load_initiative("test-init")
+        loaded = cfg.load_feature("test-init")
         assert loaded is not None
         assert loaded.name == "test-init"
         assert loaded.description == "Test"
 
-    def test_initiative_exists(self, temp_initiatives_dir):
-        assert not cfg.initiative_exists("test-init")
-        cfg.save_initiative(InitiativeConfig(name="test-init"))
-        assert cfg.initiative_exists("test-init")
+    def test_feature_exists(self, temp_features_dir):
+        assert not cfg.feature_exists("test-init")
+        cfg.save_feature(FeatureConfig(name="test-init"))
+        assert cfg.feature_exists("test-init")
 
-    def test_list_initiatives(self, temp_initiatives_dir):
-        cfg.save_initiative(InitiativeConfig(name="init-a"))
-        cfg.save_initiative(InitiativeConfig(name="init-b"))
-        results = cfg.list_initiatives()
+    def test_list_features(self, temp_features_dir):
+        cfg.save_feature(FeatureConfig(name="init-a"))
+        cfg.save_feature(FeatureConfig(name="init-b"))
+        results = cfg.list_features()
         assert len(results) == 2
         names = {i.name for i in results}
         assert names == {"init-a", "init-b"}
 
-    def test_load_nonexistent(self, temp_initiatives_dir):
-        assert cfg.load_initiative("does-not-exist") is None
+    def test_load_nonexistent(self, temp_features_dir):
+        assert cfg.load_feature("does-not-exist") is None
+
+    def test_load_save_preserves_unknown_keys(self, temp_features_dir):
+        """Keys the model does not define must survive a load/save cycle.
+
+        Feature YAML is user-editable and save_feature() writes model_dump()
+        straight back to disk, so Pydantic's default extra="ignore" would
+        silently delete anything unmodelled on any edit.
+        """
+        path = cfg.feature_path("extras")
+        path.write_text(
+            "name: extras\ndescription: d\nllm_effort: high\n", encoding="utf-8"
+        )
+
+        loaded = cfg.load_feature("extras")
+        assert loaded is not None
+        cfg.save_feature(loaded)
+
+        saved = yaml.safe_load(path.read_text(encoding="utf-8"))
+        assert saved["llm_effort"] == "high", "unmodelled key was dropped"
+
+    def test_edit_preserves_unknown_keys(self, temp_features_dir):
+        """The same must hold when a modelled field actually changes."""
+        path = cfg.feature_path("extras2")
+        path.write_text(
+            "name: extras2\ndescription: before\nllm_effort: high\n",
+            encoding="utf-8",
+        )
+
+        loaded = cfg.load_feature("extras2")
+        loaded.description = "after"
+        cfg.save_feature(loaded)
+
+        saved = yaml.safe_load(path.read_text(encoding="utf-8"))
+        assert saved["description"] == "after"
+        assert saved["llm_effort"] == "high"
 
 
 class TestMergedConfig:
@@ -227,3 +262,37 @@ class TestSaveConfig:
         assert data["mcp"][0]["name"] == "test-server"
         assert data["skills"][0]["name"] == "test-skill"
         assert data["permissions"]["allow"] == ["read"]
+
+
+class TestProjectSkillInstallation:
+    """Project skills must reach both IDE command directories.
+
+    install.sh mirrors <project>/.claude/commands/ into
+    <project>/.opencode/instructions/ (step 11). This installed to the first
+    only, so OpenCode never received a project's skills — the second directory
+    was not even created.
+    """
+
+    def _project_with_skill(self, root):
+        skill = root / "skills" / "my-skill"
+        skill.mkdir(parents=True)
+        (skill / "SKILL.md").write_text(
+            "---\nname: my-skill\ndescription: Use when testing.\n---\n# my-skill\n",
+            encoding="utf-8",
+        )
+        return root
+
+    def test_installs_into_both_directories(self, tmp_path):
+        project = self._project_with_skill(tmp_path / "proj")
+
+        installed = cfg.install_project_skills(project)
+        assert installed == 1
+
+        for rel in (".claude/commands", ".opencode/instructions"):
+            assert (project / rel / "my-skill.md").is_file(), f"missing in {rel}"
+
+    def test_second_run_is_idempotent(self, tmp_path):
+        project = self._project_with_skill(tmp_path / "proj")
+
+        cfg.install_project_skills(project)
+        assert cfg.install_project_skills(project) == 0

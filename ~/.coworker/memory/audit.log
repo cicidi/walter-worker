@@ -1,0 +1,5 @@
+2026-09-25T17:09:08Z sync stop e2e-cap tool=session-end lessons=0 ms=0 ok
+2026-09-25T17:09:19Z sync stop e2e-cap tool=session-end lessons=0 ms=0 error
+2026-09-25T17:09:25Z sync stop e2e-cap tool=session-end lessons=0 ms=0 ok
+2026-09-25T17:09:41Z sync stop e2e-cap tool=session-end lessons=1 ms=0 ok
+2026-09-25T18:05:56Z sync stop sess-1 tool=session-end lessons=0 ms=0 ok

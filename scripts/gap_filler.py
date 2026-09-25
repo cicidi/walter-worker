@@ -223,7 +223,7 @@ def main():
 
     project_map = {
         "walter-worker": HOME / "project" / "walter-worker",
-        "skill-factory": HOME / "project" / "skill-factory",
+        "the-super-lab": HOME / "project" / "the-super-lab",
         "mfangdai": HOME / "project" / "mfangdai",
         "hackathon-video-gen": HOME / "project" / "hackathon-video-gen",
         "computer-config": HOME / "project" / "computer-config",

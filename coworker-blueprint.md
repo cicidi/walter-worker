@@ -2,7 +2,7 @@
 
 > **Purpose:** Complete specification of the Walter Worker context management system. Give this to any LLM to recreate it.
 
-> **What is Walter Worker?** A Python CLI tool that manages a three-layer CLAUDE.md architecture (Global → Project → Local), keeps your AI coding assistants aware of your projects and initiatives, syncs skills from [skill-factory](https://github.com/cicidi/skill-factory), and tracks session analytics. It's the data foundation for building an autonomous coding agent.
+> **What is Walter Worker?** A Python CLI tool that manages a three-layer CLAUDE.md architecture (Global → Project → Local), keeps your AI coding assistants aware of your projects and features, syncs skills from [skill-factory](https://github.com/cicidi/skill-factory), and tracks session analytics. It's the data foundation for building an autonomous coding agent.
 
 > **What it is NOT:** A development workflow tool. Skills for coding, testing, reviewing, debugging — those come from skill-factory, not walter-worker. Walter Worker provides the context, memory, and data layer that makes those skills effective.
 
@@ -12,13 +12,14 @@
 
 ## Table of Contents
 
+0. [Vision](#0-vision)
 1. [Core Purpose](#1-core-purpose)
 2. [Three-Layer CLAUDE.md Architecture](#2-three-layer-claudemd-architecture)
 3. [Directory Structure](#3-directory-structure)
 4. [Template System](#4-template-system)
 5. [Context Injection System](#5-context-injection-system)
 6. [Project Catalog](#6-project-catalog)
-7. [Initiative Management](#7-initiative-management)
+7. [Feature Management](#7-feature-management)
 8. [State Persistence](#8-state-persistence)
 9. [CLI Commands](#9-cli-commands)
 10. [Skill Management](#10-skill-management)
@@ -27,6 +28,57 @@
 13. [IDE Adapters](#13-ide-adapters)
 14. [Installer Specification](#14-installer-specification)
 15. [Cross-Tool Compatibility](#15-cross-tool-compatibility)
+
+---
+
+## 0. Vision
+
+> **North star:** an agent that gets better at your work without you tending it.
+
+Coworker maintains five surfaces. They are the whole of its responsibility — a
+capability that serves none of them is out of scope.
+
+| Surface | What it covers |
+|---|---|
+| **Skill** | The unit of learned behaviour: how a skill is discovered, drafted, approved, deployed, retired |
+| **Skill management** | Which skills exist, where they deploy, whether the deployed copy is the current one |
+| **Memory management** | What is remembered across sessions, and what is allowed to decay |
+| **Context management** | What the agent sees when a session starts — the CLAUDE.md layers |
+| **Agent monitoring** | Whether the above is actually happening, and whether it is helping |
+
+### The evolution loop
+
+The five surfaces are not a feature list; they are stages of one closed loop.
+
+```
+capture ──▶ memory ──▶ decay / curator ──▶ skill staging ──▶ approval ──▶ injection
+   ▲                                                                        │
+   └────────────────────────────────────────────────────────────────────────┘
+```
+
+Sessions are observed, what was learned is extracted, repeated patterns become
+skills, and the result is injected into the next session's context — which then
+produces better sessions. Every component either **is a stage in this loop** or
+**measures it**. Anything that does neither does not belong here.
+
+### Direction of travel
+
+Stated as capability targets, not as current state:
+
+| Horizon | Target capability | Human role |
+|---|---|---|
+| **Now** | Sessions become memory; memory reaches the next session's context | author, and approve |
+| **Next** | Skills and context evolve on their own — drafted and retired by the loop, not by hand | review, and approve |
+| **Later** | The agent completes a class of simple task end to end, using what it has evolved | set direction, audit outcomes |
+
+Progress is measured by **how much human intervention a given class of task
+still needs**. It should fall.
+
+### Development approach
+
+Work proceeds as **wayfinder** → **spec-driven development**: chart the route as
+decision briefs on the tracker, resolve them until the way is clear, then
+spec → tickets → implement. The route is reviewable before code is written.
 
 ---
 
@@ -42,15 +94,15 @@ AI assistants start with zero context. They don't know your team's projects or h
 
 ### Problem 2: Context drifts across sessions
 
-You're working on initiative "auth-migration" across 3 projects. Your AI knows about project A but not B or C. Task goals and approach are lost between sessions.
+You're working on feature "auth-migration" across 3 projects. Your AI knows about project A but not B or C. Task goals and approach are lost between sessions.
 
-**Solution:** `coworker initiative activate` injects the initiative context (goal, approach, testing, recommended skills, reference docs) into `CLAUDE.local.md` — your personal, non-committed working context.
+**Solution:** `coworker feature activate` injects the feature context (goal, approach, testing, recommended skills, reference docs) into `CLAUDE.local.md` — your personal, non-committed working context.
 
 ### Problem 3: Skills are scattered
 
 Team skills live in skill-factory, personal tweaks in random folders, nothing is synced.
 
-**Solution:** `coworker sync` reads `coworker.yaml` → copies configured skills to all installed IDEs. During initiative creation, user reviews and selects only relevant skills.
+**Solution:** `coworker sync` reads `coworker.yaml` → copies configured skills to all installed IDEs. During feature creation, user reviews and selects only relevant skills.
 
 ### Problem 4: No memory across sessions
 
@@ -84,7 +136,7 @@ Every AI session starts from zero. Past learnings, effective workflows, and mist
 │  CLAUDE.local.md (<project>/CLAUDE.local.md)     │
 │  Personal, NOT committed to git                  │
 │  - Config Paths (~/.coworker/project.yaml)       │
-│  - Initiative Context (goal, approach, testing)  │
+│  - Feature Context (goal, approach, testing)  │
 │  - Reference Docs (must read before starting)    │
 │  - Recommended Skills (user-reviewed)            │
 │  - Current Task State (goal, state file path)    │
@@ -114,7 +166,7 @@ Every AI session starts from zero. Past learnings, effective workflows, and mist
 |------|--------|---------|
 | Global CLAUDE.md | < 100 lines | Karpathy 8 principles |
 | Project CLAUDE.md | < 200 lines | Meta-controller + project identity |
-| CLAUDE.local.md | < 50 lines (template) | Personal context (grows with initiative) |
+| CLAUDE.local.md | < 50 lines (template) | Personal context (grows with feature) |
 | docs/state-{task}.md | < 100 lines | Progress tracking, loaded on demand |
 
 ---
@@ -132,7 +184,7 @@ walter-worker/
 ├── src/coworker/
 │   ├── cli.py             # All CLI commands (init, sync, state-update, etc.)
 │   ├── config.py          # Config loading/merging
-│   ├── models.py          # Pydantic data models (incl. InitiativeConfig with goal/approach/testing)
+│   ├── models.py          # Pydantic data models (incl. FeatureConfig with goal/approach/testing)
 │   ├── semantic_merge.py  # Semantic merge engine for CLAUDE.md updates
 │   ├── adapters/
 │   │   ├── claude.py      # Claude Code: settings, skills, context → CLAUDE.local.md
@@ -142,7 +194,7 @@ walter-worker/
 │   │   ├── global_claude_md.py   # Karpathy 8 principles (<100 lines)
 │   │   ├── project_claude_md.py  # Meta-controller template (<200 lines)
 │   │   └── local_claude_md.py    # Local context template
-│   ├── initiatives/
+│   ├── features/
 │   │   └── manager.py     # Create, activate (→local.md), deactivate
 │   ├── analytics/         # Session tracking
 │   │   ├── db.py          # SQLite schema
@@ -153,7 +205,7 @@ walter-worker/
 ├── skills/                # CLI command skills (SKILL.md format)
 │   ├── walter-worker-setup-in-project/  # Interactive project setup
 │   ├── init/              # Quick non-interactive init
-│   ├── initiative-create/ # Interview-based initiative creation
+│   ├── feature/           # Feature management (create/edit/activate/...)
 │   └── ...                # 25+ other skills
 ├── docs/
 │   ├── specs/             # Design docs, spec conclusions (committed)
@@ -211,7 +263,7 @@ generate_local_claude_md() -> str
 # Returns: personal context template, <50 lines
 # Sections: Config Paths, Reference Docs, Current Task State,
 #           Current Workflow, Personal Preferences
-# Initiative context injected via inject_initiative_into_local_md()
+# Feature context injected via inject_feature_into_local_md()
 ```
 
 ### Semantic merge (`semantic_merge.py`)
@@ -221,7 +273,7 @@ classify_sections(current, future) -> list[SectionClassification]
 apply_merge(classifications, current, future) -> str
 # Categories: KEEP, OVERWRITE, MERGE_ADD, OUTDATED
 # PROTECTED blocks → always KEEP
-# INITIATIVE blocks → always KEEP (managed by initiative system)
+# FEATURE blocks → always KEEP (managed by feature system)
 ```
 
 ---
@@ -235,10 +287,10 @@ apply_merge(classifications, current, future) -> str
 <!-- COWORKER:STATIC START --> ... <!-- COWORKER:STATIC END -->
 ```
 
-**Initiative block** — injected into `CLAUDE.local.md` (NOT CLAUDE.md):
+**Feature block** — injected into `CLAUDE.local.md` (NOT CLAUDE.md):
 ```
-<!-- INITIATIVE:<name> START -->
-## Active Initiative: <name>
+<!-- FEATURE:<name> START -->
+## Active Feature: <name>
 > <description>
 
 ### Goal
@@ -265,7 +317,7 @@ apply_merge(classifications, current, future) -> str
 
 ### Links
 - [Title](URL)
-<!-- INITIATIVE:<name> END -->
+<!-- FEATURE:<name> END -->
 ```
 
 ### Injection targets
@@ -273,20 +325,20 @@ apply_merge(classifications, current, future) -> str
 | Block | Target file | Committed? |
 |-------|------------|------------|
 | Static (project catalog) | `CLAUDE.md` | ✅ Yes |
-| Initiative (goal, approach, testing, skills) | `CLAUDE.local.md` | ❌ No |
+| Feature (goal, approach, testing, skills) | `CLAUDE.local.md` | ❌ No |
 
 ### Injection logic
 
 ```
-coworker initiative activate
-  → builds initiative block (with goal/approach/testing/recommended_skills)
+coworker feature activate
+  → builds feature block (with goal/approach/testing/recommended_skills)
   → reads CLAUDE.local.md (or creates from template)
-  → removes existing INITIATIVE blocks
+  → removes existing FEATURE blocks
   → injects new block
   → writes CLAUDE.local.md
 
-coworker initiative deactivate
-  → removes INITIATIVE blocks from CLAUDE.local.md
+coworker feature deactivate
+  → removes FEATURE blocks from CLAUDE.local.md
 ```
 
 ---
@@ -311,14 +363,14 @@ Project relationships are injected into Project CLAUDE.md's `## Project Relation
 
 ---
 
-## 7. Initiative Management
+## 7. Feature Management
 
-Initiatives carry **task context** — not just links and project references, but the actual goal, approach, testing method, and recommended skills for the current work.
+Features carry **task context** — not just links and project references, but the actual goal, approach, testing method, and recommended skills for the current work.
 
 ### Data model
 
 ```yaml
-# ~/.coworker/initiatives/<name>.yaml
+# ~/.coworker/features/<name>.yaml
 name: claude-md-design
 description: Design global and project-level CLAUDE.md
 goal: |
@@ -342,9 +394,9 @@ decisions: [...]
 reference_docs: [...]
 ```
 
-### Initiative → CLAUDE.local.md mapping
+### Feature → CLAUDE.local.md mapping
 
-| InitiativeConfig field | Injected into local.md section |
+| FeatureConfig field | Injected into local.md section |
 |------------------------|-------------------------------|
 | `goal` | Current Task State > Goal |
 | `approach` | Current Workflow > Approach |
@@ -355,7 +407,7 @@ reference_docs: [...]
 | `links` | Links |
 | `decisions` | Key Decisions |
 
-### Interview process (`initiative-create` skill)
+### Interview process (`feature` skill, `create` subcommand)
 
 1. Name (kebab-case)
 2. Description
@@ -431,7 +483,7 @@ coworker state-update      # Write task state (called by hook or manually)
 
 coworker project add/edit/list/remove/show/sync
 
-coworker initiative start/create/edit/activate/deactivate/list/show/remove
+coworker feature start/create/edit/activate/deactivate/list/show/remove
 
 coworker skill list/new
 
@@ -461,9 +513,9 @@ Walter Worker manages skill **distribution**, not skill **creation**. Skills are
 skill-factory → coworker.yaml → coworker sync → IDE config dirs
 ```
 
-### Recommended skills in initiatives
+### Recommended skills in features
 
-During `initiative-create`, the user reviews available skills and selects only relevant ones. These are stored in `InitiativeConfig.recommended_skills` and injected into `CLAUDE.local.md` on activation. The AI sees only the curated list, not all 82 installed skills.
+During `feature create`, the user reviews available skills and selects only relevant ones. These are stored in `FeatureConfig.recommended_skills` and injected into `CLAUDE.local.md` on activation. The AI sees only the curated list, not all 82 installed skills.
 
 ---
 
@@ -503,7 +555,7 @@ The dashboard provides real-time monitoring of AI coding sessions:
 - **Tools**: tool call distribution and avg duration
 - **Files**: per-file read/write/delete stats, ranked by total operations, with project attribution
 - **Knowledge**: LLM-generated insights extracted from sessions
-- **Initiatives**: cross-session workstreams grouped by initiative tag
+- **Features**: cross-session workstreams grouped by feature tag
 
 ### Analytics Database
 
@@ -549,23 +601,23 @@ Previously stored identity, docs paths, and session analysis config. **Removed**
 
 | Adapter | Sync target | Context injection | State hook |
 |---------|------------|-------------------|------------|
-| `claude.py` | `~/.claude/settings.json`, `~/.claude/commands/` | `CLAUDE.local.md` (initiative) | Stop hook: `coworker state-update` |
+| `claude.py` | `~/.claude/settings.json`, `~/.claude/commands/` | `CLAUDE.local.md` (feature) | Stop hook: `coworker state-update` |
 | `opencode.py` | `.opencode/config.json` | `CLAUDE.local.md` (delegates to claude.py) | Permission: `coworker *` allow |
 | `gemini.py` | `.gemini/settings.json` | (not yet) | (not yet) |
 
 ### Claude Code adapter
 
 - `sync()`: writes settings.json (permissions, MCP, hooks), copies skills
-- `inject_initiative()`: writes to `CLAUDE.local.md` (not CLAUDE.md)
-- `remove_initiative()`: removes from `CLAUDE.local.md`
+- `inject_feature()`: writes to `CLAUDE.local.md` (not CLAUDE.md)
+- `remove_feature()`: removes from `CLAUDE.local.md`
 - `_resolve_local_md()`: finds `CLAUDE.local.md` path
-- `_build_initiative_block()`: builds block with goal/approach/testing/skills
+- `_build_feature_block()`: builds block with goal/approach/testing/skills
 
 ### OpenCode adapter
 
 - `sync()`: writes config.json (MCP, permissions)
-- `inject_initiative()`: delegates to claude.py (same file: `CLAUDE.local.md`)
-- `remove_initiative()`: delegates to claude.py
+- `inject_feature()`: delegates to claude.py (same file: `CLAUDE.local.md`)
+- `remove_feature()`: delegates to claude.py
 
 Both tools read the same `CLAUDE.local.md`. Claude Code auto-loads it natively. OpenCode reads it via the "Local Override" instruction in Project CLAUDE.md.
 
@@ -601,7 +653,7 @@ coworker status      # Verify everything is set up
 |------|---------|
 | `coworker init --global` | `~/.coworker/coworker.yaml`, `~/.coworker/skills/` |
 | `coworker init --project` | `./coworker.yaml`, `CLAUDE.md`, `CLAUDE.local.md`, `docs/`, `.gitignore` entries |
-| `coworker initiative create` | `docs/<initiative>/{prd,plan,spec}/` |
+| `coworker feature create` | `docs/<feature>/{prd,plan,spec}/` |
 | `coworker sync` | Copies skills to IDE dirs, writes settings, configures Stop hook |
 | Global CLAUDE.md | `~/.claude/CLAUDE.md` (from canonical template, not overridden if exists) |
 
@@ -609,6 +661,43 @@ coworker status      # Verify everything is set up
 
 - Global CLAUDE.md content now extracted from `templates/global_claude_md.py` (not hardcoded string)
 - If `~/.claude/CLAUDE.md` already exists: **warn, do NOT override**
+
+### Skill mirror ownership
+
+`install.sh` deploys skills into six mirrors, and the install manifest is what
+makes them reversible:
+
+| Mirror | Step | Form |
+|--------|------|------|
+| `~/.claude/commands/<name>.md` | 10 | file |
+| `~/.opencode/instructions/<name>.md` | 11 | symlink to the above |
+| `~/.claude/skills/<name>/` | 11b | directory copy |
+| `~/.cursor/rules/<name>.md` | 11b | file |
+| `~/.config/opencode/skills/walter-worker/` | 6 | rsync mirror, also an owned dir |
+| `~/.config/opencode/skills/the-super-lab/<name>` | 11b | symlink to the source |
+
+Step 16 writes `~/.coworker/install-manifest.json`, schema version 2, claiming
+each path **by name** — only what that run wrote. `uninstall.sh` reverses the
+manifest, so an unclaimed file survives uninstall, which is the safe direction.
+
+Two rules keep the mirrors from growing without bound. Each was added after the
+growth was measured, not in anticipation:
+
+- **Claim what the run produces, not what is on disk.** The walter-worker mirror
+  is claimed from `$REPO_ROOT/skills`, so a skill an earlier release left there
+  is not re-claimed on every run.
+- **Retire what a previous run claimed and this one does not.** That difference
+  is exactly the set of paths this installer used to own and has stopped
+  producing: a skill renamed, merged, or dropped from the sources. Directories
+  the prune empties are retired with them.
+
+Prune runs in one direction only. A path is removed because a previous run
+claimed it; anything this installer never wrote is never touched, so user files
+and skills installed by another tool survive. That is the managed-vs-user
+distinction, not a change to the union-only default.
+
+Measured before the fix: 42 dangling links and 91 retired skill directories
+across those mirrors.
 
 ---
 

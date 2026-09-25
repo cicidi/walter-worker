@@ -1,7 +1,18 @@
 """Safety gates — spec §6 + §9.
 
-Circuit breaker, sandbox dry-run, and rollback for skill
-auto-creation/evolution. Prevents runaway autonomous behavior.
+This module implements the circuit breaker only: it caps skill
+auto-creation/evolution at CIRCUIT_BREAKER_LIMIT per window.
+
+The spec lists three gates - "circuit breaker, sandbox dry-run before
+promotion, rollback". Of the other two:
+
+  sandbox  lives in memory/pending.py::_sandbox_check and does gate promotion.
+  rollback does not exist anywhere. pending.record_version is named for it but
+           stores only a version number and timestamp, not the SKILL.md it
+           would have to restore, and nothing calls it. See the note there.
+
+The docstring previously claimed all three, which reads as coverage that is
+not there.
 """
 
 from __future__ import annotations

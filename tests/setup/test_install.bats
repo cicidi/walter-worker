@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-# Tests for install.sh — CLAUDE.md creation, skill-factory setup, install modes
+# Tests for install.sh — CLAUDE.md creation, skill source, install modes
 
 setup() {
   TEST_TMP="$(mktemp -d)"
@@ -8,39 +8,18 @@ setup() {
   mkdir -p "$HOME/.claude"
   mkdir -p "$HOME/.config/opencode/skills"
 
-  # Mock git
+  # the-super-lab is the skill source install.sh reads; it no longer clones
+  # anything, so a fake checkout at the default location stands in for it.
+  SUPERLAB="$HOME/project/the-super-lab"
+  _fake_skill "$SUPERLAB/skills/skill-create" skill-create
+  _fake_skill "$SUPERLAB/skills/tdd" tdd
+  mkdir -p "$SUPERLAB/personal-skills"
+
+  # Mock git — install.sh still pulls the-super-lab
   mkdir -p "$TEST_TMP/bin"
   cat > "$TEST_TMP/bin/git" << 'GITEOF'
 #!/usr/bin/env bash
 case "$1" in
-  clone)
-    mkdir -p "${@: -1}/ai-coworker-skills/skill-create" "${@: -1}/personal-skills" "${@: -1}/import-skills/tdd"
-    cat > "${@: -1}/ai-coworker-skills/skill-create/SKILL.md" << 'SKEOF'
----
-name: ai-coworker-skill-create
-description: Use when creating a new skill
-license: MIT
-compatibility: opencode
-metadata:
-  triggers:
-    - create a skill
----
-# ai-coworker-skill-create
-SKEOF
-    cat > "${@: -1}/import-skills/tdd/SKILL.md" << 'SKEOF'
----
-name: tdd
-description: Use when writing tests first
-license: MIT
-compatibility: opencode
-metadata:
-  triggers:
-    - test-driven
----
-# TDD
-SKEOF
-    echo "Cloned."
-    ;;
   pull)
     echo "Already up to date."
     ;;
@@ -72,6 +51,23 @@ teardown() {
   rm -rf "$TEST_TMP"
 }
 
+# Minimal skill in the the-super-lab shape install.sh indexes.
+_fake_skill() {
+  mkdir -p "$1"
+  cat > "$1/SKILL.md" << SKEOF
+---
+name: $2
+description: Use when testing install.sh
+license: MIT
+compatibility: opencode
+metadata:
+  triggers:
+    - $2
+---
+# $2
+SKEOF
+}
+
 # =============================================================================
 # Test: Global CLAUDE.md creation
 # =============================================================================
@@ -81,8 +77,11 @@ teardown() {
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
   [ "$status" -eq 0 ]
   [ -f "$HOME/.claude/CLAUDE.md" ]
-  grep -q "Question Requirement" "$HOME/.claude/CLAUDE.md"
-  grep -q "ask 1-3 clarifying questions" "$HOME/.claude/CLAUDE.md"
+  # Assert against text the current template actually contains. These used to
+  # name older wording ("Question Requirement"), which the template no longer
+  # has, so the checks had been failing on stale strings.
+  grep -q "Ask and Confirm Before Coding" "$HOME/.claude/CLAUDE.md"
+  grep -q "clarifying questions to confirm scope" "$HOME/.claude/CLAUDE.md"
 }
 
 @test "preserves existing global CLAUDE.md" {
@@ -94,15 +93,15 @@ teardown() {
 }
 
 # =============================================================================
-# Test: Skill-factory setup
+# Test: skill source
 # =============================================================================
-@test "clones skill-factory to correct path" {
+@test "deploys the-super-lab skills to the three harnesses" {
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
   [ "$status" -eq 0 ]
-  [ -d "$HOME/.config/opencode/skills/skill-factory" ]
-  [ -d "$HOME/.config/opencode/skills/skill-factory/ai-coworker-skills" ]
-  [ -d "$HOME/.config/opencode/skills/skill-factory/personal-skills" ]
-  [ -d "$HOME/.config/opencode/skills/skill-factory/import-skills" ]
+  # install.sh reads the-super-lab in place and deploys it; it does not clone.
+  [ -f "$HOME/.claude/skills/skill-create/SKILL.md" ]
+  [ -f "$HOME/.config/opencode/skills/the-super-lab/skill-create/SKILL.md" ]
+  [ -f "$HOME/.cursor/rules/skill-create.md" ]
 }
 
 # =============================================================================
@@ -127,12 +126,15 @@ teardown() {
 }
 
 # =============================================================================
-# Test: coworker-meta-setup-coworker always installed
+# Test: the core init skill is always installed
 # =============================================================================
-@test "always installs coworker-meta-setup-coworker" {
+@test "always installs the core init skill" {
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
   [ "$status" -eq 0 ]
-  [ -f "$HOME/.claude/commands/coworker-meta-setup-coworker.md" ]
+  # Was named coworker-meta-setup-coworker before the skill consolidation; the
+  # file it points at was dropped from the repo at the same time, so this
+  # assertion was failing on a name that no longer existed either way.
+  [ -f "$HOME/.claude/commands/init.md" ]
 }
 
 # =============================================================================
@@ -141,8 +143,8 @@ teardown() {
 @test "installs no extra skills when none selected" {
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
   [ "$status" -eq 0 ]
-  # Only setup-coworker should be installed
-  [ -f "$HOME/.claude/commands/coworker-meta-setup-coworker.md" ]
+  # Only the core skill should be installed
+  [ -f "$HOME/.claude/commands/init.md" ]
   run ls "$HOME/.claude/commands/"
   # Should have exactly 1 file
   [ "${#lines[@]}" -eq 1 ]
@@ -154,7 +156,7 @@ teardown() {
 @test "installs all skills when 'all' selected" {
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'1'
   [ "$status" -eq 0 ]
-  [ -f "$HOME/.claude/commands/coworker-meta-setup-coworker.md" ]
+  [ -f "$HOME/.claude/commands/init.md" ]
   [ -f "$HOME/.claude/commands/skill-create.md" ]
   [ -f "$HOME/.claude/commands/tdd.md" ]
 }
@@ -168,12 +170,12 @@ teardown() {
   [ "$status" -eq 0 ]
 
   # Modify the installed file to simulate an old version
-  echo "old content" > "$HOME/.claude/commands/coworker-meta-setup-coworker.md"
+  echo "old content" > "$HOME/.claude/commands/init.md"
 
   # Re-install — should update
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
   [ "$status" -eq 0 ]
-  ! grep -q "old content" "$HOME/.claude/commands/coworker-meta-setup-coworker.md"
+  ! grep -q "old content" "$HOME/.claude/commands/init.md"
 }
 
 # =============================================================================
@@ -195,4 +197,338 @@ teardown() {
 @test "handles invalid mode choice gracefully" {
   run bash "$REPO_ROOT/setup/install.sh" <<< $'99'
   [ "$status" -ne 0 ]
+}
+
+@test "manifest never claims claude-tmux-config's statusline files" {
+  # The exclusion used a trailing slash, so it matched only the (empty)
+  # statusline/ directory while the three files beside it were claimed anyway -
+  # and uninstall.sh removes every file the manifest lists.
+  mkdir -p "$HOME/.claude/statusline"
+  echo 'x' > "$HOME/.claude/statusline-command.sh"
+  echo 'x' > "$HOME/.claude/statusline-command.sh.bak"
+  echo 'x' > "$HOME/.claude/wrap-statusline.py"
+  echo 'x' > "$HOME/.claude/statusline/inner.sh"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import json, os
+m = json.load(open(os.path.expanduser('~/.coworker/install-manifest.json')))
+print(len([f for f in m.get('files', []) if 'statusline' in f]))
+"
+  [ "$output" = "0" ]
+}
+
+@test "manifest still records ordinary claude files" {
+  # The guard must not have grown so wide it stops tracking anything.
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import json, os
+m = json.load(open(os.path.expanduser('~/.coworker/install-manifest.json')))
+print('yes' if any(f.endswith('CLAUDE.md') for f in m.get('files', [])) else 'no')
+"
+  [ "$output" = "yes" ]
+}
+
+@test "on-correction.py is registered as a UserPromptSubmit hook" {
+  # install.sh copied this file into the hooks dir but never wired it to an
+  # event. The author's machine had it hand-registered, so the correction
+  # detector worked there and for nobody else: a fresh install silently lost
+  # the first stage of the self-heal loop.
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import json, os
+cfg = json.load(open(os.path.expanduser('~/.claude/settings.json')))
+cmds = [h.get('command', '')
+        for groups in cfg.get('hooks', {}).values() if isinstance(groups, list)
+        for g in groups if isinstance(g, dict)
+        for h in (g.get('hooks') or []) if isinstance(h, dict)]
+print('\n'.join(c for c in cmds if 'on-correction.py' in c))
+"
+  [[ "$output" == *"on-correction.py"* ]]
+}
+
+@test "no shipped on-* hook is left unregistered" {
+  # Guards the whole class rather than the one instance: the hooks dir and the
+  # registration list are maintained separately, so a hook can be added to one
+  # and forgotten in the other. common.sh is a sourced helper, not an event
+  # hook, which is why the glob is on-* rather than *.
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import glob, json, os
+home = os.path.expanduser('~')
+shipped = sorted(os.path.basename(p) for p in glob.glob(home + '/.coworker/analytics/hooks/on-*'))
+cfg = json.load(open(home + '/.claude/settings.json'))
+registered = ' '.join(
+    h.get('command', '')
+    for groups in cfg.get('hooks', {}).values() if isinstance(groups, list)
+    for g in groups if isinstance(g, dict)
+    for h in (g.get('hooks') or []) if isinstance(h, dict))
+print('\n'.join(s for s in shipped if s not in registered))
+"
+  [ -z "$output" ]
+}
+
+@test "does not register an OpenCode plugin path that does not exist" {
+  # .opencode/ is gitignored and its plugin sources were removed from the repo,
+  # so a fresh clone has no .opencode/coworker-analytics. install.sh registered
+  # the path unconditionally, writing an entry pointing at nothing into the
+  # user's OpenCode config — which OpenCode then failed to load.
+  #
+  # Build a stand-in repo without .opencode/ to stand in for that clone.
+  local fake="$TEST_TMP/fake-repo"
+  mkdir -p "$fake"
+  cp -r "$REPO_ROOT/setup" "$fake/setup"
+  cp -r "$REPO_ROOT/skills" "$fake/skills"
+  cp -r "$REPO_ROOT/src" "$fake/src"
+
+  mkdir -p "$HOME/.config/opencode"
+  echo '{"plugin": []}' > "$HOME/.config/opencode/config.json"
+
+  run bash "$fake/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import json, os
+cfg = json.load(open(os.path.expanduser('~/.config/opencode/config.json')))
+bogus = [p for p in cfg.get('plugin', []) if not os.path.isdir(p)]
+print('bogus=' + ','.join(bogus))
+"
+  [ "$output" = "bogus=" ]
+}
+
+@test "still registers the OpenCode plugin when it is present" {
+  # The guard must not switch the feature off for a checkout that does have it.
+  local fake="$TEST_TMP/fake-repo2"
+  mkdir -p "$fake/.opencode/coworker-analytics"
+  cp -r "$REPO_ROOT/setup" "$fake/setup"
+  cp -r "$REPO_ROOT/skills" "$fake/skills"
+  cp -r "$REPO_ROOT/src" "$fake/src"
+
+  mkdir -p "$HOME/.config/opencode"
+  echo '{"plugin": []}' > "$HOME/.config/opencode/config.json"
+
+  run bash "$fake/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import json, os
+cfg = json.load(open(os.path.expanduser('~/.config/opencode/config.json')))
+print('registered=' + str(any('coworker-analytics' in p for p in cfg.get('plugin', []))))
+"
+  [ "$output" = "registered=True" ]
+}
+
+@test "installs on a platform without md5sum" {
+  # md5sum is GNU coreutils. macOS ships BSD `md5` and has no md5sum, and this
+  # script deliberately supports macOS (see the bash-3.2 note by the parallel
+  # arrays). Under `set -euo pipefail` the command substitution failed and the
+  # whole install aborted, so the platform the script was written to support
+  # could not install at all. A failing md5sum stands in for an absent one.
+  cat > "$TEST_TMP/bin/md5sum" <<'MDEOF'
+#!/usr/bin/env bash
+echo "md5sum: command not found" >&2
+exit 127
+MDEOF
+  chmod +x "$TEST_TMP/bin/md5sum"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'1'
+  [ "$status" -eq 0 ]
+  [ -f "$HOME/.claude/commands/init.md" ]
+}
+
+# =============================================================================
+# Test: prune — retire what the sources no longer produce
+#
+# The four skill mirrors only ever grew before this: a skill that was renamed,
+# merged, or dropped from the sources stayed deployed forever, so 42 dangling
+# links and 91 retired directories had accumulated across them.
+# =============================================================================
+@test "retires a skill the sources no longer produce" {
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ -f "$HOME/.claude/skills/skill-create/SKILL.md" ]
+  [ -f "$HOME/.cursor/rules/skill-create.md" ]
+
+  # Drop it from the source, the way a rename or a merge would.
+  rm -rf "$SUPERLAB/skills/skill-create"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ ! -e "$HOME/.claude/skills/skill-create/SKILL.md" ]
+  [ ! -e "$HOME/.cursor/rules/skill-create.md" ]
+}
+
+@test "retires the emptied skill directory, not only the file inside it" {
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ -d "$HOME/.claude/skills/skill-create" ]
+
+  rm -rf "$SUPERLAB/skills/skill-create"
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  # A bare directory left behind is the failure this guards: the prune removed
+  # the file and stopped there.
+  [ ! -d "$HOME/.claude/skills/skill-create" ]
+}
+
+@test "retires a path an earlier install claimed and this one does not" {
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  # Stand in for a skill an earlier release claimed. The artifact goes on disk
+  # and into the manifest the way that release would have recorded it; the
+  # current sources do not contain it, so this run does not claim it either.
+  mkdir -p "$HOME/.config/opencode/skills/walter-worker/initiative-edit"
+  echo "stale" > "$HOME/.config/opencode/skills/walter-worker/initiative-edit/SKILL.md"
+  run python3 -c "
+import json, os
+p = os.path.expanduser('~/.coworker/install-manifest.json')
+m = json.load(open(p))
+m['files'].append(os.path.expanduser(
+    '~/.config/opencode/skills/walter-worker/initiative-edit/SKILL.md'))
+json.dump(m, open(p, 'w'))
+"
+  [ "$status" -eq 0 ]
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ ! -e "$HOME/.config/opencode/skills/walter-worker/initiative-edit" ]
+}
+
+@test "leaves a skill this installer never wrote alone" {
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  mkdir -p "$HOME/.claude/skills/someone-elses"
+  echo "not ours" > "$HOME/.claude/skills/someone-elses/SKILL.md"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  # Prune removes only what a previous run claimed. A path this installer never
+  # wrote is not its to delete, however stale it looks.
+  [ -f "$HOME/.claude/skills/someone-elses/SKILL.md" ]
+}
+
+@test "records what it retired in the manifest" {
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  mkdir -p "$HOME/.config/opencode/skills/walter-worker/initiative-edit"
+  echo "stale" > "$HOME/.config/opencode/skills/walter-worker/initiative-edit/SKILL.md"
+  run python3 -c "
+import json, os
+p = os.path.expanduser('~/.coworker/install-manifest.json')
+m = json.load(open(p))
+m['files'].append(os.path.expanduser(
+    '~/.config/opencode/skills/walter-worker/initiative-edit/SKILL.md'))
+json.dump(m, open(p, 'w'))
+"
+  [ "$status" -eq 0 ]
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import json, os
+m = json.load(open(os.path.expanduser('~/.coworker/install-manifest.json')))
+print('pruned=' + str(any('initiative-edit' in x for x in m.get('pruned', []))))
+"
+  [ "$output" = "pruned=True" ]
+}
+
+@test "registers session-end capture on the Stop hook" {
+  # capture.process_session_end is the loop's session-end stage. The design
+  # reserved `coworker memory close` for it, but that name went to the graph
+  # command, so the stage had no caller and no hook — the loop's first stage
+  # was unreachable.
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import json, os
+cfg = json.load(open(os.path.expanduser('~/.claude/settings.json')))
+cmds = [h.get('command', '')
+        for g in cfg.get('hooks', {}).get('Stop', [])
+        for h in (g.get('hooks') or [])]
+print('\n'.join(c for c in cmds if 'memory capture' in c))
+"
+  [[ "$output" == *"memory capture"* ]]
+}
+
+@test "does not add a second capture hook when one is present" {
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import json, os
+cfg = json.load(open(os.path.expanduser('~/.claude/settings.json')))
+n = sum(1 for g in cfg.get('hooks', {}).get('Stop', [])
+        for h in (g.get('hooks') or []) if 'memory capture' in h.get('command', ''))
+print(n)
+"
+  [ "$output" = "1" ]
+}
+
+@test "configures hooks even when the coworker CLI prints output" {
+  # install.sh writes settings.json via `python3 -c "…"` — a DOUBLE-QUOTED bash
+  # string, so a backtick or dollar-paren anywhere inside it is a command
+  # substitution to bash, including inside what Python sees as a comment. A
+  # pair of backticks in those comments ran `coworker`, pasted its usage text
+  # into the middle of the Python, and the hooks silently stopped being
+  # written — while the installer still printed "Setup complete!".
+  #
+  # The mock in setup() exits 0 with empty stdout, which is exactly why the
+  # suite stayed green: substituting nothing left the Python valid. This one
+  # answers like the real CLI, so the substitution is non-empty.
+  cat > "$TEST_TMP/bin/coworker" <<'COEOF'
+#!/usr/bin/env bash
+echo "Usage: main [OPTIONS] COMMAND [ARGS]..."
+echo ""
+echo "Commands:"
+echo "  memory  Manage memory graph and session capture."
+COEOF
+  chmod +x "$TEST_TMP/bin/coworker"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import json, os
+cfg = json.load(open(os.path.expanduser('~/.claude/settings.json')))
+n = sum(len(g.get('hooks') or []) for ev in cfg.get('hooks', {}) for g in cfg['hooks'][ev])
+print(n)
+"
+  # Five analytics hooks plus the capture hook; more than 1 means the block ran.
+  [ "$output" -ge 5 ]
+}
+
+@test "skipping skills does not retire the ones already installed" {
+  # "0) None" means "do not install skills", not "delete the ones you have".
+  # The manifest prune diffs against what THIS run claimed, so a run that
+  # claimed none retired all of them — and update.sh re-invokes this installer
+  # with None as the default answer, so an update wiped every skill, including
+  # the core init skill the same run had just reported installing.
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'1'
+  [ "$status" -eq 0 ]
+
+  run bash -c "ls '$HOME/.claude/commands' | wc -l"
+  local before="$output"
+  [ "$before" -gt 1 ]
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run bash -c "ls '$HOME/.claude/commands' | wc -l"
+  [ "$output" -eq "$before" ]
+  [ -f "$HOME/.claude/commands/init.md" ]
 }

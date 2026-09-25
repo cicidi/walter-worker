@@ -3,12 +3,15 @@ set -euo pipefail
 
 # =============================================================================
 # walter-worker update.sh
-# Updates coworker itself from upstream. Optionally updates skill-factory.
+# Updates coworker itself from upstream. Optionally updates the-super-lab,
+# which is what skill-factory was renamed to — the script itself has used
+# THE_SUPER_LAB_DIR for a while, so this line was the last thing still saying
+# the old name.
 # =============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-SKILL_FACTORY_DIR="$HOME/.config/opencode/skills/skill-factory"
+THE_SUPER_LAB_DIR="${THE_SUPER_LAB_DIR:-$HOME/project/the-super-lab}"
 
 default_branch() {
     local ref
@@ -79,30 +82,58 @@ fi
 log "Re-running install to sync skills..."
 
 CONFIG="$HOME/.coworker/coworker.yaml"
-if [[ -f "$CONFIG" ]]; then
-  SAVED_MODE=$(grep "install_mode:" "$CONFIG" 2>/dev/null | awk '{print $2}' || echo "global")
-  bash "$SCRIPT_DIR/install.sh" "--$SAVED_MODE"
+MANIFEST="$HOME/.coworker/install-manifest.json"
+
+# install.sh records the install mode in the manifest — install_mode is never
+# written to coworker.yaml. Reading it from the yaml therefore matched nothing,
+# and the `|| echo global` fallback hid that (it fires because grep's non-zero
+# status propagates under pipefail), so the mode was always "global" no matter
+# how the machine had been installed: setup/update.sh on a project-mode install
+# re-installed globally, without saying so.
+SAVED_MODE=""
+PROJECT_PATH=""
+if [[ -f "$MANIFEST" ]]; then
+  SAVED_MODE=$(python3 -c "
+import json, sys
+print(json.load(open(sys.argv[1])).get('install_mode') or '')
+" "$MANIFEST" 2>/dev/null || true)
+  PROJECT_PATH=$(python3 -c "
+import json, sys
+print(json.load(open(sys.argv[1])).get('project_path') or '')
+" "$MANIFEST" 2>/dev/null || true)
+fi
+# Fall back to the yaml for manifests predating schema_version, then to global.
+if [[ -z "$SAVED_MODE" && -f "$CONFIG" ]]; then
+  SAVED_MODE=$(sed -n 's/^install_mode:[[:space:]]*//p' "$CONFIG" 2>/dev/null | head -1 || true)
+fi
+SAVED_MODE="${SAVED_MODE:-global}"
+log "Resuming install in mode: $SAVED_MODE"
+
+# --project takes its path as an argument, so project mode has to pass the
+# recorded one; `--project` alone would fail the same way `--` did.
+if [[ "$SAVED_MODE" == "project" && -n "$PROJECT_PATH" ]]; then
+  bash "$SCRIPT_DIR/install.sh" --project "$PROJECT_PATH"
 else
   bash "$SCRIPT_DIR/install.sh" --global
 fi
 
 # =============================================================================
-# Step 3 — Optionally update skill-factory
+# Step 3 — Optionally update the-super-lab
 # =============================================================================
 echo ""
-if [[ -d "$SKILL_FACTORY_DIR" ]]; then
-  read -rp "  Update skill-factory from GitHub? (y/n) [n]: " UPDATE_SF || UPDATE_SF=""
-  UPDATE_SF="${UPDATE_SF:-n}"
-  if [[ "$UPDATE_SF" == "y" || "$UPDATE_SF" == "Y" ]]; then
-    log "Updating skill-factory..."
-    git -C "$SKILL_FACTORY_DIR" pull --ff-only origin "$(default_branch)" 2>/dev/null && \
-      ok "Skill-factory updated" || \
-      warn "Could not update skill-factory (dirty, offline, or no upstream)."
+if [[ -d "$THE_SUPER_LAB_DIR/.git" ]]; then
+  read -rp "  Update the-super-lab from GitHub? (y/n) [n]: " UPDATE_SL || UPDATE_SL=""
+  UPDATE_SL="${UPDATE_SL:-n}"
+  if [[ "$UPDATE_SL" == "y" || "$UPDATE_SL" == "Y" ]]; then
+    log "Updating the-super-lab..."
+    git -C "$THE_SUPER_LAB_DIR" pull --ff-only 2>/dev/null && \
+      ok "the-super-lab updated" || \
+      warn "Could not update the-super-lab (dirty, offline, or no upstream)."
   else
-    log "Skipped skill-factory update."
+    log "Skipped the-super-lab update."
   fi
 else
-  log "Skill-factory not installed. Run install.sh first to set it up."
+  log "the-super-lab not found at $THE_SUPER_LAB_DIR. Run install.sh first to set it up."
 fi
 
 echo ""

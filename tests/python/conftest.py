@@ -41,14 +41,14 @@ def temp_project_dir():
 
 
 @pytest.fixture
-def temp_initiatives_dir(monkeypatch, tmp_path):
-    """Redirect INITIATIVES_DIR to a temp directory for isolated tests."""
+def temp_features_dir(monkeypatch, tmp_path):
+    """Redirect FEATURES_DIR to a temp directory for isolated tests."""
     import coworker.config as cfg
-    init_dir = tmp_path / "initiatives"
+    init_dir = tmp_path / "features"
     init_dir.mkdir()
-    monkeypatch.setattr(cfg, "INITIATIVES_DIR", init_dir)
+    monkeypatch.setattr(cfg, "FEATURES_DIR", init_dir)
     monkeypatch.setattr(
-        "coworker.initiatives.manager.INITIATIVES_DIR", init_dir
+        "coworker.features.manager.FEATURES_DIR", init_dir
     )
     yield init_dir
 
@@ -82,6 +82,12 @@ def clean_mem0(tmp_path, _mem0_session_dir):
     import os
     from coworker.memory.mem0_client import Mem0Client
 
+    # mem0 first, then the key. A venv built with `pip install -e ".[test]"`
+    # has no mem0 even when the shell exports DEEPSEEK_API_KEY, and checking
+    # the key first sent every consumer of this fixture into from_config and
+    # out with ModuleNotFoundError — 47 errors that said nothing about the
+    # code, on the machine most likely to run them.
+    pytest.importorskip("mem0", reason="mem0ai is in the optional [memory] extra")
     if "DEEPSEEK_API_KEY" not in os.environ:
         pytest.skip("DEEPSEEK_API_KEY not set — required for real mem0 tests")
 
@@ -156,3 +162,39 @@ def real_llm():
     if "DEEPSEEK_API_KEY" not in os.environ:
         pytest.skip("DEEPSEEK_API_KEY not set")
     return LLMClient()
+
+
+@pytest.fixture(autouse=True)
+def _isolate_managed_mcp_store(tmp_path, monkeypatch):
+    """Keep adapter syncs out of the real ~/.coworker.
+
+    _sync_mcp records which MCP entries it wrote, keyed by the absolute path of
+    the file it wrote them to, so it can retire its own later without touching
+    the user's. That record lives in the real home, so without this every test
+    that calls an adapter's sync — including ones written long before the store
+    existed — deposits temp paths into the user's own state file. Autouse
+    rather than per-test: the next adapter to sync will need it too, and this
+    is the kind of side effect nobody notices until their home directory has
+    a hundred stale keys in it.
+    """
+    monkeypatch.setattr(
+        "coworker.adapters.claude._managed_mcp_path",
+        lambda: tmp_path / "mcp-managed.json",
+    )
+
+
+@pytest.fixture(autouse=True)
+def _isolate_backup_root(tmp_path, monkeypatch):
+    """Keep snapshots out of the real ~/.coworker/backups.
+
+    snapshot() mirrors files into the user's own backup directory, and several
+    commands take one as ordinary operation — `init`, `upgrade`, `sync`, and
+    `memory init --force`. So any test that runs one deposits a real,
+    timestamped directory in the user's home: a memory-init test left one
+    behind before this existed.
+
+    Tests that assert on backups patch coworker.backup.BACKUP_ROOT or
+    coworker.backup.snapshot themselves; their patch runs after this one and
+    wins, so they are unaffected.
+    """
+    monkeypatch.setattr("coworker.backup.BACKUP_ROOT", tmp_path / "backups")

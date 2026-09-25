@@ -1,20 +1,24 @@
 ---
 name: dashboard
+version: 0.1.0
 description: |
   Use when viewing analytics, starting the web dashboard, importing session
   data, or managing the analytics daemon. Use when the user asks for
   dashboard, analytics, session stats, or data import.
+triggers:
+  - dashboard
+  - analytics
+  - session stats
+  - import sessions
+  - analytics dashboard
+  - show dashboard
+  - data import
+when-to-use: >
+  Use when starting the web analytics dashboard, importing session data
+  one-shot or continuously, or checking analytics status and managing
+  background daemons.
 license: MIT
 compatibility: claude-code,opencode
-metadata:
-  triggers:
-    - dashboard
-    - analytics
-    - session stats
-    - import sessions
-    - analytics dashboard
-    - show dashboard
-    - data import
 ---
 
 # dashboard
@@ -62,7 +66,7 @@ coworker analytics dashboard &
 coworker analytics daemon
 ```
 
-The dashboard shows: session counts by project/initiative, tool usage,
+The dashboard shows: session counts by project/feature, tool usage,
 model costs, skill evolution, and knowledge cards. Open http://localhost:8080
 in a browser after starting.
 
@@ -70,13 +74,14 @@ in a browser after starting.
 
 ```bash
 coworker analytics import  # full scan
-# or for specific files:
-coworker analytics import --files ~/.claude/projects/-home-cicidi-project-skill-factory/*.jsonl
+# or for specific files — one directory per project, named after its cwd
+# with the slashes turned into dashes:
+coworker analytics import --files ~/.claude/projects/-home-you-project-myapp/*.jsonl
 ```
 
 Imports Claude Code sessions from `~/.claude/projects/` and OpenCode sessions
 from `~/.local/share/opencode/opencode.db`. Only imports sessions not already
-in analytics.db. Auto-detects the initiative name from CLAUDE.local.md or
+in analytics.db. Auto-detects the feature name from CLAUDE.local.md or
 branch name.
 
 ### stop

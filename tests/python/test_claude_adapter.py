@@ -13,8 +13,8 @@ from coworker.models import (
     CoworkerConfig,
     Decision,
     GitHubRef,
-    InitiativeConfig,
-    InitiativeProjectRef,
+    FeatureConfig,
+    FeatureProjectRef,
     KnowledgePoolEntry,
     LinkRef,
     McpServer,
@@ -93,6 +93,48 @@ def test_replace_or_append_no_block_appends():
     result = claude._replace_or_append_block(content, start, end, new_block)
     assert result.startswith("just some content")
     assert "new block" in result
+
+
+def test_replace_or_append_is_idempotent():
+    """Replacing an existing block must not change the file.
+
+    The pattern did not consume the newlines after END, so the block's own
+    trailing newline stacked on them: each call added one blank line, and a
+    CLAUDE.md grew by a byte every time `coworker project sync` ran.
+    """
+    start, end = "<!-- START -->", "<!-- END -->"
+    new_block = "<!-- START -->\nnew block\n<!-- END -->\n"
+
+    content = "before\n\n" + start + "\nold\n" + end + "\n\n"
+    first = claude._replace_or_append_block(content, start, end, new_block)
+    second = claude._replace_or_append_block(first, start, end, new_block)
+    third = claude._replace_or_append_block(second, start, end, new_block)
+
+    assert first == second == third, "repeated replacement must be stable"
+
+
+def test_replace_or_append_collapses_accumulated_blank_lines():
+    """Blank lines left by the old behaviour get cleaned up on the next run."""
+    start, end = "<!-- START -->", "<!-- END -->"
+    bloated = "before\n" + start + "\nold\n" + end + "\n" + "\n" * 5 + "after\n"
+
+    result = claude._replace_or_append_block(
+        bloated, start, end, "<!-- START -->\nnew\n<!-- END -->"
+    )
+
+    assert "after" in result, "content after the block must survive"
+    assert "\n\n\n" not in result, "accumulated blank lines should collapse"
+
+
+def test_replace_or_append_keeps_content_after_midfile_block():
+    start, end = "<!-- START -->", "<!-- END -->"
+    content = "top\n" + start + "\nold\n" + end + "\n\nKEEP ME\ntail\n"
+
+    result = claude._replace_or_append_block(
+        content, start, end, "<!-- START -->\nnew\n<!-- END -->"
+    )
+
+    assert "KEEP ME" in result and "tail" in result
 
 
 # ── _had_block ────────────────────────────────────────────────────────────────
@@ -353,8 +395,9 @@ def test_sync_stale_mcp_from_settings_removed(tmp_path, monkeypatch):
 
     data = json.loads(settings.read_text())
     assert "mcpServers" not in data
-    assert "effortLevel" not in data
-    assert "skipDangerousModePermissionPrompt" not in data
+    # effortLevel and skipDangerousModePermissionPrompt used to be asserted here
+    # too. Both are the user's own settings and are no longer removed — see
+    # test_sync_preserves_user_settings_it_does_not_own.
 
 
 def test_sync_stop_hook_added(tmp_path, monkeypatch):
@@ -619,156 +662,156 @@ def test_inject_static_context_new_file(tmp_path, monkeypatch):
     assert claude.STATIC_START in content
 
 
-# ── inject_initiative ─────────────────────────────────────────────────────────
+# ── inject_feature ─────────────────────────────────────────────────────────
 
 
-def test_inject_initiative_existing_local_md(tmp_path, monkeypatch):
-    """inject_initiative injects into an existing CLAUDE.local.md."""
+def test_inject_feature_existing_local_md(tmp_path, monkeypatch):
+    """inject_feature injects into an existing CLAUDE.local.md."""
     project = tmp_path / "proj"
     project.mkdir()
     local_md = project / "CLAUDE.local.md"
-    local_md.write_text("# Local context\n\n<!-- INITIATIVE_PLACEHOLDER -->\n")
+    local_md.write_text("# Local context\n\n<!-- FEATURE_PLACEHOLDER -->\n")
 
     monkeypatch.setattr(claude, "_resolve_local_md", lambda pd: local_md)
 
-    config = InitiativeConfig(name="my-initiative", description="Test initiative")
-    actions = claude.inject_initiative(config, project_dir=project)
+    config = FeatureConfig(name="my-feature", description="Test feature")
+    actions = claude.inject_feature(config, project_dir=project)
     assert any("injected" in a for a in actions)
     content = local_md.read_text()
-    assert "my-initiative" in content
-    assert "INITIATIVE:my-initiative START" in content
-    assert "INITIATIVE:my-initiative END" in content
+    assert "my-feature" in content
+    assert "FEATURE:my-feature START" in content
+    assert "FEATURE:my-feature END" in content
 
 
-def test_inject_initiative_no_local_md_generates_template(tmp_path, monkeypatch):
-    """inject_initiative generates a template when CLAUDE.local.md doesn't exist."""
+def test_inject_feature_no_local_md_generates_template(tmp_path, monkeypatch):
+    """inject_feature generates a template when CLAUDE.local.md doesn't exist."""
     project = tmp_path / "proj"
     project.mkdir()
     local_md = project / "CLAUDE.local.md"
 
     monkeypatch.setattr(claude, "_resolve_local_md", lambda pd: local_md)
 
-    config = InitiativeConfig(name="new-initiative")
-    actions = claude.inject_initiative(config, project_dir=project)
+    config = FeatureConfig(name="new-feature")
+    actions = claude.inject_feature(config, project_dir=project)
     assert any("injected" in a for a in actions)
     assert local_md.exists()
     content = local_md.read_text()
-    assert "new-initiative" in content
+    assert "new-feature" in content
 
 
-def test_inject_initiative_replaces_previous_initiative(tmp_path, monkeypatch):
-    """inject_initiative replaces any existing initiative blocks."""
+def test_inject_feature_replaces_previous_feature(tmp_path, monkeypatch):
+    """inject_feature replaces any existing feature blocks."""
     project = tmp_path / "proj"
     project.mkdir()
     local_md = project / "CLAUDE.local.md"
     local_md.write_text(
-        "<!-- INITIATIVE:old START -->\n"
+        "<!-- FEATURE:old START -->\n"
         "old content\n"
-        "<!-- INITIATIVE:old END -->\n"
+        "<!-- FEATURE:old END -->\n"
         "\n"
-        "<!-- INITIATIVE_PLACEHOLDER -->\n"
+        "<!-- FEATURE_PLACEHOLDER -->\n"
     )
 
     monkeypatch.setattr(claude, "_resolve_local_md", lambda pd: local_md)
 
-    config = InitiativeConfig(name="new-initiative", description="Fresh start")
-    actions = claude.inject_initiative(config, project_dir=project)
+    config = FeatureConfig(name="new-feature", description="Fresh start")
+    actions = claude.inject_feature(config, project_dir=project)
     content = local_md.read_text()
-    assert "new-initiative" in content
-    assert "old" not in content  # old initiative fully removed
+    assert "new-feature" in content
+    assert "old" not in content  # old feature fully removed
 
 
-# ── remove_initiative ─────────────────────────────────────────────────────────
+# ── remove_feature ─────────────────────────────────────────────────────────
 
 
-def test_remove_initiative_no_file(tmp_path, monkeypatch):
-    """remove_initiative reports nothing to remove when file doesn't exist."""
+def test_remove_feature_no_file(tmp_path, monkeypatch):
+    """remove_feature reports nothing to remove when file doesn't exist."""
     project = tmp_path / "proj"
     project.mkdir()
     local_md = project / "CLAUDE.local.md"
 
     monkeypatch.setattr(claude, "_resolve_local_md", lambda pd: local_md)
 
-    actions = claude.remove_initiative(project_dir=project)
+    actions = claude.remove_feature(project_dir=project)
     assert any("nothing to remove" in a for a in actions)
 
 
-def test_remove_initiative_with_initiative(tmp_path, monkeypatch):
-    """remove_initiative removes an existing initiative block."""
+def test_remove_feature_with_feature(tmp_path, monkeypatch):
+    """remove_feature removes an existing feature block."""
     project = tmp_path / "proj"
     project.mkdir()
     local_md = project / "CLAUDE.local.md"
     local_md.write_text(
         "# Local context\n\n"
-        "<!-- INITIATIVE:test-init START -->\n"
-        "## Active Initiative: test-init\n\n"
+        "<!-- FEATURE:test-init START -->\n"
+        "## Active Feature: test-init\n\n"
         "Some content.\n"
-        "<!-- INITIATIVE:test-init END -->\n"
+        "<!-- FEATURE:test-init END -->\n"
         "\n"
-        "<!-- INITIATIVE_PLACEHOLDER -->\n"
+        "<!-- FEATURE_PLACEHOLDER -->\n"
     )
 
     monkeypatch.setattr(claude, "_resolve_local_md", lambda pd: local_md)
 
-    actions = claude.remove_initiative(project_dir=project)
+    actions = claude.remove_feature(project_dir=project)
     assert any("removed" in a for a in actions)
     content = local_md.read_text()
     assert "test-init" not in content
 
 
-def test_remove_initiative_no_initiative_in_file(tmp_path, monkeypatch):
-    """remove_initiative reports no initiative when none exists in the file."""
+def test_remove_feature_no_feature_in_file(tmp_path, monkeypatch):
+    """remove_feature reports no feature when none exists in the file."""
     project = tmp_path / "proj"
     project.mkdir()
     local_md = project / "CLAUDE.local.md"
-    local_md.write_text("# Just some local context\nNo initiatives here.\n")
+    local_md.write_text("# Just some local context\nNo features here.\n")
 
     monkeypatch.setattr(claude, "_resolve_local_md", lambda pd: local_md)
 
-    actions = claude.remove_initiative(project_dir=project)
-    assert any("no initiative" in a for a in actions)
+    actions = claude.remove_feature(project_dir=project)
+    assert any("no feature" in a for a in actions)
 
 
-# ── _remove_all_initiative_blocks ─────────────────────────────────────────────
+# ── _remove_all_feature_blocks ─────────────────────────────────────────────
 
 
-def test_remove_all_initiative_blocks_single():
+def test_remove_all_feature_blocks_single():
     content = (
         "before\n"
-        "<!-- INITIATIVE:foo START -->\n"
+        "<!-- FEATURE:foo START -->\n"
         "block content\n"
-        "<!-- INITIATIVE:foo END -->\n"
+        "<!-- FEATURE:foo END -->\n"
         "after\n"
     )
-    result = claude._remove_all_initiative_blocks(content)
-    assert "INITIATIVE" not in result
+    result = claude._remove_all_feature_blocks(content)
+    assert "FEATURE" not in result
     assert "before" in result
     assert "after" in result
 
 
-def test_remove_all_initiative_blocks_multiple():
+def test_remove_all_feature_blocks_multiple():
     content = (
         "top\n"
-        "<!-- INITIATIVE:a START -->\nblock a\n<!-- INITIATIVE:a END -->\n"
+        "<!-- FEATURE:a START -->\nblock a\n<!-- FEATURE:a END -->\n"
         "middle\n"
-        "<!-- INITIATIVE:b START -->\nblock b\n<!-- INITIATIVE:b END -->\n"
+        "<!-- FEATURE:b START -->\nblock b\n<!-- FEATURE:b END -->\n"
         "bottom\n"
     )
-    result = claude._remove_all_initiative_blocks(content)
-    assert "INITIATIVE" not in result
+    result = claude._remove_all_feature_blocks(content)
+    assert "FEATURE" not in result
     assert "top" in result
     assert "middle" in result
     assert "bottom" in result
 
 
-def test_remove_all_initiative_blocks_collapses_blank_lines():
+def test_remove_all_feature_blocks_collapses_blank_lines():
     content = (
         "line1\n\n\n\n"
-        "<!-- INITIATIVE:foo START -->\nblock\n<!-- INITIATIVE:foo END -->\n"
+        "<!-- FEATURE:foo START -->\nblock\n<!-- FEATURE:foo END -->\n"
         "\n\n\n\n"
         "line2\n"
     )
-    result = claude._remove_all_initiative_blocks(content)
+    result = claude._remove_all_feature_blocks(content)
     # Multiple blank lines collapsed into at most 2 consecutive
     assert "\n\n\n" not in result
     assert "line1" in result
@@ -840,15 +883,15 @@ def test_build_static_block_with_refs():
     assert "python" in block
 
 
-# ── _build_initiative_block ───────────────────────────────────────────────────
+# ── _build_feature_block ───────────────────────────────────────────────────
 
 
-def test_build_initiative_block_minimal():
-    config = InitiativeConfig(name="minimal")
-    block = claude._build_initiative_block(config)
-    assert "INITIATIVE:minimal START" in block
-    assert "INITIATIVE:minimal END" in block
-    assert "## Active Initiative: minimal" in block
+def test_build_feature_block_minimal():
+    config = FeatureConfig(name="minimal")
+    block = claude._build_feature_block(config)
+    assert "FEATURE:minimal START" in block
+    assert "FEATURE:minimal END" in block
+    assert "## Active Feature: minimal" in block
     # Optional sections should not appear
     assert "### Goal" not in block
     assert "### Approach" not in block
@@ -860,9 +903,9 @@ def test_build_initiative_block_minimal():
     assert "### Links" not in block
 
 
-def test_build_initiative_block_full_config():
-    config = InitiativeConfig(
-        name="full-initiative",
+def test_build_feature_block_full_config():
+    config = FeatureConfig(
+        name="full-feature",
         description="A comprehensive test.",
         goal="Achieve greatness.",
         approach="TDD all the way.",
@@ -871,8 +914,8 @@ def test_build_initiative_block_full_config():
         status="active",
         created="2025-01-15",
         projects=[
-            InitiativeProjectRef(name="proj1", role="primary", branches=["main", "dev"]),
-            InitiativeProjectRef(name="proj2", role="peer"),
+            FeatureProjectRef(name="proj1", role="primary", branches=["main", "dev"]),
+            FeatureProjectRef(name="proj2", role="peer"),
         ],
         decisions=[
             Decision(date="2025-01-10", decision="Use Python", rationale="Best fit", by="team"),
@@ -884,9 +927,9 @@ def test_build_initiative_block_full_config():
             LinkRef(url="https://example.com", title="Example", description="A useful link"),
         ],
     )
-    block = claude._build_initiative_block(config)
-    assert "INITIATIVE:full-initiative START" in block
-    assert "INITIATIVE:full-initiative END" in block
+    block = claude._build_feature_block(config)
+    assert "FEATURE:full-feature START" in block
+    assert "FEATURE:full-feature END" in block
     assert "A comprehensive test." in block
     assert "Achieve greatness." in block
     assert "TDD all the way." in block
@@ -907,84 +950,188 @@ def test_build_initiative_block_full_config():
     assert "A useful link" in block
 
 
-def test_build_initiative_block_with_goal_and_approach():
-    config = InitiativeConfig(name="ga", goal="Do something.", approach="Step by step.")
-    block = claude._build_initiative_block(config)
+def test_build_feature_block_with_goal_and_approach():
+    config = FeatureConfig(name="ga", goal="Do something.", approach="Step by step.")
+    block = claude._build_feature_block(config)
     assert "### Goal" in block
     assert "Do something." in block
     assert "### Approach" in block
     assert "Step by step." in block
 
 
-def test_build_initiative_block_with_testing():
-    config = InitiativeConfig(name="t", testing="pytest -v")
-    block = claude._build_initiative_block(config)
+def test_build_feature_block_with_testing():
+    config = FeatureConfig(name="t", testing="pytest -v")
+    block = claude._build_feature_block(config)
     assert "### Testing" in block
     assert "pytest -v" in block
 
 
-def test_build_initiative_block_with_recommended_skills():
-    config = InitiativeConfig(name="rs", recommended_skills=["code-review", "commit"])
-    block = claude._build_initiative_block(config)
+def test_build_feature_block_with_recommended_skills():
+    config = FeatureConfig(name="rs", recommended_skills=["code-review", "commit"])
+    block = claude._build_feature_block(config)
     assert "### Recommended Skills" in block
     assert "code-review" in block
     assert "commit" in block
 
 
-def test_build_initiative_block_with_decisions_no_rationale():
-    config = InitiativeConfig(
+def test_build_feature_block_with_decisions_no_rationale():
+    config = FeatureConfig(
         name="dec",
         decisions=[Decision(date="2025-06-01", decision="Switch DB", by="lead")],
     )
-    block = claude._build_initiative_block(config)
+    block = claude._build_feature_block(config)
     assert "### Key Decisions" in block
     assert "2025-06-01" in block
     assert "Switch DB" in block
     assert "by lead" in block
 
 
-def test_build_initiative_block_with_links_no_description():
-    config = InitiativeConfig(
+def test_build_feature_block_with_links_no_description():
+    config = FeatureConfig(
         name="lnk",
         links=[LinkRef(url="https://a.com", title="Site A")],
     )
-    block = claude._build_initiative_block(config)
+    block = claude._build_feature_block(config)
     assert "### Links" in block
     assert "[Site A](https://a.com)" in block
 
 
-def test_build_initiative_block_with_projects_no_branches():
-    config = InitiativeConfig(
+def test_build_feature_block_with_projects_no_branches():
+    config = FeatureConfig(
         name="np",
-        projects=[InitiativeProjectRef(name="p", role="downstream")],
+        projects=[FeatureProjectRef(name="p", role="downstream")],
     )
-    block = claude._build_initiative_block(config)
+    block = claude._build_feature_block(config)
     assert "### Projects in scope" in block
     assert "| p | downstream | - |" in block
 
 
-def test_build_initiative_block_with_reference_docs():
-    config = InitiativeConfig(
+def test_build_feature_block_with_reference_docs():
+    config = FeatureConfig(
         name="refs",
         reference_docs=[ReferenceDoc(path="~/docs/a.md", title="Doc A")],
     )
-    block = claude._build_initiative_block(config)
+    block = claude._build_feature_block(config)
     assert "### Reference Docs" in block
     assert "~/docs/a.md" in block
     assert "Doc A" in block
 
 
-def test_build_initiative_block_with_empty_string_fields_not_rendered():
-    config = InitiativeConfig(
+def test_build_feature_block_with_empty_string_fields_not_rendered():
+    config = FeatureConfig(
         name="empty-fields",
         description="",
         goal="",
         approach="",
         testing="",
     )
-    block = claude._build_initiative_block(config)
+    block = claude._build_feature_block(config)
     assert "### Goal" not in block
     assert "### Approach" not in block
     assert "### Testing" not in block
     # description is falsy when empty, so it won't be rendered
     assert "> " not in block
+
+
+def test_sync_preserves_user_settings_it_does_not_own(tmp_path, monkeypatch):
+    """sync() must not strip settings the user set.
+
+    It popped skipDangerousModePermissionPrompt from ~/.claude/settings.json on
+    every run, so a user's own configuration disappeared without notice — and
+    unlike the CLAUDE.md claims elsewhere ("your own content is never touched"),
+    nothing said so.
+    """
+    home = tmp_path / "home"
+    claude_dir = home / ".claude"
+    claude_dir.mkdir(parents=True)
+    settings = claude_dir / "settings.json"
+    settings.write_text(json.dumps({
+        "skipDangerousModePermissionPrompt": True,
+        "effortLevel": "high",
+        "theme": "dark",
+    }))
+
+    monkeypatch.setattr(claude, "CLAUDE_GLOBAL_DIR", claude_dir)
+    monkeypatch.setattr(claude, "CLAUDE_GLOBAL_SETTINGS", settings)
+    monkeypatch.setattr(claude, "CLAUDE_GLOBAL_SKILLS", claude_dir / "skills")
+    monkeypatch.setattr(claude, "CLAUDE_GLOBAL_MCP", home / ".claude.json")
+    monkeypatch.setattr(claude.backup, "snapshot", lambda files, tag: None)
+
+    claude.sync(CoworkerConfig())
+
+    data = json.loads(settings.read_text())
+    assert data.get("skipDangerousModePermissionPrompt") is True, (
+        "sync() removed a setting the user had set"
+    )
+    assert data.get("effortLevel") == "high", (
+        "sync() removed a setting the user had set"
+    )
+    assert data.get("theme") == "dark"
+
+
+class TestManagedMcpPruning:
+    """_sync_mcp was union-only, so a retired server lived in ~/.claude.json for ever.
+
+    The refusal to delete is right — those entries may be the user's own — but
+    it was unconditional, so there was no way to retire one of ours either.
+    The fix is to remember what we wrote, exactly as we wrote it, and prune
+    only that.
+    """
+
+    def _config(self, *names):
+        from coworker.models import CoworkerConfig, McpServer
+
+        return CoworkerConfig(
+            name="t",
+            mcp=[McpServer(name=n, command="npx", args=["-y", n], enabled=True)
+                 for n in names],
+        )
+
+    def test_a_server_we_wrote_and_no_longer_produce_is_removed(
+        self, tmp_path, monkeypatch
+    ):
+        from coworker.adapters.claude import _sync_mcp
+
+        monkeypatch.setenv("HOME", str(tmp_path))
+        mcp = tmp_path / ".claude.json"
+
+        _sync_mcp(self._config("keeper", "retired"), mcp)
+        _sync_mcp(self._config("keeper"), mcp)
+
+        doc = json.loads(mcp.read_text())
+        assert "keeper" in doc["mcpServers"]
+        assert "retired" not in doc["mcpServers"], "our own retired server must go"
+
+    def test_a_server_the_user_added_is_never_removed(self, tmp_path, monkeypatch):
+        from coworker.adapters.claude import _sync_mcp
+
+        monkeypatch.setenv("HOME", str(tmp_path))
+        mcp = tmp_path / ".claude.json"
+        mcp.write_text(json.dumps({"mcpServers": {
+            "theirs": {"command": "their-own", "args": []},
+        }}))
+
+        _sync_mcp(self._config("ours"), mcp)
+        _sync_mcp(self._config("ours"), mcp)
+
+        doc = json.loads(mcp.read_text())
+        assert "theirs" in doc["mcpServers"], "a server we never wrote is not ours"
+
+    def test_a_server_the_user_edited_is_left_alone(self, tmp_path, monkeypatch):
+        """Once it stops being what we wrote, it is theirs."""
+        from coworker.adapters.claude import _sync_mcp
+
+        monkeypatch.setenv("HOME", str(tmp_path))
+        mcp = tmp_path / ".claude.json"
+
+        _sync_mcp(self._config("shared"), mcp)
+
+        doc = json.loads(mcp.read_text())
+        doc["mcpServers"]["shared"] = {"command": "user-changed-it", "args": []}
+        mcp.write_text(json.dumps(doc))
+
+        _sync_mcp(self._config("other"), mcp)
+
+        doc = json.loads(mcp.read_text())
+        assert "shared" in doc["mcpServers"], "a user-edited entry must survive"
+        assert "other" in doc["mcpServers"]

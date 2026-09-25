@@ -18,6 +18,10 @@ OUTDATED = "OUTDATED"
 OVERWRITE = "OVERWRITE"
 MERGE_ADD = "MERGE_ADD"
 KEEP = "KEEP"
+#: The incoming template would delete lines that exist only in the user's copy.
+#: Kept rather than overwritten, and reported, because the alternative is
+#: silently destroying text the user wrote.
+CONFLICT = "CONFLICT"
 
 _HEADING_RE = re.compile(r"^#{1,3}\s+.+$")
 _H1_RE = re.compile(r"^#\s+.+$")
@@ -47,6 +51,23 @@ class SectionClassification:
     category: str
     current_content: str = ""
     future_content: str = ""
+    #: For CONFLICT: the lines an overwrite would have deleted.
+    at_risk: list[str] = field(default_factory=list)
+
+
+def _user_added_lines(current_body: str, future_body: str) -> list[str]:
+    """Lines the user's copy carries that the incoming template does not.
+
+    Not proof of authorship: a line the template itself dropped between
+    versions looks identical from here. So this errs toward preserving — a
+    false positive costs the user one review, a false negative costs them the
+    text.
+    """
+    future = {line.strip() for line in future_body.splitlines() if line.strip()}
+    return [
+        line.strip() for line in current_body.splitlines()
+        if line.strip() and line.strip() not in future
+    ]
 
 
 @dataclass
@@ -141,8 +162,20 @@ def sections_to_text(header: str, sections: list[Section]) -> str:
 # ── protected-range parser ────────────────────────────────────────────────────
 
 
-_PROTECTED_START_RE = re.compile(r"<!--\s*PROTECTED[^>]*\s*-->")
-_PROTECTED_END_RE = re.compile(r"<!--\s*END\s+PROTECTED[^>]*\s*-->")
+# Both marker spellings are accepted, because both are in use:
+#   <!-- PROTECTED -->            ... <!-- END PROTECTED -->
+#   <!-- PROTECTED START -->      ... <!-- PROTECTED END -->
+#
+# The start pattern must not match an end marker. It previously did - the old
+# `PROTECTED[^>]*` matched "PROTECTED END" too - so writing the second spelling
+# opened a *new* span that ran to EOF, and the end pattern (which only knew
+# "END PROTECTED") never closed it. Everything after the marker was silently
+# over-protected: the section was pinned to its old content forever and
+# verify_protected() reported the growing span as a modification.
+_PROTECTED_START_RE = re.compile(r"<!--\s*PROTECTED(?![^>]*\bEND\b)[^>]*\s*-->")
+_PROTECTED_END_RE = re.compile(
+    r"<!--\s*(?:END\s+PROTECTED|PROTECTED[^>]*\bEND\b)[^>]*\s*-->"
+)
 
 
 def protected_ranges(text: str) -> list[tuple[int, int]]:
@@ -201,8 +234,15 @@ def classify_sections(current: str, future: str) -> list[SectionClassification]:
             ))
             continue
 
-        # Legacy heuristic — kept for backward compat with pre-P4 markers
-        if "<!-- PROTECTED" in s.body or "<!-- INITIATIVE:" in s.body:
+        # Legacy heuristic — kept for backward compat with pre-P4 markers.
+        # Both marker dialects are protected: INITIATIVE is what CLAUDE.local.md
+        # files created before the rename still carry, and letting `coworker
+        # upgrade` merge over one would destroy the user's active context.
+        if (
+            "<!-- PROTECTED" in s.body
+            or "<!-- FEATURE:" in s.body
+            or "<!-- INITIATIVE:" in s.body
+        ):
             classifications.append(SectionClassification(
                 heading=s.heading, category=KEEP, current_content=s.body,
             ))
@@ -210,15 +250,35 @@ def classify_sections(current: str, future: str) -> list[SectionClassification]:
 
         if fut is not None:
             if s.body.strip() != fut.body.strip():
+                at_risk: list[str] = []
                 if _is_placeholder(fut.body) or s.body.strip().startswith(fut.body.strip()):
+                    # The user appended to the template's text, or the slot is
+                    # still a placeholder: nothing of theirs is at stake.
                     cat = KEEP
-                    content = s.body
                 else:
-                    cat = OVERWRITE
-                    content = fut.body
+                    user_only = _user_added_lines(s.body, fut.body)
+                    template_only = _user_added_lines(fut.body, s.body)
+                    if user_only and not template_only:
+                        # The user's copy holds everything the template offers
+                        # plus lines of its own, so there is no template
+                        # improvement here to prefer — overwriting could only
+                        # destroy. Keep theirs and say what is at stake.
+                        #
+                        # Requiring template_only to be empty is what keeps this
+                        # from firing on an ordinary template rewording, where
+                        # both sides differ; those still overwrite as before.
+                        cat = CONFLICT
+                        at_risk = user_only
+                    else:
+                        cat = OVERWRITE
                 classifications.append(SectionClassification(
                     heading=s.heading, category=cat,
-                    current_content=s.body, future_content=content if cat == OVERWRITE else "",
+                    current_content=s.body,
+                    # Kept even for KEEP/CONFLICT so a caller can reconsider the
+                    # decision — `upgrade --force` flips CONFLICT to OVERWRITE
+                    # and needs the text it is switching to.
+                    future_content=fut.body,
+                    at_risk=at_risk,
                 ))
             else:
                 classifications.append(SectionClassification(
@@ -282,7 +342,9 @@ def apply_merge(
             choice = SectionClassification(heading=s.heading, category=KEEP, current_content=s.body)
 
         cat = choice.category
-        if cat == KEEP:
+        if cat in (KEEP, CONFLICT):
+            # CONFLICT keeps the user's section: the difference is that it was
+            # reported, not that it was resolved differently.
             out.append(s)
         elif cat == OVERWRITE:
             new_body = choice.future_content.rstrip("\n") + "\n\n" if choice.future_content else ""

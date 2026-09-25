@@ -7,7 +7,7 @@ import pytest
 from coworker.adapters import opencode
 from coworker.models import (
     CoworkerConfig,
-    InitiativeConfig,
+    FeatureConfig,
     McpServer,
     OpenCodeOverrides,
     ProjectCatalog,
@@ -31,6 +31,7 @@ class TestSync:
 
     def test_no_existing_config_creates_new(self, tmp_path, monkeypatch):
         """When no config.json exists, sync creates one with MCP servers and permissions."""
+        monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setattr(opencode, "OPENCODE_CONFIG", tmp_path / "config.json")
 
         config = _make_config(
@@ -50,8 +51,16 @@ class TestSync:
         assert written["permission"]["bash"]["coworker *"] == "allow"
         assert any("config.json" in a for a in actions)
 
-    def test_existing_config_mcp_is_replaced_not_merged(self, tmp_path, monkeypatch):
-        """Coworker MCP servers replace (not merge with) any existing mcp key."""
+    def test_existing_config_mcp_is_merged_not_replaced(self, tmp_path, monkeypatch):
+        """A server the user added to OpenCode survives `coworker sync`.
+
+        This asserted the opposite — full replace, not merge — and that made
+        OpenCode the outlier: the Claude adapter refuses to remove entries it
+        did not write, gemini merges, and the same silent deletion of the
+        user's own config was fixed in the Claude settings path earlier. A sync
+        that discards configuration its owner added is not a sync.
+        """
+        monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setattr(opencode, "OPENCODE_CONFIG", tmp_path / "config.json")
 
         # Pre-existing config with a user-defined MCP server
@@ -75,11 +84,13 @@ class TestSync:
         # Our server is written
         assert "coworker-server" in written["mcp"]
         assert written["mcp"]["coworker-server"]["command"] == ["coworker", "mcp"]
-        # Existing user server is overwritten (full replace, not merge)
-        assert "user-server" not in written["mcp"]
+        # The user's server is theirs; we have no business deleting it.
+        assert "user-server" in written["mcp"]
+        assert written["mcp"]["user-server"]["command"] == ["node", "user-server.js"]
 
     def test_disabled_mcp_server_skipped(self, tmp_path, monkeypatch):
         """Disabled MCP servers are not written to config."""
+        monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setattr(opencode, "OPENCODE_CONFIG", tmp_path / "config.json")
 
         config = _make_config(
@@ -96,6 +107,7 @@ class TestSync:
 
     def test_empty_mcp_list_does_not_write_mcp_key(self, tmp_path, monkeypatch):
         """When config.mcp is empty, the 'mcp' key is not written."""
+        monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setattr(opencode, "OPENCODE_CONFIG", tmp_path / "config.json")
 
         config = _make_config(mcp=[])
@@ -108,6 +120,7 @@ class TestSync:
 
     def test_all_servers_disabled_writes_empty_mcp(self, tmp_path, monkeypatch):
         """When all servers are disabled, mcp_servers dict is empty but mcp key is written."""
+        monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setattr(opencode, "OPENCODE_CONFIG", tmp_path / "config.json")
 
         config = _make_config(
@@ -136,6 +149,7 @@ class TestSync:
 
     def test_permission_injection(self, tmp_path, monkeypatch):
         """The bash permission 'coworker *' is set to 'allow'."""
+        monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setattr(opencode, "OPENCODE_CONFIG", tmp_path / "config.json")
 
         config = _make_config()
@@ -146,6 +160,7 @@ class TestSync:
 
     def test_permission_injection_preserves_existing_perms(self, tmp_path, monkeypatch):
         """Existing permissions are preserved when injecting coworker bash permission."""
+        monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setattr(opencode, "OPENCODE_CONFIG", tmp_path / "config.json")
 
         existing = {
@@ -165,6 +180,7 @@ class TestSync:
 
     def test_opencode_extra_applied(self, tmp_path, monkeypatch):
         """config.opencode.extra entries are merged into the config."""
+        monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setattr(opencode, "OPENCODE_CONFIG", tmp_path / "config.json")
 
         config = _make_config(
@@ -178,6 +194,7 @@ class TestSync:
 
     def test_opencode_extra_overwrites_existing_keys(self, tmp_path, monkeypatch):
         """config.opencode.extra values overwrite existing keys in the config."""
+        monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setattr(opencode, "OPENCODE_CONFIG", tmp_path / "config.json")
 
         existing = {"theme": "light", "unchanged": "keep"}
@@ -194,6 +211,7 @@ class TestSync:
 
     def test_mcp_server_with_env(self, tmp_path, monkeypatch):
         """MCP server entry includes 'env' when environment vars are configured."""
+        monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setattr(opencode, "OPENCODE_CONFIG", tmp_path / "config.json")
 
         config = _make_config(
@@ -214,6 +232,7 @@ class TestSync:
 
     def test_mcp_server_without_args(self, tmp_path, monkeypatch):
         """MCP server without args still works (uses empty args list)."""
+        monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setattr(opencode, "OPENCODE_CONFIG", tmp_path / "config.json")
 
         config = _make_config(
@@ -226,6 +245,7 @@ class TestSync:
 
     def test_sync_returns_actions_with_updated_message(self, tmp_path, monkeypatch):
         """sync() returns a list of actions including the 'updated' message."""
+        monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setattr(opencode, "OPENCODE_CONFIG", tmp_path / "config.json")
 
         config = _make_config()
@@ -329,35 +349,35 @@ class TestInjectStaticContext:
         assert any("injected" in a or "updated" in a for a in actions)
 
 
-# ── inject_initiative() tests ─────────────────────────────────────────────────
+# ── inject_feature() tests ─────────────────────────────────────────────────
 
 
-class TestInjectInitiative:
-    """Tests for opencode.inject_initiative() — delegation to claude adapter."""
+class TestInjectFeature:
+    """Tests for opencode.inject_feature() — delegation to claude adapter."""
 
-    def test_delegates_to_claude_inject_initiative(self, monkeypatch):
-        """inject_initiative delegates to claude.inject_initiative with the same args."""
+    def test_delegates_to_claude_inject_feature(self, monkeypatch):
+        """inject_feature delegates to claude.inject_feature with the same args."""
         called_with = {}
 
         def fake_claude_inject(config, project_dir=None):
             called_with["config"] = config
             called_with["project_dir"] = project_dir
-            return ["injected initiative test-initiative"]
+            return ["injected feature test-feature"]
 
         monkeypatch.setattr(
-            "coworker.adapters.claude.inject_initiative",
+            "coworker.adapters.claude.inject_feature",
             fake_claude_inject,
         )
 
-        config = InitiativeConfig(name="test-initiative", description="A test")
-        result = opencode.inject_initiative(config, project_dir=None)
+        config = FeatureConfig(name="test-feature", description="A test")
+        result = opencode.inject_feature(config, project_dir=None)
 
         assert called_with["config"] is config
         assert called_with["project_dir"] is None
-        assert result == ["injected initiative test-initiative"]
+        assert result == ["injected feature test-feature"]
 
     def test_delegates_with_project_dir(self, monkeypatch, tmp_path):
-        """inject_initiative passes project_dir through to claude.inject_initiative."""
+        """inject_feature passes project_dir through to claude.inject_feature."""
         called_with = {}
 
         def fake_claude_inject(config, project_dir=None):
@@ -366,56 +386,56 @@ class TestInjectInitiative:
             return ["done"]
 
         monkeypatch.setattr(
-            "coworker.adapters.claude.inject_initiative",
+            "coworker.adapters.claude.inject_feature",
             fake_claude_inject,
         )
 
-        config = InitiativeConfig(name="proj-init")
-        result = opencode.inject_initiative(config, project_dir=tmp_path)
+        config = FeatureConfig(name="proj-init")
+        result = opencode.inject_feature(config, project_dir=tmp_path)
 
         assert called_with["project_dir"] == tmp_path
         assert result == ["done"]
 
     def test_returns_claude_inject_return_value(self, monkeypatch):
-        """The return value from claude.inject_initiative is propagated directly."""
+        """The return value from claude.inject_feature is propagated directly."""
         expected = ["action-1", "action-2"]
         monkeypatch.setattr(
-            "coworker.adapters.claude.inject_initiative",
+            "coworker.adapters.claude.inject_feature",
             lambda config, project_dir=None: expected,
         )
 
-        config = InitiativeConfig(name="test")
-        result = opencode.inject_initiative(config)
+        config = FeatureConfig(name="test")
+        result = opencode.inject_feature(config)
 
         assert result == expected
 
 
-# ── remove_initiative() tests ─────────────────────────────────────────────────
+# ── remove_feature() tests ─────────────────────────────────────────────────
 
 
-class TestRemoveInitiative:
-    """Tests for opencode.remove_initiative() — delegation to claude adapter."""
+class TestRemoveFeature:
+    """Tests for opencode.remove_feature() — delegation to claude adapter."""
 
-    def test_delegates_to_claude_remove_initiative(self, monkeypatch):
-        """remove_initiative delegates to claude.remove_initiative."""
+    def test_delegates_to_claude_remove_feature(self, monkeypatch):
+        """remove_feature delegates to claude.remove_feature."""
         called_with = {}
 
         def fake_claude_remove(project_dir=None):
             called_with["project_dir"] = project_dir
-            return ["removed initiative"]
+            return ["removed feature"]
 
         monkeypatch.setattr(
-            "coworker.adapters.claude.remove_initiative",
+            "coworker.adapters.claude.remove_feature",
             fake_claude_remove,
         )
 
-        result = opencode.remove_initiative(project_dir=None)
+        result = opencode.remove_feature(project_dir=None)
 
         assert called_with["project_dir"] is None
-        assert result == ["removed initiative"]
+        assert result == ["removed feature"]
 
     def test_delegates_with_project_dir(self, monkeypatch, tmp_path):
-        """remove_initiative passes project_dir through to claude.remove_initiative."""
+        """remove_feature passes project_dir through to claude.remove_feature."""
         called_with = {}
 
         def fake_claude_remove(project_dir=None):
@@ -423,24 +443,24 @@ class TestRemoveInitiative:
             return ["cleared"]
 
         monkeypatch.setattr(
-            "coworker.adapters.claude.remove_initiative",
+            "coworker.adapters.claude.remove_feature",
             fake_claude_remove,
         )
 
-        result = opencode.remove_initiative(project_dir=tmp_path)
+        result = opencode.remove_feature(project_dir=tmp_path)
 
         assert called_with["project_dir"] == tmp_path
         assert result == ["cleared"]
 
     def test_returns_claude_remove_return_value(self, monkeypatch):
-        """The return value from claude.remove_initiative is propagated directly."""
-        expected = ["removed initiative my-initiative"]
+        """The return value from claude.remove_feature is propagated directly."""
+        expected = ["removed feature my-feature"]
         monkeypatch.setattr(
-            "coworker.adapters.claude.remove_initiative",
+            "coworker.adapters.claude.remove_feature",
             lambda project_dir=None: expected,
         )
 
-        result = opencode.remove_initiative()
+        result = opencode.remove_feature()
 
         assert result == expected
 

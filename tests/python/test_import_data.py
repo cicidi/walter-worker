@@ -47,7 +47,7 @@ def test_parse_session_yaml_basic(tmp_path):
     d.mkdir()
     (d / "session.yaml").write_text(
         'session_id: "abc-123"\nproject: my-proj\ncwd: /tmp/proj\n'
-        "model: claude-3\ninitiative: my-init\nbranch: feat/x\n"
+        "model: claude-3\nfeature: my-init\nbranch: feat/x\n"
         "created: 2025-01-01T10:00:00\nclosed: 2025-01-01T10:30:00\n"
     )
     data = parse_session_yaml(d)
@@ -55,7 +55,7 @@ def test_parse_session_yaml_basic(tmp_path):
     assert data["project"] == "my-proj"
     assert data["cwd"] == "/tmp/proj"
     assert data["model"] == "claude-3"
-    assert data["initiative"] == "my-init"
+    assert data["feature"] == "my-init"
     assert data["branch"] == "feat/x"
     assert data["created"] == "2025-01-01T10:00:00"
     assert data["closed"] == "2025-01-01T10:30:00"
@@ -100,7 +100,7 @@ def test_import_session_basic(import_db, tmp_path):
     d.mkdir()
     (d / "session.yaml").write_text(
         'session_id: "sess-001"\nproject: my-proj\ncwd: /tmp/proj\n'
-        "model: claude-3\ninitiative: my-init\nbranch: feat/x\n"
+        "model: claude-3\nfeature: my-init\nbranch: feat/x\n"
         "created: 2025-01-01T10:00:00\nclosed: 2025-01-01T10:30:00\n"
     )
     _make_jsonl(d / "messages.jsonl", [
@@ -132,7 +132,7 @@ def test_import_session_basic(import_db, tmp_path):
     assert s["project"] == "my-proj"
     assert s["cwd"] == "/tmp/proj"
     assert s["model"] == "claude-3"
-    assert s["initiative"] == "my-init"
+    assert s["feature"] == "my-init"
     assert s["branch"] == "feat/x"
     assert s["created_at"] == "2025-01-01T10:00:00"
     assert s["closed_at"] == "2025-01-01T10:30:00"

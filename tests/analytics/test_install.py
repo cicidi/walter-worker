@@ -46,7 +46,13 @@ def test_claude_hooks_configured(installed_home):
                 f"{event} group missing matcher/hooks wrapper: {g!r}"
             for h in g["hooks"]:
                 cmd = h.get("command", "")
-                assert "coworker/analytics/hooks/" in cmd, \
+                # Two legitimate kinds of hook command: the analytics hook
+                # scripts, and coworker CLI subcommands — `memory capture` on
+                # Stop, `state-update` alongside it. The point is that the
+                # command resolves to something this project installs, not
+                # that every hook is a script path.
+                assert ("coworker/analytics/hooks/" in cmd
+                        or cmd.startswith("coworker ")), \
                     f"{event} command points wrong: {cmd}"
 
 
@@ -64,6 +70,37 @@ def test_opencode_skills_deployed(installed_home):
     assert skill_mds, "no SKILL.md files deployed under opencode skills dir"
 
 
+def test_super_lab_skills_deploy_to_three_harnesses(installed_home):
+    """the-super-lab skills reach Claude Code, OpenCode, and Cursor.
+
+    Claude and OpenCode receive whole directories so sibling files travel;
+    Cursor receives a flattened verbatim copy.
+    """
+    skill_md = installed_home / "project/the-super-lab/skills/alpha-skill/SKILL.md"
+
+    # Claude Code — directory copy, sibling files travel
+    claude_skill = installed_home / ".claude/skills/alpha-skill"
+    assert (claude_skill / "SKILL.md").is_file(), "Claude SKILL.md missing"
+    assert (claude_skill / "REFERENCE.md").is_file(), \
+        "sibling file did not travel to Claude"
+
+    # OpenCode — symlink to the source directory
+    opencode_skill = (
+        installed_home / ".config/opencode/skills/the-super-lab/alpha-skill"
+    )
+    assert opencode_skill.is_symlink(), "OpenCode entry is not a symlink"
+    assert (opencode_skill / "SKILL.md").is_file()
+    assert (opencode_skill / "REFERENCE.md").is_file(), \
+        "sibling file not reachable through the OpenCode symlink"
+
+    # Cursor — flattened verbatim copy
+    cursor_rule = installed_home / ".cursor/rules/alpha-skill.md"
+    assert cursor_rule.is_file(), "Cursor rule missing"
+    assert cursor_rule.read_text(encoding="utf-8") == skill_md.read_text(
+        encoding="utf-8"
+    ), "Cursor rule is not a verbatim copy"
+
+
 def test_install_creates_hook_scripts(installed_home):
     """The on-user-prompt hook script exists and is executable."""
     hooks_file = installed_home / ".coworker" / "analytics" / "hooks" / "on-user-prompt.sh"
@@ -76,3 +113,92 @@ def test_session_dir_exists(installed_home):
     """sessions directory created."""
     sessions = installed_home / ".coworker" / "analytics" / "sessions"
     assert sessions.is_dir()
+
+
+def test_install_prunes_stale_opencode_symlinks(tmp_path):
+    """install.sh must not let the OpenCode mirror grow without bound.
+
+    It synced CLAUDE_DIR -> OPENCODE_DIR additively, so a symlink created by an
+    earlier run kept pointing at CLAUDE_DIR after its target was deleted, and
+    nothing removed it. 78 such dangling links had accumulated, which is what
+    the 30-minute health check reported as COMMANDS_DIFF.
+    """
+    import os
+    import subprocess
+    from pathlib import Path
+
+    repo = Path(__file__).resolve().parents[2]
+    home = tmp_path / "home"
+    claude = home / ".claude" / "commands"
+    opencode = home / ".opencode" / "instructions"
+    claude.mkdir(parents=True)
+    opencode.mkdir(parents=True)
+
+    # A current skill and its working link.
+    (claude / "kept.md").write_text("---\nname: kept\n---\n", encoding="utf-8")
+    os.symlink(claude / "kept.md", opencode / "kept.md")
+    # Two links whose targets no longer exist.
+    for stale in ("gone-a.md", "gone-b.md"):
+        os.symlink(claude / stale, opencode / stale)
+    # A regular file is not install.sh's to delete.
+    (opencode / "user-file.md").write_text("mine\n", encoding="utf-8")
+
+    env = {**os.environ, "HOME": str(home)}
+    proc = subprocess.run(
+        ["bash", str(repo / "setup" / "install.sh"), "--global"],
+        input="0\n", text=True, env=env, cwd=str(repo),
+        capture_output=True, timeout=120,
+    )
+    assert proc.returncode == 0, proc.stderr
+
+    remaining = sorted(p.name for p in opencode.iterdir())
+    assert "kept.md" in remaining, "a live skill link must survive"
+    assert "user-file.md" in remaining, "a regular file must not be pruned"
+    assert "gone-a.md" not in remaining, "dangling symlinks must be pruned"
+    assert "gone-b.md" not in remaining
+
+
+def test_install_deploys_python_hooks_too(installed_home):
+    """Every hook the repo ships must reach ~/.coworker/analytics/hooks/.
+
+    install.sh copied only *.sh, so on-correction.py - a UserPromptSubmit hook
+    that settings.json registers - was never installed by a fresh run and never
+    updated on an existing one. The gap was hidden on the dev machine by a
+    manual copy that had since gone stale.
+    """
+    from pathlib import Path
+
+    hooks = installed_home / ".coworker" / "analytics" / "hooks"
+    assert hooks.is_dir()
+
+    repo_hooks = Path(__file__).resolve().parents[2] / "src" / "coworker" / "analytics" / "hooks"
+    expected = {p.name for p in repo_hooks.glob("*.sh")} | {
+        p.name for p in repo_hooks.glob("*.py")
+    }
+    assert expected, "no hooks found in the repo to check"
+
+    missing = sorted(name for name in expected if not (hooks / name).is_file())
+    assert not missing, f"hooks in the repo but not installed: {missing}"
+
+    assert (hooks / "on-correction.py").is_file()
+
+
+def test_install_always_installs_the_core_init_skill(installed_home):
+    """install.sh must install the core `init` skill on every run.
+
+    The step has always existed, but the skill it points at was dropped from the
+    repo in e964925 - the commit that merged 38 skills into 22 accounts for
+    every removal except this one. The step had been warning "not found" and
+    installing nothing ever since.
+    """
+    init_md = installed_home / ".claude" / "commands" / "init.md"
+    assert init_md.is_file(), "core init skill was not installed"
+    assert init_md.read_text(encoding="utf-8").strip(), "init.md is empty"
+
+    from pathlib import Path
+
+    repo_skill = Path(__file__).resolve().parents[2] / "skills" / "init" / "SKILL.md"
+    assert repo_skill.is_file(), (
+        "install.sh step 9 sources skills/init/SKILL.md, so it must exist in the repo"
+    )
+    assert init_md.read_text(encoding="utf-8") == repo_skill.read_text(encoding="utf-8")

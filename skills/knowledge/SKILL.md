@@ -1,23 +1,27 @@
 ---
 name: knowledge
+version: 0.1.0
 description: |
   Use when extracting structured knowledge from past sessions — summarizes
   conversations into memory cards (Obsidian vault) or knowledge cards
   (SQLite analytics). Use when the user asks to summarize sessions, extract
   patterns, or build a searchable knowledge base from agent history.
+triggers:
+  - knowledge
+  - summarize sessions
+  - extract memory
+  - scan session history
+  - build knowledge graph from conversations
+  - session memory
+  - knowledge card
+  - analyze sessions
+  - what did we learn
+when-to-use: >
+  Use when summarizing completed sessions into reusable memory or knowledge
+  cards, extracting patterns and decisions across multiple sessions, or
+  building a searchable knowledge base from agent conversation history.
 license: MIT
 compatibility: claude-code,opencode
-metadata:
-  triggers:
-    - knowledge
-    - summarize sessions
-    - extract memory
-    - scan session history
-    - build knowledge graph from conversations
-    - session memory
-    - knowledge card
-    - analyze sessions
-    - what did we learn
 ---
 
 # knowledge

@@ -31,3 +31,51 @@ class TestInjectLocalMd:
         inject_into_local_md(str(p), "<!-- WRONG-HISTORY START -->new-body<!-- WRONG-HISTORY END -->")
         assert "new-body" in p.read_text()
         assert "old-body" not in p.read_text()
+
+
+class TestWrappedPreventionRules:
+    """A multi-line prevention rule was cut off at the first newline.
+
+    The parser took only the text after the marker on the same line, so a rule
+    that wrapped was severed mid-sentence. The shipped adversarial-review rule
+    came out as "In any adversarial review (devil-advocate, con/pro/judge)," —
+    ending on a comma and preventing nothing. It was the severity:high entry,
+    and the dropped text was the entire instruction.
+    """
+
+    def _entry(self, tmp_path, rule_body: str):
+        entries = tmp_path / "entries"
+        entries.mkdir(parents=True, exist_ok=True)
+        (entries / "2026-01-01-wrapped.md").write_text(
+            "---\ndate: 2026-01-01\nseverity: high\ncategory: testing\n---\n\n"
+            "# A wrapped rule\n\n"
+            "**What happened:** something\n\n"
+            f"**Prevention rule:** {rule_body}\n\n"
+            "**Anti-pattern:** not following it\n"
+        )
+        return str(tmp_path)
+
+    def test_the_continuation_is_kept(self, tmp_path):
+        from coworker.memory.wrong_history import extract_rules
+
+        d = self._entry(
+            tmp_path,
+            "In any adversarial review,\n"
+            "the PRO agent MUST search for counter-evidence\n"
+            "and attempt to REFUTE each finding.",
+        )
+        rules = extract_rules(d)
+
+        assert len(rules) == 1
+        rule = rules[0]["rule"]
+        assert "REFUTE each finding" in rule, f"rule truncated: {rule!r}"
+        assert rule.startswith("In any adversarial review,")
+
+    def test_it_stops_at_the_next_field(self, tmp_path):
+        from coworker.memory.wrong_history import extract_rules
+
+        d = self._entry(tmp_path, "Do the thing.\nThen stop.")
+        rule = extract_rules(d)[0]["rule"]
+
+        assert "Then stop." in rule
+        assert "Anti-pattern" not in rule, "must not swallow the next field"

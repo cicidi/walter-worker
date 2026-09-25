@@ -35,12 +35,11 @@ def register_autoworker(main_group: click.Group) -> None:
         import os
         from datetime import datetime, timezone
 
-        from .memory.wrong_history import extract_rules
 
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         out_path = (
             output
-            or f"docs/self-evolving-agent/state/issues-found-{today}-auto.md"
+            or f"docs/features/self-evolving-agent/state/issues-found-{today}-auto.md"
         )
         os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
 
@@ -52,14 +51,29 @@ def register_autoworker(main_group: click.Group) -> None:
         findings = []
         phases_list = [p.strip() for p in phases.split(",")]
 
+        # A typo used to produce an empty findings file and exit 0, which is
+        # indistinguishable from a clean bill of health.
+        _valid_phases = ("prd", "spec", "web", "code", "all")
+        _unknown = [p for p in phases_list if p and p not in _valid_phases]
+        if _unknown:
+            raise click.ClickException(
+                f"Unknown phase(s): {', '.join(_unknown)}. "
+                f"Valid: {', '.join(_valid_phases)}."
+            )
+
+        # Phases that reported something wrong. The command exits non-zero for
+        # these: a QA inspector whose exit status is always 0 cannot gate a
+        # loop or a CI job, which is the whole point of it.
+        problems: list[str] = []
+
         if "all" in phases_list or "prd" in phases_list:
-            prd_path = "docs/self-evolving-agent/prd/self-evolving-agent-prd.md"
+            prd_path = "docs/features/self-evolving-agent/prd/self-evolving-agent-prd.md"
             if os.path.exists(prd_path):
                 lines = open(prd_path).readlines()
                 reqs = [
-                    l
-                    for l in lines
-                    if l.strip().startswith("- R") or "R1" in l or "R2" in l
+                    line
+                    for line in lines
+                    if line.strip().startswith("- R") or "R1" in line or "R2" in line
                 ]
                 findings.append(
                     f"## PRD Scan: {len(reqs)} requirement references found in {prd_path}"
@@ -68,10 +82,10 @@ def register_autoworker(main_group: click.Group) -> None:
                 findings.append(f"## PRD Scan: {prd_path} not found")
 
         if "all" in phases_list or "spec" in phases_list:
-            spec_path = "docs/self-evolving-agent/spec/self-evolving-agent-spec.md"
+            spec_path = "docs/features/self-evolving-agent/spec/self-evolving-agent-spec.md"
             if os.path.exists(spec_path):
                 sections = [
-                    l for l in open(spec_path).readlines() if l.startswith("## §")
+                    line for line in open(spec_path).readlines() if line.startswith("## §")
                 ]
                 findings.append(
                     f"## Spec Scan: {len(sections)} sections in {spec_path}"
@@ -97,16 +111,22 @@ def register_autoworker(main_group: click.Group) -> None:
                 timeout=600,  # full suite takes ~5-6 min
             )
             test_status = "PASS" if r.returncode == 0 else "FAIL"
-            # Extract pass/fail counts from pytest output
-            last_line = r.stdout.strip().split("\n")[-1] if r.stdout.strip() else ""
+            # Extract pass/fail counts from pytest output. When pytest cannot
+            # even start it writes nothing to stdout and the reason goes to
+            # stderr, so reading stdout alone produced "Tests FAIL — " with a
+            # blank explanation.
+            output = r.stdout.strip() or r.stderr.strip()
+            last_line = output.split("\n")[-1] if output else "(no output)"
             findings.append(f"## Code Audit: Tests {test_status} — {last_line}")
+            if r.returncode != 0:
+                problems.append("tests")
             r = subprocess.run(
                 ["git", "status", "--short"], capture_output=True, text=True
             )
             mods = [
-                l
-                for l in r.stdout.strip().split("\n")
-                if l.strip() and not l.startswith("??")
+                line
+                for line in r.stdout.strip().split("\n")
+                if line.strip() and not line.startswith("??")
             ]
             findings.append(f"  Uncommitted: {len(mods)} modified files")
 
@@ -115,6 +135,12 @@ def register_autoworker(main_group: click.Group) -> None:
             f.write("\n".join(findings) + "\n")
 
         console.print(f"[green]Findings written to {out_path}[/green]")
+
+        if problems:
+            raise click.ClickException(
+                f"Inspection reported problems in: {', '.join(problems)}. "
+                f"See {out_path}."
+            )
 
     # -----------------------------------------------------------------------
     # run — auto-worker loop

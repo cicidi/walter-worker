@@ -34,7 +34,10 @@ PROJECT_MAP = {
     "-home-cicidi-project-deterministic-ai-agent": "deterministic-workflow",
     "mfangdai-ai-agent": "mfangdai",
     "-home-cicidi-project-mfangdai-ai-agent": "mfangdai",
-    "skill-factory": "skill-factory",
+    # The repo was renamed skill-factory -> the-super-lab. Sessions recorded
+    # before the rename still carry the old name, so both canonicalise here.
+    "skill-factory": "the-super-lab",
+    "the-super-lab": "the-super-lab",
     "computer-config": "computer-config",
     "hackathon-video-gen": "hackathon-video-gen",
     "-home-cicidi-project-hackathon-video-gen": "hackathon-video-gen",
@@ -379,8 +382,8 @@ def generate_doc_organize_output(
     output_dir: Path,
 ):
     """Generate doc-organize compliant decision-history docs."""
-    initiative = project_name
-    dec_dir = output_dir / "docs" / initiative / "decision-history"
+    feature = project_name
+    dec_dir = output_dir / "docs" / feature / "decision-history"
     dec_dir.mkdir(parents=True, exist_ok=True)
 
     # Group decisions by date
@@ -542,7 +545,7 @@ def main():
             "walter-worker": HOME / "project" / "walter-worker",
             "deterministic-workflow": HOME / "project" / "deterministic-workflow",
             "mfangdai": HOME / "project" / "mfangdai",
-            "skill-factory": HOME / "project" / "skill-factory",
+            "the-super-lab": HOME / "project" / "the-super-lab",
             "computer-config": HOME / "project" / "computer-config",
             "hackathon-video-gen": HOME / "project" / "hackathon-video-gen",
             "mratequote": HOME / "project" / "mratequote",

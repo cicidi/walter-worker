@@ -3,9 +3,9 @@ from coworker.templates.global_claude_md import GLOBAL_CLAUDE_MD_TEMPLATE, gener
 from coworker.templates.project_claude_md import generate_project_claude_md
 from coworker.templates.local_claude_md import (
     generate_local_claude_md,
-    inject_initiative_into_local_md,
-    remove_initiative_from_local_md,
-    INITIATIVE_PLACEHOLDER,
+    inject_feature_into_local_md,
+    remove_feature_from_local_md,
+    FEATURE_PLACEHOLDER,
 )
 
 
@@ -125,11 +125,11 @@ class TestLocalTemplate:
     def test_under_50_lines(self):
         result = generate_local_claude_md()
         lines = result.strip().split("\n")
-        assert len(lines) < 50, f"{len(lines)} lines — local.md should be minimal without initiative"
+        assert len(lines) < 50, f"{len(lines)} lines — local.md should be minimal without feature"
 
-    def test_has_initiative_placeholder(self):
+    def test_has_feature_placeholder(self):
         result = generate_local_claude_md()
-        assert INITIATIVE_PLACEHOLDER in result
+        assert FEATURE_PLACEHOLDER in result
 
     def test_has_config_path_section(self):
         result = generate_local_claude_md()
@@ -147,32 +147,32 @@ class TestLocalTemplate:
         result = generate_local_claude_md()
         assert "Current Task" in result
 
-    def test_inject_initiative_no_duplicates(self):
+    def test_inject_feature_no_duplicates(self):
         content = generate_local_claude_md()
-        block = """<!-- INITIATIVE:test START -->
-## Active Initiative: test
+        block = """<!-- FEATURE:test START -->
+## Active Feature: test
 > test desc
-<!-- INITIATIVE:test END -->"""
-        updated = inject_initiative_into_local_md(content, block)
-        assert "INITIATIVE:test" in updated
-        updated2 = inject_initiative_into_local_md(updated, block)
-        assert updated2.count("INITIATIVE:test") == 2
+<!-- FEATURE:test END -->"""
+        updated = inject_feature_into_local_md(content, block)
+        assert "FEATURE:test" in updated
+        updated2 = inject_feature_into_local_md(updated, block)
+        assert updated2.count("FEATURE:test") == 2
 
-    def test_remove_initiative(self):
+    def test_remove_feature(self):
         content = generate_local_claude_md()
-        block = "<!-- INITIATIVE:test START -->\n## test\n<!-- INITIATIVE:test END -->"
-        with_init = inject_initiative_into_local_md(content, block)
-        assert "INITIATIVE:test" in with_init
-        removed = remove_initiative_from_local_md(with_init, "test")
-        assert "INITIATIVE:test" not in removed
+        block = "<!-- FEATURE:test START -->\n## test\n<!-- FEATURE:test END -->"
+        with_init = inject_feature_into_local_md(content, block)
+        assert "FEATURE:test" in with_init
+        removed = remove_feature_from_local_md(with_init, "test")
+        assert "FEATURE:test" not in removed
 
     def test_remove_nonexistent(self):
         content = generate_local_claude_md()
-        result = remove_initiative_from_local_md(content, "nonexistent")
-        assert INITIATIVE_PLACEHOLDER in result
+        result = remove_feature_from_local_md(content, "nonexistent")
+        assert FEATURE_PLACEHOLDER in result
 
     def test_placeholder_survives_injection(self):
         content = generate_local_claude_md()
-        block = "<!-- INITIATIVE:test START -->\n## test\n<!-- INITIATIVE:test END -->"
-        updated = inject_initiative_into_local_md(content, block)
-        assert INITIATIVE_PLACEHOLDER in updated
+        block = "<!-- FEATURE:test START -->\n## test\n<!-- FEATURE:test END -->"
+        updated = inject_feature_into_local_md(content, block)
+        assert FEATURE_PLACEHOLDER in updated
