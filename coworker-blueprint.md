@@ -12,6 +12,7 @@
 
 ## Table of Contents
 
+0. [Vision](#0-vision)
 1. [Core Purpose](#1-core-purpose)
 2. [Three-Layer CLAUDE.md Architecture](#2-three-layer-claudemd-architecture)
 3. [Directory Structure](#3-directory-structure)
@@ -27,6 +28,57 @@
 13. [IDE Adapters](#13-ide-adapters)
 14. [Installer Specification](#14-installer-specification)
 15. [Cross-Tool Compatibility](#15-cross-tool-compatibility)
+
+---
+
+## 0. Vision
+
+> **North star:** an agent that gets better at your work without you tending it.
+
+Coworker maintains five surfaces. They are the whole of its responsibility — a
+capability that serves none of them is out of scope.
+
+| Surface | What it covers |
+|---|---|
+| **Skill** | The unit of learned behaviour: how a skill is discovered, drafted, approved, deployed, retired |
+| **Skill management** | Which skills exist, where they deploy, whether the deployed copy is the current one |
+| **Memory management** | What is remembered across sessions, and what is allowed to decay |
+| **Context management** | What the agent sees when a session starts — the CLAUDE.md layers |
+| **Agent monitoring** | Whether the above is actually happening, and whether it is helping |
+
+### The evolution loop
+
+The five surfaces are not a feature list; they are stages of one closed loop.
+
+```
+capture ──▶ memory ──▶ decay / curator ──▶ skill staging ──▶ approval ──▶ injection
+   ▲                                                                        │
+   └────────────────────────────────────────────────────────────────────────┘
+```
+
+Sessions are observed, what was learned is extracted, repeated patterns become
+skills, and the result is injected into the next session's context — which then
+produces better sessions. Every component either **is a stage in this loop** or
+**measures it**. Anything that does neither does not belong here.
+
+### Direction of travel
+
+Stated as capability targets, not as current state:
+
+| Horizon | Target capability | Human role |
+|---|---|---|
+| **Now** | Sessions become memory; memory reaches the next session's context | author, and approve |
+| **Next** | Skills and context evolve on their own — drafted and retired by the loop, not by hand | review, and approve |
+| **Later** | The agent completes a class of simple task end to end, using what it has evolved | set direction, audit outcomes |
+
+Progress is measured by **how much human intervention a given class of task
+still needs**. It should fall.
+
+### Development approach
+
+Work proceeds as **wayfinder** → **spec-driven development**: chart the route as
+decision briefs on the tracker, resolve them until the way is clear, then
+spec → tickets → implement. The route is reviewable before code is written.
 
 ---
 
