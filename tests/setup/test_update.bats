@@ -86,8 +86,9 @@ teardown() {
   run grep "is not a git checkout, so it was not pulled" "$REPO_ROOT/setup/update.sh"
   [ "$status" -eq 0 ]
 
-  # And it must not claim the directory is absent.
-  run grep -c "not found at" "$REPO_ROOT/setup/update.sh"
+  # And no message may claim the directory is absent. Only log/echo lines —
+  # the comment explaining the old wording mentions the phrase too.
+  run bash -c "grep -E '^[[:space:]]*(log|echo) ' '$REPO_ROOT/setup/update.sh' | grep -c 'not found at'"
   [ "$output" = "0" ]
 }
 
