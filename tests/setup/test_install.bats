@@ -232,3 +232,46 @@ print('yes' if any(f.endswith('CLAUDE.md') for f in m.get('files', [])) else 'no
 "
   [ "$output" = "yes" ]
 }
+
+@test "on-correction.py is registered as a UserPromptSubmit hook" {
+  # install.sh copied this file into the hooks dir but never wired it to an
+  # event. The author's machine had it hand-registered, so the correction
+  # detector worked there and for nobody else: a fresh install silently lost
+  # the first stage of the self-heal loop.
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import json, os
+cfg = json.load(open(os.path.expanduser('~/.claude/settings.json')))
+cmds = [h.get('command', '')
+        for groups in cfg.get('hooks', {}).values() if isinstance(groups, list)
+        for g in groups if isinstance(g, dict)
+        for h in (g.get('hooks') or []) if isinstance(h, dict)]
+print('\n'.join(c for c in cmds if 'on-correction.py' in c))
+"
+  [[ "$output" == *"on-correction.py"* ]]
+}
+
+@test "no shipped on-* hook is left unregistered" {
+  # Guards the whole class rather than the one instance: the hooks dir and the
+  # registration list are maintained separately, so a hook can be added to one
+  # and forgotten in the other. common.sh is a sourced helper, not an event
+  # hook, which is why the glob is on-* rather than *.
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import glob, json, os
+home = os.path.expanduser('~')
+shipped = sorted(os.path.basename(p) for p in glob.glob(home + '/.coworker/analytics/hooks/on-*'))
+cfg = json.load(open(home + '/.claude/settings.json'))
+registered = ' '.join(
+    h.get('command', '')
+    for groups in cfg.get('hooks', {}).values() if isinstance(groups, list)
+    for g in groups if isinstance(g, dict)
+    for h in (g.get('hooks') or []) if isinstance(h, dict))
+print('\n'.join(s for s in shipped if s not in registered))
+"
+  [ -z "$output" ]
+}

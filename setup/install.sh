@@ -501,6 +501,13 @@ def _merge_hook(event, cmd):
         entries.append({'matcher': '', 'hooks': [{'type': 'command', 'command': cmd}]})
 
 _merge_hook('UserPromptSubmit', '$HOME/.coworker/analytics/hooks/on-user-prompt.sh')
+# The correction detector is the first stage of the self-heal loop: it reads
+# the prompt, writes a draft trace when the user is correcting the agent, and
+# the self-heal skill picks that up. The file was being copied into the hooks
+# dir but never wired to an event, so it ran only on machines where someone
+# had registered it by hand. python3 is explicit rather than relying on the
+# shebang and the exec bit, which is set in a `|| true`.
+_merge_hook('UserPromptSubmit', 'python3 $HOME/.coworker/analytics/hooks/on-correction.py')
 _merge_hook('PreToolUse',        '$HOME/.coworker/analytics/hooks/on-pre-tool.sh')
 _merge_hook('PostToolUse',       '$HOME/.coworker/analytics/hooks/on-post-tool.sh')
 _merge_hook('Stop',              '$HOME/.coworker/analytics/hooks/on-stop.sh')
