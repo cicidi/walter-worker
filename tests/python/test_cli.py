@@ -2397,3 +2397,37 @@ class TestRestoreCommand:
 
         assert result.exit_code == 0
         assert target.read_text() == "CHANGED", "a declined restore must not write"
+
+
+class TestDashboardBindsToLoopback:
+    """The dashboard bound 0.0.0.0 and announced itself as localhost.
+
+    So it listened on every interface while saying it did not: reachable from
+    the local network, with no auth, serving session prompts, file paths and
+    tool arguments — and offering endpoints that rewrite ~/CLAUDE.local.md and
+    change skill state.
+    """
+
+    def test_the_default_host_is_loopback(self, monkeypatch):
+        seen = {}
+        monkeypatch.setattr(
+            "uvicorn.run", lambda app, **kw: seen.update(kw)
+        )
+
+        result = runner.invoke(main, ["analytics", "dashboard", "--port", "8099"])
+
+        assert result.exit_code == 0, result.output
+        assert seen.get("host") == "127.0.0.1", "the default must not be exposed"
+
+    def test_an_explicit_host_is_honoured_and_warned_about(self, monkeypatch):
+        seen = {}
+        monkeypatch.setattr(
+            "uvicorn.run", lambda app, **kw: seen.update(kw)
+        )
+
+        result = runner.invoke(
+            main, ["analytics", "dashboard", "--host", "0.0.0.0", "--port", "8099"]
+        )
+
+        assert seen.get("host") == "0.0.0.0"
+        assert "anyone who can reach this port" in result.output
