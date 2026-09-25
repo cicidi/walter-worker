@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import pathlib
 from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
@@ -169,3 +170,39 @@ class TestStageSkillIsGated:
             "capture._stage_skill is writing the pending file itself again, "
             "which skips the circuit breaker"
         )
+
+
+class TestPromoteKeepsIdeDirsInStep:
+    """A promoted skill must land in both IDE command directories.
+
+    install.sh keeps ~/.claude/commands/ and ~/.opencode/instructions/ identical
+    (step 11 mirrors one into the other, and the health check reports any
+    difference as COMMANDS_DIFF). Promoting a skill wrote to the Claude dir
+    only, so every promotion turned the health check red until the next sync.
+    """
+
+    @pytest.fixture(autouse=True)
+    def _ide_dirs(self, tmp_path, monkeypatch):
+        dirs = (str(tmp_path / "commands"), str(tmp_path / "instructions"))
+        monkeypatch.setattr(pending, "DEFAULT_IDE_COMMAND_DIRS", dirs)
+        return dirs
+
+    def test_promote_writes_to_both(self, tmp_path, monkeypatch, _ide_dirs):
+        monkeypatch.setattr(pending, "DEFAULT_PENDING_DIR", str(tmp_path / "p"))
+        monkeypatch.setattr(pending, "DEFAULT_ACTIVE_DIR", str(tmp_path / "a"))
+
+        pending.stage_skill("Both Dirs", "d", 10, "s")
+        assert pending.approve("both-dirs") is True
+
+        for d in _ide_dirs:
+            assert (pathlib.Path(d) / "both-dirs.md").is_file(), f"missing in {d}"
+
+    def test_the_two_dirs_stay_equal(self, tmp_path, monkeypatch, _ide_dirs):
+        monkeypatch.setattr(pending, "DEFAULT_PENDING_DIR", str(tmp_path / "p"))
+        monkeypatch.setattr(pending, "DEFAULT_ACTIVE_DIR", str(tmp_path / "a"))
+
+        pending.stage_skill("Only One", "d", 10, "s")
+        pending.approve("only-one")
+
+        sets = [{f.name for f in pathlib.Path(d).glob("*.md")} for d in _ide_dirs]
+        assert sets[0] == sets[1], "promoting left the IDE dirs out of step"

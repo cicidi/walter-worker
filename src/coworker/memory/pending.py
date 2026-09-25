@@ -19,6 +19,9 @@ DEFAULT_PENDING_DIR = "~/.coworker/pending/skills"
 # tests can redirect it; it was hardcoded to Path.home(), so exercising approve
 # wrote real skills into the user's ~/.coworker/skills/.
 DEFAULT_ACTIVE_DIR = "~/.coworker/skills"
+# The IDE command directories install.sh keeps identical; a promoted skill has
+# to be written to both or the two drift apart.
+DEFAULT_IDE_COMMAND_DIRS = ("~/.claude/commands", "~/.opencode/instructions")
 AUTO_EXPIRE_DAYS = 30
 
 
@@ -95,22 +98,30 @@ def _promote_to_active(data: dict) -> None:
     (active_dir / "usage.json").write_text(json.dumps(usage, indent=2))
 
     # Install to ~/.claude/commands/ so Claude Code can load it as a slash command
-    _install_to_commands(skill_id, skill_md)
+    _install_to_ide_dirs(skill_id, skill_md)
 
     logger.info("Promoted skill %s to active skills directory", skill_id)
 
 
-def _install_to_commands(skill_id: str, skill_md_path: Path) -> None:
-    """Copy promoted skill to ~/.claude/commands/ for Claude Code loading."""
-    try:
-        commands_dir = Path.home() / ".claude" / "commands"
-        commands_dir.mkdir(parents=True, exist_ok=True)
-        dst = commands_dir / f"{skill_id}.md"
-        if not dst.exists():
-            dst.write_text(skill_md_path.read_text())
-            logger.info("Installed skill %s to ~/.claude/commands/", skill_id)
-    except Exception as e:
-        logger.warning("Failed to install skill %s to commands: %s", skill_id, e)
+def _install_to_ide_dirs(skill_id: str, skill_md_path: Path) -> None:
+    """Copy a promoted skill into both IDE command directories.
+
+    install.sh keeps ~/.claude/commands/ and ~/.opencode/instructions/ identical
+    - its step 11 mirrors the first into the second, and the 30-minute health
+    check reports any difference as COMMANDS_DIFF. This copied to the Claude dir
+    only, so promoting a skill (the dashboard's approve button, `memory train`)
+    left the two out of step until the next `coworker sync`.
+    """
+    content = skill_md_path.read_text()
+    for target in (Path(p).expanduser() for p in DEFAULT_IDE_COMMAND_DIRS):
+        try:
+            target.mkdir(parents=True, exist_ok=True)
+            dst = target / f"{skill_id}.md"
+            if not dst.exists():
+                dst.write_text(content)
+                logger.info("Installed skill %s to %s", skill_id, target)
+        except Exception as e:
+            logger.warning("Failed to install skill %s to %s: %s", skill_id, target, e)
 
 
 def stage_skill(name: str, description: str, tool_call_count: int, session_id: str) -> str:
