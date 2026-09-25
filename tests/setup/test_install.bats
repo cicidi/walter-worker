@@ -478,3 +478,36 @@ print(n)
 "
   [ "$output" = "1" ]
 }
+
+@test "configures hooks even when the coworker CLI prints output" {
+  # install.sh writes settings.json via `python3 -c "…"` — a DOUBLE-QUOTED bash
+  # string, so a backtick or dollar-paren anywhere inside it is a command
+  # substitution to bash, including inside what Python sees as a comment. A
+  # pair of backticks in those comments ran `coworker`, pasted its usage text
+  # into the middle of the Python, and the hooks silently stopped being
+  # written — while the installer still printed "Setup complete!".
+  #
+  # The mock in setup() exits 0 with empty stdout, which is exactly why the
+  # suite stayed green: substituting nothing left the Python valid. This one
+  # answers like the real CLI, so the substitution is non-empty.
+  cat > "$TEST_TMP/bin/coworker" <<'COEOF'
+#!/usr/bin/env bash
+echo "Usage: main [OPTIONS] COMMAND [ARGS]..."
+echo ""
+echo "Commands:"
+echo "  memory  Manage memory graph and session capture."
+COEOF
+  chmod +x "$TEST_TMP/bin/coworker"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import json, os
+cfg = json.load(open(os.path.expanduser('~/.claude/settings.json')))
+n = sum(len(g.get('hooks') or []) for ev in cfg.get('hooks', {}) for g in cfg['hooks'][ev])
+print(n)
+"
+  # Five analytics hooks plus the capture hook; more than 1 means the block ran.
+  [ "$output" -ge 5 ]
+}
