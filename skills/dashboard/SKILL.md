@@ -74,8 +74,9 @@ in a browser after starting.
 
 ```bash
 coworker analytics import  # full scan
-# or for specific files:
-coworker analytics import --files ~/.claude/projects/-home-cicidi-project-skill-factory/*.jsonl
+# or for specific files — one directory per project, named after its cwd
+# with the slashes turned into dashes:
+coworker analytics import --files ~/.claude/projects/-home-you-project-myapp/*.jsonl
 ```
 
 Imports Claude Code sessions from `~/.claude/projects/` and OpenCode sessions

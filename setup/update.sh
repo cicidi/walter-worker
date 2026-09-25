@@ -3,7 +3,10 @@ set -euo pipefail
 
 # =============================================================================
 # walter-worker update.sh
-# Updates coworker itself from upstream. Optionally updates skill-factory.
+# Updates coworker itself from upstream. Optionally updates the-super-lab,
+# which is what skill-factory was renamed to — the script itself has used
+# THE_SUPER_LAB_DIR for a while, so this line was the last thing still saying
+# the old name.
 # =============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -75,3 +75,35 @@ def test_wrong_history_default_dir_holds_the_real_entries():
     base = ROOT / wrong_history.WH_DIR
     assert base.is_dir(), f"WH_DIR {wrong_history.WH_DIR!r} does not exist"
     assert (base / "entries").is_dir(), "wrong-history entries/ is not there"
+
+
+_DEAD_SUPERLAB_PATHS = (
+    "project/skill-factory",
+    "skills/skill-factory",
+    "SKILL_FACTORY_DIR",
+    "walter-worker-skills",
+)
+
+
+def test_no_shipped_skill_names_the_renamed_repo_as_a_path():
+    """skill-factory was renamed to the-super-lab.
+
+    The upgrade skill still told the agent to pull from ~/project/skill-factory
+    and from $SKILL_FACTORY_DIR, and to scan a `walter-worker-skills/` that has
+    never existed — the real ones are `skills/` and `personal-skills/`. Three
+    dead paths in a workflow the global CLAUDE.md template sends users to, so
+    the upgrade would silently pull nothing.
+
+    Verified against the filesystem, not inferred: ~/project/skill-factory and
+    ~/.config/opencode/skills/skill-factory are both absent, the-super-lab and
+    its two subdirectories are both present, and setup/install.sh indexes
+    exactly those.
+    """
+    offenders = []
+    for path in sorted((ROOT / "skills").glob("*/SKILL.md")):
+        text = path.read_text(encoding="utf-8")
+        for i, line in enumerate(text.splitlines(), 1):
+            for dead in _DEAD_SUPERLAB_PATHS:
+                if dead in line:
+                    offenders.append(f"{path.parent.name}:{i} names {dead!r}")
+    assert offenders == [], f"dead super-lab paths in shipped skills: {offenders}"

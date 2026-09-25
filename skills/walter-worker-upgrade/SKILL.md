@@ -3,7 +3,7 @@ name: walter-worker-upgrade
 version: 0.1.0
 description: 'Use when updating the walter-worker installation — pulls latest code from
 
-  walter-worker and skill-factory, updates global and project-level CLAUDE.md
+  walter-worker and the-super-lab, updates global and project-level CLAUDE.md
 
   with semantic merge, installs new/updated skills from both repos, re-runs
 
@@ -30,7 +30,7 @@ compatibility: claude-code,opencode
 # walter-worker-upgrade
 
 Updates the walter-worker installation end-to-end: pull latest source from
-both walter-worker and skill-factory, semantic-merge CLAUDE.md updates
+both walter-worker and the-super-lab, semantic-merge CLAUDE.md updates
 (global + project-level), install new/updated skills from both repos into
 IDE config directories, re-run install for analytics and hooks, sync
 configs to all IDEs.
@@ -202,7 +202,7 @@ Step 2 — Present project list and ask which to update:
 Detected project CLAUDE.md files:
 
   1) ~/project/walter-worker        (last modified: 2026-06-28)
-  2) ~/project/skill-factory      (last modified: 2026-06-20)
+  2) ~/project/the-super-lab      (last modified: 2026-06-20)
   3) ~/project/backend-service    (last modified: 2026-05-15)
 
 Which projects to update? [1 2 / all / none]
@@ -236,7 +236,7 @@ Step 5 — Present per-project merge plan:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  CLAUDE.md — ~/project/skill-factory
+  CLAUDE.md — ~/project/the-super-lab
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 [OVERWRITE] ## Project Context
@@ -262,27 +262,27 @@ Step 7 — Report summary of project-level updates:
 
 ```
 Project CLAUDE.md updates:
-  ✅ skill-factory  — Project Context refreshed (2 new deps)
+  ✅ the-super-lab  — Project Context refreshed (2 new deps)
   ✅ walter-worker    — no changes needed (up to date)
   ⏭  backend-service — skipped by user
 ```
 
 ### Phase 4: Install Skills
 
-Scans both walter-worker (already pulled in Phase 1) and skill-factory skills,
+Scans both walter-worker (already pulled in Phase 1) and the-super-lab skills,
 compares against deployed skills in `~/.claude/skills/`, and installs
 any new or updated skills.
 
-Step 1 — Pull skill-factory to get latest skills:
+Step 1 — Pull the-super-lab to get latest skills:
 
 ```bash
-SKILL_FACTORY_DIR="$HOME/.config/opencode/skills/skill-factory"
-if [[ -d "$SKILL_FACTORY_DIR" ]]; then
-  git -C "$SKILL_FACTORY_DIR" pull --ff-only origin main 2>/dev/null && \
-    echo "Skill-factory pulled." || \
-    echo "Could not pull skill-factory (dirty, offline, or no upstream)."
+THE_SUPER_LAB_DIR="$HOME/.config/opencode/skills/the-super-lab"
+if [[ -d "$THE_SUPER_LAB_DIR" ]]; then
+  git -C "$THE_SUPER_LAB_DIR" pull --ff-only origin main 2>/dev/null && \
+    echo "The-super-lab pulled." || \
+    echo "Could not pull the-super-lab (dirty, offline, or no upstream)."
 else
-  echo "Skill-factory not installed at $SKILL_FACTORY_DIR"
+  echo "The-super-lab not installed at $THE_SUPER_LAB_DIR"
 fi
 ```
 
@@ -309,13 +309,13 @@ for skill_dir in "$COWORKER_ROOT/skills"/*/; do
 done
 ```
 
-Step 3 — Scan skill-factory skills.
+Step 3 — Scan the-super-lab skills.
 
-For each SKILL.md under `$SKILL_FACTORY_DIR/walter-worker-skills/*/` and
-`$SKILL_FACTORY_DIR/personal-skills/*/`:
+For each SKILL.md under `$THE_SUPER_LAB_DIR/skills/*/` and
+`$THE_SUPER_LAB_DIR/personal-skills/*/`:
 
 ```bash
-for cat_dir in "$SKILL_FACTORY_DIR/walter-worker-skills" "$SKILL_FACTORY_DIR/personal-skills"; do
+for cat_dir in "$THE_SUPER_LAB_DIR/skills" "$THE_SUPER_LAB_DIR/personal-skills"; do
   [[ -d "$cat_dir" ]] || continue
   for skill_dir in "$cat_dir"/*/; do
     [[ -d "$skill_dir" ]] || continue
@@ -327,11 +327,11 @@ for cat_dir in "$SKILL_FACTORY_DIR/walter-worker-skills" "$SKILL_FACTORY_DIR/per
 
     target="$HOME/.claude/skills/$name/SKILL.md"
     if [[ ! -f "$target" ]]; then
-      echo "NEW (skill-factory): $name"
+      echo "NEW (the-super-lab): $name"
     elif [[ "$skill_file" -nt "$target" ]]; then
-      echo "UPDATE (skill-factory): $name"
+      echo "UPDATE (the-super-lab): $name"
     else
-      echo "SKIP (skill-factory): $name (current)"
+      echo "SKIP (the-super-lab): $name (current)"
     fi
   done
 done
@@ -339,7 +339,7 @@ done
 
 Step 4 — Present summary to user:
 
-Group results by category (NEW / UPDATE / SKIP) and source (walter-worker / skill-factory):
+Group results by category (NEW / UPDATE / SKIP) and source (walter-worker / the-super-lab):
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -354,13 +354,13 @@ NEW (walter-worker):
   initiative-activate        initiative-create
   ... (total 26)
 
-NEW (skill-factory):
+NEW (the-super-lab):
   auto-tdd                   contrarian-review
   devil-advocate             english-grammar-fix
   work-review                (total 5)
 
 UPDATE:
-  skill-create (skill-factory) — newer version available
+  skill-create (the-super-lab) — newer version available
 
 SKIP (already current):
   walter-worker-upgrade, doc-merge, doc-protect, ... (total 8)
@@ -411,7 +411,7 @@ Report install summary:
 ```
 Skills installed:
   ✅ 26 NEW from walter-worker
-  ✅ 5 NEW from skill-factory
+  ✅ 5 NEW from the-super-lab
   ✅ 1 UPDATED
   ⏭  8 skipped (current)
 ```
@@ -487,8 +487,8 @@ echo "=== Analytics hooks ==="
 ls ~/.coworker/analytics/hooks/ 2>/dev/null || echo "(not installed)"
 
 echo ""
-echo "=== Skill-factory ==="
-git -C ~/.config/opencode/skills/skill-factory log --oneline -1 2>/dev/null || echo "(not installed)"
+echo "=== The-super-lab ==="
+git -C ~/.config/opencode/skills/the-super-lab log --oneline -1 2>/dev/null || echo "(not installed)"
 ```
 
 Report to user in structured summary:
@@ -501,9 +501,9 @@ Report to user in structured summary:
 Coworker:       abc1234 → def5678 (+3 commits)
 Global MD:      1 section overwritten, 1 added
 Project MDs:    2 updated, 1 skipped
-Skills:         26 NEW (walter-worker), 5 NEW (skill-factory), 1 UPDATED, 8 skipped
+Skills:         26 NEW (walter-worker), 5 NEW (the-super-lab), 1 UPDATED, 8 skipped
 Analytics:      hooks installed, DB initialized
-Skill-factory:  pulled (latest: xyz9012)
+The-super-lab:  pulled (latest: xyz9012)
 Active:         skill-migration
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -582,7 +582,7 @@ installation happens exclusively in Phase 4.
 - Phase 1: confidence high — based on `setup/update.sh` fetch/merge logic
 - Phase 2: confidence high — template from `install.sh` CLAUDE_MD_CONTENT variable; classification model derived from coworker rules
 - Phase 3: confidence high — scanner from `coworker init --project`; classification same as Phase 2
-- Phase 4: confidence high — skill scanning from walter-worker/skills/ and skill-factory; install via cp to IDE config dirs
+- Phase 4: confidence high — skill scanning from walter-worker/skills/ and the-super-lab; install via cp to IDE config dirs
 - Phase 5: confidence high — install.sh replay with piped "0" to skip skill selection
 - Phase 6-7: confidence medium — MCP import and sync may vary by coworker version
 - Phase 8: confidence high — standard verification commands
