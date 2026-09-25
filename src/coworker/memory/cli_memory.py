@@ -219,3 +219,167 @@ def register_memory_commands(main_group: click.Group) -> None:
         table.add_row("Edge health", f"{normal} normal, {stale} stale, {suppressed} suppressed")
 
         console.print(table)
+
+
+    # ── session capture + mem0 operations ───────────────────────────────
+    # Moved here from the orphaned coworker/cli_memory.py, which nothing
+    # imported: its `train` was referenced by the dashboard and by
+    # memory/metrics.py, so the CLI told users to run a command that did
+    # not exist. Its sync/close were dropped - the live ones are different
+    # commands with the same names.
+    @memory.command("search")
+    @click.argument("query")
+    @click.option("--project", default=None, help="Filter by project")
+    @click.option("--limit", default=10, help="Max results")
+    def memory_search(query, project, limit):
+        """Search cross-session memory."""
+        from coworker.memory.mem0_client import Mem0Client
+
+        try:
+            mem0 = Mem0Client.from_config()
+        except Exception as e:
+            console.print(f"[red]mem0 unavailable: {e}[/red]")
+            return
+
+        filters = {}
+        if project:
+            filters["project"] = project
+        results = mem0.search(query=query, filters=filters if filters else None, top_k=limit)
+        if not results:
+            console.print("[dim]No matching memories found.[/dim]")
+            return
+        for r in results:
+            meta = r.get("metadata", {})
+            console.print(
+                f"[bold]{meta.get('topic', '?')}[/bold] "
+                f"[dim]({meta.get('type', '?')}, {meta.get('state', '?')})[/dim]\n"
+                f"  {r.get('memory', '')}\n"
+            )
+
+
+    @memory.command("refresh")
+    def memory_refresh():
+        """Refresh the CLAUDE.local.md memory snapshot + wrong-history rules."""
+        import os
+
+        from coworker.memory.inject import build_snapshot, inject_into_local_md
+        from coworker.memory.mem0_client import Mem0Client
+        from coworker.memory.wrong_history import build_snapshot as build_wh_snapshot, inject_into_local_md as inject_wh
+
+        local_md = os.path.expanduser("~/CLAUDE.local.md")
+        changed = False
+
+        # Memory snapshot
+        try:
+            mem0 = Mem0Client.from_config()
+            snapshot = build_snapshot(mem0)
+            if inject_into_local_md(str(local_md), snapshot):
+                changed = True
+                console.print("[green]Memory snapshot refreshed.[/green]")
+        except Exception as e:
+            console.print(f"[yellow]Memory snapshot skipped (mem0 unavailable): {e}[/yellow]")
+
+        # Wrong-history rules
+        try:
+            wh_snapshot = build_wh_snapshot()
+            if inject_wh(str(local_md), wh_snapshot):
+                changed = True
+                console.print("[green]Wrong-history rules injected.[/green]")
+        except Exception as e:
+            console.print(f"[yellow]Wrong-history injection failed: {e}[/yellow]")
+
+        if not changed:
+            console.print("[dim]Both snapshots unchanged.[/dim]")
+
+
+    @memory.command("train")
+    @click.option("--limit", default=None, type=int, help="Max sessions to process")
+    @click.option("--target-skills", default=10, type=int, help="Target skills to stage")
+    @click.option("--target-experiences", default=10, type=int, help="Target experiences to store")
+    @click.option("--skip-existing/--no-skip-existing", default=True, help="Skip sessions with existing entries")
+    def memory_train(limit, skip_existing):
+        """Batch-train mem0 from all past sessions in analytics.db."""
+        from coworker.memory.train import run_training_pipeline
+        from coworker.memory.mem0_client import Mem0Client
+        from coworker.memory.llm import LLMClient
+        from coworker.analytics.db import get_db
+
+        try:
+            mem0 = Mem0Client.from_config()
+            llm = LLMClient()
+            db = get_db()
+        except Exception as e:
+            console.print(f"[red]Setup failed: {e}[/red]")
+            return
+
+        console.print("[bold]Starting training pipeline...[/bold]")
+        stats = run_training_pipeline(mem0, llm, db, limit=limit, skip_existing=skip_existing)
+        console.print(
+            f"[green]Training complete: {stats['sessions_processed']} sessions, "
+            f"{stats['lessons_extracted']} lessons[/green]"
+        )
+        if stats["errors"]:
+            console.print(f"[yellow]{len(stats['errors'])} errors[/yellow]")
+
+
+    @memory.command("validate")
+    @click.argument("task", required=False)
+    @click.option("--task-file", default=None, type=click.Path(exists=True), help="Path to file containing task definition")
+    @click.option("--compare-baseline/--no-compare-baseline", is_flag=True, default=False, help="Run A/B comparison")
+    def memory_validate(task, task_file, compare_baseline):
+        """Run Claude SDK validation harness — A/B comparison of baseline vs memory-augmented agent."""
+        if not task and not task_file:
+            console.print("[red]Provide a task description or --task-file[/red]")
+            return
+
+        from coworker.memory.validate import run_validation
+
+        console.print("[bold]Running validation harness...[/bold]")
+        report = run_validation(task or "", task_file=task_file)
+        console.print("\n[bold]Results:[/bold]")
+        console.print(f"  Baseline tool calls:     {report['baseline']['tool_calls']}")
+        console.print(f"  Memory-augmented calls:  {report['with_memory']['tool_calls']}")
+        console.print(f"  Tool call reduction:     {report['tool_call_reduction']}")
+        console.print(f"  Baseline assumptions:    {report['baseline']['incorrect_assumptions']} incorrect")
+        console.print(f"  Memory assumptions:      {report['with_memory']['incorrect_assumptions']} incorrect")
+        console.print(f"  Skills invoked:          {', '.join(report['with_memory']['skills_invoked']) or 'none'}")
+        console.print(f"  Experiences retrieved:   {', '.join(report['with_memory']['experiences_retrieved']) or 'none'}")
+        console.print(f"  [bold]Verdict: {report['verdict'].upper()}[/bold]")
+        console.print(f"  Elapsed: {report['elapsed_seconds']}s")
+
+
+    @memory.command("wrong-history")
+    @click.argument("action", type=click.Choice(["record", "index"]))
+    @click.option("--summary", default=None, help="One-line summary of the mistake")
+    @click.option("--rule", "prevention_rule", default=None, help="Prevention rule")
+    @click.option("--severity", default="high", type=click.Choice(["critical", "high", "medium", "low"]))
+    @click.option("--category", default="code-quality", type=click.Choice(["tool-use", "code-quality", "process", "communication", "design"]))
+    @click.option("--what", "what_happened", default="", help="What happened")
+    @click.option("--why", "root_cause", default="", help="Root cause")
+    @click.option("--fix", "fix_desc", default="", help="What was done to fix it")
+    def memory_wrong_history(action, summary, prevention_rule, severity, category, what_happened, root_cause, fix_desc):
+        """Manage wrong-history entries — record mistakes or rebuild index."""
+        from coworker.memory.wrong_history import record_entry, _rebuild_index
+
+        if action == "index":
+            _rebuild_index()
+            console.print("[green]Wrong-history INDEX rebuilt[/green]")
+            return
+
+        if action == "record":
+            if not summary or not prevention_rule:
+                console.print("[red]--summary and --rule are required for record[/red]")
+                return
+            path = record_entry(
+                summary=summary,
+                prevention_rule=prevention_rule,
+                severity=severity,
+                category=category,
+                what_happened=what_happened,
+                root_cause=root_cause,
+                fix=fix_desc,
+            )
+            if path:
+                console.print(f"[green]Created wrong-history entry: {path.name}[/green]")
+            else:
+                console.print("[red]Failed to create entry[/red]")

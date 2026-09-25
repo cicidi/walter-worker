@@ -1596,3 +1596,48 @@ class TestDeprecatedInitiativeAlias:
         result = runner.invoke(main, ["feature", "list"])
         assert result.exit_code == 0
         assert "deprecated" not in result.output
+
+
+# ── Memory subcommands ─────────────────────────────────────────────────────
+
+class TestMemorySubcommands:
+    """Commands the CLI tells users to run must actually exist.
+
+    The mem0 half of the memory CLI lived in src/coworker/cli_memory.py, which
+    nothing imported, while the graph half was wired from
+    src/coworker/memory/cli_memory.py. The orphan kept `train`, and both
+    memory/metrics.py and three places in dashboard.js tell users to run
+    `coworker memory train` — which did not exist. Fixes were even applied to
+    that file (e550dc1) with no effect.
+    """
+
+    EXPECTED = {
+        "close", "init", "query", "refresh", "search",
+        "stats", "sync", "train", "validate", "wrong-history",
+    }
+
+    def test_all_documented_commands_are_registered(self):
+        memory = main.commands["memory"]
+        assert self.EXPECTED <= set(memory.commands), (
+            f"missing: {sorted(self.EXPECTED - set(memory.commands))}"
+        )
+
+    @pytest.mark.parametrize("name", sorted(EXPECTED))
+    def test_each_command_has_help(self, name):
+        result = runner.invoke(main, ["memory", name, "--help"])
+        assert result.exit_code == 0, result.output
+
+    def test_train_is_reachable_by_name(self):
+        """The exact invocation the dashboard tells users to run."""
+        result = runner.invoke(main, ["memory", "train", "--help"])
+        assert result.exit_code == 0
+        assert "Batch-train" in result.output
+
+    def test_no_orphaned_memory_cli_module(self):
+        """One module owns the group; a second copy is how this drifted."""
+        from pathlib import Path as _P
+
+        orphan = _P(__file__).resolve().parents[2] / "src" / "coworker" / "cli_memory.py"
+        assert not orphan.exists(), (
+            "src/coworker/cli_memory.py is back; it duplicates the wired module"
+        )
