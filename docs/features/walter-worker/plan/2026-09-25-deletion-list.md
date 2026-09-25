@@ -86,10 +86,36 @@ never written down.
 
 This is the highest-value entry on the list: it is the self-evolving loop's
 actual executor. Re-enabling it is a **runtime behaviour change that spends
-money** (it spawns agents in a loop for up to `--max-hours`), so it needs a
-decision, not a silent re-enable.
+money** (it spawns agents in a loop for up to `--max-hours`).
 
-*Confidence: high on the facts, medium on intent.*
+**Do not re-enable it yet — the agent spawn cannot work as written.** Checked
+against the installed CLI rather than assumed:
+
+    engine.py:38   claude agent --prompt P --work-dir D --timeout N \
+                                --output-format json
+
+- There is no `agent` subcommand. `claude --help` lists agents, attach, auth,
+  auto-mode, doctor, gateway, import, install, logs, mcp, plugin, project,
+  respawn, rm — no `agent`. `--agent` is an *option*, not a command.
+- `--work-dir` and `--timeout` do not exist as flags at all.
+- `--output-format json` is documented as working "only with `--print`".
+
+So the call fails, `_spawn_agent` swallows the failure (`except Exception:
+pass`) and falls through to a plain `LLMClient.chat` with **no tools**. The
+loop would run, report rounds, and be incapable of investigating or fixing
+anything — while looking like it worked. That is the silent-failure shape this
+whole cleanup has been chasing, in the one component whose entire value is
+taking real action.
+
+Whoever picks this up: the headless invocation is `claude -p "<prompt>"
+--output-format json`, and the fallback needs to be loud — a toolless chat is
+not a degraded auto-worker, it is a different thing.
+
+Two things were checked and are fine: the CLI registers cleanly and both
+commands show correct help, and the earlier 120 s pytest timeout really was
+fixed (`cli_autoworker.py:96` now uses 600).
+
+*Confidence: high — the CLI was inspected directly.*
 
 ### B2. `memory/capture.py` — the loop's first stage — **DONE**
 
