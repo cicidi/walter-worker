@@ -63,23 +63,23 @@ teardown() {
 # =============================================================================
 # Test: Skill-factory update prompt
 # =============================================================================
-@test "asks about skill-factory update when directory exists" {
-  run grep "Update skill-factory" "$REPO_ROOT/setup/update.sh"
+@test "asks about the-super-lab update when directory exists" {
+  run grep "Update the-super-lab from GitHub" "$REPO_ROOT/setup/update.sh"
   [ "$status" -eq 0 ]
 }
 
 # =============================================================================
 # Test: Skill-factory update is skippable
 # =============================================================================
-@test "skill-factory update can be declined" {
-  run grep "Skipped skill-factory update" "$REPO_ROOT/setup/update.sh"
+@test "the-super-lab update can be declined" {
+  run grep "Skipped the-super-lab update" "$REPO_ROOT/setup/update.sh"
   [ "$status" -eq 0 ]
 }
 
 # =============================================================================
 # Test: Notifies when skill-factory not installed
 # =============================================================================
-@test "notifies when skill-factory is not installed" {
-  run grep "not installed" "$REPO_ROOT/setup/update.sh"
+@test "notifies when the-super-lab is not installed" {
+  run grep "Run install.sh first to set it up" "$REPO_ROOT/setup/update.sh"
   [ "$status" -eq 0 ]
 }

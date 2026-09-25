@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 
-# Tests for install.sh — CLAUDE.md creation, skill-factory setup, install modes
+# Tests for install.sh — CLAUDE.md creation, skill source, install modes
 
 setup() {
   TEST_TMP="$(mktemp -d)"
@@ -8,39 +8,18 @@ setup() {
   mkdir -p "$HOME/.claude"
   mkdir -p "$HOME/.config/opencode/skills"
 
-  # Mock git
+  # the-super-lab is the skill source install.sh reads; it no longer clones
+  # anything, so a fake checkout at the default location stands in for it.
+  SUPERLAB="$HOME/project/the-super-lab"
+  _fake_skill "$SUPERLAB/skills/skill-create" skill-create
+  _fake_skill "$SUPERLAB/skills/tdd" tdd
+  mkdir -p "$SUPERLAB/personal-skills"
+
+  # Mock git — install.sh still pulls the-super-lab
   mkdir -p "$TEST_TMP/bin"
   cat > "$TEST_TMP/bin/git" << 'GITEOF'
 #!/usr/bin/env bash
 case "$1" in
-  clone)
-    mkdir -p "${@: -1}/ai-coworker-skills/skill-create" "${@: -1}/personal-skills" "${@: -1}/import-skills/tdd"
-    cat > "${@: -1}/ai-coworker-skills/skill-create/SKILL.md" << 'SKEOF'
----
-name: ai-coworker-skill-create
-description: Use when creating a new skill
-license: MIT
-compatibility: opencode
-metadata:
-  triggers:
-    - create a skill
----
-# ai-coworker-skill-create
-SKEOF
-    cat > "${@: -1}/import-skills/tdd/SKILL.md" << 'SKEOF'
----
-name: tdd
-description: Use when writing tests first
-license: MIT
-compatibility: opencode
-metadata:
-  triggers:
-    - test-driven
----
-# TDD
-SKEOF
-    echo "Cloned."
-    ;;
   pull)
     echo "Already up to date."
     ;;
@@ -72,6 +51,23 @@ teardown() {
   rm -rf "$TEST_TMP"
 }
 
+# Minimal skill in the the-super-lab shape install.sh indexes.
+_fake_skill() {
+  mkdir -p "$1"
+  cat > "$1/SKILL.md" << SKEOF
+---
+name: $2
+description: Use when testing install.sh
+license: MIT
+compatibility: opencode
+metadata:
+  triggers:
+    - $2
+---
+# $2
+SKEOF
+}
+
 # =============================================================================
 # Test: Global CLAUDE.md creation
 # =============================================================================
@@ -81,8 +77,11 @@ teardown() {
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
   [ "$status" -eq 0 ]
   [ -f "$HOME/.claude/CLAUDE.md" ]
-  grep -q "Question Requirement" "$HOME/.claude/CLAUDE.md"
-  grep -q "ask 1-3 clarifying questions" "$HOME/.claude/CLAUDE.md"
+  # Assert against text the current template actually contains. These used to
+  # name older wording ("Question Requirement"), which the template no longer
+  # has, so the checks had been failing on stale strings.
+  grep -q "Ask and Confirm Before Coding" "$HOME/.claude/CLAUDE.md"
+  grep -q "clarifying questions to confirm scope" "$HOME/.claude/CLAUDE.md"
 }
 
 @test "preserves existing global CLAUDE.md" {
@@ -94,15 +93,15 @@ teardown() {
 }
 
 # =============================================================================
-# Test: Skill-factory setup
+# Test: skill source
 # =============================================================================
-@test "clones skill-factory to correct path" {
+@test "deploys the-super-lab skills to the three harnesses" {
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
   [ "$status" -eq 0 ]
-  [ -d "$HOME/.config/opencode/skills/skill-factory" ]
-  [ -d "$HOME/.config/opencode/skills/skill-factory/ai-coworker-skills" ]
-  [ -d "$HOME/.config/opencode/skills/skill-factory/personal-skills" ]
-  [ -d "$HOME/.config/opencode/skills/skill-factory/import-skills" ]
+  # install.sh reads the-super-lab in place and deploys it; it does not clone.
+  [ -f "$HOME/.claude/skills/skill-create/SKILL.md" ]
+  [ -f "$HOME/.config/opencode/skills/the-super-lab/skill-create/SKILL.md" ]
+  [ -f "$HOME/.cursor/rules/skill-create.md" ]
 }
 
 # =============================================================================
@@ -127,12 +126,15 @@ teardown() {
 }
 
 # =============================================================================
-# Test: coworker-meta-setup-coworker always installed
+# Test: the core init skill is always installed
 # =============================================================================
-@test "always installs coworker-meta-setup-coworker" {
+@test "always installs the core init skill" {
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
   [ "$status" -eq 0 ]
-  [ -f "$HOME/.claude/commands/coworker-meta-setup-coworker.md" ]
+  # Was named coworker-meta-setup-coworker before the skill consolidation; the
+  # file it points at was dropped from the repo at the same time, so this
+  # assertion was failing on a name that no longer existed either way.
+  [ -f "$HOME/.claude/commands/init.md" ]
 }
 
 # =============================================================================
@@ -141,8 +143,8 @@ teardown() {
 @test "installs no extra skills when none selected" {
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
   [ "$status" -eq 0 ]
-  # Only setup-coworker should be installed
-  [ -f "$HOME/.claude/commands/coworker-meta-setup-coworker.md" ]
+  # Only the core skill should be installed
+  [ -f "$HOME/.claude/commands/init.md" ]
   run ls "$HOME/.claude/commands/"
   # Should have exactly 1 file
   [ "${#lines[@]}" -eq 1 ]
@@ -154,7 +156,7 @@ teardown() {
 @test "installs all skills when 'all' selected" {
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'1'
   [ "$status" -eq 0 ]
-  [ -f "$HOME/.claude/commands/coworker-meta-setup-coworker.md" ]
+  [ -f "$HOME/.claude/commands/init.md" ]
   [ -f "$HOME/.claude/commands/skill-create.md" ]
   [ -f "$HOME/.claude/commands/tdd.md" ]
 }
@@ -168,12 +170,12 @@ teardown() {
   [ "$status" -eq 0 ]
 
   # Modify the installed file to simulate an old version
-  echo "old content" > "$HOME/.claude/commands/coworker-meta-setup-coworker.md"
+  echo "old content" > "$HOME/.claude/commands/init.md"
 
   # Re-install — should update
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
   [ "$status" -eq 0 ]
-  ! grep -q "old content" "$HOME/.claude/commands/coworker-meta-setup-coworker.md"
+  ! grep -q "old content" "$HOME/.claude/commands/init.md"
 }
 
 # =============================================================================
