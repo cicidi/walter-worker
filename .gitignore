@@ -35,6 +35,10 @@ CLAUDE.local.md
 docs/state/
 docs/work-review/
 docs/superpowers/
+# Scratch, per the doc standard (doc-organize Mode C): research dumps,
+# discussion logs and generated renderings are gitignored, not committed.
+# Six doc types ship; raw/ is not one of them.
+docs/features/*/raw/
 pic/*
 !pic/walter-worker-logo.png
 # Anchored: an unanchored ".coworker/" also matches ".coworker/" at any depth,

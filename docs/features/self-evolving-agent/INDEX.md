@@ -90,12 +90,14 @@
 
 ## Raw Context & Archives
 
-| File | Lines | Description |
-|------|-------|-------------|
-| [2026-07-26-cross-project-gaps.md](raw/2026-07-26-cross-project-gaps.md) | 67 | Cross-Project Gaps — 2026-07-26 |
-| `demo-html/` | — | 1 files |
-| `html-ppt/` | — | 21 files |
-| `issues-found/` | — | 1 files |
+Scratch — gitignored, not shipped (doc-organize Mode C). Still on disk under
+`raw/`; not part of a clone. What it supported:
+
+| Content | Supported |
+|---------|-----------|
+| `2026-07-26-cross-project-gaps.md` | the gap list in `prd/self-evolving-agent-prd.md` |
+| `issues-found/CONSOLIDATED-summary.md` | the 2026-07-29 wrong-history entries |
+| `demo-html/`, `html-ppt/` | the 2026-07-29 PRD walkthrough deck; no design input |
 
 ---
 

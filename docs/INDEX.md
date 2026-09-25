@@ -59,7 +59,10 @@
 
 ### raw
 
-- [Cross-Project Gaps — 2026-07-26](features/self-evolving-agent/raw/2026-07-26-cross-project-gaps.md)
+_Scratch — gitignored, not shipped (doc-organize Mode C). Held the
+2026-07-26 cross-project gap analysis, which fed the self-evolving-agent
+PRD's gap list, plus generated HTML renderings kept as demo-html/ and a
+vendored slide toolkit. Still on disk, out of version control._
 
 ### reference
 
