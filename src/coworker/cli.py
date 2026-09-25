@@ -18,6 +18,7 @@ from .models import (
     KnowledgePoolEntry,
 )
 from .adapters import ADAPTERS
+from .constants import STATE_DIR
 from .features.manager import FeatureManager
 from .templates.project_claude_md import generate_project_claude_md
 from .templates.local_claude_md import (
@@ -307,7 +308,7 @@ def init(is_global, is_project):
             local_md_path.write_text(local_content)
             console.print("[green]Created:[/green] CLAUDE.local.md")
             gitignore_path = Path.cwd() / ".gitignore"
-            entries = ["CLAUDE.local.md", "docs/state/"]
+            entries = ["CLAUDE.local.md", STATE_DIR + "/"]
             if not gitignore_path.exists():
                 gitignore_path.write_text("\n".join(entries) + "\n")
             else:
@@ -319,7 +320,7 @@ def init(is_global, is_project):
                         if existing:
                             f.write("\n")
                         f.write("\n".join(new_entries) + "\n")
-            console.print("[dim]Added CLAUDE.local.md, docs/state/ to .gitignore[/dim]")
+            console.print(f"[dim]Added CLAUDE.local.md, {STATE_DIR}/ to .gitignore[/dim]")
 
         console.print("\n[bold green]Setup complete![/bold green] Run [cyan]coworker sync[/cyan] to apply.")
 
@@ -356,7 +357,7 @@ def state_update(task, summary):
     if not task:
         task = datetime.now().strftime("%Y-%m-%d")
 
-    state_path = root / "docs" / "state" / f"state-{task}.md"
+    state_path = root / STATE_DIR / f"state-{task}.md"
     state_path.parent.mkdir(parents=True, exist_ok=True)
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M")

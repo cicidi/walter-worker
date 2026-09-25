@@ -508,7 +508,15 @@ fi
 if [[ "$INSTALL_MODE" == "project" ]]; then
   GITIGNORE="$PROJECT_PATH/.gitignore"
   [[ -f "$GITIGNORE" ]] || touch "$GITIGNORE"
-  for entry in "personal/" ".local_config.yaml" ".env" ".cursorrules" "AGENTS.md" "GEMINI.md" "CLAUDE.local.md" "docs/state/"; do
+  # docs/state is constants.STATE_DIR; asked for rather than written out, so
+  # the ignore rule and the directory the state files go into are the same fact.
+  STATE_DIR=$(python3 -c "
+import sys
+sys.path.insert(0, '$REPO_ROOT/src')
+from coworker.constants import STATE_DIR
+print(STATE_DIR)
+" 2>/dev/null || echo "docs/state")
+  for entry in "personal/" ".local_config.yaml" ".env" ".cursorrules" "AGENTS.md" "GEMINI.md" "CLAUDE.local.md" "$STATE_DIR/"; do
     grep -qxF "$entry" "$GITIGNORE" 2>/dev/null || echo "$entry" >> "$GITIGNORE"
   done
 fi
