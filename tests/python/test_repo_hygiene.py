@@ -218,3 +218,30 @@ def test_the_feature_name_rule_has_one_definition():
 
     # And they accept the same good name.
     assert _validate_feature_name("auth-migration") == "auth-migration"
+
+
+def test_the_self_evolving_docs_path_is_defined_once():
+    """Five modules named docs/features/self-evolving-agent by hand.
+
+    When the initiatives→features move landed, all five broke at once and
+    silently — the wrong-history directory, the auto-worker's state dir and
+    find-issues' default output all pointed at a directory that no longer
+    existed. constants.SELF_EVOLVING_DOCS is the one definition now.
+
+    Asserted by derivation rather than by grepping for the literal, so a module
+    that reaches for a *different* path fails here too.
+    """
+    from coworker.constants import SELF_EVOLVING_DOCS
+
+    from coworker.memory import wrong_history
+
+    assert wrong_history.WH_DIR.startswith(SELF_EVOLVING_DOCS), (
+        f"wrong-history reads {wrong_history.WH_DIR!r}, which is not under "
+        f"{SELF_EVOLVING_DOCS!r}"
+    )
+
+    # The generated instruction shown to the agent names the same place.
+    assert SELF_EVOLVING_DOCS in wrong_history.WH_DIR
+
+    # And the path it names exists in this repo, which is what broke before.
+    assert (ROOT / wrong_history.WH_DIR).is_dir()

@@ -12,13 +12,15 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 
+from ..constants import SELF_EVOLVING_DOCS
+
 logger = logging.getLogger(__name__)
 
 #: A field label at the start of a line, e.g. `**Anti-pattern:**`. Marks where
 #: a wrapped multi-line value ends.
 _FIELD_LABEL_RE = re.compile(r"^\*\*[^*]+:\*\*")
 
-WH_DIR = "docs/features/self-evolving-agent/wrong-history"
+WH_DIR = f"{SELF_EVOLVING_DOCS}/wrong-history"
 MARKER_START = "<!-- WRONG-HISTORY START -->"
 MARKER_END = "<!-- WRONG-HISTORY END -->"
 
@@ -246,7 +248,9 @@ def _rebuild_index() -> tuple[int, Path]:
         "# Wrong History — Index",
         "",
         "> **Purpose:** Prevent repeating past mistakes.",
-        "> **Check before coding:** `grep -rl \"<keyword>\" docs/features/self-evolving-agent/wrong-history/entries/`",
+        # Derived, not written out: this line is generated into CLAUDE.local.md
+        # and was a second copy of the path the module already holds.
+        f"> **Check before coding:** `grep -rl \"<keyword>\" {WH_DIR}/entries/`",
         "",
     ]
 

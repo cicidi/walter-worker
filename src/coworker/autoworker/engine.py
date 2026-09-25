@@ -91,7 +91,7 @@ class AutoWorkerAgent:
         mem0_client=None,
         db=None,
         project: str = "walter-worker",
-        state_dir: str = "docs/features/self-evolving-agent/state",
+        state_dir: str | None = None,
         work_dir: str = ".",
     ):
         self.mem0 = mem0_client
@@ -388,7 +388,9 @@ def run_autoworker_loop(
     Spawns one agent per round. Each agent has full tool access
     (grep, bash, read, edit) and autonomously investigates and fixes.
     """
-    sd = state_dir or "docs/features/self-evolving-agent/state"
+    from coworker.constants import SELF_EVOLVING_DOCS
+
+    sd = state_dir or f"{SELF_EVOLVING_DOCS}/state"
     agent = AutoWorkerAgent(
         mem0_client=mem0_client,
         db=db,

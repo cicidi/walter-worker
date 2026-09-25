@@ -34,13 +34,15 @@ def register_autoworker(main_group: click.Group) -> None:
         """Run a full QA inspection and write findings."""
         import glob
         import os
+
+        from .constants import SELF_EVOLVING_DOCS
         from datetime import datetime, timezone
 
 
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         out_path = (
             output
-            or f"docs/features/self-evolving-agent/state/issues-found-{today}-auto.md"
+            or f"{SELF_EVOLVING_DOCS}/state/issues-found-{today}-auto.md"
         )
         os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
 
