@@ -659,12 +659,18 @@ for p in glob.glob(f'{home}/.coworker/analytics/hooks/*'):
 # Skills selected in step 10, flattened to <name>.md, plus their OpenCode mirror.
 for name in selected:
     claim(f'{claude_dir}/{name}.md')
-    claim(f'{home}/.opencode/instructions/{name}.md')
+    # Not {home}: in project mode these are written under $PROJECT_PATH, so
+    # claiming the home path meant uninstall removed nothing here and left
+    # every mirror behind as a dangling symlink.
+    claim(f'$OPENCODE_DIR/{name}.md')
 
-# the-super-lab skills deployed in step 11b, by name: the Claude directory copy
-# and the Cursor rules file. The OpenCode side is a symlink to the source repo
-# and is removed with owned_dirs.
+# the-super-lab skills deployed in step 11b, by name: the Claude directory copy,
+# the Cursor rules file, and the OpenCode symlink. That last one was not claimed
+# before, and the comment here claimed owned_dirs covered it — it does not, it
+# holds only .../skills/walter-worker. So a skill dropped from the source left a
+# symlink to a deleted directory behind for ever.
 for name in deployed:
+    claim(f'$THE_SUPER_LAB_OPENCODE_DIR/{name}')
     for root, _dirs, fns in os.walk(f'{home}/.claude/skills/{name}'):
         for fn in fns:
             claim(os.path.join(root, fn))

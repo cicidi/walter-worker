@@ -188,3 +188,49 @@ print('kept' if 'echo MY-OWN-HOOK' in cmds else 'GONE')
 "
   [ "$output" = "kept" ]
 }
+
+@test "project-mode uninstall removes the OpenCode mirrors it created" {
+  # install --project writes $PROJECT/.opencode/instructions/*.md, but the
+  # manifest claimed {home}/.opencode/instructions/{name}.md — always the home
+  # path. So the claim matched nothing, and uninstall left every mirror behind
+  # pointing at a deleted target.
+  PROJ="$TEST_TMP/proj"
+  mkdir -p "$PROJ"
+
+  run bash "$REPO_ROOT/setup/install.sh" --project "$PROJ" <<< $'1'
+  [ "$status" -eq 0 ]
+  [ -d "$PROJ/.opencode/instructions" ]
+
+  run bash -c "echo y | bash '$REPO_ROOT/setup/uninstall.sh'"
+  [ "$status" -eq 0 ]
+
+  run bash -c "find '$PROJ/.opencode/instructions' -xtype l 2>/dev/null | wc -l"
+  [ "$output" = "0" ]
+}
+
+@test "the-super-lab's OpenCode symlinks are claimed, so they can be retired" {
+  # They are created in step 11b and were never claimed at all, while the
+  # comment beside the claim loop said owned_dirs covered them — it holds only
+  # .../skills/walter-worker. A skill dropped from the source therefore left a
+  # symlink to a deleted directory behind for ever.
+  # This file's setup() has no the-super-lab, so nothing would deploy.
+  SUPERLAB="$HOME/project/the-super-lab"
+  mkdir -p "$SUPERLAB/skills/one" "$SUPERLAB/personal-skills"
+  printf -- '---\nname: one\ndescription: t\n---\n# one\n' > "$SUPERLAB/skills/one/SKILL.md"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'1'
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import json, os
+m = json.load(open(os.path.expanduser('~/.coworker/install-manifest.json')))
+print(sum(1 for f in m.get('files', []) if 'skills/the-super-lab/' in f))
+"
+  [ "$output" -ge 1 ]
+
+  run bash -c "echo y | bash '$REPO_ROOT/setup/uninstall.sh'"
+  [ "$status" -eq 0 ]
+
+  run bash -c "ls -A '$HOME/.config/opencode/skills/the-super-lab' 2>/dev/null | wc -l"
+  [ "$output" = "0" ]
+}
