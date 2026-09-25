@@ -393,3 +393,53 @@ class TestMarkerDialectProtection:
             f"{dialect} marker block must be protected, got {section[0].category}"
         )
         assert "the user's real active context" in section[0].current_content
+
+
+class TestProtectedMarkerSpellings:
+    """Both PROTECTED spellings must delimit one span, not run to EOF.
+
+    The start pattern used to match an end marker written as
+    `<!-- PROTECTED END -->`, because `PROTECTED[^>]*` swallowed the "END" too.
+    That opened a second span running to EOF, and the end pattern - which only
+    knew `<!-- END PROTECTED -->` - never closed it. Everything after the block
+    was silently over-protected: pinned to its old content, with no update ever
+    applied and no violation reported.
+    """
+
+    CANONICAL = ("<!-- PROTECTED -->", "<!-- END PROTECTED -->")
+    START_END = ("<!-- PROTECTED START -->", "<!-- PROTECTED END -->")
+
+    def _doc(self, start, end):
+        return (
+            "# T\n\n## Notes\n\nmine\n\n"
+            f"{start}\nsecret\n{end}\n\n"
+            "## Stale\n\nold tool content\n"
+        )
+
+    @pytest.mark.parametrize("spelling", [CANONICAL, START_END])
+    def test_one_span_not_two(self, spelling):
+        ranges = protected_ranges(self._doc(*spelling))
+        assert ranges == [(7, 9)], (
+            f"{spelling[0]} should delimit exactly one span, got {ranges}"
+        )
+
+    @pytest.mark.parametrize("spelling", [CANONICAL, START_END])
+    def test_content_after_block_still_updates(self, spelling):
+        current = self._doc(*spelling)
+        future = "# T\n\n## Stale\n\nNEW tool content\n"
+
+        merged = apply_merge(classify_sections(current, future), current, future)
+
+        assert "secret" in merged, "protected content must survive"
+        assert "NEW tool content" in merged, (
+            "a section after the protected block must still receive updates; "
+            "the block used to extend to EOF and pin it"
+        )
+
+    def test_end_marker_does_not_start_a_span(self):
+        """`<!-- PROTECTED END -->` must never be read as a start marker."""
+        from coworker.semantic_merge import _PROTECTED_END_RE, _PROTECTED_START_RE
+
+        end_marker = "<!-- PROTECTED END -->"
+        assert _PROTECTED_END_RE.search(end_marker)
+        assert not _PROTECTED_START_RE.search(end_marker)

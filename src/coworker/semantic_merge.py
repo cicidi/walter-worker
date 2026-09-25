@@ -141,8 +141,20 @@ def sections_to_text(header: str, sections: list[Section]) -> str:
 # ── protected-range parser ────────────────────────────────────────────────────
 
 
-_PROTECTED_START_RE = re.compile(r"<!--\s*PROTECTED[^>]*\s*-->")
-_PROTECTED_END_RE = re.compile(r"<!--\s*END\s+PROTECTED[^>]*\s*-->")
+# Both marker spellings are accepted, because both are in use:
+#   <!-- PROTECTED -->            ... <!-- END PROTECTED -->
+#   <!-- PROTECTED START -->      ... <!-- PROTECTED END -->
+#
+# The start pattern must not match an end marker. It previously did - the old
+# `PROTECTED[^>]*` matched "PROTECTED END" too - so writing the second spelling
+# opened a *new* span that ran to EOF, and the end pattern (which only knew
+# "END PROTECTED") never closed it. Everything after the marker was silently
+# over-protected: the section was pinned to its old content forever and
+# verify_protected() reported the growing span as a modification.
+_PROTECTED_START_RE = re.compile(r"<!--\s*PROTECTED(?![^>]*\bEND\b)[^>]*\s*-->")
+_PROTECTED_END_RE = re.compile(
+    r"<!--\s*(?:END\s+PROTECTED|PROTECTED[^>]*\bEND\b)[^>]*\s*-->"
+)
 
 
 def protected_ranges(text: str) -> list[tuple[int, int]]:
