@@ -141,7 +141,7 @@ class TestProjectShow:
     def test_project_show_missing(self, temp_coworker_dir):
         """Show a non-existent project."""
         result = runner.invoke(main, ["project", "show", "no-such-project"])
-        assert result.exit_code == 0
+        assert result.exit_code != 0  # a missing entity is a failure
         assert "not found" in result.output.lower()
 
 
@@ -161,7 +161,7 @@ class TestProjectAdd:
         """Adding a duplicate project shows a warning."""
         runner.invoke(main, ["project", "add", "dup-proj", "--path", "/tmp/y"])
         result = runner.invoke(main, ["project", "add", "dup-proj"])
-        assert result.exit_code == 0
+        assert result.exit_code != 0  # a missing entity is a failure
         assert "already exists" in result.output.lower()
 
     def test_project_add_with_repo_and_team(self, temp_coworker_dir):
@@ -246,7 +246,7 @@ class TestProjectEdit:
     def test_project_edit_missing(self, temp_coworker_dir):
         """Edit a non-existent project shows error."""
         result = runner.invoke(main, ["project", "edit", "no-such"])
-        assert result.exit_code == 0
+        assert result.exit_code != 0  # a missing entity is a failure
         assert "not found" in result.output.lower()
 
 
@@ -270,7 +270,7 @@ class TestProjectRemove:
     def test_project_remove_missing(self, temp_coworker_dir):
         """Remove a non-existent project shows warning."""
         result = runner.invoke(main, ["project", "remove", "no-such"])
-        assert result.exit_code == 0
+        assert result.exit_code != 0  # a missing entity is a failure
         assert "not found" in result.output.lower()
 
 
@@ -419,7 +419,7 @@ class TestFeatureShow:
     def test_feature_show_missing(self, temp_features_dir, monkeypatch):
         """Show a non-existent feature."""
         result = runner.invoke(main, ["feature", "show", "no-such"])
-        assert result.exit_code == 0
+        assert result.exit_code != 0  # a missing entity is a failure
         assert "not found" in result.output.lower()
 
 
@@ -473,7 +473,7 @@ class TestFeatureEdit:
     def test_feature_edit_missing(self, temp_features_dir, monkeypatch):
         """Edit a non-existent feature."""
         result = runner.invoke(main, ["feature", "edit", "no-such"])
-        assert result.exit_code == 0
+        assert result.exit_code != 0  # a missing entity is a failure
         assert "not found" in result.output.lower()
 
 
@@ -500,7 +500,7 @@ class TestFeatureRemove:
         result = runner.invoke(
             main, ["feature", "remove", "no-such", "--force"]
         )
-        assert result.exit_code == 0
+        assert result.exit_code != 0  # a missing entity is a failure
         assert "not found" in result.output.lower()
 
 
@@ -558,7 +558,7 @@ class TestFeatureActivate:
         """Activate a non-existent feature."""
         monkeypatch.chdir(temp_project_dir)
         result = runner.invoke(main, ["feature", "activate", "no-such"])
-        assert result.exit_code == 0
+        assert result.exit_code != 0  # a missing entity is a failure
         assert "not found" in result.output.lower()
 
 
@@ -1389,7 +1389,7 @@ class TestFeatureStartEdgeCases:
             main,
             ["feature", "start", "activate-fail", "--description", "will fail"],
         )
-        assert result.exit_code == 0
+        assert result.exit_code != 0  # a missing entity is a failure
         assert "not found" in result.output.lower()
 
     def test_start_resolves_project_name_from_catalog(
@@ -1540,7 +1540,7 @@ class TestFeatureRemoveEdgeCases:
         result = runner.invoke(
             main, ["feature", "remove", "vanish-me", "--force"],
         )
-        assert result.exit_code == 0
+        assert result.exit_code != 0  # a missing entity is a failure
         assert "not found" in result.output.lower()
 
 

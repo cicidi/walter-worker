@@ -954,7 +954,7 @@ def project_show(name):
                 yaml.dump(data, default_flow_style=False, allow_unicode=True)
             )
             return
-    console.print(f"[red]Project '{name}' not found.[/red]")
+    raise click.ClickException(f"Project '{name}' not found.")
 
 
 @project.command("add")
@@ -967,7 +967,7 @@ def project_add(name, local_path, repo, team):
     catalog = load_project_catalog()
     for p in catalog.projects:
         if p.name == name:
-            console.print(f"[yellow]Project '{name}' already exists.[/yellow]")
+            raise click.ClickException(f"Project '{name}' already exists.")
             return
 
     entry = ProjectEntry(
@@ -1017,7 +1017,7 @@ def project_edit(
             save_project_catalog(catalog)
             console.print(f"[green]Updated project '{name}'.[/green]")
             return
-    console.print(f"[red]Project '{name}' not found.[/red]")
+    raise click.ClickException(f"Project '{name}' not found.")
 
 
 @project.command("remove")
@@ -1028,7 +1028,7 @@ def project_remove(name):
     before = len(catalog.projects)
     catalog.projects = [p for p in catalog.projects if p.name != name]
     if len(catalog.projects) == before:
-        console.print(f"[yellow]Project '{name}' not found.[/yellow]")
+        raise click.ClickException(f"Project '{name}' not found.")
         return
     save_project_catalog(catalog)
     console.print(f"[green]Removed project '{name}'.[/green]")
@@ -1103,7 +1103,10 @@ def feature_start(name, description, proj_dir, role, branches):
         for action in actions:
             console.print(f"  [green]✓[/green] {action}")
     except FileNotFoundError as e:
-        console.print(f"[red]{e}[/red]")
+        # The manager raises this when the named entity is not there. Printing
+        # and returning made the command exit 0, so `feature activate nope`
+        # read as success to anything scripting it.
+        raise click.ClickException(str(e))
 
 
 @feature.command("create")
@@ -1137,7 +1140,7 @@ def feature_edit(name, proj_dir, description, add_proj, add_link_spec, add_decis
     # take it. A resolved path was computed and discarded, which only misled.
     config = load_feature(name)
     if config is None:
-        console.print(f"[red]Feature '{name}' not found.[/red]")
+        raise click.ClickException(f"Feature '{name}' not found.")
         return
 
     if description is not None:
@@ -1235,7 +1238,7 @@ def feature_show(name, proj_dir):
     """Show full feature config."""
     config = load_feature(name)
     if config is None:
-        console.print(f"[red]Feature '{name}' not found.[/red]")
+        raise click.ClickException(f"Feature '{name}' not found.")
         return
     data = config.model_dump(exclude_none=True)
     console.print(yaml.dump(data, default_flow_style=False, allow_unicode=True))
@@ -1253,7 +1256,10 @@ def feature_activate(name, proj_dir):
         for action in actions:
             console.print(f"  [green]✓[/green] {action}")
     except FileNotFoundError as e:
-        console.print(f"[red]{e}[/red]")
+        # The manager raises this when the named entity is not there. Printing
+        # and returning made the command exit 0, so `feature activate nope`
+        # read as success to anything scripting it.
+        raise click.ClickException(str(e))
 
 
 @feature.command("deactivate")
@@ -1277,7 +1283,7 @@ def feature_remove(name, proj_dir, force):
     mgr = FeatureManager(project_dir=pd)
     config = mgr.show(name)
     if config is None:
-        console.print(f"[red]Feature '{name}' not found.[/red]")
+        raise click.ClickException(f"Feature '{name}' not found.")
         return
     if not force:
         ok = click.confirm(f"Remove feature '{name}' permanently?", default=False)
@@ -1288,7 +1294,10 @@ def feature_remove(name, proj_dir, force):
         mgr.remove(name)
         console.print(f"[green]Removed feature '{name}'.[/green]")
     except FileNotFoundError as e:
-        console.print(f"[red]{e}[/red]")
+        # The manager raises this when the named entity is not there. Printing
+        # and returning made the command exit 0, so `feature activate nope`
+        # read as success to anything scripting it.
+        raise click.ClickException(str(e))
 
 
 # ── Deprecated alias ────────────────────────────────────────────────────────
