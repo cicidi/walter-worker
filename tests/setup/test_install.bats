@@ -550,3 +550,26 @@ print(n)
   [ -f "$HOME/.claude/commands/init.md" ]
   [ ! -f "$HOME/.claude/commands/tdd.md" ]
 }
+
+@test "a subset selection installs each skill's own file" {
+  # SELECTED_SKILLS was paired with SKILL_PATHS by index, but SKILL_PATHS is
+  # indexed by AVAILABLE order — so any selection that was not "all of them, in
+  # order" installed another skill's file under the right name. The manual
+  # Select path hit it by entering "3 1"; --skills hit it every time.
+  run bash "$REPO_ROOT/setup/install.sh" --global --skills "skill-create" < /dev/null
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import os, re
+d = os.path.expanduser('~/.claude/commands')
+bad = []
+for f in sorted(os.listdir(d)):
+    if not f.endswith('.md'):
+        continue
+    m = re.search(r'^name:\s*(\S+)', open(os.path.join(d, f), errors='ignore').read(), re.M)
+    if m and m.group(1) != f[:-3]:
+        bad.append(f)
+print(','.join(bad))
+"
+  [ -z "$output" ]
+}

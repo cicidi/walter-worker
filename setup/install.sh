@@ -280,6 +280,12 @@ fi
 # Step 8 — Skill selection
 # =============================================================================
 SELECTED_SKILLS=()
+#: Paired with SELECTED_SKILLS by position. The install loop uses this, not
+#: SKILL_PATHS — that array is indexed by AVAILABLE order, so using it with a
+#: subset paired every selection with another skill's file. Any selection that
+#: was not "all of them, in order" installed the wrong content under the right
+#: name, including the manual Select path entering "3 1".
+SELECTED_PATHS=()
 
 # A caller that knows the previous selection passes it, so an update does not
 # re-ask a question it already has the answer to — and cannot take the default
@@ -287,10 +293,15 @@ SELECTED_SKILLS=()
 # rather than answering it: routing it through SKILL_CHOICE=1 would mean "All"
 # to the case below, which silently overrode the selection.
 if [[ -n "${PRESELECTED_SKILLS:-}" ]]; then
-  for name in $PRESELECTED_SKILLS; do
-    for i in "${!AVAILABLE_SKILLS[@]}"; do
+  # Walked in AVAILABLE order, not the caller's. SELECTED_SKILLS and
+  # SKILL_PATHS are parallel arrays and the install loop pairs them by index,
+  # so appending names in any other order pairs each name with another skill's
+  # file — it installs the wrong content under the right name.
+  for i in "${!AVAILABLE_SKILLS[@]}"; do
+    for name in $PRESELECTED_SKILLS; do
       if [[ "${AVAILABLE_SKILLS[$i]}" == "$name" ]]; then
         SELECTED_SKILLS+=("$name")
+        SELECTED_PATHS+=("${SKILL_PATHS[$i]}")
         break
       fi
     done
@@ -315,6 +326,7 @@ case "$SKILL_CHOICE" in
     ;;
   1)
     SELECTED_SKILLS=("${AVAILABLE_SKILLS[@]}")
+    SELECTED_PATHS=("${SKILL_PATHS[@]}")
     log "Installing all ${#SELECTED_SKILLS[@]} skills."
     ;;
   2)
@@ -324,11 +336,19 @@ case "$SKILL_CHOICE" in
       printf "  %2d) %s  (%s)\n" "$((i+1))" "${SKILL_LABELS[$i]}" "${AVAILABLE_SKILLS[$i]}"
     done
     read -rp "  Select: " SELECTED_NUMS || SELECTED_NUMS=""
+    # Collected, then walked in index order. SELECTED_SKILLS is paired with
+    # SKILL_PATHS by index, so entering "3 1" would otherwise install the
+    # third skill's file under the first skill's name.
+    _picked=""
     for num in $SELECTED_NUMS; do
       idx=$((num-1))
       if [[ $idx -ge 0 && $idx -lt ${#AVAILABLE_SKILLS[@]} ]]; then
-        SELECTED_SKILLS+=("${AVAILABLE_SKILLS[$idx]}")
+        _picked="$_picked $idx"
       fi
+    done
+    for idx in $(echo $_picked | tr ' ' '\n' | sort -n -u); do
+      SELECTED_SKILLS+=("${AVAILABLE_SKILLS[$idx]}")
+      SELECTED_PATHS+=("${SKILL_PATHS[$idx]}")
     done
     log "Selected ${#SELECTED_SKILLS[@]} skills."
     ;;
@@ -385,7 +405,7 @@ if [[ ${#SELECTED_SKILLS[@]} -gt 0 ]]; then
   echo ""
   log "Installing skills to Claude Code..."
   for i in "${!SELECTED_SKILLS[@]}"; do
-    install_skill "${SKILL_PATHS[$i]}" "$CLAUDE_DIR"
+    install_skill "${SELECTED_PATHS[$i]}" "$CLAUDE_DIR"
   done
 fi
 
