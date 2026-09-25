@@ -395,9 +395,8 @@ def test_sync_stale_mcp_from_settings_removed(tmp_path, monkeypatch):
 
     data = json.loads(settings.read_text())
     assert "mcpServers" not in data
-    assert "effortLevel" not in data
-    # skipDangerousModePermissionPrompt used to be asserted here. It is the
-    # user's own security-relevant setting and is no longer removed — see
+    # effortLevel and skipDangerousModePermissionPrompt used to be asserted here
+    # too. Both are the user's own settings and are no longer removed — see
     # test_sync_preserves_user_settings_it_does_not_own.
 
 
@@ -1048,6 +1047,7 @@ def test_sync_preserves_user_settings_it_does_not_own(tmp_path, monkeypatch):
     settings = claude_dir / "settings.json"
     settings.write_text(json.dumps({
         "skipDangerousModePermissionPrompt": True,
+        "effortLevel": "high",
         "theme": "dark",
     }))
 
@@ -1061,6 +1061,9 @@ def test_sync_preserves_user_settings_it_does_not_own(tmp_path, monkeypatch):
 
     data = json.loads(settings.read_text())
     assert data.get("skipDangerousModePermissionPrompt") is True, (
+        "sync() removed a setting the user had set"
+    )
+    assert data.get("effortLevel") == "high", (
         "sync() removed a setting the user had set"
     )
     assert data.get("theme") == "dark"

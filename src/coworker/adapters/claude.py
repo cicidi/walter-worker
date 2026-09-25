@@ -162,10 +162,10 @@ def sync(config: CoworkerConfig, project_dir: Path | None = None) -> list[str]:
         mcp_actions = _sync_mcp(config, mcp_path)
         actions.extend(mcp_actions)
     existing.pop("mcpServers", None)
-    existing.pop("effortLevel", None)
-    # skipDangerousModePermissionPrompt is deliberately not touched. It is the
-    # user's own setting and security-relevant; popping it made their
-    # configuration disappear silently on every sync.
+    # effortLevel and skipDangerousModePermissionPrompt are deliberately not
+    # touched: both are the user's own settings, and popping them made the
+    # user's configuration disappear silently on every sync. mcpServers above
+    # is different — Claude Code reads MCP from ~/.claude.json, not from here.
 
     # State-update hook (correctly-shaped — already fixed in prior WIP)
     existing.setdefault("hooks", {})
