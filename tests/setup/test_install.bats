@@ -511,3 +511,24 @@ print(n)
   # Five analytics hooks plus the capture hook; more than 1 means the block ran.
   [ "$output" -ge 5 ]
 }
+
+@test "skipping skills does not retire the ones already installed" {
+  # "0) None" means "do not install skills", not "delete the ones you have".
+  # The manifest prune diffs against what THIS run claimed, so a run that
+  # claimed none retired all of them — and update.sh re-invokes this installer
+  # with None as the default answer, so an update wiped every skill, including
+  # the core init skill the same run had just reported installing.
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'1'
+  [ "$status" -eq 0 ]
+
+  run bash -c "ls '$HOME/.claude/commands' | wc -l"
+  local before="$output"
+  [ "$before" -gt 1 ]
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run bash -c "ls '$HOME/.claude/commands' | wc -l"
+  [ "$output" -eq "$before" ]
+  [ -f "$HOME/.claude/commands/init.md" ]
+}

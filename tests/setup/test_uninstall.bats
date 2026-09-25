@@ -152,3 +152,39 @@ teardown() {
   [ -f "$HOME/.claude/skills/foreign-tool/SKILL.md" ]
   [[ "$output" == *"SKIPPED"* ]]
 }
+
+@test "uninstall keeps the user's own CLAUDE.md and their own hooks" {
+  # install.sh deliberately declines to overwrite an existing global
+  # CLAUDE.md, and it registers only its own hooks. But the manifest claimed
+  # the file whenever it existed and every hook command it could find in
+  # settings.json — so a plain uninstall deleted a hand-written CLAUDE.md and
+  # stripped hooks the user had added themselves.
+  echo '# MY PRECIOUS USER INSTRUCTIONS' > "$HOME/.claude/CLAUDE.md"
+  python3 -c "
+import json, os
+p = os.path.expanduser('~/.claude/settings.json')
+json.dump({'hooks': {'Stop': [{'matcher': '', 'hooks': [
+    {'type': 'command', 'command': 'echo MY-OWN-HOOK'}]}]}}, open(p, 'w'))
+"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run bash -c "echo y | bash '$REPO_ROOT/setup/uninstall.sh'"
+  [ "$status" -eq 0 ]
+
+  # The user's CLAUDE.md is theirs; install never wrote it.
+  [ -f "$HOME/.claude/CLAUDE.md" ]
+  run grep -c "MY PRECIOUS" "$HOME/.claude/CLAUDE.md"
+  [ "$output" = "1" ]
+
+  # Their hook survives too.
+  run python3 -c "
+import json, os
+cfg = json.load(open(os.path.expanduser('~/.claude/settings.json')))
+cmds = [h.get('command') for g in cfg.get('hooks', {}).get('Stop', [])
+        for h in (g.get('hooks') or [])]
+print('kept' if 'echo MY-OWN-HOOK' in cmds else 'GONE')
+"
+  [ "$output" = "kept" ]
+}

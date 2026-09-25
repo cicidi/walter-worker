@@ -88,6 +88,11 @@ from coworker.templates.global_claude_md import generate_global_claude_md
 print(generate_global_claude_md())
 ")
 
+# Whether this run created it, which decides if the manifest may claim it. An
+# existing CLAUDE.md is deliberately left alone here, so it is the user's and
+# uninstall has no business deleting it — but the manifest used to claim the
+# file whenever it existed, and a plain uninstall then removed it silently.
+CREATED_GLOBAL_MD=0
 if [[ -f "$GLOBAL_CLAUDE_MD" ]]; then
   ok "Global CLAUDE.md already exists at $GLOBAL_CLAUDE_MD"
   log "Run 'coworker upgrade' to merge template updates into your existing CLAUDE.md."
@@ -96,6 +101,7 @@ else
   mkdir -p "$(dirname "$GLOBAL_CLAUDE_MD")"
   echo "$CLAUDE_MD_CONTENT" > "$GLOBAL_CLAUDE_MD"
   ok "Created $GLOBAL_CLAUDE_MD"
+  CREATED_GLOBAL_MD=1
 fi
 
 # =============================================================================
@@ -530,15 +536,16 @@ _merge_hook('Stop',              '$HOME/.coworker/analytics/hooks/on-stop.sh')
 # skill candidates for review. One LLM call per session, so it is the cheap
 # half of capture; the per-tool-call half is deliberately left unwired.
 #
-# Bare "coworker", matching the state-update hook that sync() manages. The
-# command exits 0 without a word when no API key is configured, so an
+# The command is invoked as plain coworker, matching the state-update hook that
+# sync() manages. It exits 0 without a word when no API key is configured, so an
 # unconfigured machine is quiet rather than nagging after every session.
 #
-# NOTE: this block is a double-quoted bash string, so backticks and dollar-paren
-# inside these comments are command substitutions to bash, not comments. A
-# previous pair of backticks here ran the coworker CLI and pasted its usage text
-# into the middle of the Python, so the hooks silently stopped being written.
-# Write such things out in words, or quote them with double quotes.
+# NOTE: this block is a double-quoted bash string. A double quote in these
+# comments ends it early; a backtick or dollar-paren runs a command and splices
+# the output in. A previous pair of backticks here executed the coworker CLI and
+# pasted its usage text into the middle of the Python, so the hooks silently
+# stopped being written while the installer still reported success. Describe
+# such characters in words; never write them.
 _merge_hook('Stop',              'coworker memory capture')
 
 with open('$CLAUDE_SETTINGS', 'w') as f: json.dump(cfg, f, indent=2)
@@ -677,11 +684,20 @@ for _wm_root, _wm_dirs, _wm_fns in os.walk(_wm_src):
 # file-history,sessions,tasks,docs,backups}, ~/.opencode/node_modules, and any
 # ~/.claude/skills/<name> this install did not deploy.
 manifest['files'] = files
-# Global CLAUDE.md
+# Global CLAUDE.md — only if this run created it. Claiming it whenever it
+# existed meant a user's own hand-written CLAUDE.md was deleted by uninstall,
+# on a file install.sh had just deliberately declined to touch.
 md = f'{home}/.claude/CLAUDE.md'
-if os.path.isfile(md): manifest['files'].append(md)
-# Hook commands from settings.json
+if '$CREATED_GLOBAL_MD' == '1' and os.path.isfile(md):
+    manifest['files'].append(md)
+# Hook commands from settings.json — only the ones this project installs.
+#
+# This used to claim every hook in the file, including the user's own, so
+# uninstall stripped their hooks along with ours. Ours are identifiable: they
+# point into our hooks directory, or they are our own CLI subcommands.
 sf = f'{home}/.claude/settings.json'
+OUR_HOOK_PATH = '/.coworker/analytics/hooks/'
+OUR_HOOK_CMDS = ('coworker memory capture', 'coworker state-update')
 if os.path.isfile(sf):
     cfg = json.load(open(sf))
     for entries in cfg.get('hooks', {}).values():
@@ -689,7 +705,9 @@ if os.path.isfile(sf):
             for g in entries:
                 if isinstance(g, dict):
                     for h in g.get('hooks', []):
-                        manifest['hook_commands'].append(h.get('command', ''))
+                        cmd = h.get('command', '')
+                        if OUR_HOOK_PATH in cmd or cmd in OUR_HOOK_CMDS:
+                            manifest['hook_commands'].append(cmd)
 # Owned dirs
 for d in [f'{home}/.coworker', f'{home}/.config/opencode/skills/walter-worker']:
     if os.path.isdir(d):
@@ -731,6 +749,24 @@ try:
             except OSError:
                 return
             d = os.path.dirname(d)
+
+    # Answering None means do not install skills — it is not an instruction to
+    # delete the ones already present. The prune is a diff against what this run
+    # claimed, and a run that skipped skills claims none of them, so they were
+    # all retired. update.sh re-invokes this installer with None as the default
+    # answer, so pressing Enter during an update wiped every skill on the
+    # machine, including the core init skill the same run had just reported
+    # installing. Carry the previous bundle skills forward instead; the mirrors
+    # the-super-lab feeds are deployed regardless of this answer and are still
+    # pruned normally below.
+    _carried = 0
+    if '$SKILL_CHOICE' == '0':
+        for _p in _prev.get('files', []):
+            if _p.startswith(f'{home}/.claude/commands/') and os.path.lexists(_p):
+                files.append(_p)
+                _carried += 1
+        if _carried:
+            print(f'  Skills skipped, so {_carried} existing skill(s) were kept.')
 
     if _prev.get('schema_version') == 2:
         _current = set(files)

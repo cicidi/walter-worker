@@ -107,3 +107,49 @@ def test_no_shipped_skill_names_the_renamed_repo_as_a_path():
                 if dead in line:
                     offenders.append(f"{path.parent.name}:{i} names {dead!r}")
     assert offenders == [], f"dead super-lab paths in shipped skills: {offenders}"
+
+
+def test_no_bash_substitution_inside_python3_c_blocks():
+    """`python3 -c "…"` is a double-quoted bash string.
+
+    Three regressions came out of that one block in install.sh: a backtick pair
+    executed the coworker CLI and pasted its usage text into the middle of the
+    Python, so no hooks were written at all while the installer still reported
+    success. A double quote there is worse than it looks — it ends the string,
+    so everything after it is parsed as bash.
+
+    The block ends only at a line whose first non-space character is the closing
+    quote. A quote anywhere else is therefore an offender, not a terminator:
+    treating it as one is what let a stray quote hide the rest of the block from
+    this check.
+    """
+    offenders = []
+    for path in sorted((ROOT / "setup").glob("*.sh")):
+        lines = path.read_text(encoding="utf-8").splitlines()
+        for i, line in enumerate(lines):
+            marker = 'python3 -c "'
+            if marker not in line:
+                continue
+            rest = line.split(marker, 1)[1]
+            if '"' in rest:
+                # A one-liner closes on the same line; nothing later belongs.
+                body = [(i, rest.split('"', 1)[0])]
+            else:
+                body = [(i, rest)]
+                for j, later in enumerate(lines[i + 1:], i + 1):
+                    if later.lstrip().startswith('"'):
+                        break
+                    body.append((j, later))
+            for lineno, text in body:
+                for bad, why in (('"', "ends the bash string early"),
+                                 ("`", "is a command substitution"),
+                                 ("$(", "is a command substitution")):
+                    if bad in text:
+                        offenders.append(
+                            f"{path.name}:{lineno + 1} contains {bad!r} "
+                            f"({why}): {text.strip()[:60]}"
+                        )
+    assert offenders == [], (
+        "bash-active characters inside python3 -c blocks:\n  "
+        + "\n  ".join(offenders)
+    )
