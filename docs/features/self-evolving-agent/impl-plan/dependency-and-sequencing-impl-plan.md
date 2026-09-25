@@ -2,7 +2,7 @@
 
 > Initiative: self-evolving-agent | Type: decision doc | Status: **pending user decision**
 >
-> Companion to: [advocate review](../raw/devil-advocate-reviews/2026-07-24-prd-spec-review/report.md)
+> Companion to: [advocate review](../decision-history/2026-07-29-devil-advocate-reviews-summary.md) (Round 2 — the 2026-07-24 review; the raw directory was consolidated into this entry)
 >
 > Question this answers: the QA-agent skill (design/spec/impl-plan) declares dependencies on PRD platform features that **do not exist yet**. How do we resolve this — build the engine first, or make the skill self-contained?
 
