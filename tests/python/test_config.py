@@ -262,3 +262,37 @@ class TestSaveConfig:
         assert data["mcp"][0]["name"] == "test-server"
         assert data["skills"][0]["name"] == "test-skill"
         assert data["permissions"]["allow"] == ["read"]
+
+
+class TestProjectSkillInstallation:
+    """Project skills must reach both IDE command directories.
+
+    install.sh mirrors <project>/.claude/commands/ into
+    <project>/.opencode/instructions/ (step 11). This installed to the first
+    only, so OpenCode never received a project's skills — the second directory
+    was not even created.
+    """
+
+    def _project_with_skill(self, root):
+        skill = root / "skills" / "my-skill"
+        skill.mkdir(parents=True)
+        (skill / "SKILL.md").write_text(
+            "---\nname: my-skill\ndescription: Use when testing.\n---\n# my-skill\n",
+            encoding="utf-8",
+        )
+        return root
+
+    def test_installs_into_both_directories(self, tmp_path):
+        project = self._project_with_skill(tmp_path / "proj")
+
+        installed = cfg.install_project_skills(project)
+        assert installed == 1
+
+        for rel in (".claude/commands", ".opencode/instructions"):
+            assert (project / rel / "my-skill.md").is_file(), f"missing in {rel}"
+
+    def test_second_run_is_idempotent(self, tmp_path):
+        project = self._project_with_skill(tmp_path / "proj")
+
+        cfg.install_project_skills(project)
+        assert cfg.install_project_skills(project) == 0

@@ -134,27 +134,48 @@ def _parse_skill_frontmatter(skill_md: Path) -> tuple[str | None, str | None]:
     return fm.get("name"), fm.get("description")
 
 
+# The two IDE command directories install.sh keeps identical in project mode —
+# its step 11 mirrors the first into the second. Writing to only the first left
+# OpenCode, and anything else reading that directory, without the project's
+# skills.
+PROJECT_IDE_COMMAND_DIRS = (".claude/commands", ".opencode/instructions")
+
+
 def install_project_skills(project_root: Path) -> int:
-    """Install project skills from skills/ to .claude/commands/.
-    Claude Code loads custom slash commands from .claude/commands/.
-    Returns the number of skills installed."""
-    commands_dir = project_root / ".claude" / "commands"
+    """Install project skills into both IDE command directories.
+
+    Returns the number of skills installed.
+    """
     skills = discover_project_skills(project_root)
     if not skills:
         return 0
 
-    commands_dir.mkdir(parents=True, exist_ok=True)
     installed = 0
     for skill in skills:
         src = project_root / skill.path / "SKILL.md"
-        dst = commands_dir / f"{skill.name}.md"
         if not src.exists():
             continue
-        if dst.exists():
-            continue  # already installed, skip
-        dst.write_text(src.read_text())
+
+        targets = [
+            project_root / rel / f"{skill.name}.md"
+            for rel in PROJECT_IDE_COMMAND_DIRS
+        ]
+        # Skip only when every target already has it, so a skill installed
+        # before the second directory existed still gets mirrored.
+        pending = [dst for dst in targets if not dst.exists()]
+        if not pending:
+            continue
+
+        content = src.read_text()
+        for dst in pending:
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            dst.write_text(content)
         installed += 1
-        logger.info("Installed skill: %s → .claude/commands/", skill.name)
+        logger.info(
+            "Installed skill: %s -> %s",
+            skill.name,
+            ", ".join(str(d.parent.relative_to(project_root)) for d in pending),
+        )
 
     return installed
 
