@@ -19,6 +19,15 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["pytest", "httpx"]
+# Required by the `coworker memory` commands, not by the CLI itself - these are
+# imported lazily so a base install does not need them. `graphify` is also
+# required by `memory init`/`memory sync` but has no distribution, so it cannot
+# be declared here; install it separately.
+memory = [
+    "openai>=1.0",
+    "mem0ai>=0.1",
+    "networkx>=3.0",
+]
 
 [project.scripts]
 coworker = "coworker.cli:main"

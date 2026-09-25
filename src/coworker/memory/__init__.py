@@ -24,26 +24,44 @@ Public API:
     query — Graph traversal + mem0 hybrid search.
 """
 
-from coworker.memory.llm import LLMClient, LLMResponse
-from coworker.memory.mem0_client import Mem0Client, ConfigError, Mem0Error
-from coworker.memory.graph import Graph, Node, Edge
-from coworker.memory.confidence import confidence_to_score
-from coworker.memory.decay import compute_effective_weight, query_filter
-from coworker.memory.storage import load_graph, save_graph, write_json_atomic
+# Re-exported lazily rather than imported eagerly.
+#
+# This package is imported as a side effect of `import coworker.memory.cli_memory`,
+# which coworker.cli does in order to register the `memory` command group. Eager
+# imports here therefore made the *entire* CLI depend on openai, mem0, networkx
+# and graphify - none of which are installable dependencies of this project
+# (graphify is a local tool with no distribution at all). A fresh
+# `pip install` produced a CLI that raised ModuleNotFoundError on every
+# invocation, including `coworker status`.
+#
+# Nothing is imported until an attribute is actually requested, so the CLI
+# loads with only the declared dependencies; the memory features resolve their
+# own requirements when used.
+_LAZY_EXPORTS = {
+    "LLMClient": "coworker.memory.llm",
+    "LLMResponse": "coworker.memory.llm",
+    "Mem0Client": "coworker.memory.mem0_client",
+    "ConfigError": "coworker.memory.mem0_client",
+    "Mem0Error": "coworker.memory.mem0_client",
+    "Graph": "coworker.memory.graph",
+    "Node": "coworker.memory.graph",
+    "Edge": "coworker.memory.graph",
+    "confidence_to_score": "coworker.memory.confidence",
+    "compute_effective_weight": "coworker.memory.decay",
+    "query_filter": "coworker.memory.decay",
+    "load_graph": "coworker.memory.storage",
+    "save_graph": "coworker.memory.storage",
+    "write_json_atomic": "coworker.memory.storage",
+}
 
-__all__ = [
-    "LLMClient",
-    "LLMResponse",
-    "Mem0Client",
-    "ConfigError",
-    "Mem0Error",
-    "Graph",
-    "Node",
-    "Edge",
-    "confidence_to_score",
-    "compute_effective_weight",
-    "query_filter",
-    "load_graph",
-    "save_graph",
-    "write_json_atomic",
-]
+__all__ = sorted(_LAZY_EXPORTS)
+
+
+def __getattr__(name: str):
+    """PEP 562 lazy attribute access for the re-exports above."""
+    module = _LAZY_EXPORTS.get(name)
+    if module is None:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    import importlib
+
+    return getattr(importlib.import_module(module), name)
