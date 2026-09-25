@@ -20,7 +20,7 @@ Each entry names the evidence that established it.
 
 ## A. Delete — dead and not on the loop
 
-### A1. `src/coworker/memory/errors.py` — 61 lines — **DONE** (`0d6c…`)
+### A1. `src/coworker/memory/errors.py` — 61 lines — **DONE** (`0172480`)
 
 Error-code registry ("spec §9"). Referenced by nothing: no import, no config, no
 hook. The only file naming it was the generated `SOURCES.txt`. `tests/python/
@@ -179,7 +179,7 @@ shipped skill.
 | `f90a35b` | this list |
 | `be50f63` | `state-update` wrote state files into the cwd, not the project root |
 | `172bde3` | `record_session_metrics` docstring named keys that do not exist; `engine.reconcile` stub now delegates to the real implementation; `coworker memory metrics` added |
-| `0d6c…` | A1 + A2 of this list |
+| `0172480` | A1 + A2 of this list |
 
 ---
 
