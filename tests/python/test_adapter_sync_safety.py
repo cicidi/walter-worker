@@ -116,3 +116,56 @@ def test_gemini_mcp_union(tmp_path, monkeypatch):
     out = json.loads(settings.read_text())
     assert "foreign" in out["mcpServers"]
     assert "coworker-srv" in out["mcpServers"]
+
+
+# ── No-op writes must not churn or back up ───────────────────────────────────
+# Sync runs on every install. It used to rewrite and re-back up settings.json
+# unconditionally, which is why 1813 json-sync backups on this machine held
+# only 44 distinct contents - one of them 645 times over.
+
+
+def _backup_count(home):
+    d = home / ".coworker" / "backups"
+    return len(list(d.glob("*"))) if d.exists() else 0
+
+
+def test_identical_write_is_a_noop(tmp_path, monkeypatch):
+    home = _temp_home(tmp_path, monkeypatch)
+    path = home / ".claude" / "settings.json"
+    data = {"model": "opus", "permissions": {"allow": ["Bash(*)"]}}
+
+    assert claude._write_json_atomic(path, data) is True, "first write must land"
+
+    assert claude._write_json_atomic(path, data) is False, "identical rewrite is a no-op"
+    assert claude._write_json_atomic(path, data) is False
+    assert _backup_count(home) == 0, "a no-op must not create a backup"
+    assert json.loads(path.read_text()) == data
+
+
+def test_real_change_still_backs_up_the_previous_content(tmp_path, monkeypatch):
+    home = _temp_home(tmp_path, monkeypatch)
+    path = home / ".claude" / "settings.json"
+
+    claude._write_json_atomic(path, {"v": 1})
+    assert claude._write_json_atomic(path, {"v": 2}) is True
+
+    assert _backup_count(home) == 1, "a real change must be backed up"
+    snap = next((home / ".coworker" / "backups").glob("*"))
+    saved = next(snap.rglob("settings.json"))
+    assert json.loads(saved.read_text()) == {"v": 1}, "backup holds the pre-change content"
+    assert json.loads(path.read_text()) == {"v": 2}
+
+
+def test_repeated_sync_does_not_accumulate_backups(tmp_path, monkeypatch):
+    """Three syncs over unchanged config produce one write, not three."""
+    home = _temp_home(tmp_path, monkeypatch)
+    cfg = _fresh_config(mcp=[McpServer(name="s", command="echo", args=[], enabled=True)])
+
+    for _ in range(3):
+        claude.sync(cfg)
+    after_first = _backup_count(home)
+    for _ in range(3):
+        claude.sync(cfg)
+    assert _backup_count(home) == after_first, (
+        "re-syncing unchanged config must not create more backups"
+    )

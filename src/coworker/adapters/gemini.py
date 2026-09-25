@@ -1,27 +1,13 @@
 from __future__ import annotations
 import json
-import os
-import tempfile
 from pathlib import Path
 from ..models import CoworkerConfig
-from .. import backup
+# Shared with the Claude adapter rather than duplicated: the two copies had
+# already drifted, and a fix applied to one would silently miss the other.
+from .claude import _write_json_atomic
 
 GEMINI_DIR = Path.home() / ".gemini"
 GEMINI_SETTINGS = GEMINI_DIR / "settings.json"
-
-
-def _write_json_atomic(path: Path, data: object) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if path.exists():
-        backup.snapshot([path], "json-sync")
-    fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=path.name + ".", suffix=".tmp")
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-        os.replace(tmp, path)
-    except BaseException:
-        os.unlink(tmp)
-        raise
 
 
 def sync(config: CoworkerConfig, project_dir: Path | None = None) -> list[str]:

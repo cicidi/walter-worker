@@ -65,19 +65,33 @@ def _had_block(content: str, start: str) -> bool:
     return start in content
 
 
-def _write_json_atomic(path: Path, data: object) -> None:
-    """Write JSON to path atomically (tmp + rename) and keep a .bak."""
+def _write_json_atomic(path: Path, data: object) -> bool:
+    """Write JSON to path atomically (tmp + rename), keeping a backup.
+
+    Returns True if the file was changed. When the serialised content already
+    matches what is on disk, neither the backup nor the write happens. Sync runs
+    on every install, and it was re-backing-up identical settings.json each
+    time: 1813 json-sync backups on this machine held only 44 distinct
+    contents, one of them 645 times over.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
+    payload = json.dumps(data, indent=2)
     if path.exists():
+        try:
+            if path.read_text(encoding="utf-8") == payload:
+                return False
+        except OSError:
+            pass  # unreadable — fall through and rewrite it
         backup.snapshot([path], "json-sync")
     fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=path.name + ".", suffix=".tmp")
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
+            f.write(payload)
         os.replace(tmp, path)
     except BaseException:
         os.unlink(tmp)
         raise
+    return True
 
 
 def _sync_mcp(config: CoworkerConfig, mcp_path: Path) -> list[str]:
