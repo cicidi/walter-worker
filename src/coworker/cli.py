@@ -858,8 +858,20 @@ Describe when the AI should invoke this skill.
 3. Step three
 """)
     console.print(f"[green]Created:[/green] {skill_file}")
-    console.print("[dim]Add to coworker.yaml:[/dim]")
-    console.print(f"  skills:\n    - name: {name}\n      path: skills/{name}")
+    if is_global:
+        console.print("[dim]Register it in coworker.yaml:[/dim]")
+        console.print(f"  skills:\n    - name: {name}\n      path: skills/{name}")
+        console.print("[dim]That path is relative to ~/.coworker, not to the cwd.[/dim]")
+    else:
+        # The same instruction was printed either way, but it names a path under
+        # ~/.coworker — so following it after --project would register the
+        # global skill, not the one just written here.
+        console.print(
+            "[yellow]Note:[/yellow] nothing discovers a project-local "
+            ".coworker/skills/. The dashboard, the evolution score and "
+            "`coworker skill list` read ~/.coworker/skills/ and coworker.yaml, "
+            "so this skill has to be pointed at explicitly to be seen."
+        )
 
 
 @skill.command("pending")

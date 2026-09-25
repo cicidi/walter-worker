@@ -2431,3 +2431,35 @@ class TestDashboardBindsToLoopback:
 
         assert seen.get("host") == "0.0.0.0"
         assert "anyone who can reach this port" in result.output
+
+
+class TestSkillNewTellsTheTruthAboutWhereItWrote:
+    """`skill new` printed the same registration line either way.
+
+    It names `path: skills/<name>`, which is relative to ~/.coworker — so after
+    --project, following it would register the global skill rather than the one
+    just created. And nothing discovers a project-local .coworker/skills/ at
+    all: the dashboard, the evolution score and `skill list` read
+    ~/.coworker/skills/ and coworker.yaml.
+    """
+
+    def test_project_says_nothing_discovers_that_directory(
+        self, tmp_path, monkeypatch
+    ):
+        monkeypatch.chdir(tmp_path)
+        result = runner.invoke(main, ["skill", "new", "demo", "--project"])
+
+        assert result.exit_code == 0, result.output
+        assert (tmp_path / ".coworker" / "skills" / "demo" / "SKILL.md").exists()
+        assert "nothing discovers" in result.output, (
+            "a scaffold nothing can see must say so"
+        )
+
+    def test_global_says_which_base_the_path_is_relative_to(
+        self, temp_coworker_dir, monkeypatch
+    ):
+        monkeypatch.chdir(temp_coworker_dir)
+        result = runner.invoke(main, ["skill", "new", "demo"])
+
+        assert result.exit_code == 0, result.output
+        assert "relative to ~/.coworker" in result.output
