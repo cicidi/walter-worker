@@ -81,41 +81,27 @@ def record_session_metrics(session_id: str, metrics: dict) -> None:
 
 
 def compute_evolution_score() -> int:
-    """Compute a 0-100 evolution score from collected metrics.
+    """The evolution score, from the same place the dashboard gets it.
 
     Higher = agent is getting smarter over time.
+
+    This used to be a second implementation with its own formula, reading
+    metrics.json — a store nothing ever wrote, so `coworker memory metrics`
+    reported 0 for ever while the dashboard reported a real number under the
+    same name. Spec §7 settles which is which: "Collection: logged to
+    analytics.db per session ... Exact formulas + dashboard -> impl detail, not
+    spec." analytics.db is the source, so this delegates rather than keeping a
+    parallel sum.
     """
-    data = _load_metrics()
-
-    # Nothing recorded means nothing to score. Without this the two terms below
-    # that reward the *absence* of a problem — "few corrections", "no circuit
-    # breaker trips" — paid out unconditionally, so a machine that had never run
-    # a session scored 20/100 while a real struggling agent could score 18. A
-    # score that cannot reach zero cannot measure anything.
-    if not any(data.get(key) for key in data):
+    try:
+        from coworker.dashboard.queries_evolution import evolution_inputs, evolution_score
+    except Exception:
         return 0
-
-    def recent_trend(key: str) -> float:
-        values = [e["value"] for e in data.get(key, [])[-10:]]
-        if not values:
-            return 0.0
-        return sum(values) / len(values)
-
-    reuse = recent_trend("skill_reuse_rate")
-    first_pass = recent_trend("task_first_pass_rate")
-    memory_hit = recent_trend("memory_hit_rate")
-    correction = recent_trend("user_correction_rate")
-    trips = sum(e["value"] for e in data.get("circuit_breaker_trips", [])[-30:])
-
-    # Weighted score
-    score = (
-        reuse * 30 +
-        first_pass * 25 +
-        memory_hit * 25 +
-        (1.0 - correction) * 15 +
-        (1.0 if trips == 0 else 0.0) * 5
-    )
-    return max(0, min(100, int(score)))
+    try:
+        skills, sessions_with_auto, total_sessions = evolution_inputs()
+    except Exception:
+        return 0
+    return evolution_score(skills, sessions_with_auto, total_sessions)
 
 
 def get_metrics_report() -> str:

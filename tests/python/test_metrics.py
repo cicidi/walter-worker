@@ -101,22 +101,23 @@ class TestAScoreWithNoDataIsZero:
     floor comes from arithmetic rather than measurement cannot measure.
     """
 
-    def test_no_recorded_metrics_scores_zero(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(
-            "coworker.memory.metrics.METRICS_PATH", str(tmp_path / "absent.json")
-        )
+    def test_no_data_scores_zero(self):
+        """No sessions and no skills in analytics.db is a score of 0.
 
+        This used to patch METRICS_PATH, a JSON store nothing wrote. The score
+        comes from analytics.db now, which the conftest points at a temp file.
+        """
         assert compute_evolution_score() == 0
 
-    def test_a_struggling_agent_does_not_score_below_an_idle_machine(
-        self, tmp_path, monkeypatch
-    ):
+    def test_recorded_metrics_no_longer_drive_the_score(self, tmp_path, monkeypatch):
+        """It delegates to the dashboard's computation over analytics.db."""
+        from coworker.dashboard.queries_evolution import evolution_score
+
         monkeypatch.setattr(
             "coworker.memory.metrics.METRICS_PATH", str(tmp_path / "m.json")
         )
-        record_session_metrics("s1", {
-            "skill_reuse_rate": 0.1, "task_first_pass_rate": 0.2,
-            "memory_hit_rate": 0.1, "user_correction_rate": 0.8,
-        })
+        record_session_metrics("s1", {"skill_reuse_rate": 0.9})
 
-        assert compute_evolution_score() > 0
+        from coworker.dashboard.queries_evolution import evolution_inputs
+        skills, used, total = evolution_inputs()
+        assert compute_evolution_score() == evolution_score(skills, used, total)

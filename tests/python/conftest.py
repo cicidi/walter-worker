@@ -198,3 +198,16 @@ def _isolate_backup_root(tmp_path, monkeypatch):
     wins, so they are unaffected.
     """
     monkeypatch.setattr("coworker.backup.BACKUP_ROOT", tmp_path / "backups")
+
+
+@pytest.fixture(autouse=True)
+def _isolate_analytics_db(tmp_path, monkeypatch):
+    """Point the analytics database at a temp file for every test.
+
+    get_db() resolves COWORKER_ANALYTICS_DB, and several code paths read the
+    user's real analytics.db when it is unset — the evolution score does, now
+    that it computes from the database rather than a JSON store. Without this a
+    test asserting "no data scores zero" reads whatever the developer has
+    accumulated and fails on their machine only.
+    """
+    monkeypatch.setenv("COWORKER_ANALYTICS_DB", str(tmp_path / "analytics.db"))

@@ -53,7 +53,30 @@ def _count_pending():
     return len(list(p.glob("*.json")))
 
 
-def _compute_evolution_score(skills, sessions_with_auto, total_sessions):
+def evolution_inputs() -> tuple[list[dict], int, int]:
+    """The three inputs the score is defined over, read from analytics.db.
+
+    Spec §7: "Collection: logged to analytics.db per session ... Exact formulas
+    + dashboard -> impl detail, not spec." So analytics.db is the source, and
+    this is the one place that reads it — `coworker memory metrics` used to
+    compute its own score from a separate JSON store that nothing wrote, and
+    therefore always reported 0.
+
+    Returns (agent-created skills, sessions that used a skill, total sessions).
+    """
+    conn = _get_db_conn()
+    try:
+        skills = _list_skills(provenance="agent")
+        total = conn.execute("SELECT COUNT(*) FROM sessions").fetchone()[0]
+        used = conn.execute(
+            "SELECT COUNT(DISTINCT session_id) FROM tool_calls WHERE tool = 'Skill'"
+        ).fetchone()[0]
+    finally:
+        conn.close()
+    return skills, used, total
+
+
+def evolution_score(skills, sessions_with_auto, total_sessions):
     """Compute an evolution score 0-100.
 
     There is no base offset. This added 30 unconditionally, so a brand-new
@@ -72,21 +95,13 @@ def _compute_evolution_score(skills, sessions_with_auto, total_sessions):
 
 def query_evolution_overview():
     """Stat cards for the Evolution page."""
-    conn = _get_db_conn()
-    try:
-        skills = _list_skills(provenance="agent")
-        total_sessions = conn.execute("SELECT COUNT(*) FROM sessions").fetchone()[0]
-        sessions_with_auto = conn.execute(
-            "SELECT COUNT(DISTINCT session_id) FROM tool_calls WHERE tool = 'Skill'"
-        ).fetchone()[0]
-    finally:
-        conn.close()
+    skills, sessions_with_auto, total_sessions = evolution_inputs()
     return {
         "auto_trained_skills": len(skills),
         "auto_trained_experiences": _count_agent_experiences(),
         "pending_review": _count_pending(),
         "skill_reuse_rate": round(sessions_with_auto / max(total_sessions, 1), 2),
-        "evolution_score": _compute_evolution_score(skills, sessions_with_auto, total_sessions),
+        "evolution_score": evolution_score(skills, sessions_with_auto, total_sessions),
     }
 
 
@@ -163,3 +178,7 @@ def query_evolution_pending():
         return list_pending()
     except Exception:
         return []
+
+
+#: Kept so existing callers and tests keep working.
+_compute_evolution_score = evolution_score

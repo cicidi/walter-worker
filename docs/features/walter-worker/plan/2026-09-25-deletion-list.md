@@ -216,7 +216,7 @@ all three adapters at once, because opencode was not union-only at all — it
 assigned the map outright and deleted every server the user had added, on every
 sync. Its test asserted that replacement, and is inverted with the reasoning.
 
-### C2. Two evolution scores, disagreeing — **partly DONE**
+### C2. Two evolution scores, disagreeing — **DONE**
 
 `evolution_score` and `skill_reuse_rate` are each computed twice, differently,
 from different sources. Both surfaces are live, so the dashboard and
@@ -248,11 +248,27 @@ nothing has been recorded, instead of paying out for the *absence* of
 corrections and circuit trips — which is how an untouched machine scored 20
 while a struggling agent scored 18.
 
-**Still open**: the two remain separate implementations from different sources,
-so the numbers will still differ once both have data. Merging them needs the
-spec's own signature — `compute_evolution_score(skills, experiences,
-total_sessions)` — to match an implementation, and neither does. That is a
-design ruling, not a defect.
+**Merged, on the spec's own words.** The spec settles which source is
+canonical — §7: "Collection: logged to analytics.db per session ... Exact
+formulas + dashboard -> impl detail, not spec." analytics.db is therefore the
+source, which is what the dashboard reads and what `metrics.py`'s separate JSON
+store was not.
+
+`evolution_inputs()` is now the one place that reads the score's inputs, and
+`compute_evolution_score()` delegates to the dashboard's computation. Verified
+on a database with one session and one agent skill: both surfaces report 25 and
+agree. This also fixed `coworker memory metrics` reporting 0 for ever — its
+store had no writer at all.
+
+`skills` are read from ~/.coworker/skills/*/usage.json rather than the DB
+table, because that is where an auto-created skill's provenance and state live.
+The cap added above means that directory can no longer inflate the score on its
+own: six agent skills with an empty database scored 60 before and scores 0 now.
+
+**Still dressing, not scored**: `record_session_metrics` and the seven-series
+table in `metrics.py` have no writer and no longer affect the score. Removing
+them is a cleanup, not a fix, and they are the only record of the per-metric
+shape the spec's table describes.
 
 ### C3. Documented-but-absent commands
 
