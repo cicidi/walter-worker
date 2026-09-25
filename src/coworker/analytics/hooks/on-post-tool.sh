@@ -5,7 +5,12 @@ ensure_session "$raw"
 
 tool=$(echo "$raw" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('tool_name',''))" 2>/dev/null)
 call_id=$(echo "$raw" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('tool_use_id',''))" 2>/dev/null)
-result=$(echo "$raw" | python3 -c "import sys,json; d=json.load(sys.stdin); o=d.get('tool_output',''); print(json.dumps(str(o)[:10000]))" 2>/dev/null)
+# PostToolUse calls the field `tool_response`; `tool_output` has never been
+# part of the schema. Reading only the latter left 97% of this machine's
+# Claude Code tool results empty — OpenCode's own plugin, which reads the real
+# field, had 100% of its results populated. The fallback keeps any record that
+# did carry the old name.
+result=$(echo "$raw" | python3 -c "import sys,json; d=json.load(sys.stdin); o=d.get('tool_response'); o=d.get('tool_output','') if o is None else o; print(json.dumps(str(o)[:10000]))" 2>/dev/null)
 duration=$(echo "$raw" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('duration_ms',0))" 2>/dev/null)
 seq=$(next_seq)
 ts=$(date '+%Y-%m-%dT%H:%M:%S%z')

@@ -41,7 +41,7 @@ def test_session_yaml_is_valid_when_cwd_contains_a_quote(tmp_path):
 
     sessions = _run_hook(
         "on-user-prompt.sh",
-        {"session_id": "quote-test", "data": {"prompt": "hi"}},
+        {"session_id": "quote-test", "prompt": "hi"},
         home, quoted,
     )
 
@@ -60,7 +60,7 @@ def test_plain_cwd_still_writes_valid_yaml(tmp_path):
 
     sessions = _run_hook(
         "on-user-prompt.sh",
-        {"session_id": "plain-test", "data": {"prompt": "hi"}},
+        {"session_id": "plain-test", "prompt": "hi"},
         home, plain,
     )
 
@@ -86,7 +86,7 @@ def test_prompt_content_is_json_escaped(tmp_path, prompt):
 
     sessions = _run_hook(
         "on-user-prompt.sh",
-        {"session_id": "escape-test", "data": {"prompt": prompt}},
+        {"session_id": "escape-test", "prompt": prompt},
         home, cwd,
     )
 
@@ -121,3 +121,57 @@ def test_tool_args_with_quotes_stay_valid_json(tmp_path):
     record = json.loads(lines[0])
     assert record["tool"] == "Bash"
     assert record["args"] == tool_input
+
+
+class TestPayloadShapeMatchesClaudeCode:
+    """The hooks parsed a `data` wrapper that Claude Code has never sent.
+
+    Every hook event delivers flat top-level keys — `prompt`, `tool_name`,
+    `tool_response` — as siblings of `session_id`, not nested under `data`.
+    (Reference: https://code.claude.com/docs/en/hooks, which shows `prompt` as
+    a sibling of `session_id` and contains no `data` container at all.)
+
+    The fixtures in this file were written from the same wrong belief as the
+    code, so the suite stayed green while production recorded nothing: every
+    user prompt in ~/.coworker/analytics was the string "\\n", and 97% of the
+    tool results Claude Code produced were empty. OpenCode's own plugin, which
+    reads the fields correctly, had 100% of its results populated — the data
+    was always there.
+    """
+
+    def test_user_prompt_is_recorded(self, tmp_path):
+        home = tmp_path / "home"
+        home.mkdir()
+        cwd = tmp_path / "proj"
+        cwd.mkdir()
+
+        sessions = _run_hook(
+            "on-user-prompt.sh",
+            {"session_id": "flat-1", "hook_event_name": "UserPromptSubmit",
+             "cwd": str(cwd), "prompt": "the deploy broke at midnight"},
+            home, cwd,
+        )
+
+        lines = (sessions / "flat-1" / "messages.jsonl").read_text().splitlines()
+        record = json.loads(lines[0])
+        assert record["content"] == "the deploy broke at midnight"
+
+    def test_tool_result_is_recorded(self, tmp_path):
+        home = tmp_path / "home"
+        home.mkdir()
+        cwd = tmp_path / "proj"
+        cwd.mkdir()
+
+        sessions = _run_hook(
+            "on-post-tool.sh",
+            {"session_id": "flat-2", "hook_event_name": "PostToolUse",
+             "cwd": str(cwd), "tool_name": "Bash", "tool_use_id": "toolu_1",
+             "tool_input": {"command": "pytest"}, "tool_response": "3 passed",
+             "duration_ms": 12},
+            home, cwd,
+        )
+
+        lines = (sessions / "flat-2" / "tools.jsonl").read_text().splitlines()
+        record = json.loads(lines[0])
+        assert record["tool"] == "Bash"
+        assert "3 passed" in record["result"]
