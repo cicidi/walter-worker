@@ -177,7 +177,11 @@ def register_memory_commands(main_group: click.Group) -> None:
         from coworker.memory.query import query as graph_query
 
         graph = load_graph()
-        if not graph.nodes:
+        # Only a graph-only request is blocked by an empty graph. This guard
+        # used to run before the mode check, so `--mode vector` — which does not
+        # read the graph at all, and is exactly what a user wants when the graph
+        # is empty — was refused for a reason that did not apply to it.
+        if mode == "graph" and not graph.nodes:
             console.print("[dim]Graph is empty. Run 'coworker memory init' first.[/dim]")
             return
 
@@ -386,8 +390,9 @@ def register_memory_commands(main_group: click.Group) -> None:
         try:
             mem0 = Mem0Client.from_config()
         except Exception as e:
-            console.print(f"[red]mem0 unavailable: {e}[/red]")
-            return
+            # The search did not happen, so the exit status must not claim it
+            # did. This printed the reason and returned 0.
+            raise click.ClickException(f"mem0 unavailable: {e}")
 
         filters = {}
         if project:
@@ -463,8 +468,14 @@ def register_memory_commands(main_group: click.Group) -> None:
         try:
             mem0 = Mem0Client.from_config()
         except Exception as e:
-            console.print(f"[yellow]Curator skipped (mem0 unavailable): {e}[/yellow]")
-            return
+            # --if-due is how the Stop hook calls this, once per session; it
+            # must stay quiet, or an unconfigured machine reports the same
+            # missing key after every session. Invoked by hand, the curator
+            # did not run and the exit status should say so.
+            if if_due:
+                console.print(f"[dim]Curator skipped (mem0 unavailable): {e}[/dim]")
+                return
+            raise click.ClickException(f"mem0 unavailable: {e}")
 
         stats = run_curator(mem0, export_path=export_path or DEFAULT_EXPORT_PATH)
         # Only a clean run counts as "ran", so a failing one retries next session.

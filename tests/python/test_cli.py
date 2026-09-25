@@ -2243,3 +2243,68 @@ class TestFeatureRemoveReportsKeptDocs:
         assert "docs" in result.output and "doomed" in result.output
         # And it is still there — this command must not delete authored docs.
         assert prd.read_text() == "# authored PRD"
+
+
+class TestMem0UnavailableIsConsistent:
+    """The family reported the same condition four ways and exited three.
+
+        query:    mem0 not available — vector search skipped   (0, partial)
+        search:   mem0 unavailable: <reason>                   (0, nothing done)
+        curate:   Curator skipped (mem0 unavailable): <reason>  (0, nothing done)
+        capture:  (silence)                                     (0, by design)
+
+    A search or a curator run that did not happen must not report success. The
+    hook path is the exception: --if-due runs once per session and a missing key
+    is not worth repeating at the user every time.
+    """
+
+    def _no_mem0(self, monkeypatch):
+        def boom(**kw):
+            raise RuntimeError("DEEPSEEK_API_KEY environment variable is required")
+
+        monkeypatch.setattr("coworker.memory.mem0_client.Mem0Client.from_config", boom)
+
+    def test_search_fails_when_mem0_is_unavailable(self, monkeypatch, temp_coworker_dir):
+        self._no_mem0(monkeypatch)
+        result = runner.invoke(main, ["memory", "search", "anything"])
+
+        assert result.exit_code != 0, "the search did not happen"
+        assert "mem0 unavailable" in result.output
+
+    def test_curate_fails_when_run_by_hand(self, monkeypatch, temp_coworker_dir):
+        self._no_mem0(monkeypatch)
+        result = runner.invoke(main, ["memory", "curate"])
+
+        assert result.exit_code != 0
+        assert "mem0 unavailable" in result.output
+
+    def test_curate_stays_quiet_on_the_hook_path(self, monkeypatch, temp_coworker_dir):
+        self._no_mem0(monkeypatch)
+        result = runner.invoke(main, ["memory", "curate", "--if-due"])
+
+        assert result.exit_code == 0, "the Stop hook must not fail every session"
+
+
+class TestQueryVectorDoesNotNeedAGraph:
+    """`--mode vector` reads mem0, not the graph.
+
+    The empty-graph guard ran before the mode check, so a vector query was
+    refused for a reason that did not apply to it — precisely when a user with
+    no graph yet would want one.
+    """
+
+    def test_vector_mode_is_not_blocked_by_an_empty_graph(
+        self, monkeypatch, temp_coworker_dir
+    ):
+        monkeypatch.setattr(
+            "coworker.memory.storage.load_graph", lambda *a, **k: _EmptyGraph()
+        )
+        result = runner.invoke(main, ["memory", "query", "--mode", "vector", "x"])
+
+        assert result.exit_code == 0, result.output
+        assert "Graph is empty" not in result.output
+
+
+class _EmptyGraph:
+    nodes: list = []
+    links: list = []
