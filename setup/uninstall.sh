@@ -91,10 +91,13 @@ for f in m.get('files', []):
     if os.path.isfile(p) or os.path.islink(p):
         os.remove(p)
         print(f'  removed: {p}')
-" | while read -r line; do
-  echo "$line"
-  ((REMOVED_FILES++)) || true
-done
+" > /tmp/.coworker-uninstall-$$ 2>/dev/null || true
+cat /tmp/.coworker-uninstall-$$
+# Counted here rather than in the loop: `python3 ... | while read` runs the
+# loop in a subshell, so every increment was discarded and the closing banner
+# could only say "at least those in manifest".
+REMOVED_FILES=$(grep -c '^  removed: ' /tmp/.coworker-uninstall-$$ 2>/dev/null || true)
+rm -f /tmp/.coworker-uninstall-$$
 
 # Remove hook entries by command path
 echo ""
@@ -159,6 +162,40 @@ fi
 # deleted both, so the closing message was false and the restore below could
 # never find its source.
 echo ""
+# Retire what the removal emptied. install.sh does this after its own prune;
+# here nothing did, so 15 empty ~/.claude/skills/<name>/ survived uninstall,
+# along with ~/.cursor/rules, ~/.opencode/instructions and the hooks dir —
+# directories that still look installed to anything listing them.
+python3 -c "
+import json, os
+m = json.load(open('$MANIFEST'))
+# Strictly *below* these, never the roots themselves: ~/.claude/skills and
+# friends are standard locations, empty or not.
+TREES = [os.path.normpath(os.path.expanduser(p)) for p in (
+    '~/.claude/skills', '~/.claude/commands', '~/.cursor/rules',
+    '~/.opencode/instructions', '~/.config/opencode/skills/walter-worker',
+    '~/.config/opencode/skills/the-super-lab', '~/.coworker/analytics/hooks',
+)]
+def inside(p):
+    return any(p.startswith(t + os.sep) for t in TREES)
+
+n = 0
+parents = {os.path.dirname(os.path.normpath(f)) for f in m.get('files', [])}
+for p in sorted(parents, key=len, reverse=True):
+    cur = p
+    while inside(cur):
+        try:
+            if not os.path.isdir(cur) or os.listdir(cur):
+                break
+            os.rmdir(cur)
+        except OSError:
+            break
+        n += 1
+        cur = os.path.dirname(cur)
+if n:
+    print(f'  removed {n} emptied directory(ies)')
+" 2>/dev/null || true
+
 log "Cleaning directories..."
 python3 -c "
 import json, shutil, os
@@ -188,10 +225,9 @@ for d in reversed(sorted(m.get('owned_dirs', []))):
             pass  # not empty or permission issue — leave it
 " 2>/dev/null || warn "Partial directory cleanup — some items may remain."
 
-echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 ok "Uninstall complete!"
-echo "   Files removed    : at least those in manifest"
+echo "   Files removed    : $REMOVED_FILES"
 echo "   Hook entries     : coworker entries stripped from settings.json"
 echo "   Analytics data   : ~/.coworker/analytics/ (preserved — delete manually)"
 echo ""

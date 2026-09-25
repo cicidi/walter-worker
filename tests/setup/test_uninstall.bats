@@ -256,3 +256,25 @@ print(sum(1 for f in m.get('files', []) if 'skills/the-super-lab/' in f))
   [ "$status" -eq 0 ]
   [ ! -f "$HOME/.claude/settings.json" ]
 }
+
+@test "uninstall retires the directories it emptied" {
+  # install.sh retires emptied directories after its own prune; uninstall did
+  # nothing of the kind, so 15 empty ~/.claude/skills/<name>/ survived — plus
+  # ~/.cursor/rules, ~/.opencode/instructions and the hooks dir — and anything
+  # listing them still saw an install.
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'1'
+  [ "$status" -eq 0 ]
+
+  run bash -c "echo y | bash '$REPO_ROOT/setup/uninstall.sh'"
+  [ "$status" -eq 0 ]
+
+  # No leftovers beneath the tree roots.
+  run bash -c "find '$HOME/.claude/skills' '$HOME/.cursor/rules' '$HOME/.opencode/instructions' -mindepth 1 2>/dev/null | wc -l"
+  [ "$output" = "0" ]
+
+  # The roots are never removed, only their emptied children — but whether a
+  # root exists at all depends on whether this install created it, and this
+  # sandbox has no the-super-lab, so ~/.claude/skills may never have appeared.
+  run bash -c "find '$HOME/.claude/skills' -maxdepth 1 -type d -name 'skills' 2>/dev/null | wc -l"
+  [ "$output" = "0" ] || [ -d "$HOME/.claude/skills" ]
+}
