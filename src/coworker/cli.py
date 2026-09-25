@@ -334,23 +334,30 @@ def state_update(task, summary):
     When no task name is given, writes one state file per DAY.
     Exits silently unless the cwd (or an ancestor) contains .coworker/ or
     CLAUDE.local.md — prevents littering non-coworker repos.
+
+    The file goes to the managed project's root, not to the cwd. Writing it
+    beside the cwd meant a Stop hook firing from a subdirectory scattered
+    state-<date>.md into that subdirectory instead — the live symptom was the
+    same file in three places in one repo, two of them under skills/. The gate
+    below already walks up to find the root; this keeps the answer rather than
+    discarding it.
     """
     cwd = Path.cwd()
 
     # Opt-in gate: only run inside a coworker-managed project
-    opt_in = False
+    root = None
     for p in [cwd, *cwd.parents]:
         if (p / ".coworker").is_dir() or (p / "CLAUDE.local.md").exists():
-            opt_in = True
+            root = p
             break
-    if not opt_in:
+    if root is None:
         return
 
     from datetime import datetime
     if not task:
         task = datetime.now().strftime("%Y-%m-%d")
 
-    state_path = cwd / "docs" / "state" / f"state-{task}.md"
+    state_path = root / "docs" / "state" / f"state-{task}.md"
     state_path.parent.mkdir(parents=True, exist_ok=True)
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M")

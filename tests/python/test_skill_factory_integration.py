@@ -47,11 +47,20 @@ class TestSuperLabSource:
         if not skills_dir.is_dir():
             return
         for skill_dir in skills_dir.iterdir():
-            if skill_dir.is_dir():
-                skill_md = skill_dir / "SKILL.md"
-                assert skill_md.is_file(), (
-                    f"SKILL.md missing in {skill_dir.name}"
-                )
+            if not skill_dir.is_dir():
+                continue
+            # Not every directory in there is a skill. This walks a repo we do
+            # not control, where scratch dirs appear and vanish with whatever
+            # runs in it; one left behind turned this suite red on a machine
+            # where nothing in *this* repo had changed. A skill keeps its
+            # SKILL.md at the top level, so a directory with no top-level
+            # files — only nested scratch like state/ — is not a skill.
+            if not any(p.is_file() for p in skill_dir.iterdir()):
+                continue
+            skill_md = skill_dir / "SKILL.md"
+            assert skill_md.is_file(), (
+                f"SKILL.md missing in {skill_dir.name}"
+            )
 
     def test_source_skills_have_valid_frontmatter(self):
         for skills_sub in ["skills", "personal-skills"]:

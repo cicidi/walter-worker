@@ -1806,3 +1806,56 @@ class TestKnowledgeCommands:
         assert result.exit_code == 0, result.output
         assert calls == ["ok1", "broken", "ok2"]
         assert "2/3" in result.output
+
+
+class TestMemoryMetricsCommand:
+    """metrics.py computes whether the agent is getting smarter over time.
+
+    Nothing exposed it, so the only way to read the evolution score was to
+    import the module from a REPL.
+    """
+
+    def test_metrics_prints_the_report(self, monkeypatch):
+        monkeypatch.setattr(
+            "coworker.memory.metrics.get_metrics_report",
+            lambda: "Evolution Score: 42/100\n",
+        )
+        result = runner.invoke(main, ["memory", "metrics"])
+
+        assert result.exit_code == 0, result.output
+        assert "42" in result.output
+
+
+class TestStateUpdateWritesToTheProjectRoot:
+    """state-update built its path from the cwd, not the project root.
+
+    The opt-in gate directly above it walks up to find the managed project
+    root and then throws that answer away, so running from a subdirectory
+    wrote the state file into the subdirectory. Found live: the same
+    state-2026-09-25.md sitting in three places in a neighbouring repo, two of
+    them under skills/.
+    """
+
+    def test_writes_to_the_root_not_the_cwd(self, tmp_path, monkeypatch):
+        root = tmp_path / "proj"
+        sub = root / "skills" / "some-skill"
+        sub.mkdir(parents=True)
+        (root / "CLAUDE.local.md").write_text("x")
+        monkeypatch.chdir(sub)
+
+        result = runner.invoke(main, ["state-update", "mytask"])
+        assert result.exit_code == 0, result.output
+
+        assert (root / "docs" / "state" / "state-mytask.md").exists(), (
+            "the state file belongs at the project root"
+        )
+        assert not (sub / "docs").exists(), "state must not land in the subdirectory"
+
+    def test_still_silent_outside_a_managed_project(self, tmp_path, monkeypatch):
+        outside = tmp_path / "plain"
+        outside.mkdir()
+        monkeypatch.chdir(outside)
+
+        result = runner.invoke(main, ["state-update", "mytask"])
+        assert result.exit_code == 0, result.output
+        assert not (outside / "docs").exists()
