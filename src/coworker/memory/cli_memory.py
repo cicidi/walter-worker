@@ -211,12 +211,13 @@ def register_memory_commands(main_group: click.Group) -> None:
         Reads {"session_id", "transcript_path"} from stdin: the same flat
         payload every Claude Code hook receives.
 
-        Deliberately not wired to the Stop hook. It costs one LLM call per
-        session, and spending on every session is a choice to make rather than
-        one to inherit. To turn it on, add to hooks.Stop in settings.json:
+        Wired to the Stop hook by setup/install.sh. That is one LLM call per
+        session — the cheap half of capture. process_turn, the per-PostToolUse
+        half, is an LLM call per tool call and stays unwired.
 
-            {"matcher": "", "hooks": [{"type": "command",
-             "command": "coworker memory capture"}]}
+        Exits 0 without a word when mem0 is not configured, so a machine with
+        no API key is quiet rather than reporting the same thing after every
+        session. A genuine failure still exits non-zero and says why.
         """
         import json as _json
         import sys
@@ -239,10 +240,16 @@ def register_memory_commands(main_group: click.Group) -> None:
 
         from coworker.memory.capture import process_session_end
         from coworker.memory.llm import LLMClient
-        from coworker.memory.mem0_client import Mem0Client
+        from coworker.memory.mem0_client import ConfigError, Mem0Client
 
         try:
             mem0 = Mem0Client.from_config()
+        except ConfigError:
+            # The Stop hook runs this at the end of every session, so an
+            # unconfigured machine must be distinguishable from a broken one.
+            # A missing API key is a state to leave alone; repeating it at the
+            # user after every session is noise, not a signal.
+            return
         except Exception as exc:
             raise click.ClickException(f"mem0 unavailable: {exc}")
 

@@ -91,20 +91,23 @@ decision, not a silent re-enable.
 
 *Confidence: high on the facts, medium on intent.*
 
-### B2. `memory/capture.py` — the loop's first stage — **REACHABLE, not enabled**
+### B2. `memory/capture.py` — the loop's first stage — **DONE**
 
-`process_session_end` is now callable as `coworker memory capture`, reading the
-same flat stdin payload the hooks get. Verified end to end: a transcript in, a
-lesson stored in mem0 out.
+`process_session_end` is callable as `coworker memory capture`, reading the same
+flat stdin payload the hooks get, and **setup/install.sh registers it on the
+Stop hook**. Verified end to end: a transcript in, a lesson stored in mem0 out,
+and `coworker sync` preserves the hook entry rather than dropping it.
 
-It is deliberately **not** wired to the Stop hook. That wiring costs one LLM
-call per session, and enabling recurring spend on someone's account is their
-call, not an inherited default. The one-line hook entry is in the command's
-docstring.
+Two guards came out of running it under a hook that fires every session:
 
-`process_turn` (the per-PostToolUse half) is still uncalled, and should stay
-that way until capture-at-session-end has been observed working — it costs an
-LLM call per *tool call*, which is a different order of magnitude.
+- Without an API key it exits 0 silently. An unconfigured machine is a state,
+  not an error, and repeating that at the user after every session is noise.
+  A genuine failure still exits non-zero and says why.
+- `process_turn`, the per-PostToolUse half, stays unwired. It costs an LLM call
+  per *tool call*, which is a different order of magnitude; it should wait until
+  session-end capture has been watched working.
+
+Cost, now accepted rather than assumed: one LLM call per session.
 
 The rest of this entry stands as the reason it was unreachable:
 
@@ -237,12 +240,12 @@ shipped skill.
 2. ~~**B3** — the stub delegates to the real implementation~~ — **done**
 3. ~~**B4** — expose the evolution metrics~~ — **done** (`coworker memory metrics`)
 4. ~~**A1** — delete the unused error registry~~ — **done**
-5. **B2 → B1** — capture, then the agent loop. Each stage is only worth
-   switching on once the one before it can be observed, and B4 was the
-   observation.
-6. **C1** — decide `[MCPPrune]`'s shape.
+5. ~~**B2** — capture, then the agent loop~~ — **done**, wired to Stop with the
+   spend explicitly accepted.
+6. **B1** — re-enable the autoworker CLI.
+7. **C1** — decide `[MCPPrune]`'s shape.
+8. **C2** — rule on which evolution score is authoritative.
 
-The two that remain both spend money per invocation — B2's per-turn hook would
-be an LLM call on every tool call, and B1 spawns agents in a loop for up to
-`--max-hours`. Neither should be switched on by default without that being an
-explicit choice, which is why they are the only entries still open.
+B1 spawns agents in a loop for up to `--max-hours`, so it is the one remaining
+entry that spends real money per invocation. C1 and C2 are product decisions —
+neither is a defect to fix, and both need a ruling rather than a patch.

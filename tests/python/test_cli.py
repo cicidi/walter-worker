@@ -1958,3 +1958,42 @@ class TestMemoryCaptureCommand:
 
         assert result.exit_code != 0
         assert "transcript" in result.output.lower()
+
+
+class TestMemoryCaptureUnderTheStopHook:
+    """The Stop hook runs `memory capture` on every session.
+
+    That makes an unconfigured machine different from a broken one: a missing
+    API key is a state to leave alone, not an error to repeat at the user at
+    the end of every single session.
+    """
+
+    def test_unconfigured_mem0_skips_quietly(self, monkeypatch):
+        from coworker.memory.mem0_client import ConfigError
+
+        def no_config(**kw):
+            raise ConfigError("DEEPSEEK_API_KEY is missing")
+
+        monkeypatch.setattr("coworker.memory.mem0_client.Mem0Client.from_config", no_config)
+
+        result = runner.invoke(
+            main, ["memory", "capture"],
+            input='{"session_id":"s1","transcript_path":"/tmp/t.txt"}',
+        )
+
+        assert result.exit_code == 0, "an unconfigured machine must not fail the hook"
+        assert "DEEPSEEK" not in result.output
+
+    def test_a_real_failure_is_still_reported(self, monkeypatch):
+        def boom(**kw):
+            raise RuntimeError("vector store is corrupt")
+
+        monkeypatch.setattr("coworker.memory.mem0_client.Mem0Client.from_config", boom)
+
+        result = runner.invoke(
+            main, ["memory", "capture"],
+            input='{"session_id":"s1","transcript_path":"/tmp/t.txt"}',
+        )
+
+        assert result.exit_code != 0
+        assert "corrupt" in result.output

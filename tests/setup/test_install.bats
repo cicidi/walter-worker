@@ -443,3 +443,38 @@ print('pruned=' + str(any('initiative-edit' in x for x in m.get('pruned', []))))
 "
   [ "$output" = "pruned=True" ]
 }
+
+@test "registers session-end capture on the Stop hook" {
+  # capture.process_session_end is the loop's session-end stage. The design
+  # reserved `coworker memory close` for it, but that name went to the graph
+  # command, so the stage had no caller and no hook — the loop's first stage
+  # was unreachable.
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import json, os
+cfg = json.load(open(os.path.expanduser('~/.claude/settings.json')))
+cmds = [h.get('command', '')
+        for g in cfg.get('hooks', {}).get('Stop', [])
+        for h in (g.get('hooks') or [])]
+print('\n'.join(c for c in cmds if 'memory capture' in c))
+"
+  [[ "$output" == *"memory capture"* ]]
+}
+
+@test "does not add a second capture hook when one is present" {
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import json, os
+cfg = json.load(open(os.path.expanduser('~/.claude/settings.json')))
+n = sum(1 for g in cfg.get('hooks', {}).get('Stop', [])
+        for h in (g.get('hooks') or []) if 'memory capture' in h.get('command', ''))
+print(n)
+"
+  [ "$output" = "1" ]
+}

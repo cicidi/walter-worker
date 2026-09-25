@@ -525,6 +525,15 @@ _merge_hook('UserPromptSubmit', 'python3 $HOME/.coworker/analytics/hooks/on-corr
 _merge_hook('PreToolUse',        '$HOME/.coworker/analytics/hooks/on-pre-tool.sh')
 _merge_hook('PostToolUse',       '$HOME/.coworker/analytics/hooks/on-post-tool.sh')
 _merge_hook('Stop',              '$HOME/.coworker/analytics/hooks/on-stop.sh')
+# Session-end capture: the memory loop's first stage. It reads the hook
+# payload on stdin, back-fills captures missed during the session and stages
+# skill candidates for review. One LLM call per session, so it is the cheap
+# half of capture; the per-tool-call half is deliberately left unwired.
+#
+# Bare `coworker`, matching the state-update hook that sync() manages. The
+# command exits 0 without a word when no API key is configured, so an
+# unconfigured machine is quiet rather than nagging after every session.
+_merge_hook('Stop',              'coworker memory capture')
 
 with open('$CLAUDE_SETTINGS', 'w') as f: json.dump(cfg, f, indent=2)
 " 2>/dev/null && ok "Claude Code hooks configured" || warn "Failed to configure Claude Code hooks"

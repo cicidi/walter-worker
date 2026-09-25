@@ -46,7 +46,13 @@ def test_claude_hooks_configured(installed_home):
                 f"{event} group missing matcher/hooks wrapper: {g!r}"
             for h in g["hooks"]:
                 cmd = h.get("command", "")
-                assert "coworker/analytics/hooks/" in cmd, \
+                # Two legitimate kinds of hook command: the analytics hook
+                # scripts, and coworker CLI subcommands — `memory capture` on
+                # Stop, `state-update` alongside it. The point is that the
+                # command resolves to something this project installs, not
+                # that every hook is a script path.
+                assert ("coworker/analytics/hooks/" in cmd
+                        or cmd.startswith("coworker ")), \
                     f"{event} command points wrong: {cmd}"
 
 
