@@ -2215,3 +2215,31 @@ class TestFeatureRemoveSweepsOtherProjects:
         assert result.exit_code == 0, result.output
         assert "FEATURE:sweepme" not in (other / "CLAUDE.local.md").read_text()
         assert "Other project" in (other / "CLAUDE.local.md").read_text()
+
+
+class TestFeatureRemoveReportsKeptDocs:
+    """`feature remove` left the docs tree behind without saying so.
+
+    Keeping the docs is right — they hold authored PRDs and specs, and deleting
+    them would be real data loss. The defect was the silence: afterwards
+    neither `feature list` nor `feature show` mentions the name, so the tree was
+    invisible and unreachable while still on disk.
+    """
+
+    def test_the_kept_docs_are_named(self, temp_features_dir, tmp_path, monkeypatch):
+        from coworker.config import save_feature
+        from coworker.models import FeatureConfig
+
+        proj = tmp_path / "proj"
+        (proj / "docs" / "features" / "doomed" / "prd").mkdir(parents=True)
+        prd = proj / "docs" / "features" / "doomed" / "prd" / "prd.md"
+        prd.write_text("# authored PRD")
+        save_feature(FeatureConfig(name="doomed", description="x"))
+        monkeypatch.chdir(proj)
+
+        result = runner.invoke(main, ["feature", "remove", "doomed", "--force"])
+
+        assert result.exit_code == 0, result.output
+        assert "docs" in result.output and "doomed" in result.output
+        # And it is still there — this command must not delete authored docs.
+        assert prd.read_text() == "# authored PRD"

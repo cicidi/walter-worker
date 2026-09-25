@@ -1327,6 +1327,25 @@ def feature_remove(name, proj_dir, force):
             f"[dim]Also cleared the '{name}' block in: {', '.join(swept)}[/dim]"
         )
 
+    # The docs are deliberately left alone — they hold authored PRDs and specs,
+    # and deleting them on a `remove` would be real data loss. What was wrong is
+    # that nothing said so: afterwards neither `feature list` nor `feature show`
+    # mentions the name, so the tree became invisible and unreachable while
+    # still sitting on disk.
+    doc_dirs = [pd / "docs" / "features" / name]
+    doc_dirs += [p / "docs" / "features" / name for p in
+                 (Path(e.local_path) for e in load_project_catalog().projects)
+                 if p.exists() and p.resolve() != pd.resolve()]
+    kept = [d for d in doc_dirs if d.is_dir()]
+    if kept:
+        console.print(
+            f"[yellow]Kept[/yellow] {len(kept)} docs folder(s) — this only removed "
+            f"the feature definition:"
+        )
+        for d in kept:
+            console.print(f"  [dim]{d}[/dim]")
+        console.print("  [dim]No command references them now; delete any you do not want.[/dim]")
+
 
 # ── Deprecated alias ────────────────────────────────────────────────────────
 # `initiative` was the pre-rename name for this concept. The group stays as a
