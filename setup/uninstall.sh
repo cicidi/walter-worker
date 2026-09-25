@@ -109,11 +109,14 @@ import json
 m = json.load(open('$MANIFEST'))
 recorded = set(m.get('hook_commands', []))
 
-# The manifest is the primary source, but it goes stale: `coworker sync` adds
-# `coworker state-update` on any later run and does not rewrite the manifest,
-# so uninstall left it firing while the closing banner said coworker entries
-# had been stripped. These are the same patterns install.sh uses to claim its
-# own hooks, so the two sides agree on what is ours.
+# The manifest is the primary source, but it goes stale: coworker sync adds
+# the state-update hook on any later run and does not rewrite the manifest, so
+# uninstall left it firing while the closing banner said coworker entries had
+# been stripped. These are the same patterns install.sh uses to claim its own
+# hooks, so the two sides agree on what is ours.
+#
+# No backticks in this block: it is a double-quoted bash string, so they would
+# be command substitutions to bash rather than part of the comment.
 OUR_PATH = '/.coworker/analytics/hooks/'
 OUR_CMDS = {'coworker state-update', 'coworker memory capture', 'coworker memory close'}
 
