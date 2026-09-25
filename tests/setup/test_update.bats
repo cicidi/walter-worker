@@ -113,3 +113,25 @@ json.dump({'schema_version': 2, 'install_mode': 'project',
   [[ "$output" != *"Unknown argument"* ]]
 }
 
+
+@test "update reuses the recorded skill selection instead of re-asking" {
+  # update.sh re-runs install.sh, which re-asked the skill question with None
+  # as the default — the answer that used to uninstall every skill, and the
+  # reason an update printed a whole install transcript. It derives the names
+  # from the manifest and passes them back, so the question is not asked.
+  SUPERLAB="$HOME/project/the-super-lab"
+  mkdir -p "$SUPERLAB/skills/skill-create" "$SUPERLAB/personal-skills"
+  printf -- '---\nname: skill-create\ndescription: t\n---\n# skill-create\n' \
+    > "$SUPERLAB/skills/skill-create/SKILL.md"
+
+  # The real installer, not the mock this file's setup() provides.
+  run bash "$REPO_ROOT/setup/install.sh" --global --skills skill-create < /dev/null
+  [ "$status" -eq 0 ]
+
+  run bash "$REPO_ROOT/setup/update.sh" < /dev/null
+  [ "$status" -eq 0 ]
+
+  [[ "$output" == *"Reusing the previous skill selection"* ]]
+  [[ "$output" != *"Skill selection:"* ]]
+  [ -f "$HOME/.claude/commands/skill-create.md" ]
+}
