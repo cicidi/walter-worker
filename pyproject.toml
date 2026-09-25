@@ -29,6 +29,7 @@ where = ["src"]
 [tool.pytest.ini_options]
 markers = [
     "real: tests that require real API keys (DEEPSEEK_API_KEY) and external services",
+    "integration: exercises real external services such as mem0; skipped when unavailable",
 ]
 
 [tool.setuptools.package-data]
