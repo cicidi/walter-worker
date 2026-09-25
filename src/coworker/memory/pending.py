@@ -112,8 +112,26 @@ def _install_to_commands(skill_id: str, skill_md_path: Path) -> None:
 def stage_skill(name: str, description: str, tool_call_count: int, session_id: str) -> str:
     """Stage a new skill candidate to the pending queue.
 
-    Returns the skill ID (filename without .json).
+    Returns the skill ID (filename without .json). Raises RuntimeError when the
+    circuit breaker has tripped.
+
+    The breaker caps auto-evolution at 3 skills per 24h (spec §6/§9). It was
+    implemented and tested in memory/safety.py but nothing consulted it: this
+    function staged unconditionally, and capture.py wrote the pending file
+    itself without even calling here.
     """
+    from coworker.memory.safety import (
+        CIRCUIT_BREAKER_LIMIT,
+        CIRCUIT_BREAKER_WINDOW_HOURS,
+        record_auto_evolution,
+    )
+
+    if not record_auto_evolution("create", name, description):
+        raise RuntimeError(
+            f"Circuit breaker tripped - refusing to stage skill {name!r} "
+            f"(limit {CIRCUIT_BREAKER_LIMIT} per {CIRCUIT_BREAKER_WINDOW_HOURS}h)"
+        )
+
     skill_id = name.replace(" ", "-").lower()
     payload = {
         "name": name,

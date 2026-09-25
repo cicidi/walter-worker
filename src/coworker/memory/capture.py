@@ -341,18 +341,18 @@ def _append_state_delta(state_dir: str, delta: str) -> None:
 
 
 def _stage_skill(candidate: dict, session_id: str) -> None:
-    """Write a skill candidate to the pending queue."""
-    pending_dir = Path.home() / ".coworker" / "pending" / "skills"
-    pending_dir.mkdir(parents=True, exist_ok=True)
-    skill_id = candidate["name"].replace(" ", "-").lower()
-    payload = {
-        "name": candidate["name"],
-        "description": candidate.get("description", ""),
-        "tool_call_count": candidate.get("tool_call_count", 0),
-        "source_session": session_id,
-        "staged_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "status": "pending",
-    }
-    path = pending_dir / f"{skill_id}.json"
-    path.write_text(json.dumps(payload, indent=2))
-    logger.info("Staged skill candidate: %s", candidate["name"])
+    """Write a skill candidate to the pending queue.
+
+    Delegates to memory.pending rather than writing the JSON itself. The
+    duplicate wrote directly and so skipped the circuit breaker that caps
+    auto-evolution at 3 skills per 24h - the gate was implemented and tested but
+    this path never consulted it.
+    """
+    from coworker.memory.pending import stage_skill
+
+    stage_skill(
+        name=candidate["name"],
+        description=candidate.get("description", ""),
+        tool_call_count=candidate.get("tool_call_count", 0),
+        session_id=session_id,
+    )

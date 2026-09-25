@@ -6,7 +6,23 @@ import json
 from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
+import pytest
+
 from coworker.memory import pending
+from coworker.memory import safety
+
+
+@pytest.fixture(autouse=True)
+def _isolate_circuit_breaker(tmp_path, monkeypatch):
+    """Keep stage_skill's circuit-breaker state out of the real HOME.
+
+    stage_skill consults memory.safety, whose state file lives under
+    ~/.coworker/safety/. Without this, staged test skills are recorded there -
+    and after three of them the breaker trips and every later test fails.
+    """
+    monkeypatch.setattr(
+        safety, "_circuit_state_path", lambda: tmp_path / "circuit_state.json"
+    )
 
 
 class TestStageListApproveReject:
@@ -107,3 +123,46 @@ class TestExpire:
 
         count = pending.expire_old_items(days=30)
         assert count == 0  # Already approved, skip
+
+
+class TestStageSkillIsGated:
+    """The circuit breaker must actually gate staging.
+
+    memory/safety.py implements a limit of 3 auto-evolutions per 24h and says it
+    "prevents runaway autonomous behavior", and the spec repeats the cap - but
+    nothing consulted it. This function staged unconditionally, and
+    capture._stage_skill wrote the pending file itself without calling here.
+    """
+
+    def test_staging_stops_after_the_limit(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(pending, "DEFAULT_PENDING_DIR", str(tmp_path / "p"))
+        from coworker.memory import safety
+
+        for i in range(safety.CIRCUIT_BREAKER_LIMIT):
+            pending.stage_skill(f"skill-{i}", "d", 10, "s")
+
+        with pytest.raises(RuntimeError, match="Circuit breaker"):
+            pending.stage_skill("one-too-many", "d", 10, "s")
+
+    def test_a_staged_skill_is_recorded(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(pending, "DEFAULT_PENDING_DIR", str(tmp_path / "p"))
+        from coworker.memory import safety
+
+        pending.stage_skill("recorded", "d", 10, "s")
+
+        state = json.loads(safety._circuit_state_path().read_text())
+        assert state["count"] == 1
+        assert state["history"][0]["skill"] == "recorded"
+
+    def test_capture_no_longer_writes_around_the_gate(self):
+        """capture._stage_skill must delegate, not write the JSON itself."""
+        import inspect
+
+        from coworker.memory import capture
+
+        src = inspect.getsource(capture._stage_skill)
+        assert "from coworker.memory.pending import stage_skill" in src
+        assert "write_text" not in src, (
+            "capture._stage_skill is writing the pending file itself again, "
+            "which skips the circuit breaker"
+        )
