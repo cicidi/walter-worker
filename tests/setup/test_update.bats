@@ -83,3 +83,24 @@ teardown() {
   run grep "Run install.sh first to set it up" "$REPO_ROOT/setup/update.sh"
   [ "$status" -eq 0 ]
 }
+
+@test "resolves the install mode from the manifest, not coworker.yaml" {
+  # install.sh records install_mode in the manifest; nothing ever writes it to
+  # coworker.yaml. The yaml grep matched nothing, and the `|| echo global`
+  # fallback hid it, so a project-mode install was silently re-installed in
+  # global mode. Uses project mode because that is the case the silent default
+  # got wrong — a global manifest would pass either way.
+  mkdir -p "$HOME/.coworker" "$TEST_TMP/proj"
+  echo "# global config" > "$HOME/.coworker/coworker.yaml"
+  python3 -c "
+import json, os, sys
+json.dump({'schema_version': 2, 'install_mode': 'project',
+           'project_path': sys.argv[1], 'files': [], 'hook_commands': [],
+           'owned_dirs': []},
+          open(os.path.expanduser('~/.coworker/install-manifest.json'), 'w'))
+" "$TEST_TMP/proj"
+
+  run bash "$REPO_ROOT/setup/update.sh" <<< $'0\nn'
+  [[ "$output" == *"Resuming install in mode: project"* ]]
+  [[ "$output" != *"Unknown argument"* ]]
+}

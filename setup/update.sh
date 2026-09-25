@@ -79,9 +79,37 @@ fi
 log "Re-running install to sync skills..."
 
 CONFIG="$HOME/.coworker/coworker.yaml"
-if [[ -f "$CONFIG" ]]; then
-  SAVED_MODE=$(grep "install_mode:" "$CONFIG" 2>/dev/null | awk '{print $2}' || echo "global")
-  bash "$SCRIPT_DIR/install.sh" "--$SAVED_MODE"
+MANIFEST="$HOME/.coworker/install-manifest.json"
+
+# install.sh records the install mode in the manifest — install_mode is never
+# written to coworker.yaml. Reading it from the yaml therefore matched nothing,
+# and the `|| echo global` fallback hid that (it fires because grep's non-zero
+# status propagates under pipefail), so the mode was always "global" no matter
+# how the machine had been installed: setup/update.sh on a project-mode install
+# re-installed globally, without saying so.
+SAVED_MODE=""
+PROJECT_PATH=""
+if [[ -f "$MANIFEST" ]]; then
+  SAVED_MODE=$(python3 -c "
+import json, sys
+print(json.load(open(sys.argv[1])).get('install_mode') or '')
+" "$MANIFEST" 2>/dev/null || true)
+  PROJECT_PATH=$(python3 -c "
+import json, sys
+print(json.load(open(sys.argv[1])).get('project_path') or '')
+" "$MANIFEST" 2>/dev/null || true)
+fi
+# Fall back to the yaml for manifests predating schema_version, then to global.
+if [[ -z "$SAVED_MODE" && -f "$CONFIG" ]]; then
+  SAVED_MODE=$(sed -n 's/^install_mode:[[:space:]]*//p' "$CONFIG" 2>/dev/null | head -1 || true)
+fi
+SAVED_MODE="${SAVED_MODE:-global}"
+log "Resuming install in mode: $SAVED_MODE"
+
+# --project takes its path as an argument, so project mode has to pass the
+# recorded one; `--project` alone would fail the same way `--` did.
+if [[ "$SAVED_MODE" == "project" && -n "$PROJECT_PATH" ]]; then
+  bash "$SCRIPT_DIR/install.sh" --project "$PROJECT_PATH"
 else
   bash "$SCRIPT_DIR/install.sh" --global
 fi
