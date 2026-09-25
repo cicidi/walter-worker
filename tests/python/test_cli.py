@@ -2179,3 +2179,39 @@ class TestFindIssuesReportsFailure:
         )
 
         assert result.exit_code == 0, result.output
+
+
+class TestFeatureRemoveSweepsOtherProjects:
+    """A feature is global; its CLAUDE.local.md block is per project.
+
+    Removing the feature only cleaned the project the command ran in, so an
+    agent working in another project was still told it had an active feature
+    that no longer existed anywhere — and `status` does not warn about it.
+    """
+
+    def test_the_block_is_cleared_elsewhere_too(
+        self, temp_features_dir, tmp_path, monkeypatch
+    ):
+        from coworker.models import FeatureConfig, ProjectCatalog, ProjectEntry
+        from coworker.config import save_feature, save_project_catalog
+        from coworker.adapters.claude import inject_feature
+
+        here, other = tmp_path / "here", tmp_path / "other"
+        here.mkdir(); other.mkdir()
+        (other / "CLAUDE.local.md").write_text("# Other project\n")
+
+        save_feature(FeatureConfig(name="sweepme", description="x"))
+        save_project_catalog(ProjectCatalog(
+            projects=[ProjectEntry(name="other", local_path=str(other))]
+        ))
+        inject_feature(FeatureConfig(name="sweepme", description="x"),
+                       project_dir=other)
+
+        assert "FEATURE:sweepme" in (other / "CLAUDE.local.md").read_text()
+
+        monkeypatch.chdir(here)
+        result = runner.invoke(main, ["feature", "remove", "sweepme", "--force"])
+
+        assert result.exit_code == 0, result.output
+        assert "FEATURE:sweepme" not in (other / "CLAUDE.local.md").read_text()
+        assert "Other project" in (other / "CLAUDE.local.md").read_text()

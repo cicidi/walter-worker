@@ -1284,7 +1284,6 @@ def feature_remove(name, proj_dir, force):
     config = mgr.show(name)
     if config is None:
         raise click.ClickException(f"Feature '{name}' not found.")
-        return
     if not force:
         ok = click.confirm(f"Remove feature '{name}' permanently?", default=False)
         if not ok:
@@ -1298,6 +1297,35 @@ def feature_remove(name, proj_dir, force):
         # and returning made the command exit 0, so `feature activate nope`
         # read as success to anything scripting it.
         raise click.ClickException(str(e))
+
+    # A feature is global; the CLAUDE.local.md block it wrote is per project.
+    # Removing it from the project you happen to be in left the block behind
+    # everywhere else, so an agent working in another project was still told it
+    # had an active feature that no longer exists anywhere. Sweep the catalog
+    # for that block — only that block, matched by name, so a project with a
+    # different feature active is untouched.
+    from .adapters.claude import _resolve_local_md
+    from .templates.local_claude_md import remove_feature_from_local_md
+
+    swept = []
+    for entry in load_project_catalog().projects:
+        other = Path(entry.local_path)
+        if not other.exists() or other.resolve() == pd.resolve():
+            continue
+        local_md = _resolve_local_md(other)
+        if not local_md.exists():
+            continue
+        content = local_md.read_text(encoding="utf-8")
+        updated = remove_feature_from_local_md(content, name)
+        if updated != content:
+            backup.snapshot([local_md], "feature-remove")
+            local_md.write_text(updated, encoding="utf-8")
+            swept.append(entry.name)
+
+    if swept:
+        console.print(
+            f"[dim]Also cleared the '{name}' block in: {', '.join(swept)}[/dim]"
+        )
 
 
 # ── Deprecated alias ────────────────────────────────────────────────────────
