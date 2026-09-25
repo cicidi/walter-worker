@@ -1,11 +1,27 @@
 from __future__ import annotations
+import os
 from pathlib import Path
+
+import pytest
 import yaml
 
 
 ROOT = Path(__file__).parent.parent.parent
-THE_SUPER_LAB_SRC = Path.home() / "project" / "the-super-lab"
+# Mirrors setup/install.sh's THE_SUPER_LAB_DIR override, so this can point at a
+# different checkout — and so the absence path below is reachable and testable.
+THE_SUPER_LAB_SRC = Path(
+    os.environ.get("THE_SUPER_LAB_DIR", str(Path.home() / "project" / "the-super-lab"))
+)
 PROJECT_SKILLS_DIR = ROOT / "skills"
+
+# These tests assert against a *second* repository, which is not part of this
+# one. A fresh clone and CI do not have it, so they must skip rather than fail —
+# as written they hard-asserted the author's own checkout and went red for
+# everyone else.
+pytestmark = pytest.mark.skipif(
+    not THE_SUPER_LAB_SRC.exists(),
+    reason=f"the-super-lab not found at {THE_SUPER_LAB_SRC} (set THE_SUPER_LAB_DIR)",
+)
 
 
 class TestSuperLabSource:

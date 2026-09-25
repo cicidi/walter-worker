@@ -39,6 +39,10 @@ class TestMem0ClientInit:
 
     def test_missing_api_key_raises_config_error(self, monkeypatch, tmp_path):
         """Edge case: no DEEPSEEK_API_KEY → ConfigError."""
+        # mem0ai lives in the optional [memory] extra, so a plain
+        # `pip install -e ".[test]"` cannot run this. Skip rather than error —
+        # the missing-key check itself needs no key, but it does need mem0.
+        pytest.importorskip("mem0", reason="mem0ai is in the optional [memory] extra")
         monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
         with pytest.raises(ConfigError, match="DEEPSEEK_API_KEY"):
             Mem0Client.from_config(vector_store_path=str(tmp_path / "mem0_no_key"))

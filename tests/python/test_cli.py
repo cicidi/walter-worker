@@ -1,4 +1,5 @@
 from __future__ import annotations
+import os
 from pathlib import Path
 import pytest
 import yaml
@@ -89,8 +90,16 @@ class TestSkillReferences:
         assert len(skill_names) > 0, "No skill references found in CLAUDE.local.md"
 
         skills_dir = root / "skills"
-        super_lab_skills = Path.home() / "project/the-super-lab/skills"
-        super_lab_personal = Path.home() / "project/the-super-lab/personal-skills"
+        super_lab_root = Path(
+            os.environ.get("THE_SUPER_LAB_DIR", str(Path.home() / "project" / "the-super-lab"))
+        )
+        if not super_lab_root.exists():
+            pytest.skip(
+                f"the-super-lab not found at {super_lab_root} (set THE_SUPER_LAB_DIR): "
+                "skills that live outside this repo cannot be resolved here"
+            )
+        super_lab_skills = super_lab_root / "skills"
+        super_lab_personal = super_lab_root / "personal-skills"
 
         for skill_name in skill_names:
             found = False
