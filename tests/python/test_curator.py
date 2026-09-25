@@ -224,3 +224,63 @@ class TestDueCheck:
         p = tmp_path / ".curator_last_run"
         p.write_text("not-a-number")
         assert is_due(state_path=p) is True
+
+
+class TestPruneImportedSessions:
+    """The raw session directories were never cleaned up.
+
+    The hooks stage every session under ~/.coworker/analytics/sessions/ and
+    import_data folds it into analytics.db. Nothing removed the staging copy, so
+    it reached 133MB across 253 directories and kept growing — the same content
+    stored twice, the second time forever. The design puts periodic cleanup in
+    the curator.
+
+    Only a directory whose session is already in the database, and untouched for
+    a month, is pruned: nothing goes that has not been imported, and a fresh
+    session stays on disk for anything reading it directly.
+    """
+
+    def _setup(self, tmp_path, monkeypatch, age_days, session_id, imported):
+        import os
+        import time
+
+        from coworker.analytics.db import get_db, init_db
+        from coworker.memory import curator
+
+        home = tmp_path / "home"
+        sessions = home / ".coworker" / "analytics" / "sessions"
+        sessions.mkdir(parents=True)
+        monkeypatch.setenv("HOME", str(home))
+        monkeypatch.setenv("COWORKER_ANALYTICS_DB", str(tmp_path / "a.db"))
+
+        init_db()
+        if imported:
+            conn = get_db()
+            conn.execute(
+                "INSERT INTO sessions (id, ide, created_at) VALUES (?,?,?)",
+                (session_id, "claude", "2026-01-01"),
+            )
+            conn.commit()
+            conn.close()
+
+        d = sessions / session_id
+        d.mkdir()
+        (d / "session.yaml").write_text(f'session_id: "{session_id}"\n')
+        stamp = time.time() - age_days * 86400
+        os.utime(d, (stamp, stamp))
+        return curator, d
+
+    def test_an_imported_old_session_is_pruned(self, tmp_path, monkeypatch):
+        curator, d = self._setup(tmp_path, monkeypatch, 40, "old", imported=True)
+        assert curator._prune_imported_sessions() == 1
+        assert not d.exists()
+
+    def test_an_imported_recent_session_is_kept(self, tmp_path, monkeypatch):
+        curator, d = self._setup(tmp_path, monkeypatch, 1, "fresh", imported=True)
+        assert curator._prune_imported_sessions() == 0
+        assert d.exists()
+
+    def test_a_session_the_database_never_saw_is_kept(self, tmp_path, monkeypatch):
+        curator, d = self._setup(tmp_path, monkeypatch, 400, "orphan", imported=False)
+        assert curator._prune_imported_sessions() == 0
+        assert d.exists(), "nothing may be deleted that has not been imported"
