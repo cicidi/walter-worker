@@ -133,7 +133,10 @@ if [[ -d "$THE_SUPER_LAB_DIR/.git" ]]; then
     log "Skipped the-super-lab update."
   fi
 else
-  log "the-super-lab not found at $THE_SUPER_LAB_DIR. Run install.sh first to set it up."
+  # The test is for a .git directory, so a plain checkout lands here while
+  # sitting right there — and the old wording said it was not found at
+  # all, in a run that had just deployed skills from it.
+  log "$THE_SUPER_LAB_DIR is not a git checkout, so it was not pulled. Skills from it were still deployed."
 fi
 
 echo ""

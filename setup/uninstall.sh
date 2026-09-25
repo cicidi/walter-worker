@@ -33,7 +33,12 @@ RESTORE_PRIS=false
 if [[ ! -f "$MANIFEST" ]]; then
   error "No install manifest found at $MANIFEST"
   echo "  This may be a pre-manifest install. To clean up manually:"
-  echo "  rm -rf ~/.coworker ~/.claude/commands/walter-worker-*"
+  echo "    - ~/.claude/skills/<name>/ for each skill install.sh deployed"
+  echo "    - ~/.claude/commands/<name>.md for the bundle skills"
+  echo "    - ~/.cursor/rules/<name>.md and ~/.opencode/instructions/<name>.md"
+  echo "  Keep ~/.coworker/analytics/ and ~/.coworker/backups/ — this"
+  echo "  script preserves both, and there is no manifest-free way to tell"
+  echo "  your data from its own scripts."
   echo "  Also remove coworker hook entries from ~/.claude/settings.json hooks.*"
   exit 1
 fi
@@ -125,7 +130,9 @@ for event in list(hooks.keys()):
             g['hooks'] = kept_inner
             cleaned.append(g)
         else:
-            n += 1  # entire group removed
+            # The group goes with it, but a group is a wrapper, not a hook.
+            # Counting both reported 12 removals for 6 hooks.
+            pass
     if cleaned:
         hooks[event] = cleaned
     else:
