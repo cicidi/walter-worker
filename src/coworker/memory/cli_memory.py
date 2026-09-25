@@ -557,8 +557,10 @@ def register_memory_commands(main_group: click.Group) -> None:
         from coworker.memory.wrong_history import record_entry, _rebuild_index
 
         if action == "index":
-            _rebuild_index()
-            console.print("[green]Wrong-history INDEX rebuilt[/green]")
+            count, path = _rebuild_index()
+            console.print(
+                f"[green]Wrong-history INDEX rebuilt:[/green] {count} entries -> {path}"
+            )
             return
 
         if action == "record":
