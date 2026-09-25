@@ -100,12 +100,19 @@ def rebuild_index(db, mem0_client) -> None:
     """Rebuild the mem0 index from raw session transcripts.
 
     WARNING: Deletes all existing mem0 entries before rebuilding.
+
+    Nothing calls this. It also could not have worked: get_transcript is a
+    module-level function taking (conn, session_id), and this called it as a
+    method on the connection, so the first iteration raised AttributeError -
+    after delete_all() had already wiped the index.
     """
+    from coworker.analytics.db import get_transcript
+
     logger.info("Rebuilding mem0 index from raw transcripts...")
     sessions = db.execute("SELECT id FROM sessions").fetchall()
     mem0_client.delete_all()
     for (session_id,) in sessions:
-        transcript = db.get_transcript(session_id)
+        transcript = get_transcript(db, session_id)
         if transcript:
             mem0_client.add(messages=transcript, user_id="rebuild", run_id=session_id)
     logger.info("Rebuilt index from %d sessions", len(sessions))
