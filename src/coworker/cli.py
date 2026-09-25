@@ -34,7 +34,7 @@ from .templates.global_claude_md import generate_global_claude_md
 from .memory.cli_memory import register_memory_commands
 from .cli_analytics import register_analytics
 from .analytics.cli_knowledge import register_knowledge_commands
-# from .cli_autoworker import register_autoworker    # TODO: not yet implemented
+from .cli_autoworker import register_autoworker
 
 console = Console()
 
@@ -1285,4 +1285,10 @@ _register_deprecated_alias()
 register_memory_commands(main)
 register_analytics(main)
 register_knowledge_commands(main)
-# register_autoworker(main)   # TODO: implement autoworker CLI module
+# The auto-worker loop. Its agent spawn did not work until d6d6a8b — the argv
+# named a subcommand and two flags that do not exist, and the failure fell
+# through to a toolless chat that reported success. Nothing here runs on its
+# own: `run --loop` and `find-issues run` are only entered when typed, and
+# `run --loop` spawns agent sessions that modify the repository for up to
+# --max-hours (default 12), so the first run is worth watching.
+register_autoworker(main)

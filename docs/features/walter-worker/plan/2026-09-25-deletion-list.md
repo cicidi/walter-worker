@@ -114,14 +114,19 @@ component whose whole value is taking real action.
 returns `success: False` and names the reason. `tests/python/test_autoworker_engine.py`
 covers both; there was no test for this module before.
 
-**Only the switch is left, and it is deliberate that it is still off.**
-Commenting the registration in makes `run --loop` reachable, and that command
-spawns agent sessions which modify the repository for up to `--max-hours`,
-defaulting to 12. The spawn is unit-tested; the loop around it is not, and
-cannot be verified without running autonomous agents against a real repo. That
-first run is worth watching, so it should be someone's explicit choice rather
-than a side effect of a cleanup. `cli.py:37` and `cli.py:1265` are the two
-lines.
+**Registered — `run` and `find-issues` are reachable again.** Nothing about
+that makes them run on their own; both are only entered when typed. `run
+--loop` spawns agent sessions that modify the repository for up to
+`--max-hours`, defaulting to 12, and the loop around the spawn is not
+unit-tested and cannot be verified without running autonomous agents against a
+real repository — so the first invocation is worth watching. The spawn itself
+is covered by `tests/python/test_autoworker_engine.py`.
+
+Packaging checked, because CI's wheel step runs `coworker --help` and this
+adds an import to it: `coworker/cli_autoworker.py` and the three
+`coworker/autoworker/*.py` modules are all in the built wheel, and `coworker
+--help` plus `coworker run --help` both exit 0 from a clean venv with only the
+wheel installed.
 
 Also verified, so the entry is accurate: the CLI registers cleanly and both
 commands show correct help, and the earlier 120 s pytest timeout really was
