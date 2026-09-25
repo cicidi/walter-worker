@@ -50,7 +50,10 @@ def snapshot(paths, label: str) -> Path:
             shutil.copy2(p, target)
         n += 1
 
-    hint = f"backup: {n} path(s) -> {dest}  (restore: backup.restore({str(dest)!r}))"
+    # A runnable command, not an internal function name. The old hint told
+    # users to call backup.restore(...) from a Python prompt, and there was no
+    # CLI entry point for it at all.
+    hint = f"backup: {n} path(s) -> {dest}  (restore: coworker restore {dest.name})"
     print(hint)
     return dest
 

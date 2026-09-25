@@ -1347,6 +1347,64 @@ def feature_remove(name, proj_dir, force):
         console.print("  [dim]No command references them now; delete any you do not want.[/dim]")
 
 
+@main.command()
+@click.argument("backup")
+@click.option("--yes", "-y", is_flag=True, help="Skip the confirmation prompt")
+def restore(backup, yes):
+    """Restore files from a backup directory.
+
+    \b
+    BACKUP is a directory under ~/.coworker/backups, or just its label —
+    `coworker restore upgrade` takes the newest one labelled upgrade.
+
+    install, upgrade, sync and the feature commands all snapshot the files they
+    are about to change and print where the copy went. Nothing could act on
+    that: backup.restore existed and no command called it, so the hint pointed
+    at an internal function.
+    """
+    from . import backup as backup_mod
+
+    try:
+        target = Path(backup).expanduser()
+        if not target.is_absolute() and not target.exists():
+            # Accept either the directory name the hint prints
+            # (20260925-113925-upgrade) or just its label (upgrade).
+            named = backup_mod.BACKUP_ROOT / backup
+            if named.is_dir():
+                target = named
+            else:
+                matches = sorted(backup_mod.BACKUP_ROOT.glob(f"*-{backup}"))
+                if not matches:
+                    raise click.ClickException(
+                        f"No backup matching {backup!r} under {backup_mod.BACKUP_ROOT}"
+                    )
+                target = matches[-1]
+        if not target.is_dir():
+            raise click.ClickException(f"No backup directory at {target}")
+
+        files = [f for f in target.rglob("*") if f.is_file()]
+        if not files:
+            raise click.ClickException(f"Backup at {target} holds no files")
+
+        console.print(f"[cyan]{target}[/cyan] holds {len(files)} file(s):")
+        for f in files[:10]:
+            console.print(f"  [dim]/{f.relative_to(target)}[/dim]")
+        if len(files) > 10:
+            console.print(f"  [dim]… and {len(files) - 10} more[/dim]")
+
+        if not yes and not click.confirm(
+            "Overwrite those paths with the backed-up copies?", default=False
+        ):
+            console.print("[dim]Cancelled.[/dim]")
+            return
+
+        restored = backup_mod.restore(target)
+    except FileNotFoundError as exc:
+        raise click.ClickException(str(exc))
+
+    console.print(f"[green]Restored {len(restored)} file(s).[/green]")
+
+
 # ── Deprecated alias ────────────────────────────────────────────────────────
 # `initiative` was the pre-rename name for this concept. The group stays as a
 # hidden alias so existing scripts keep working, and warns on every use so it

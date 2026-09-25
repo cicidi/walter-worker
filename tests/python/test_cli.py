@@ -2343,3 +2343,57 @@ class TestFindIssuesHonoursProject:
 
         assert "no PRD files under" in text
         assert "self-evolving-agent" not in text
+
+
+class TestRestoreCommand:
+    """backup.restore existed and no command called it.
+
+    Every command that mutates a user file snapshots it first and prints where
+    the copy went — as `backup.restore('/path')`, an internal function users
+    were expected to call from a Python prompt.
+    """
+
+    def _backup(self, tmp_path, monkeypatch, content="ORIGINAL"):
+        from coworker import backup
+
+        home = tmp_path / "home"
+        home.mkdir(exist_ok=True)
+        monkeypatch.setenv("HOME", str(home))
+        monkeypatch.setattr(backup, "BACKUP_ROOT", home / ".coworker" / "backups")
+        target = home / "config.json"
+        target.write_text(content)
+        dest = backup.snapshot([target], "demo")
+        target.write_text("CHANGED")
+        return target, dest
+
+    def test_it_restores_by_directory_name(self, tmp_path, monkeypatch):
+        target, dest = self._backup(tmp_path, monkeypatch)
+
+        result = runner.invoke(main, ["restore", dest.name, "--yes"])
+
+        assert result.exit_code == 0, result.output
+        assert target.read_text() == "ORIGINAL"
+
+    def test_it_restores_by_label(self, tmp_path, monkeypatch):
+        target, _ = self._backup(tmp_path, monkeypatch)
+
+        result = runner.invoke(main, ["restore", "demo", "--yes"])
+
+        assert result.exit_code == 0, result.output
+        assert target.read_text() == "ORIGINAL"
+
+    def test_an_unknown_backup_is_an_error(self, tmp_path, monkeypatch):
+        self._backup(tmp_path, monkeypatch)
+
+        result = runner.invoke(main, ["restore", "no-such-label"])
+
+        assert result.exit_code != 0
+        assert "no-such-label" in result.output.lower() or "No backup" in result.output
+
+    def test_declining_leaves_the_file_alone(self, tmp_path, monkeypatch):
+        target, dest = self._backup(tmp_path, monkeypatch)
+
+        result = runner.invoke(main, ["restore", dest.name], input="n")
+
+        assert result.exit_code == 0
+        assert target.read_text() == "CHANGED", "a declined restore must not write"
