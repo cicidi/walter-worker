@@ -16,4 +16,4 @@ seq=$(next_seq)
 ts=$(date '+%Y-%m-%dT%H:%M:%S%z')
 
 printf '{"ts":"%s","phase":"after","tool":"%s","tool_type":"builtin","call_id":"%s","seq":%s,"result":%s,"duration_ms":%s}' \
-  "$ts" "$tool" "$call_id" "$seq" "${result:-null}" "${duration:-0}" | append_jsonl "tools.jsonl"
+  "$ts" "$(escape_json "$tool")" "$(escape_json "$call_id")" "$seq" "${result:-null}" "${duration:-0}" | append_jsonl "tools.jsonl"
