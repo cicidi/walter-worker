@@ -156,7 +156,7 @@ def export_memory_md(mem0_client, export_path: str) -> int:
     Groups entries by project, then by type.
     Returns count of exported entries.
     """
-    path = Path(export_path)
+    path = Path(export_path).expanduser()
     path.parent.mkdir(parents=True, exist_ok=True)
 
     projects: dict[str, list[dict]] = {}
@@ -254,7 +254,7 @@ def _score_memories(mem0_client) -> int:
 
 def generate_report(mem0_client, export_dir: str) -> Path:
     """Generate a curator REPORT.md with metrics summary."""
-    report_path = Path(export_dir) / "REPORT.md"
+    report_path = Path(export_dir).expanduser() / "REPORT.md"
     report_path.parent.mkdir(parents=True, exist_ok=True)
 
     try:

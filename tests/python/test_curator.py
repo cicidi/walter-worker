@@ -99,6 +99,19 @@ class TestExportMemoryMd:
         assert "Convention B" in content
         assert "Lesson C" in content
 
+    def test_expands_a_home_relative_path(self, tmp_path, monkeypatch):
+        """DEFAULT_EXPORT_PATH is a literal "~/...". Path() does not expand it,
+        so the export landed in a directory actually named "~" under the cwd —
+        a real run of the Stop hook wrote into <repo>/~/.coworker/memory/.
+        """
+        monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.chdir(tmp_path)
+        mock_client = MagicMock()
+        mock_client.list_entries.return_value = []
+        export_memory_md(mock_client, "~/sub/MEMORY.md")
+        assert (tmp_path / "sub" / "MEMORY.md").exists(), "~ was not expanded"
+        assert not (tmp_path / "~").exists(), "created a literal '~' directory"
+
     def test_listing_error_handled(self, tmp_path):
         mock_client = MagicMock()
         mock_client.list_entries.side_effect = RuntimeError("down")
