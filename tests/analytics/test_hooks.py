@@ -219,3 +219,31 @@ class TestPayloadFieldsAreEscaped:
         assert index.exists()
         record = json.loads(index.read_text().splitlines()[0])
         assert record["session_id"] == 'ses"sion'
+
+
+class TestHooksParseThePayloadOnce:
+    """Each hook started one interpreter per field it wanted.
+
+    on-post-tool.sh ran four — tool, call_id, result, duration — and
+    on-pre-tool.sh three, so a single tool call started seven python processes
+    (both hooks fire) to read one JSON object. Measured at about 12ms each,
+    that is most of what the hook costs, and these run on every tool call.
+
+    Asserted as a count because that is the property: one parse per hook. A
+    behavioural timing test would be flaky on a loaded machine.
+    """
+
+    def test_each_hook_starts_at_most_one_interpreter(self):
+        import re
+
+        counts = {}
+        for hook in sorted(HOOKS.glob("on-*.sh")):
+            counts[hook.name] = len(
+                re.findall(r"python3 -c", hook.read_text(encoding="utf-8"))
+            )
+
+        over = {name: n for name, n in counts.items() if n > 1}
+        assert not over, (
+            f"hooks starting more than one interpreter per invocation: {over}. "
+            f"Parse the payload once and read the fields from that."
+        )
