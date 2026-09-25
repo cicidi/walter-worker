@@ -8,12 +8,24 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
+
+def _get_skill_threshold() -> int:
+    """Minimum tool calls before a session can produce a skill candidate.
+
+    Lives here rather than in engine.py because engine imports this module for
+    SESSION_END_PROMPT, so the reverse would be a cycle. Keeping the rule in one
+    place is what stops the prompt's stated threshold and the check that
+    enforces it from drifting apart.
+    """
+    return int(os.environ.get("COWORKER_SKILL_THRESHOLD", "10"))
 
 # ---------------------------------------------------------------------------
 # Prompts
@@ -282,9 +294,14 @@ def process_session_end(
                 logger.error("Failed to store session-end lesson: %s", exc)
 
         # Stage skill candidates to pending
+        threshold = _get_skill_threshold()
         skills_staged: list[str] = []
         for candidate in skill_candidates:
-            if candidate.get("tool_call_count", 0) < 10:
+            # The 10 here was a literal, so COWORKER_SKILL_THRESHOLD was
+            # documented and inert: setting it changed nothing. The prompt
+            # states the same rule to the model, which is why it went unnoticed
+            # — the two agreed until you tried to configure either.
+            if candidate.get("tool_call_count", 0) < threshold:
                 continue
             try:
                 _stage_skill(candidate, session_id)

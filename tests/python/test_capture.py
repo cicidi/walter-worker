@@ -113,3 +113,62 @@ class TestProcessTurnReal:
         )
 
         assert result is not None
+
+
+class TestSkillThresholdIsConfigurable:
+    """COWORKER_SKILL_THRESHOLD was documented and inert.
+
+    capture.process_session_end compared candidate tool counts against a
+    literal 10, so setting the variable changed nothing. The prompt states the
+    same rule to the model, which is why it went unnoticed: the two agreed
+    until you tried to configure either. The threshold now lives in one place
+    and both read it.
+    """
+
+    def test_capture_uses_the_configured_threshold(self, monkeypatch, tmp_path):
+        import json as _json
+
+        from coworker.memory import capture
+        from coworker.memory.llm import LLMResponse
+
+        staged = []
+
+        class _Mem0:
+            def search(self, **kw):
+                return []
+
+            def add(self, **kw):
+                return {"results": [{"id": "m", "memory": "x", "event": "ADD"}]}
+
+        monkeypatch.setattr(capture, "_stage_skill", lambda c, s: staged.append(c))
+
+        transcript = tmp_path / "t.txt"
+        transcript.write_text("x" * 600)
+
+        def run(threshold):
+            staged.clear()
+            monkeypatch.setenv("COWORKER_SKILL_THRESHOLD", str(threshold))
+
+            class _LLM:
+                def chat(self, messages, **kw):
+                    return LLMResponse(content=_json.dumps({
+                        "lessons": [],
+                        "skill_candidates": [
+                            {"name": "mid", "description": "d", "tool_call_count": 5}
+                        ],
+                    }), model="f", provider="f")
+
+            capture.process_session_end(
+                mem0_client=_Mem0(), llm_client=_LLM(),
+                session_id="s1", transcript_path=str(transcript),
+            )
+            return list(staged)
+
+        assert run(3), "a candidate above the configured threshold must be staged"
+        assert not run(10), "and one below it must not be"
+
+    def test_the_default_is_ten(self, monkeypatch):
+        from coworker.memory.capture import _get_skill_threshold
+
+        monkeypatch.delenv("COWORKER_SKILL_THRESHOLD", raising=False)
+        assert _get_skill_threshold() == 10
