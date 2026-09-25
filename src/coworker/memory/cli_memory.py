@@ -121,20 +121,38 @@ def register_memory_commands(main_group: click.Group) -> None:
         )
 
     @memory.command("close")
-    @click.argument("session_id")
+    @click.argument("session_id", required=False, default=None)
     def memory_close(session_id):
-        """Process a session's pending graph data into graph.json.
+        """Merge a session's pending graph data into graph.json.
 
-        Called by the session-end hook (Claude Code Stop / OpenCode session.end).
-        Reads pending/<session_id>.json, enriches + dedups + merges into graph.json.
+        With an id, only that session's dump is merged; with none, every
+        pending dump is. Reads pending/<session_id>.json, enriches, dedups and
+        merges into graph.json.
+
+        Called by the session-end hook after `memory capture` has written the
+        dump. The id used to be required and then ignored — the command always
+        processed all of them — so a typo succeeded and closing one session
+        drained every other one too.
         """
-        from coworker.memory.merge_worker import process_all_pending
+        from coworker.memory.merge_worker import process_all_pending, process_pending
+        from coworker.memory.storage import PENDING_DIR
 
-        stats = process_all_pending()
-        if stats["status"] == "ok":
+        if session_id:
+            path = PENDING_DIR / f"{session_id}.json"
+            if not path.exists():
+                raise click.ClickException(
+                    f"No pending dump for session {session_id!r}."
+                )
+            stats = process_pending(path)
+            sessions = 1 if stats["status"] == "ok" else 0
+        else:
+            stats = process_all_pending()
+            sessions = stats.get("sessions_processed", 0)
+
+        if sessions:
             console.print(
                 f"[green]Session close processed:[/green] "
-                f"{stats['sessions_processed']} sessions, "
+                f"{sessions} sessions, "
                 f"+{stats['added_nodes']} nodes, +{stats['added_edges']} edges, "
                 f"{stats['deduped']} deduped, {stats['graph_misses']} misses"
             )

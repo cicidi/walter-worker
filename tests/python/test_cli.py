@@ -2067,3 +2067,61 @@ class TestMemoryInitDoesNotClobberTheGraph:
 
         assert result.exit_code == 0, result.output
         assert load_graph(path).nodes == []
+
+
+class TestMemoryCloseHonoursItsArgument:
+    """`close` required a session id and then ignored it.
+
+    It always called process_all_pending(), which globs every dump, so a typo
+    succeeded and closing one session drained all the others too. The docstring
+    claimed it read pending/<session_id>.json.
+    """
+
+    def _patch(self, monkeypatch, tmp_path):
+        import coworker.memory.merge_worker as mw
+
+        calls = {}
+        # close resolves the directory from storage, so patching only
+        # merge_worker would leave it looking at the real pending dir.
+        monkeypatch.setattr("coworker.memory.storage.PENDING_DIR", tmp_path)
+        monkeypatch.setattr(mw, "PENDING_DIR", tmp_path)
+        monkeypatch.setattr(
+            mw, "process_pending",
+            lambda path: calls.update(one=str(path)) or
+            {"status": "ok", "added_nodes": 1, "added_edges": 0,
+             "deduped": 0, "graph_misses": 0},
+        )
+        monkeypatch.setattr(
+            mw, "process_all_pending",
+            lambda: calls.update(all=True) or
+            {"status": "ok", "sessions_processed": 3, "added_nodes": 3,
+             "added_edges": 0, "deduped": 0, "graph_misses": 0},
+        )
+        return calls
+
+    def test_a_named_session_processes_only_that_dump(self, monkeypatch, tmp_path):
+        calls = self._patch(monkeypatch, tmp_path)
+        (tmp_path / "s1.json").write_text("{}")
+
+        result = runner.invoke(main, ["memory", "close", "s1"])
+
+        assert result.exit_code == 0, result.output
+        assert calls.get("one", "").endswith("s1.json")
+        assert "all" not in calls, "must not sweep every pending dump"
+
+    def test_an_unknown_session_is_an_error(self, monkeypatch, tmp_path):
+        calls = self._patch(monkeypatch, tmp_path)
+
+        result = runner.invoke(main, ["memory", "close", "ghost"])
+
+        assert result.exit_code != 0
+        assert "ghost" in result.output
+        assert "all" not in calls
+
+    def test_no_argument_still_processes_everything(self, monkeypatch, tmp_path):
+        calls = self._patch(monkeypatch, tmp_path)
+
+        result = runner.invoke(main, ["memory", "close"])
+
+        assert result.exit_code == 0, result.output
+        assert calls.get("all") is True

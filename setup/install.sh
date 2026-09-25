@@ -547,6 +547,12 @@ _merge_hook('Stop',              '$HOME/.coworker/analytics/hooks/on-stop.sh')
 # stopped being written while the installer still reported success. Describe
 # such characters in words; never write them.
 _merge_hook('Stop',              'coworker memory capture')
+# And the merge that gives capture somewhere to land. capture writes a pending
+# dump; close is the only thing that folds those into graph.json, and nothing
+# called it — so every session added one more file to pending/ and the graph
+# stayed empty for ever. The memory-graph spec names this command as the Stop
+# hook; it was simply never wired.
+_merge_hook('Stop',              'coworker memory close')
 
 with open('$CLAUDE_SETTINGS', 'w') as f: json.dump(cfg, f, indent=2)
 " 2>/dev/null && ok "Claude Code hooks configured" || warn "Failed to configure Claude Code hooks"
@@ -697,7 +703,7 @@ if '$CREATED_GLOBAL_MD' == '1' and os.path.isfile(md):
 # point into our hooks directory, or they are our own CLI subcommands.
 sf = f'{home}/.claude/settings.json'
 OUR_HOOK_PATH = '/.coworker/analytics/hooks/'
-OUR_HOOK_CMDS = ('coworker memory capture', 'coworker state-update')
+OUR_HOOK_CMDS = ('coworker memory capture', 'coworker memory close', 'coworker state-update')
 if os.path.isfile(sf):
     cfg = json.load(open(sf))
     for entries in cfg.get('hooks', {}).values():
