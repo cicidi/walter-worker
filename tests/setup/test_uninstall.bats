@@ -136,3 +136,19 @@ teardown() {
   [ -f "$HOME/.opencode/node_modules/pkg.js" ]
   [ -f "$HOME/.coworker/analytics/analytics.db" ]
 }
+
+@test "refuses to remove files from a pre-schema_version manifest" {
+  # Setup() writes exactly such a manifest (no schema_version). It stands in for
+  # every machine that installed before the fix: the file on disk still claims
+  # ~/.claude/plugins, session transcripts and the analytics database, so
+  # running this script would delete them. Nothing may be removed.
+  mkdir -p "$HOME/.claude/skills/foreign-tool"
+  echo 'foreign' > "$HOME/.claude/skills/foreign-tool/SKILL.md"
+
+  run bash -c "echo y | bash '$REPO_ROOT/setup/uninstall.sh'"
+  [ "$status" -eq 0 ]
+
+  [ -f "$HOME/.coworker/analytics/analytics.db" ]
+  [ -f "$HOME/.claude/skills/foreign-tool/SKILL.md" ]
+  [[ "$output" == *"SKIPPED"* ]]
+}

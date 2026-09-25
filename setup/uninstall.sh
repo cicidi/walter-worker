@@ -63,8 +63,24 @@ log "Removing files..."
 
 REMOVED_FILES=0
 python3 -c "
-import json, os
+import json, os, sys
 m = json.load(open('$MANIFEST'))
+
+# Manifest schema 1 claimed files by directory: everything under ~/.claude,
+# ~/.opencode and ~/.coworker/analytics, which on a real machine is 27k+ paths
+# including plugin caches, session transcripts and the analytics database the
+# closing banner promises to keep. Removing from one of those destroys data
+# this script exists to preserve, so refuse it and say what to do instead.
+# Skipping is the safe direction: nothing is lost, and re-running install.sh
+# regenerates the manifest in the current form.
+if m.get('schema_version') != 2:
+    print('  SKIPPED: this manifest has no schema_version, so it predates the')
+    print('           fix that stopped it claiming files walter-worker never')
+    print('           wrote, and may list files belonging to other tools.')
+    print('           Nothing was removed. Run setup/install.sh to regenerate')
+    print('           the manifest, then uninstall again.')
+    sys.exit(0)
+
 for f in m.get('files', []):
     p = os.path.normpath(f)
     if os.path.isfile(p) or os.path.islink(p):

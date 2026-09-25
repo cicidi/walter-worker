@@ -575,6 +575,11 @@ claude_dir = '${CLAUDE_DIR}'
 selected = '${MANIFEST_SKILLS}'.split()
 deployed = '${MANIFEST_SUPERLAB}'.split()
 manifest = {
+    # 2 = files are claimed by name, only what this installer wrote. Manifest 1
+    # claimed every file found under ~/.claude, ~/.opencode and
+    # ~/.coworker/analytics, which uninstall would then delete. uninstall.sh
+    # refuses to remove anything from a manifest without this key.
+    'schema_version': 2,
     'install_mode': '${INSTALL_MODE}',
     'repo_root': '${REPO_ROOT}',
     'hook_commands': [],
