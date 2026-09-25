@@ -34,7 +34,7 @@ CRITICAL: If `CLAUDE.local.md` exists, read it before doing anything else.
 ## Context Management
 
 1. Clarify goal — if unclear, ask user
-2. Check `docs/<initiative>/` for PRD/design docs and prior discussions
+2. Check `docs/features/<feature>/` for PRD/design docs and prior discussions
 3. Recall state — read prior state files and `CLAUDE.local.md`
 4. Verify all referenced documents are actually read before proceeding
 
