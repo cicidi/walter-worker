@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class McpServer(BaseModel):
@@ -128,6 +128,12 @@ class ReferenceDoc(BaseModel):
 
 
 class FeatureConfig(BaseModel):
+    # User-editable YAML lives on disk and may carry keys this model does not
+    # know (e.g. llm_effort). Pydantic's default is extra="ignore", and because
+    # save_feature() writes model_dump() straight back, a plain load/save cycle
+    # would silently delete them. Keep them instead.
+    model_config = ConfigDict(extra="allow")
+
     name: str
     description: str = ""
     goal: str = ""

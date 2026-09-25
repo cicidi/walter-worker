@@ -71,6 +71,41 @@ class TestFeatureConfig:
     def test_load_nonexistent(self, temp_features_dir):
         assert cfg.load_feature("does-not-exist") is None
 
+    def test_load_save_preserves_unknown_keys(self, temp_features_dir):
+        """Keys the model does not define must survive a load/save cycle.
+
+        Feature YAML is user-editable and save_feature() writes model_dump()
+        straight back to disk, so Pydantic's default extra="ignore" would
+        silently delete anything unmodelled on any edit.
+        """
+        path = cfg.feature_path("extras")
+        path.write_text(
+            "name: extras\ndescription: d\nllm_effort: high\n", encoding="utf-8"
+        )
+
+        loaded = cfg.load_feature("extras")
+        assert loaded is not None
+        cfg.save_feature(loaded)
+
+        saved = yaml.safe_load(path.read_text(encoding="utf-8"))
+        assert saved["llm_effort"] == "high", "unmodelled key was dropped"
+
+    def test_edit_preserves_unknown_keys(self, temp_features_dir):
+        """The same must hold when a modelled field actually changes."""
+        path = cfg.feature_path("extras2")
+        path.write_text(
+            "name: extras2\ndescription: before\nllm_effort: high\n",
+            encoding="utf-8",
+        )
+
+        loaded = cfg.load_feature("extras2")
+        loaded.description = "after"
+        cfg.save_feature(loaded)
+
+        saved = yaml.safe_load(path.read_text(encoding="utf-8"))
+        assert saved["description"] == "after"
+        assert saved["llm_effort"] == "high"
+
 
 class TestMergedConfig:
     """Tests for merged_config() — project config overrides global config."""
