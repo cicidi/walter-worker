@@ -278,3 +278,39 @@ print(sum(1 for f in m.get('files', []) if 'skills/the-super-lab/' in f))
   run bash -c "find '$HOME/.claude/skills' -maxdepth 1 -type d -name 'skills' 2>/dev/null | wc -l"
   [ "$output" = "0" ] || [ -d "$HOME/.claude/skills" ]
 }
+
+@test "uninstall strips a coworker hook added after the manifest was written" {
+  # `coworker sync` adds `coworker state-update` on any later run and does not
+  # rewrite the manifest, so the manifest-driven removal missed it and it kept
+  # firing after uninstall — while the closing banner said coworker entries had
+  # been stripped. Our hooks are identifiable independently of the manifest.
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  python3 -c "
+import json, os
+p = os.path.expanduser('~/.claude/settings.json')
+cfg = json.load(open(p))
+cfg['hooks'].setdefault('Stop', []).append(
+    {'matcher': '', 'hooks': [{'type': 'command', 'command': 'coworker state-update'}]})
+cfg['hooks'].setdefault('Stop', []).append(
+    {'matcher': '', 'hooks': [{'type': 'command', 'command': 'echo MY-OWN'}]})
+json.dump(cfg, open(p, 'w'), indent=2)
+"
+
+  run bash -c "echo y | bash '$REPO_ROOT/setup/uninstall.sh'"
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import json, os
+cfg = json.load(open(os.path.expanduser('~/.claude/settings.json')))
+cmds = [h.get('command') for groups in cfg.get('hooks', {}).values()
+        for g in groups for h in (g.get('hooks') or [])]
+print('|'.join(cmds))
+"
+  # Ours gone, including the one the manifest never recorded.
+  [[ "$output" != *"state-update"* ]]
+  [[ "$output" != *"coworker memory"* ]]
+  # The user's own hook is theirs and stays.
+  [[ "$output" == *"echo MY-OWN"* ]]
+}

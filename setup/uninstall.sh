@@ -107,10 +107,19 @@ if [[ -f "$CLAUDE_SETTINGS" ]]; then
   python3 -c "
 import json
 m = json.load(open('$MANIFEST'))
-our_cmds = set(m.get('hook_commands', []))
-if not our_cmds:
-    print('  (no hook commands in manifest)')
-    exit(0)
+recorded = set(m.get('hook_commands', []))
+
+# The manifest is the primary source, but it goes stale: `coworker sync` adds
+# `coworker state-update` on any later run and does not rewrite the manifest,
+# so uninstall left it firing while the closing banner said coworker entries
+# had been stripped. These are the same patterns install.sh uses to claim its
+# own hooks, so the two sides agree on what is ours.
+OUR_PATH = '/.coworker/analytics/hooks/'
+OUR_CMDS = {'coworker state-update', 'coworker memory capture', 'coworker memory close'}
+
+def is_ours(cmd):
+    return bool(cmd) and (cmd in recorded or cmd in OUR_CMDS or OUR_PATH in cmd)
+
 cfg = json.load(open('$CLAUDE_SETTINGS'))
 hooks = cfg.get('hooks', {})
 n = 0
@@ -125,7 +134,7 @@ for event in list(hooks.keys()):
         inner = g.get('hooks', [])
         kept_inner = []
         for h in inner:
-            if isinstance(h, dict) and h.get('command') in our_cmds:
+            if isinstance(h, dict) and is_ours(h.get('command')):
                 n += 1
             else:
                 kept_inner.append(h)
