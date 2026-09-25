@@ -336,7 +336,7 @@ def register_memory_commands(main_group: click.Group) -> None:
     @click.option("--target-skills", default=10, type=int, help="Target skills to stage")
     @click.option("--target-experiences", default=10, type=int, help="Target experiences to store")
     @click.option("--skip-existing/--no-skip-existing", default=True, help="Skip sessions with existing entries")
-    def memory_train(limit, skip_existing):
+    def memory_train(limit, target_skills, target_experiences, skip_existing):
         """Batch-train mem0 from all past sessions in analytics.db."""
         from coworker.memory.train import run_training_pipeline
         from coworker.memory.mem0_client import Mem0Client
@@ -352,7 +352,15 @@ def register_memory_commands(main_group: click.Group) -> None:
             return
 
         console.print("[bold]Starting training pipeline...[/bold]")
-        stats = run_training_pipeline(mem0, llm, db, limit=limit, skip_existing=skip_existing)
+        stats = run_training_pipeline(
+            mem0,
+            llm,
+            db,
+            limit=limit,
+            skip_existing=skip_existing,
+            target_skills=target_skills,
+            target_experiences=target_experiences,
+        )
         console.print(
             f"[green]Training complete: {stats['sessions_processed']} sessions, "
             f"{stats['lessons_extracted']} lessons[/green]"

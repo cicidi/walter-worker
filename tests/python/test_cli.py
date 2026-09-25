@@ -1637,6 +1637,27 @@ class TestMemorySubcommands:
         result = runner.invoke(main, ["memory", name, "--help"])
         assert result.exit_code == 0, result.output
 
+    def test_every_command_accepts_the_options_it_declares(self):
+        """click passes declared params to the callback as keyword arguments.
+
+        A callback that does not accept one raises TypeError at call time, and
+        `--help` never reaches the callback — so a help-only suite cannot see
+        this. `memory train` shipped with four declared options and a two-param
+        callback, and crashed on every invocation.
+        """
+        import inspect
+
+        memory = main.commands["memory"]
+        broken = {}
+        for name, cmd in memory.commands.items():
+            accepted = set(inspect.signature(cmd.callback).parameters)
+            declared = {p.name for p in cmd.params}
+            missing = declared - accepted
+            if missing:
+                broken[name] = sorted(missing)
+
+        assert not broken, f"callbacks missing declared params: {broken}"
+
     def test_train_is_reachable_by_name(self):
         """The exact invocation the dashboard tells users to run."""
         result = runner.invoke(main, ["memory", "train", "--help"])

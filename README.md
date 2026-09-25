@@ -20,11 +20,36 @@
 ## Install
 
 ```bash
-git clone git@github.com:cicidi/walter-worker.git ~/walter-worker
+git clone https://github.com/cicidi/walter-worker.git ~/walter-worker
 cd ~/walter-worker
-pipx install .
+pipx install ".[memory]"      # [memory] pulls the vector-memory dependencies
 bash setup/install.sh --global
 ```
+
+Without the `[memory]` extra the CLI installs and `/dashboard`, `/project`,
+`/feature` and `/status` work, but `/memory` and `/knowledge` fail at import
+with `No module named 'openai'`.
+
+`setup/install.sh` edits your global AI-tool configuration: it merges hooks into
+`~/.claude/settings.json`, writes `~/.claude/CLAUDE.md`, and installs skills
+under `~/.claude/`, `~/.config/opencode/` and `~/.cursor/`. It only rewrites the
+regions it manages between its own markers, and `bash setup/uninstall.sh`
+reverses it.
+
+### Configure memory
+
+`/memory` and `/knowledge` need an LLM key. Without one they stop with
+`No LLM provider configured`. Set at least one:
+
+```bash
+export DEEPSEEK_API_KEY=...     # preferred
+# fallbacks: GEMINI_API_KEY, ANTHROPIC_API_KEY
+```
+
+Put it in `~/.coworker/.env` to make it persistent. Memory search also uses
+[graphify](https://github.com/cicidi/graphify) for scoring when present; it has
+no PyPI distribution, is optional, and search falls back to a simpler ranking
+without it.
 
 ## Usage
 
@@ -76,16 +101,28 @@ walter-worker writes into managed comment blocks — your own content is never t
 ## Testing
 
 ```bash
+pip install -e ".[test]"
 python -m pytest tests/ -v
 ```
 
+Tests that need `[memory]`, a `DEEPSEEK_API_KEY`, or a checkout of
+the-super-lab skip when those are absent, so the suite passes on a clean machine.
+
 ## Built On
+
+**Runtime dependencies**
 
 | Project | Role |
 |---------|------|
-| **[the-super-lab](https://github.com/cicidi/the-super-lab)** | General-purpose development skills |
-| **[graphify](https://github.com/cicidi/graphify)** | Code knowledge graph — scoring engine for memory search |
 | **[mem0](https://github.com/mem0ai/mem0)** | Vector memory — cross-session recall |
+| **[graphify](https://github.com/cicidi/graphify)** | Optional scoring engine for memory search |
+
+**Skills** come from **[the-super-lab](https://github.com/cicidi/the-super-lab)**.
+
+**Research references** — read while designing this, not depended on:
+
+| Project | Role |
+|---------|------|
 | **[Guild AI](https://github.com/mathomhaus/guild)** | Multi-agent orchestration |
 | **[Jam](https://github.com/Dag7/jam)** | Browser MCP agent reference |
 | **[Pioneer](https://agent.pioneer.ai)** | Self-evolving agent research |
