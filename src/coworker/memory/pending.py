@@ -260,7 +260,13 @@ def record_patch(skill_name: str) -> None:
     path.write_text(json.dumps(patches, indent=2))
 
 def record_version(skill_name: str, version: int = 1) -> None:
-    """Record skill version for rollback (PRD §5.6, S-8)."""
+    """Record a skill's version number and timestamp.
+
+    Named for PRD §5.6 / S-8 rollback, but no rollback exists and this is not
+    called from anywhere. It also records only a number - not the promoted
+    SKILL.md - so a rollback could not restore anything from it as it stands.
+    Storing content here is the prerequisite for implementing one.
+    """
     import json
     from datetime import datetime, timezone
     path = _pending_dir() / f"{skill_name}-versions.json"
