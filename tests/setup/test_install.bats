@@ -325,3 +325,21 @@ print('registered=' + str(any('coworker-analytics' in p for p in cfg.get('plugin
 "
   [ "$output" = "registered=True" ]
 }
+
+@test "installs on a platform without md5sum" {
+  # md5sum is GNU coreutils. macOS ships BSD `md5` and has no md5sum, and this
+  # script deliberately supports macOS (see the bash-3.2 note by the parallel
+  # arrays). Under `set -euo pipefail` the command substitution failed and the
+  # whole install aborted, so the platform the script was written to support
+  # could not install at all. A failing md5sum stands in for an absent one.
+  cat > "$TEST_TMP/bin/md5sum" <<'MDEOF'
+#!/usr/bin/env bash
+echo "md5sum: command not found" >&2
+exit 127
+MDEOF
+  chmod +x "$TEST_TMP/bin/md5sum"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'1'
+  [ "$status" -eq 0 ]
+  [ -f "$HOME/.claude/commands/init.md" ]
+}

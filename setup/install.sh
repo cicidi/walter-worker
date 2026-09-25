@@ -151,6 +151,17 @@ fi
 mkdir -p "$CLAUDE_DIR"
 ok "Claude Code skills dir: $CLAUDE_DIR"
 
+# Content hash for a file, portable across GNU and BSD userlands.
+#
+# This used `md5sum | cut`, which is GNU coreutils. macOS has no md5sum, and
+# under `set -euo pipefail` the failed command substitution aborted the whole
+# install — on the very platform this script goes out of its way to support
+# (see the bash-3.2 note below). python3 is already required throughout this
+# script, so it is the one hashing tool guaranteed to be present.
+_hash_file() {
+  python3 -c "import hashlib, sys; print(hashlib.md5(open(sys.argv[1], 'rb').read()).hexdigest())" "$1"
+}
+
 # =============================================================================
 # Step 6 — Deploy walter-worker skills to OpenCode skill directory
 # =============================================================================
@@ -171,7 +182,7 @@ else
       skill_file="${skill_dir}SKILL.md"
       [[ -f "$skill_file" ]] || continue
       OLD_DIRS+=("$(basename "$skill_dir")")
-      OLD_DIR_HASHES+=("$(md5sum "$skill_file" | cut -d' ' -f1)")
+      OLD_DIR_HASHES+=("$(_hash_file "$skill_file")")
     done
   fi
 
@@ -186,7 +197,7 @@ else
     skill_file="${skill_dir}SKILL.md"
     [[ -f "$skill_file" ]] || continue
     SRC_DIRS+=("$(basename "$skill_dir")")
-    SRC_DIR_HASHES+=("$(md5sum "$skill_file" | cut -d' ' -f1)")
+    SRC_DIR_HASHES+=("$(_hash_file "$skill_file")")
   done
 
   # Detect renames: old dir gone from source, content moved to new dir.
