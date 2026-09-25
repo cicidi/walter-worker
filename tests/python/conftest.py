@@ -82,6 +82,12 @@ def clean_mem0(tmp_path, _mem0_session_dir):
     import os
     from coworker.memory.mem0_client import Mem0Client
 
+    # mem0 first, then the key. A venv built with `pip install -e ".[test]"`
+    # has no mem0 even when the shell exports DEEPSEEK_API_KEY, and checking
+    # the key first sent every consumer of this fixture into from_config and
+    # out with ModuleNotFoundError — 47 errors that said nothing about the
+    # code, on the machine most likely to run them.
+    pytest.importorskip("mem0", reason="mem0ai is in the optional [memory] extra")
     if "DEEPSEEK_API_KEY" not in os.environ:
         pytest.skip("DEEPSEEK_API_KEY not set — required for real mem0 tests")
 

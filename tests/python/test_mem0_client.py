@@ -13,6 +13,21 @@ import pytest
 from coworker.memory.mem0_client import ConfigError, Mem0Client, Mem0Error
 
 
+def _require_mem0_and_key() -> None:
+    """Skip unless this test can actually run.
+
+    Order matters. mem0ai lives in the optional [memory] extra, so a venv
+    built with `pip install -e ".[test]"` has no mem0 even when the shell
+    exports DEEPSEEK_API_KEY. Checking the key first let these tests walk
+    past the guard and die at `from mem0 import Memory` with
+    ModuleNotFoundError instead of skipping — a red run that says nothing
+    about the code.
+    """
+    pytest.importorskip("mem0", reason="mem0ai is in the optional [memory] extra")
+    if "DEEPSEEK_API_KEY" not in os.environ:
+        pytest.skip("DEEPSEEK_API_KEY not set")
+
+
 # ============================================================================
 # Init & Factory
 # ============================================================================
@@ -24,8 +39,7 @@ class TestMem0ClientInit:
 
     def test_from_config_creates_valid_client(self, tmp_path):
         """Base happy path: valid config → usable client."""
-        if "DEEPSEEK_API_KEY" not in os.environ:
-            pytest.skip("DEEPSEEK_API_KEY not set")
+        _require_mem0_and_key()
         client = Mem0Client.from_config(
             llm_provider="openai",
             llm_model="deepseek-v4-flash",
@@ -49,15 +63,13 @@ class TestMem0ClientInit:
 
     def test_from_config_defaults(self, tmp_path):
         """Inference 1: all defaults → still works."""
-        if "DEEPSEEK_API_KEY" not in os.environ:
-            pytest.skip("DEEPSEEK_API_KEY not set")
+        _require_mem0_and_key()
         client = Mem0Client.from_config(vector_store_path=str(tmp_path / "mem0_defaults"))
         assert client is not None
 
     def test_custom_vector_store_path_created(self, tmp_path):
         """Inference 2: custom path is auto-created if missing."""
-        if "DEEPSEEK_API_KEY" not in os.environ:
-            pytest.skip("DEEPSEEK_API_KEY not set")
+        _require_mem0_and_key()
         custom_path = tmp_path / "nested" / "custom" / "store"
         client = Mem0Client.from_config(vector_store_path=str(custom_path))
         assert custom_path.exists()
