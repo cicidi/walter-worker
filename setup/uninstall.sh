@@ -129,14 +129,35 @@ done
 fi
 
 # Clean up owned directories
+#
+# ~/.coworker is recorded as an owned dir, but it also holds data this script
+# promises to keep: analytics/ is reported as "preserved", and backups/ holds
+# the pristine snapshot --restore-pristine needs. Removing the directory whole
+# deleted both, so the closing message was false and the restore below could
+# never find its source.
 echo ""
 log "Cleaning directories..."
 python3 -c "
 import json, shutil, os
 m = json.load(open('$MANIFEST'))
+PRESERVE = {os.path.normpath(os.path.expanduser('~/.coworker')): {'analytics', 'backups'}}
 for d in reversed(sorted(m.get('owned_dirs', []))):
     d = os.path.normpath(d)
-    if os.path.isdir(d):
+    if not os.path.isdir(d):
+        continue
+    keep = PRESERVE.get(d, set())
+    if keep:
+        for entry in sorted(os.listdir(d)):
+            if entry in keep:
+                print(f'  preserved: {os.path.join(d, entry)}')
+                continue
+            p = os.path.join(d, entry)
+            try:
+                shutil.rmtree(p) if os.path.isdir(p) else os.remove(p)
+                print(f'  removed: {p}')
+            except OSError:
+                pass  # permission issue — leave it
+    else:
         try:
             shutil.rmtree(d)
             print(f'  removed dir: {d}')
