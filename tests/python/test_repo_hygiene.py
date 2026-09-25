@@ -153,3 +153,39 @@ def test_no_bash_substitution_inside_python3_c_blocks():
         "bash-active characters inside python3 -c blocks:\n  "
         + "\n  ".join(offenders)
     )
+
+
+def test_the_two_scripts_agree_on_which_hooks_are_ours():
+    """install.sh and uninstall.sh each carry the list of hooks we own.
+
+    install.sh claims them for the manifest; uninstall.sh removes them, and has
+    to know them independently because the manifest goes stale — `coworker
+    sync` adds state-update without rewriting it. Two copies of one fact is how
+    the manifest and the removal drifted apart in the first place, so this
+    fails when they diverge rather than waiting for someone to notice a hook
+    that survived uninstall.
+    """
+    import re
+
+    def ours(text: str, pattern: str) -> set[str]:
+        m = re.search(pattern, text)
+        assert m, f"no hook list matching {pattern!r}"
+        return set(re.findall(r"'([^']+)'", m.group(1)))
+
+    install = (ROOT / "setup" / "install.sh").read_text(encoding="utf-8")
+    uninstall = (ROOT / "setup" / "uninstall.sh").read_text(encoding="utf-8")
+
+    install_cmds = ours(install, r"OUR_HOOK_CMDS = \(([^)]*)\)")
+    uninstall_cmds = ours(uninstall, r"OUR_CMDS = \{([^}]*)\}")
+
+    assert install_cmds == uninstall_cmds, (
+        "the two scripts disagree on which hook commands are ours: "
+        f"install-only {sorted(install_cmds - uninstall_cmds)}, "
+        f"uninstall-only {sorted(uninstall_cmds - install_cmds)}"
+    )
+
+    # And the path they consider ours.
+    for name, text in (("install.sh", install), ("uninstall.sh", uninstall)):
+        assert "/.coworker/analytics/hooks/" in text, (
+            f"{name} no longer recognises our hook directory"
+        )
