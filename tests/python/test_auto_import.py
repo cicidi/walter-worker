@@ -29,6 +29,11 @@ def auto_db(monkeypatch):
 
     conn = sqlite3.connect(":memory:")
     conn.row_factory = sqlite3.Row
+    # Match production. get_db() sets this, and without it an insert whose
+    # parent row does not exist yet succeeds here and fails on a real machine —
+    # which is exactly how the importer shipped broken. A fixture that is more
+    # forgiving than production hides the bugs it exists to catch.
+    conn.execute("PRAGMA foreign_keys=ON")
     conn.executescript(SCHEMA)
     monkeypatch.setattr(ai_mod, "get_db", lambda: conn)
     yield conn
@@ -299,7 +304,10 @@ def test_import_claude_jsonl_basic(auto_db, tmp_path):
     assert stats["skill_count"] == 1  # my-skill
     assert stats["read_count"] == 1  # Read
     assert stats["write_count"] == 2  # Write + Edit
-    assert stats["bash_count"] == 0  # Bash does not count as bash in stats
+    # This asserted 0, with a comment explaining that Bash does not count as
+    # bash in stats — which described the defect rather than a decision: the
+    # insert passed a literal 0 and never incremented it.
+    assert stats["bash_count"] == 1
 
     # file_ops — Read, Write, Edit leave entries; Bash has no file_path so skipped
     file_ops = auto_db.execute(

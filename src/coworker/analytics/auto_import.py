@@ -85,6 +85,13 @@ def import_claude_jsonl(jsonl_file: Path, conn):
     file_count = 0
     read_count = 0
     write_count = 0
+    bash_count = 0
+    # file_ops.session_id references sessions(id), and the session row is only
+    # written once the loop has read the timestamp, model and cwd out of it. So
+    # these are collected here and inserted after it. Inserting them inline
+    # raised a foreign-key error on every session that touched a file, which is
+    # nearly all of them, and the caller reported success.
+    file_ops_rows: list[tuple] = []
 
     for seq, line in enumerate(lines):
         try:
@@ -130,14 +137,14 @@ def import_claude_jsonl(jsonl_file: Path, conn):
                     read_count += 1
                 elif tname in ("Write", "Edit"):
                     write_count += 1
+                elif tname == "Bash":
+                    bash_count += 1
 
                 if fpath:
                     file_type = Path(fpath).suffix.lstrip(".") or None
-                    conn.execute(
-                        """INSERT OR IGNORE INTO file_ops (session_id, call_id, op, path, file_type, project, skill_name, seq, ts)
-                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    file_ops_rows.append(
                         (sid, block.get("id", f"{sid}-{seq}"), op, fpath, file_type,
-                         jsonl_file.parent.name, active_skill, seq, ts),
+                         jsonl_file.parent.name, active_skill, seq, ts)
                     )
 
             elif btype == "tool_use" and tname not in ("Skill", "Read", "Write", "Edit", "Glob", "Bash"):
@@ -150,11 +157,20 @@ def import_claude_jsonl(jsonl_file: Path, conn):
         (sid, jsonl_file.parent.name, cwd, model, created or ""),
     )
 
+    # Now that the session row exists, the file ops can reference it.
+    for row in file_ops_rows:
+        conn.execute(
+            """INSERT OR IGNORE INTO file_ops (session_id, call_id, op, path, file_type, project, skill_name, seq, ts)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            row,
+        )
+
     conn.execute(
         """INSERT OR REPLACE INTO session_stats
            (session_id, message_count, tool_count, skill_count, read_count, write_count, bash_count, updated_at)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-        (sid, msg_count, file_count, len(_get_skills(jsonl_file)), read_count, write_count, 0, datetime.now().isoformat()),
+        (sid, msg_count, file_count, len(_get_skills(jsonl_file)), read_count, write_count,
+         bash_count, datetime.now().isoformat()),
     )
     conn.commit()
 
