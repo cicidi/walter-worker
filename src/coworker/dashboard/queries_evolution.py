@@ -54,10 +54,20 @@ def _count_pending():
 
 
 def _compute_evolution_score(skills, sessions_with_auto, total_sessions):
-    """Compute an evolution score 0-100."""
+    """Compute an evolution score 0-100.
+
+    There is no base offset. This added 30 unconditionally, so a brand-new
+    install with an empty database reported 30/100 — a score that says the
+    agent has evolved 30% before it has done anything, and which can never read
+    lower than that. The floor was arithmetic, not signal.
+
+    The skill term is capped at the number of sessions, so creating skills
+    cannot raise the score on its own: ten unused skills used to be worth 50
+    points, which measures hoarding rather than improvement.
+    """
     reuse = sessions_with_auto / max(total_sessions, 1)
     active_skills = sum(1 for s in skills if s.get("state") == "active")
-    return min(100, int(reuse * 40 + active_skills * 5 + 30))
+    return min(100, int(reuse * 40 + min(active_skills, total_sessions) * 5))
 
 
 def query_evolution_overview():

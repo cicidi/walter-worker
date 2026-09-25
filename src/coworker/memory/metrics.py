@@ -87,6 +87,14 @@ def compute_evolution_score() -> int:
     """
     data = _load_metrics()
 
+    # Nothing recorded means nothing to score. Without this the two terms below
+    # that reward the *absence* of a problem — "few corrections", "no circuit
+    # breaker trips" — paid out unconditionally, so a machine that had never run
+    # a session scored 20/100 while a real struggling agent could score 18. A
+    # score that cannot reach zero cannot measure anything.
+    if not any(data.get(key) for key in data):
+        return 0
+
     def recent_trend(key: str) -> float:
         values = [e["value"] for e in data.get(key, [])[-10:]]
         if not values:

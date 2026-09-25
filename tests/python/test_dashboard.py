@@ -765,3 +765,30 @@ class TestSkillSessionIds:
         b = client.get("/api/skill-mentions", params={"name": "my-skill"}).json()
 
         assert sorted(a) == sorted(b)
+
+
+class TestEvolutionScoreCanBeZero:
+    """The dashboard score had an unconditional +30.
+
+    A brand-new install with an empty database reported 30/100 — the agent had
+    evolved 30% before doing anything, and the score could never read lower.
+    Six unused skills on disk pushed it to 60 with still no sessions, so it was
+    partly measuring the filesystem. Reported by a tester checking each figure
+    against its source of truth rather than against "not empty".
+    """
+
+    def test_an_empty_database_scores_zero(self):
+        from coworker.dashboard.queries_evolution import _compute_evolution_score
+
+        assert _compute_evolution_score([], 0, 0) == 0
+
+    def test_skills_alone_do_not_raise_the_score(self):
+        from coworker.dashboard.queries_evolution import _compute_evolution_score
+
+        ten_unused = [{"state": "active"}] * 10
+        assert _compute_evolution_score(ten_unused, 0, 0) == 0
+
+    def test_reuse_still_moves_it(self):
+        from coworker.dashboard.queries_evolution import _compute_evolution_score
+
+        assert _compute_evolution_score([], 5, 10) > 0

@@ -89,3 +89,34 @@ class TestUnrecognisedKeysAreNotDroppedSilently:
         # asserting on the bare name would match that list too.
         assert "no storage key: bogus" in caplog.text
         assert len(_load_metrics()["skill_reuse_rate"]) == 1
+
+
+class TestAScoreWithNoDataIsZero:
+    """The score paid out for the absence of problems.
+
+    Two terms reward "few corrections" and "no circuit breaker trips", and both
+    paid unconditionally when nothing had been recorded. So a machine that had
+    never run a session scored 20/100, while a genuinely struggling agent — low
+    reuse, low first-pass, high corrections — could score 18. A metric whose
+    floor comes from arithmetic rather than measurement cannot measure.
+    """
+
+    def test_no_recorded_metrics_scores_zero(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(
+            "coworker.memory.metrics.METRICS_PATH", str(tmp_path / "absent.json")
+        )
+
+        assert compute_evolution_score() == 0
+
+    def test_a_struggling_agent_does_not_score_below_an_idle_machine(
+        self, tmp_path, monkeypatch
+    ):
+        monkeypatch.setattr(
+            "coworker.memory.metrics.METRICS_PATH", str(tmp_path / "m.json")
+        )
+        record_session_metrics("s1", {
+            "skill_reuse_rate": 0.1, "task_first_pass_rate": 0.2,
+            "memory_hit_rate": 0.1, "user_correction_rate": 0.8,
+        })
+
+        assert compute_evolution_score() > 0

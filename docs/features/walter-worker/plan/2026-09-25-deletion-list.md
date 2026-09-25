@@ -200,7 +200,7 @@ produces numbers nobody acts on.
 
 ## C. Over-engineered or rarely used — candidates, not conclusions
 
-### C1. `_sync_mcp` is union-only — outdated MCP servers can never be removed
+### C1. `_sync_mcp` is union-only — **DONE**
 
 `adapters/claude.py:97` merges by name and never removes. The comment makes the
 intent explicit: refusing to delete entries the user may have added is the safe
@@ -208,12 +208,15 @@ direction. That is correct as a default and wrong as a permanent limit — a
 server that has been retired from `coworker.yaml` lives in `~/.claude.json`
 forever, which is the `[MCPPrune]` gap.
 
-Not a bug. Wants a deliberate `--prune-mcp` (or a managed-vs-user distinction),
-not a change to the default.
+**Resolved by a managed-vs-user distinction**, without a flag. Each adapter
+records what it wrote, keyed by the file it wrote it into, and prunes only
+entries that are still byte-for-byte what it wrote and are no longer produced.
+Anything the user added, or has since edited, is never touched. Implemented for
+all three adapters at once, because opencode was not union-only at all — it
+assigned the map outright and deleted every server the user had added, on every
+sync. Its test asserted that replacement, and is inverted with the reasoning.
 
-*Confidence: high on the behaviour, medium on the fix shape.*
-
-### C2. Two evolution scores, disagreeing — needs a ruling, not a patch
+### C2. Two evolution scores, disagreeing — **partly DONE**
 
 `evolution_score` and `skill_reuse_rate` are each computed twice, differently,
 from different sources. Both surfaces are live, so the dashboard and
@@ -237,14 +240,19 @@ Three consequences worth separating:
 3. The +30 base means the dashboard can never show 0, so a fresh install reads
    as 30% evolved.
 
-Not patched here: which score is authoritative is a product decision, and the
-spec's own signature — `compute_evolution_score(skills, experiences,
-total_sessions)` — matches neither implementation exactly, so the spec needs a
-ruling too. `memory/metrics.py` additionally reads a store that nothing writes
-(see B4), so until capture lands it will report 0 while the dashboard reports
-30-plus.
+**Fixed the part that was not a judgement call**: neither score can now be
+non-zero without data. The dashboard's unconditional `+30` is gone, so an empty
+database reads 0 rather than 30, and its skill term is capped at the session
+count so ten unused skills no longer add 50 points. `metrics.py` returns 0 when
+nothing has been recorded, instead of paying out for the *absence* of
+corrections and circuit trips — which is how an untouched machine scored 20
+while a struggling agent scored 18.
 
-*Confidence: high on the divergence; the resolution is a design call.*
+**Still open**: the two remain separate implementations from different sources,
+so the numbers will still differ once both have data. Merging them needs the
+spec's own signature — `compute_evolution_score(skills, experiences,
+total_sessions)` — to match an implementation, and neither does. That is a
+design ruling, not a defect.
 
 ### C3. Documented-but-absent commands
 
