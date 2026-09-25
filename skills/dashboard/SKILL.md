@@ -1,20 +1,24 @@
 ---
 name: dashboard
+version: 0.1.0
 description: |
   Use when viewing analytics, starting the web dashboard, importing session
   data, or managing the analytics daemon. Use when the user asks for
   dashboard, analytics, session stats, or data import.
+triggers:
+  - dashboard
+  - analytics
+  - session stats
+  - import sessions
+  - analytics dashboard
+  - show dashboard
+  - data import
+when-to-use: >
+  Use when starting the web analytics dashboard, importing session data
+  one-shot or continuously, or checking analytics status and managing
+  background daemons.
 license: MIT
 compatibility: claude-code,opencode
-metadata:
-  triggers:
-    - dashboard
-    - analytics
-    - session stats
-    - import sessions
-    - analytics dashboard
-    - show dashboard
-    - data import
 ---
 
 # dashboard

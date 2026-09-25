@@ -161,7 +161,10 @@ def import_claude_jsonl(jsonl_file: Path, conn):
 
 def import_claude_hooks(session_dir: Path, conn):
     """Store metadata from Claude Code hooks session directory."""
-    sid = session_dir.name
+    # Must match _parse_session_id, which is what run_once dedups against. Using
+    # the directory name here instead would insert under an id the dedup never
+    # looks for, so every run would re-import the same session.
+    sid = _parse_session_id(session_dir)
     yaml_file = session_dir / "session.yaml"
     msgs_file = session_dir / "messages.jsonl"
     tools_file = session_dir / "tools.jsonl"

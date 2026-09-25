@@ -1,19 +1,22 @@
 ---
 name: project
+version: 0.1.0
 description: |
   Use when managing the project catalog — add, edit, remove, list, show,
   or sync projects. Use when the user mentions project catalog, adding a
   project, or syncing IDE configs.
+triggers:
+  - project
+  - project catalog
+  - add project
+  - remove project
+  - list projects
+  - sync projects
+when-to-use: >
+  Use when adding, editing, or removing a project from the catalog, listing
+  tracked projects, or syncing project context into IDE configs.
 license: MIT
 compatibility: claude-code,opencode
-metadata:
-  triggers:
-    - project
-    - project catalog
-    - add project
-    - remove project
-    - list projects
-    - sync projects
 ---
 
 # project

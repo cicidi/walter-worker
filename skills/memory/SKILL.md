@@ -5,17 +5,20 @@ description: |
   Use when searching past session memories, knowledge cards, or the code
   knowledge graph. Use when the user asks to search memory, recall past work,
   find related sessions, or query what was learned. Wraps `coworker memory query`.
+triggers:
+  - search memory
+  - memory search
+  - recall
+  - what did we learn
+  - find past session
+  - knowledge graph
+  - memory query
+when-to-use: >
+  Use when searching past session summaries for what was learned or decided,
+  finding knowledge cards on a topic or feature, querying the code knowledge
+  graph, or recalling past work before starting a related task.
 license: MIT
 compatibility: claude-code,opencode
-metadata:
-  triggers:
-    - search memory
-    - memory search
-    - recall
-    - what did we learn
-    - find past session
-    - knowledge graph
-    - memory query
 ---
 
 # memory

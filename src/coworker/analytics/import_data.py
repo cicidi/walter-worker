@@ -144,14 +144,19 @@ def import_session(session_dir: Path, conn_or_path=None):
     if not raw_imported:
         msgs_file = session_dir / "messages.jsonl"
         if msgs_file.exists():
-            for line in msgs_file.read_text().strip().split("\n"):
+            for line_no, line in enumerate(msgs_file.read_text().strip().split("\n")):
                 if not line.strip():
                     continue
                 try:
                     m = json.loads(line)
                     conn.execute(
                         "INSERT OR IGNORE INTO messages (session_id, seq, type, content, ts) VALUES (?, ?, ?, ?, ?)",
-                        (session_id, m.get("seq", 0), m.get("type", ""), m.get("content", ""), m.get("ts", "")),
+                        # messages carries UNIQUE(session_id, seq), so a constant
+                        # default would collapse every seq-less line into a single
+                        # row via INSERT OR IGNORE. Fall back to the line number,
+                        # which is unique within the file.
+                        (session_id, m.get("seq", line_no), m.get("type", ""),
+                         m.get("content", ""), m.get("ts", "")),
                     )
                 except json.JSONDecodeError:
                     continue

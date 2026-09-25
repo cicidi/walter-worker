@@ -591,21 +591,33 @@ def test_import_claude_hooks_basic(auto_db, tmp_path):
 
     session_dir = tmp_path / "hooks-session"
     session_dir.mkdir()
+    # Mirrors what the hooks actually write: common.sh emits session_id,
+    # created, ide and cwd, and on-stop.sh adds model/created.
     (session_dir / "session.yaml").write_text(
         "session_id: hooks-123\nproject: my-proj\ncwd: /tmp/proj\n"
-        "model: claude-3\ncreated: 2025-01-01\n"
+        'model: claude-3\ncreated: 2025-01-01\nide: "claude-code"\n'
     )
+    # Mirrors the real hook format: messages carry ts/seq, tools carry
+    # phase + call_id (see on-user-prompt.sh and on-pre-tool.sh).
     (session_dir / "messages.jsonl").write_text(
-        '{"type":"user"}\n{"type":"assistant"}\n'
+        '{"ts":"2025-01-01T00:00:01+0000","type":"user","seq":1,"content":"hi"}\n'
+        '{"ts":"2025-01-01T00:00:02+0000","type":"assistant","seq":2,"content":"hello"}\n'
     )
     (session_dir / "tools.jsonl").write_text(
-        '{"tool":"Read"}\n{"tool":"Write"}\n{"tool":"Bash"}\n'
+        "".join(
+            f'{{"ts":"2025-01-01T00:00:0{i}+0000","phase":"before","tool":"{tool}",'
+            f'"tool_type":"builtin","call_id":"call_{i}","seq":{i},"args":{{}}}}\n'
+            for i, tool in enumerate(["Read", "Write", "Bash"], start=3)
+        )
     )
 
     import_claude_hooks(session_dir, auto_db)
 
+    # The row id is session.yaml's session_id when present, not the directory
+    # name. run_once dedups on that same id (_parse_session_id), so the two must
+    # agree or every run would re-import this session.
     s = auto_db.execute(
-        "SELECT * FROM sessions WHERE id = ?", ("hooks-session",)
+        "SELECT * FROM sessions WHERE id = ?", ("hooks-123",)
     ).fetchone()
     assert s is not None
     assert s["ide"] == "claude-code"
@@ -614,7 +626,7 @@ def test_import_claude_hooks_basic(auto_db, tmp_path):
     assert s["model"] == "claude-3"
 
     stats = auto_db.execute(
-        "SELECT * FROM session_stats WHERE session_id = ?", ("hooks-session",)
+        "SELECT * FROM session_stats WHERE session_id = ?", ("hooks-123",)
     ).fetchone()
     assert stats is not None
     assert stats["message_count"] == 2
@@ -631,12 +643,12 @@ def test_import_claude_hooks_no_message_or_tool_files(auto_db, tmp_path):
     import_claude_hooks(session_dir, auto_db)
 
     s = auto_db.execute(
-        "SELECT * FROM sessions WHERE id = ?", ("hooks-minimal",)
+        "SELECT * FROM sessions WHERE id = ?", ("minimal-1",)
     ).fetchone()
     assert s is not None
 
     stats = auto_db.execute(
-        "SELECT * FROM session_stats WHERE session_id = ?", ("hooks-minimal",)
+        "SELECT * FROM session_stats WHERE session_id = ?", ("minimal-1",)
     ).fetchone()
     assert stats["message_count"] == 0
     assert stats["tool_count"] == 0
@@ -674,10 +686,40 @@ def test_import_claude_hooks_yaml_with_extra_fields(auto_db, tmp_path):
     import_claude_hooks(session_dir, auto_db)
 
     s = auto_db.execute(
-        "SELECT * FROM sessions WHERE id = ?", ("hooks-extra",)
+        "SELECT * FROM sessions WHERE id = ?", ("extra-1",)
     ).fetchone()
     assert s is not None
     assert s["project"] == "p"
+
+
+def test_import_claude_hooks_fallback_matches_dedup_id(auto_db, tmp_path, monkeypatch):
+    """The fallback path must insert under the same id run_once dedups against.
+
+    It previously used session_dir.name while the primary path and _parse_session_id
+    both used session.yaml's session_id. A row written under the directory name is
+    never found by dedup, so every subsequent run would re-import the session.
+    """
+    from coworker.analytics import auto_import as ai_mod
+
+    session_dir = tmp_path / "hooks-fallback"
+    session_dir.mkdir()
+    (session_dir / "session.yaml").write_text("session_id: fallback-1\nproject: p\n")
+
+    def boom(*args, **kwargs):
+        raise RuntimeError("simulate full import failure")
+
+    monkeypatch.setattr("coworker.analytics.import_data.import_session", boom)
+    ai_mod.import_claude_hooks(session_dir, auto_db)
+
+    assert auto_db.execute(
+        "SELECT * FROM sessions WHERE id = ?", ("fallback-1",)
+    ).fetchone() is not None, "fallback must insert under the dedup id"
+    assert auto_db.execute(
+        "SELECT * FROM sessions WHERE id = ?", ("hooks-fallback",)
+    ).fetchone() is None, "must not insert under the directory name"
+
+    # Dedup recognises it, so a second pass skips rather than re-importing.
+    assert ai_mod._parse_session_id(session_dir) == "fallback-1"
 
 
 # ===================================================================
