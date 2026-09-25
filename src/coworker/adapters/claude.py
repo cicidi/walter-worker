@@ -163,7 +163,9 @@ def sync(config: CoworkerConfig, project_dir: Path | None = None) -> list[str]:
         actions.extend(mcp_actions)
     existing.pop("mcpServers", None)
     existing.pop("effortLevel", None)
-    existing.pop("skipDangerousModePermissionPrompt", None)
+    # skipDangerousModePermissionPrompt is deliberately not touched. It is the
+    # user's own setting and security-relevant; popping it made their
+    # configuration disappear silently on every sync.
 
     # State-update hook (correctly-shaped — already fixed in prior WIP)
     existing.setdefault("hooks", {})

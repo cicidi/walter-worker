@@ -396,7 +396,9 @@ def test_sync_stale_mcp_from_settings_removed(tmp_path, monkeypatch):
     data = json.loads(settings.read_text())
     assert "mcpServers" not in data
     assert "effortLevel" not in data
-    assert "skipDangerousModePermissionPrompt" not in data
+    # skipDangerousModePermissionPrompt used to be asserted here. It is the
+    # user's own security-relevant setting and is no longer removed — see
+    # test_sync_preserves_user_settings_it_does_not_own.
 
 
 def test_sync_stop_hook_added(tmp_path, monkeypatch):
@@ -1030,3 +1032,35 @@ def test_build_feature_block_with_empty_string_fields_not_rendered():
     assert "### Testing" not in block
     # description is falsy when empty, so it won't be rendered
     assert "> " not in block
+
+
+def test_sync_preserves_user_settings_it_does_not_own(tmp_path, monkeypatch):
+    """sync() must not strip settings the user set.
+
+    It popped skipDangerousModePermissionPrompt from ~/.claude/settings.json on
+    every run, so a user's own configuration disappeared without notice — and
+    unlike the CLAUDE.md claims elsewhere ("your own content is never touched"),
+    nothing said so.
+    """
+    home = tmp_path / "home"
+    claude_dir = home / ".claude"
+    claude_dir.mkdir(parents=True)
+    settings = claude_dir / "settings.json"
+    settings.write_text(json.dumps({
+        "skipDangerousModePermissionPrompt": True,
+        "theme": "dark",
+    }))
+
+    monkeypatch.setattr(claude, "CLAUDE_GLOBAL_DIR", claude_dir)
+    monkeypatch.setattr(claude, "CLAUDE_GLOBAL_SETTINGS", settings)
+    monkeypatch.setattr(claude, "CLAUDE_GLOBAL_SKILLS", claude_dir / "skills")
+    monkeypatch.setattr(claude, "CLAUDE_GLOBAL_MCP", home / ".claude.json")
+    monkeypatch.setattr(claude.backup, "snapshot", lambda files, tag: None)
+
+    claude.sync(CoworkerConfig())
+
+    data = json.loads(settings.read_text())
+    assert data.get("skipDangerousModePermissionPrompt") is True, (
+        "sync() removed a setting the user had set"
+    )
+    assert data.get("theme") == "dark"
