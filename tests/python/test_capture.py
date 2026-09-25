@@ -172,3 +172,45 @@ class TestSkillThresholdIsConfigurable:
 
         monkeypatch.delenv("COWORKER_SKILL_THRESHOLD", raising=False)
         assert _get_skill_threshold() == 10
+
+
+class TestMemoriesAreTaggedWithTheRealProject:
+    """Capture tagged every memory with the literal "walter-worker".
+
+    That is the tool's own name, not the project the session ran in. So
+    `memory search --project <their project>` matched nothing the capture stage
+    had stored, and the injected snapshot was labelled with someone else's
+    project name. inject.build_snapshot filtered on the same literal, which is
+    why the two agreed and nothing looked wrong.
+    """
+
+    def test_the_transcript_names_the_project(self, tmp_path):
+        from coworker.memory.capture import project_cwd, resolve_project
+
+        transcript = '{"cwd": "/home/x/project/my-app"}\n{"cwd": "/other"}'
+        assert resolve_project(project_cwd(transcript)) == "my-app"
+
+    def test_a_transcript_without_a_cwd_falls_back(self):
+        from coworker.memory.capture import project_cwd, resolve_project
+
+        assert project_cwd("not json\n") == ""
+        assert resolve_project("") == "walter-worker"
+
+    def test_the_reader_filters_on_the_same_project(self, monkeypatch, tmp_path):
+        """inject must look for what capture wrote, not for the tool's name."""
+        from coworker.memory import inject
+
+        seen = {}
+
+        class _Mem0:
+            def search(self, **kw):
+                seen.update(kw.get("filters") or {})
+                return []
+
+        (tmp_path / "my-app").mkdir()
+        monkeypatch.chdir(tmp_path / "my-app")
+        inject.build_snapshot(_Mem0())
+
+        assert seen.get("project") == "my-app", (
+            "the snapshot filters on the cwd's project, which is what capture tags"
+        )

@@ -17,6 +17,27 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
+def project_cwd(transcript_text: str) -> str:
+    """The cwd a session transcript records, or empty when it names none."""
+    for line in (transcript_text or "").splitlines():
+        try:
+            obj = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(obj, dict) and obj.get("cwd"):
+            return obj["cwd"]
+    return ""
+
+
+def resolve_project(cwd: str = "") -> str:
+    """Project name for a session, from its cwd.
+
+    The fallback keeps the snapshot filter working when nothing names a
+    project, rather than silently matching nothing.
+    """
+    return Path(cwd).name if cwd else "walter-worker"
+
+
 def _get_skill_threshold() -> int:
     """Minimum tool calls before a session can produce a skill candidate.
 
@@ -186,7 +207,7 @@ def process_turn(
                     run_id=session_id,
                     metadata={
                         "type": lesson.get("type", "lesson"),
-                        "project": "walter-worker",
+                        "project": resolve_project(tool_event.get("cwd", "")),
                         "topic": lesson.get("topic", ""),
                         "problem": lesson.get("problem", ""),
                         "provenance": "agent",
@@ -279,7 +300,7 @@ def process_session_end(
                     run_id=session_id,
                     metadata={
                         "type": lesson.get("type", "lesson"),
-                        "project": "walter-worker",
+                        "project": resolve_project(project_cwd(transcript_text)),
                         "topic": lesson.get("topic", ""),
                         "problem": lesson.get("problem", ""),
                         "provenance": "agent",

@@ -16,7 +16,7 @@ MARKER_START = "<!-- MEMORY:{project} START -->"
 MARKER_END = "<!-- MEMORY:{project} END -->"
 
 
-def build_snapshot(mem0_client, project: str = "walter-worker", top_k: int = 10) -> str:
+def build_snapshot(mem0_client, project: str | None = None, top_k: int = 10) -> str:
     """Build a memory snapshot block for injection into CLAUDE.local.md.
 
     Args:
@@ -27,6 +27,12 @@ def build_snapshot(mem0_client, project: str = "walter-worker", top_k: int = 10)
     Returns:
         Markdown-formatted snapshot string with markers.
     """
+    # The project the session is in, which is what capture tags memories with.
+    # This defaulted to the literal "walter-worker" — the tool's own name — so
+    # on any other project the filter matched nothing capture had stored, and
+    # every snapshot was labelled with someone else's project name.
+    project = project or Path.cwd().name
+
     try:
         results = mem0_client.search(
             query="project context knowledge convention preference",
@@ -53,7 +59,8 @@ def build_snapshot(mem0_client, project: str = "walter-worker", top_k: int = 10)
     return "\n".join(lines)
 
 
-def inject_into_local_md(local_md_path: str, snapshot: str, project: str = "walter-worker") -> bool:
+def inject_into_local_md(local_md_path: str, snapshot: str, project: str | None = None) -> bool:
+    project = project or Path.cwd().name
     """Inject (or replace) a memory snapshot block in CLAUDE.local.md.
 
     Args:
@@ -103,7 +110,8 @@ def inject_into_local_md(local_md_path: str, snapshot: str, project: str = "walt
     return True
 
 
-def remove_snapshot(local_md_path: str, project: str = "walter-worker") -> bool:
+def remove_snapshot(local_md_path: str, project: str | None = None) -> bool:
+    project = project or Path.cwd().name
     """Remove the memory snapshot block from CLAUDE.local.md.
 
     Returns True if the block was found and removed.
