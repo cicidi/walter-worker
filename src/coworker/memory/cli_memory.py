@@ -41,21 +41,50 @@ def register_memory_commands(main_group: click.Group) -> None:
 
     @memory.command("init")
     @click.option("--graphify-dir", default=None, help="Path to graphify-out/ directory")
-    def memory_init(graphify_dir):
+    @click.option(
+        "--force",
+        is_flag=True,
+        help="Rebuild from scratch, discarding the graph already on disk",
+    )
+    def memory_init(graphify_dir, force):
         """Initialize the memory graph from Graphify output.
 
         Creates ~/.coworker/memory/graph.json seeded with code/document
-        structure from Graphify. Safe to re-run — existing edges are preserved.
+        structure from Graphify.
+
+        It will not touch a graph that already holds nodes. This builds a fresh
+        graph and saves it over the file, so re-running it erased everything the
+        memory platform had accumulated — and it used to claim existing edges
+        were preserved, which was never true. `coworker memory sync` is the
+        command that merges new Graphify output into an existing graph.
         """
         from pathlib import Path
         from coworker.memory.graphify_sync import init_graph_from_graphify
-        from coworker.memory.storage import save_graph
+        from coworker.memory.storage import GRAPH_PATH, load_graph, save_graph
+
+        existing = load_graph()
+        if existing.nodes and not force:
+            console.print(
+                f"[yellow]Graph already holds {len(existing.nodes)} node(s); "
+                f"leaving it alone.[/yellow]"
+            )
+            console.print(
+                "  [cyan]coworker memory sync[/cyan] merges new Graphify output into it."
+            )
+            console.print(
+                "  [cyan]--force[/cyan] rebuilds from scratch and discards it."
+            )
+            return
 
         gf_path = Path(graphify_dir) if graphify_dir else None
         if gf_path:
             gf_path = gf_path / "graph.json" if gf_path.is_dir() else gf_path
 
         graph = init_graph_from_graphify(gf_path)
+        if existing.nodes:
+            from .. import backup
+
+            backup.snapshot([GRAPH_PATH], "memory-init")
         save_graph(graph)
         console.print(
             f"[green]Graph initialized:[/green] {len(graph.nodes)} nodes, "

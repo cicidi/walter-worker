@@ -2024,3 +2024,46 @@ class TestInitProjectPreservesLocalEdits:
         out = local.read_text()
         assert "never deploy on Friday" in out
         assert "My Own Notes" in out
+
+
+class TestMemoryInitDoesNotClobberTheGraph:
+    """`memory init` rebuilt graph.json from scratch and saved over it.
+
+    Its docstring claimed "Safe to re-run — existing edges are preserved",
+    which was never true: it constructs a fresh graph and writes it. A tester
+    closed a session, saw 1 node, ran init, and the graph was gone — with no
+    backup and no Graphify output to rebuild from, so it was replaced with
+    nothing.
+    """
+
+    def _populate(self, monkeypatch, tmp_path):
+        from coworker.memory.graph import Graph, Node
+        from coworker.memory.storage import save_graph
+
+        path = tmp_path / "graph.json"
+        g = Graph()
+        g.nodes.append(Node(id="kept", type="session", provenance="capture", label="a real node"))
+        save_graph(g, path)
+        monkeypatch.setattr("coworker.memory.storage.GRAPH_PATH", path)
+        return path
+
+    def test_refuses_to_overwrite_a_populated_graph(self, monkeypatch, tmp_path):
+        from coworker.memory.storage import load_graph
+
+        path = self._populate(monkeypatch, tmp_path)
+
+        result = runner.invoke(main, ["memory", "init"])
+
+        assert result.exit_code == 0, result.output
+        assert "leaving it alone" in result.output
+        assert [n.id for n in load_graph(path).nodes] == ["kept"]
+
+    def test_force_rebuilds(self, monkeypatch, tmp_path):
+        from coworker.memory.storage import load_graph
+
+        path = self._populate(monkeypatch, tmp_path)
+
+        result = runner.invoke(main, ["memory", "init", "--force"])
+
+        assert result.exit_code == 0, result.output
+        assert load_graph(path).nodes == []

@@ -181,3 +181,20 @@ def _isolate_managed_mcp_store(tmp_path, monkeypatch):
         "coworker.adapters.claude._managed_mcp_path",
         lambda: tmp_path / "mcp-managed.json",
     )
+
+
+@pytest.fixture(autouse=True)
+def _isolate_backup_root(tmp_path, monkeypatch):
+    """Keep snapshots out of the real ~/.coworker/backups.
+
+    snapshot() mirrors files into the user's own backup directory, and several
+    commands take one as ordinary operation — `init`, `upgrade`, `sync`, and
+    `memory init --force`. So any test that runs one deposits a real,
+    timestamped directory in the user's home: a memory-init test left one
+    behind before this existed.
+
+    Tests that assert on backups patch coworker.backup.BACKUP_ROOT or
+    coworker.backup.snapshot themselves; their patch runs after this one and
+    wins, so they are unaffected.
+    """
+    monkeypatch.setattr("coworker.backup.BACKUP_ROOT", tmp_path / "backups")
