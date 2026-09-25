@@ -23,6 +23,9 @@ def _isolate_circuit_breaker(tmp_path, monkeypatch):
     monkeypatch.setattr(
         safety, "_circuit_state_path", lambda: tmp_path / "circuit_state.json"
     )
+    # approve() promotes into the active skills dir; without this the tests
+    # write real skills into ~/.coworker/skills/.
+    monkeypatch.setattr(pending, "DEFAULT_ACTIVE_DIR", str(tmp_path / "skills"))
 
 
 class TestStageListApproveReject:

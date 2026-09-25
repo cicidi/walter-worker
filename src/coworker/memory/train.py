@@ -7,13 +7,16 @@ identifies the top 10 skills and experiences.
 
 from __future__ import annotations
 
-import json
 import logging
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
+# Batch training has no live session, but staged skills must carry a
+# source_session or _sandbox_check rejects them at approval.
+TRAINING_SESSION = "training-pipeline"
 
 
 def run_training_pipeline(
@@ -46,6 +49,7 @@ def run_training_pipeline(
     Returns:
         Stats dict with sessions_processed, lessons_extracted, skills_staged, etc.
     """
+    from coworker.memory.pending import stage_skill
     from coworker.memory.engine import extract_and_store
     from coworker.analytics.db import list_all_sessions as db_list_sessions
     from coworker.analytics.db import get_transcript as db_get_transcript
@@ -133,19 +137,26 @@ def run_training_pipeline(
     top_skills = [(name, count) for name, count in skill_freq.most_common(target_skills) if count >= 3]
 
     # 4. Stage top skills
-    pending_dir = Path.home() / ".coworker" / "pending" / "skills"
-    pending_dir.mkdir(parents=True, exist_ok=True)
+    #
+    # Through pending.stage_skill, not a hand-written payload: that applies the
+    # circuit breaker, and it records source_session, which _sandbox_check
+    # requires. This wrote the file itself with "source" instead, so every skill
+    # the training pipeline staged was rejected at approval as
+    # "Missing source_session in skill metadata".
     for name, count in top_skills:
-        skill_id = name.replace(" ", "-").lower()
-        payload = {
-            "name": name,
-            "description": f"Auto-detected reusable task pattern (appeared in {count} sessions)",
-            "tool_call_count": count,
-            "source": "training-pipeline",
-            "staged_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "status": "pending",
-        }
-        (pending_dir / f"{skill_id}.json").write_text(json.dumps(payload, indent=2))
+        try:
+            stage_skill(
+                name=name,
+                description=(
+                    f"Auto-detected reusable task pattern "
+                    f"(appeared in {count} sessions)"
+                ),
+                tool_call_count=count,
+                session_id=TRAINING_SESSION,
+            )
+        except RuntimeError as exc:
+            logger.warning("Skill not staged: %s", exc)
+            continue
         stats["skills_staged"] += 1
         logger.info("Staged skill: %s (frequency: %d)", name, count)
 
@@ -177,11 +188,11 @@ def run_training_pipeline(
 
     return stats
 
+
 def auto_generate_skills(mem0_client, llm_client, db, min_occurrences: int = 3) -> list[str]:
     """Auto-generate skills from repeated task patterns (TR-1)."""
-    import json
-    from pathlib import Path
-    from datetime import datetime, timezone
+    from coworker.memory.pending import stage_skill
+
     lessons = []
     try:
         results = mem0_client.search(query=".", filters={"type": "lesson"}, top_k=200)
@@ -200,13 +211,17 @@ def auto_generate_skills(mem0_client, llm_client, db, min_occurrences: int = 3) 
     for topic, count in freq.most_common(10):
         if count >= min_occurrences:
             skill_id = topic.replace(" ", "-").lower()[:40]
-            pending_dir = Path.home() / ".coworker" / "pending" / "skills"
-            pending_dir.mkdir(parents=True, exist_ok=True)
-            payload = {
-                "name": skill_id, "description": f"Auto-generated from {count} repeated patterns",
-                "tool_call_count": count, "source": "auto-generation", "status": "pending",
-                "staged_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            }
-            (pending_dir / f"{skill_id}.json").write_text(json.dumps(payload, indent=2))
+            # Same reason as step 4 above: the gate lives in stage_skill, and so
+            # does the source_session the sandbox check requires.
+            try:
+                stage_skill(
+                    name=skill_id,
+                    description=f"Auto-generated from {count} repeated patterns",
+                    tool_call_count=count,
+                    session_id=TRAINING_SESSION,
+                )
+            except RuntimeError as exc:
+                logger.warning("Skill not generated: %s", exc)
+                continue
             generated.append(skill_id)
     return generated

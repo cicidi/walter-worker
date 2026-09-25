@@ -15,6 +15,10 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 DEFAULT_PENDING_DIR = "~/.coworker/pending/skills"
+# Where approve() promotes a skill to. A module constant like the one above so
+# tests can redirect it; it was hardcoded to Path.home(), so exercising approve
+# wrote real skills into the user's ~/.coworker/skills/.
+DEFAULT_ACTIVE_DIR = "~/.coworker/skills"
 AUTO_EXPIRE_DAYS = 30
 
 
@@ -64,7 +68,7 @@ def _promote_to_active(data: dict) -> None:
     if not skill_name:
         return
     skill_id = skill_name.replace(" ", "-").lower()
-    active_dir = Path.home() / ".coworker" / "skills" / skill_id
+    active_dir = Path(DEFAULT_ACTIVE_DIR).expanduser() / skill_id
     active_dir.mkdir(parents=True, exist_ok=True)
 
     # Write SKILL.md stub
