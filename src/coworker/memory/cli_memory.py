@@ -5,11 +5,30 @@ Wired into the main coworker CLI via register_memory_commands(main).
 
 from __future__ import annotations
 
+import os
+from pathlib import Path
+
 import click
 from rich.console import Console
 from rich.table import Table
 
 console = Console()
+
+
+def _short_path(path: str) -> str:
+    """Show a source path relative to the working directory when it is under it.
+
+    This used to strip a hardcoded absolute checkout prefix, so it only ever
+    shortened anything on the machine that prefix named; everywhere else the
+    full path was printed instead.
+    """
+    if not path:
+        return ""
+    try:
+        rel = os.path.relpath(path, Path.cwd())
+    except ValueError:  # Windows: path and cwd on different drives
+        return path
+    return path if rel.startswith("..") else rel
 
 
 def register_memory_commands(main_group: click.Group) -> None:
@@ -141,7 +160,7 @@ def register_memory_commands(main_group: click.Group) -> None:
             t.add_column("W", justify="right")
             for i, r in enumerate(graph_results, 1):
                 label = r.get("label", "")[:120]
-                source = (r.get("source_file") or "").replace("/home/cicidi/project/walter-worker/", "")
+                source = _short_path(r.get("source_file") or "")
                 t.add_row(
                     str(i), label, r.get("type", ""),
                     source[:50] if source else "",

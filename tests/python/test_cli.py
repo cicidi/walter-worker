@@ -6,6 +6,7 @@ import yaml
 from click.testing import CliRunner
 
 from coworker.cli import main
+from coworker.memory.cli_memory import _short_path
 from coworker.memory.curator import is_due, mark_ran
 
 
@@ -1715,3 +1716,28 @@ class TestMemorySubcommands:
         assert result.exit_code == 0, result.output
         assert state.exists(), "a due run must record that it ran"
         assert is_due(state_path=state) is False
+
+
+class TestShortPath:
+    """Source paths in `memory query` output are shown relative to cwd.
+
+    The display stripped a hardcoded absolute checkout prefix, so it shortened
+    nothing on any machine except the one that prefix named — everywhere else
+    the unwieldy full path was printed into a 50-char table cell.
+    """
+
+    def test_shortens_a_path_under_the_working_directory(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        target = tmp_path / "src" / "coworker" / "cli.py"
+        assert _short_path(str(target)) == "src/coworker/cli.py"
+
+    def test_leaves_a_path_outside_the_working_directory_alone(
+        self, tmp_path, monkeypatch
+    ):
+        # relpath would answer "../../../somewhere/else/file.py", which is
+        # longer than the path it replaced and useless in a narrow column.
+        monkeypatch.chdir(tmp_path)
+        assert _short_path("/somewhere/else/file.py") == "/somewhere/else/file.py"
+
+    def test_empty_stays_empty(self):
+        assert _short_path("") == ""

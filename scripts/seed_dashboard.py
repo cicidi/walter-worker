@@ -28,6 +28,9 @@ BRANCHES = [
     "fix/config-sync", "feat/init-system", "main",
     "chore/update-deps", "docs/api-reference", "refactor/adapters",
 ]
+# Where the simulated projects live. This was the author's absolute path, so
+# the seeded sessions pointed at a directory that exists on no other machine.
+PROJECTS_ROOT = Path.home() / "project"
 FEATURES = [
     "dashboard-v1", "listener-v1", "knowledge-skill",
     "init-system", "core-architecture", None,
@@ -243,7 +246,7 @@ def generate_session_yaml(session_dir: Path, session_id: str, ide: str, project:
                           start: datetime, duration_min: int):
     created = start.strftime("%Y-%m-%dT%H:%M:%S+08:00")
     closed = (start + timedelta(minutes=duration_min)).strftime("%Y-%m-%dT%H:%M:%S+08:00")
-    cwd = f"/home/cicidi/project/{project}"
+    cwd = str(PROJECTS_ROOT / project)
 
     (session_dir / "session.yaml").write_text(
         f'session_id: "{session_id}"\n'
@@ -299,7 +302,7 @@ def generate_tool_calls(project: str, start: datetime, duration_min: int, base_s
         cid = f"call_exp_{seq}"
         ts = (start + timedelta(seconds=int(seq * interval))).strftime("%Y-%m-%dT%H:%M:%S+08:00")
         tool = random.choice(["Read", "Glob", "Grep"])
-        args = {"filePath" if tool == "Read" else "pattern": f"/home/cicidi/project/{project}/{f}"}
+        args = {"filePath" if tool == "Read" else "pattern": f"{PROJECTS_ROOT / project / f}"}
         tools.append(("before", cid, tool, "builtin", None, seq, ts, args))
 
         seq += 1
@@ -330,7 +333,7 @@ def generate_tool_calls(project: str, start: datetime, duration_min: int, base_s
         seq += 1
         cid = f"call_impl_{seq}"
         ts = (start + timedelta(seconds=int(seq * interval))).strftime("%Y-%m-%dT%H:%M:%S+08:00")
-        args = {"filePath": f"/home/cicidi/project/{project}/{f}",
+        args = {"filePath": f"{PROJECTS_ROOT / project / f}",
                 "oldString": "old code block" if tool == "Edit" else None,
                 "newString": "new code block"}
         tools.append(("before", cid, tool, "builtin", None, seq, ts, args))
