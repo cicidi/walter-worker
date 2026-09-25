@@ -1859,3 +1859,42 @@ class TestStateUpdateWritesToTheProjectRoot:
         result = runner.invoke(main, ["state-update", "mytask"])
         assert result.exit_code == 0, result.output
         assert not (outside / "docs").exists()
+
+
+class TestSyncReportsFailureHonestly:
+    """sync printed "Done." in green after an adapter had already failed.
+
+    The ✗ line scrolled past and the last thing on screen — and the only
+    summary — said the opposite. Exit status stays 0 on purpose: install.sh
+    runs `coworker sync && ok "Config synced to all tools"` under set -e, and
+    a non-zero exit there aborts the install before Step 16 writes the
+    manifest. So the summary is what has to carry the truth.
+    """
+
+    def _fail_claude(self, monkeypatch):
+        import coworker.adapters.claude as claude
+
+        def raise_error(config, project_dir=None):
+            raise RuntimeError("disk full")
+
+        monkeypatch.setattr(claude, "sync", raise_error)
+
+    def test_failure_is_the_last_thing_said(self, monkeypatch, temp_coworker_dir):
+        self._fail_claude(monkeypatch)
+        result = runner.invoke(main, ["sync", "--tool", "claude"])
+
+        assert result.exit_code == 0, "install.sh depends on this staying 0"
+        assert "Done." not in result.output, "must not claim success after a failure"
+        assert "claude" in result.output
+        assert "disk full" in result.output
+
+    def test_clean_run_still_says_done(self, monkeypatch, temp_coworker_dir):
+        import coworker.adapters.claude as claude
+
+        monkeypatch.setattr(
+            claude, "sync", lambda config, project_dir=None: ["claude: synced"]
+        )
+        result = runner.invoke(main, ["sync", "--tool", "claude"])
+
+        assert result.exit_code == 0
+        assert "Done." in result.output

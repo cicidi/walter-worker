@@ -391,6 +391,7 @@ def sync(tool, is_project, is_global):
 
     project_dir = Path.cwd() if is_project else None
 
+    failed: list[str] = []
     for t in tools:
         adapter = ADAPTERS[t]
         console.print(f"\n[bold cyan]{t}[/bold cyan]")
@@ -399,9 +400,24 @@ def sync(tool, is_project, is_global):
             for action in actions:
                 console.print(f"  [green]✓[/green] {action}")
         except Exception as e:
+            failed.append(t)
             console.print(f"  [red]✗ {e}[/red]")
 
-    console.print("\n[bold green]Done.[/bold green]")
+    # One adapter failing must not stop the others — but it must not be
+    # reported as success either. "Done." in green used to print after a ✗ had
+    # already scrolled past, so the last thing read said the opposite of what
+    # happened.
+    #
+    # The exit status stays 0 deliberately. setup/install.sh runs
+    # `coworker sync && ok "Config synced to all tools"` under `set -euo
+    # pipefail`, and Step 16 writes the install manifest after this — so a
+    # non-zero exit here aborts the install before it records what it did,
+    # leaving a half-installed machine. The summary carries the truth instead.
+    if failed:
+        console.print(f"\n[bold red]Finished with errors: {', '.join(failed)}[/bold red]")
+        console.print("  Re-run once the above is resolved: coworker sync")
+    else:
+        console.print("\n[bold green]Done.[/bold green]")
 
 
 def _scan_feature_progress(feature_name: str, project_dir: Path, config) -> dict:
