@@ -73,6 +73,11 @@ class TestTrainingStagesApprovableSkills:
         monkeypatch.setattr(pending, "DEFAULT_PENDING_DIR", str(tmp_path / "pending"))
         monkeypatch.setattr(pending, "DEFAULT_ACTIVE_DIR", str(tmp_path / "skills"))
         monkeypatch.setattr(
+            pending,
+            "DEFAULT_IDE_COMMAND_DIRS",
+            (str(tmp_path / "commands"), str(tmp_path / "instructions")),
+        )
+        monkeypatch.setattr(
             safety, "_circuit_state_path", lambda: tmp_path / "circuit.json"
         )
 

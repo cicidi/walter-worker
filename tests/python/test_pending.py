@@ -27,6 +27,12 @@ def _isolate_circuit_breaker(tmp_path, monkeypatch):
     # approve() promotes into the active skills dir; without this the tests
     # write real skills into ~/.coworker/skills/.
     monkeypatch.setattr(pending, "DEFAULT_ACTIVE_DIR", str(tmp_path / "skills"))
+    # approve() also writes the skill into the two IDE command dirs.
+    monkeypatch.setattr(
+        pending,
+        "DEFAULT_IDE_COMMAND_DIRS",
+        (str(tmp_path / "commands"), str(tmp_path / "instructions")),
+    )
 
 
 class TestStageListApproveReject:
