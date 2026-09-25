@@ -64,3 +64,50 @@ class TestReconcile:
     def test_missing_file(self, clean_mem0):
         count = reconcile(clean_mem0, "sess_x", "/nonexistent/path.txt")
         assert count == 0
+
+
+class TestReconcileDelegatesToCapture:
+    """reconcile returned 0 unconditionally, with the comment "full
+    re-extraction needs LLM" — while capture.process_session_end was exactly
+    that re-extraction, complete, tested, and called by nothing.
+    """
+
+    def _fake_mem0(self):
+        class _M:
+            def search(self, **kw):
+                return []
+
+        return _M()
+
+    def test_backfills_through_capture(self, tmp_path, monkeypatch):
+        from coworker.memory.capture import SessionEndResult
+
+        path = tmp_path / "t.txt"
+        path.write_text("x" * 600)
+
+        seen = {}
+
+        def fake_session_end(**kw):
+            seen.update(kw)
+            return SessionEndResult(reconciled=3)
+
+        monkeypatch.setattr(
+            "coworker.memory.capture.process_session_end", fake_session_end
+        )
+        monkeypatch.setattr("coworker.memory.llm.LLMClient", lambda *a, **k: object())
+
+        assert reconcile(self._fake_mem0(), "s1", str(path)) == 3
+        assert seen["session_id"] == "s1"
+        assert seen["transcript_path"] == str(path)
+
+    def test_short_transcript_still_skips_the_model(self, tmp_path, monkeypatch):
+        """The cheap guards must survive: a degenerate transcript is not worth
+        an LLM call."""
+        def explode(**kw):
+            raise AssertionError("must not call the model for a tiny transcript")
+
+        monkeypatch.setattr("coworker.memory.capture.process_session_end", explode)
+        path = tmp_path / "t.txt"
+        path.write_text("hi")
+
+        assert reconcile(self._fake_mem0(), "s1", str(path)) == 0

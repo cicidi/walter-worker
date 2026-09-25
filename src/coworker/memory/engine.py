@@ -165,10 +165,17 @@ def reconcile(
     mem0_client,
     session_id: str,
     transcript_path: str,
+    llm_client=None,
 ) -> int:
     """Back-fill any missed captures by re-extracting from transcript.
 
     Returns count of newly extracted entries.
+
+    The re-extraction is capture.process_session_end, which is the complete
+    implementation of this job — the same prompt, the same skill assessment.
+    This function used to reach the branch below and return 0 with the comment
+    "full re-extraction needs LLM", so the name promised a back-fill that
+    never happened while the code that could do it sat unused one module over.
     """
     try:
         text = Path(transcript_path).read_text()
@@ -187,12 +194,23 @@ def reconcile(
 
     existing_count = len(existing)
 
-    # If no entries exist, re-run extraction (simplified)
     if existing_count == 0 and len(text) > 500:
-        # Use a small model call to extract a few key facts
         logger.info("No existing entries for session %s; back-filling...", session_id)
-        # For now, just note the gap — full re-extraction needs LLM
-        return 0
+
+        from coworker.memory.capture import process_session_end
+
+        if llm_client is None:
+            from coworker.memory.llm import LLMClient
+
+            llm_client = LLMClient()
+
+        result = process_session_end(
+            mem0_client=mem0_client,
+            llm_client=llm_client,
+            session_id=session_id,
+            transcript_path=transcript_path,
+        )
+        return result.reconciled
 
     return 0
 

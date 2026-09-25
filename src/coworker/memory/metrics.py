@@ -46,20 +46,38 @@ def record_session_metrics(session_id: str, metrics: dict) -> None:
 
     Args:
         session_id: Session identifier.
-        metrics: Dict with any of: skills_reused, user_corrections,
-                 tasks_completed, tasks_reworked, memory_searches,
-                 memory_hits, unsafe_outputs, refusals, circuit_trips.
+        metrics: Dict with any of: skill_reuse_rate, user_correction_rate,
+                 task_first_pass_rate, memory_hit_rate, refusal_rate,
+                 unsafe_output_rate, circuit_breaker_trips. These are the
+                 spec §7 keys and the fractions compute_evolution_score reads;
+                 a name that is not one of them is reported, not dropped.
+
+    The previous docstring named counts instead — skills_reused,
+    user_corrections, tasks_completed and six more — none of which exist in
+    the store. Values under those names were discarded by the loop below with
+    no error, no warning, and no other trace, so a caller who followed the
+    documentation recorded nothing and had no way to find out.
     """
     data = _load_metrics()
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    for key in data:
-        if key in metrics:
-            data[key].append({"ts": ts, "value": metrics[key]})
+    recorded = 0
+    unknown = []
+    for key, value in metrics.items():
+        if key not in data:
+            unknown.append(key)
+            continue
+        data[key].append({"ts": ts, "value": value})
+        recorded += 1
+
+    if unknown:
+        logger.warning(
+            "Ignoring %d metric(s) with no storage key: %s. Known keys: %s",
+            len(unknown), ", ".join(sorted(unknown)), ", ".join(sorted(data)),
+        )
 
     _save_metrics(data)
-    logger.debug("Recorded metrics for session %s: %s", session_id,
-                 {k: v for k, v in metrics.items()})
+    logger.debug("Recorded %d metric(s) for session %s", recorded, session_id)
 
 
 def compute_evolution_score() -> int:

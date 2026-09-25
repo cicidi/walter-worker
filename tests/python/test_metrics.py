@@ -38,3 +38,54 @@ class TestMetricsReport:
         report = get_metrics_report()
         assert "Evolution Score" in report
         assert "Skill Reuse Rate" in report
+
+
+class TestUnrecognisedKeysAreNotDroppedSilently:
+    """record_session_metrics keeps only keys already in the store.
+
+    Its docstring listed `skills_reused`, `user_corrections`, `tasks_completed`
+    and six more — not one of which is a storage key (the spec's are the
+    *_rate fractions). So a caller who followed the documentation recorded
+    nothing at all, and got no error, no warning, and no empty file to
+    notice. The suite passed because every test used the real keys.
+    """
+
+    def test_docstring_keys_would_record_nothing(self, tmp_path, monkeypatch, caplog):
+        import logging
+
+        monkeypatch.setattr(
+            "coworker.memory.metrics.METRICS_PATH", str(tmp_path / "metrics.json")
+        )
+        with caplog.at_level(logging.WARNING):
+            record_session_metrics("s1", {"skills_reused": 3, "user_corrections": 1})
+
+        assert "skills_reused" in caplog.text, "a dropped metric must be reported"
+        assert _load_metrics()["skill_reuse_rate"] == []
+
+    def test_real_keys_record_without_complaint(self, tmp_path, monkeypatch, caplog):
+        import logging
+
+        monkeypatch.setattr(
+            "coworker.memory.metrics.METRICS_PATH", str(tmp_path / "metrics.json")
+        )
+        with caplog.at_level(logging.WARNING):
+            record_session_metrics("s1", {"skill_reuse_rate": 0.5})
+
+        assert "skills_reused" not in caplog.text
+        assert len(_load_metrics()["skill_reuse_rate"]) == 1
+
+    def test_a_partly_unknown_payload_names_only_the_unknown_keys(
+        self, tmp_path, monkeypatch, caplog
+    ):
+        import logging
+
+        monkeypatch.setattr(
+            "coworker.memory.metrics.METRICS_PATH", str(tmp_path / "metrics.json")
+        )
+        with caplog.at_level(logging.WARNING):
+            record_session_metrics("s1", {"skill_reuse_rate": 0.5, "bogus": 1})
+
+        # Named as the dropped one. The message also lists the known keys, so
+        # asserting on the bare name would match that list too.
+        assert "no storage key: bogus" in caplog.text
+        assert len(_load_metrics()["skill_reuse_rate"]) == 1

@@ -191,6 +191,13 @@ def register_memory_commands(main_group: click.Group) -> None:
             f"Shown: {len(graph_results)} + {len(vector_results)} (budget: {budget}T, min-score: {min_score})[/dim]"
         )
 
+    @memory.command("metrics")
+    def memory_metrics():
+        """Show the evolution metrics report — is the agent getting smarter?"""
+        from coworker.memory.metrics import get_metrics_report
+
+        console.print(get_metrics_report())
+
     @memory.command("stats")
     def memory_stats():
         """Show memory graph statistics."""
