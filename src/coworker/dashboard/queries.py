@@ -1,5 +1,6 @@
 from __future__ import annotations
 from ..analytics.db import get_db
+from .queries_evolution import _get_db_conn
 
 
 def query_sessions(limit: int = 50):
@@ -321,16 +322,6 @@ def query_session_errors(limit: int = 20):
 
 
 
-from .queries_evolution import (
-    query_evolution_overview, query_evolution_skills,
-    query_evolution_experiences, query_evolution_pending,
-    _get_db_conn, _list_skills, _count_agent_experiences,
-    _count_pending, _compute_evolution_score,
-)
-from .queries_analytics import (
-    query_cost_analytics, query_model_usage,
-    query_efficiency_insights, query_data_quality, query_models,
-)
 
 # ═══════════════════════════════════════════════════════
 # Restored original queries (required by dashboard.js)

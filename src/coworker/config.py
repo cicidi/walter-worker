@@ -1,10 +1,9 @@
 from __future__ import annotations
 import logging
-import os
 import re
 from pathlib import Path
 import yaml
-from .models import CoworkerConfig
+from .models import CoworkerConfig, FeatureConfig, ProjectCatalog
 
 logger = logging.getLogger(__name__)
 
@@ -162,8 +161,6 @@ def install_project_skills(project_root: Path) -> int:
 
 # ── Project Catalog ─────────────────────────────────────────────────────────
 
-from .models import ProjectCatalog
-
 PROJECT_CATALOG_PATH = GLOBAL_DIR / "project.yaml"
 
 
@@ -183,8 +180,6 @@ def save_project_catalog(catalog: ProjectCatalog) -> None:
 
 
 # ── Feature (global) ──────────────────────────────────────────────────────
-
-from .models import FeatureConfig
 
 FEATURES_DIR = GLOBAL_DIR / "features"
 # Pre-rename location. Still resolved so that upgrading the tool does not orphan

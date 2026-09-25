@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import json
 import os
-from pathlib import Path
 
 import click
 from rich.console import Console
@@ -198,7 +197,7 @@ def memory_validate(task, task_file, compare_baseline):
 
     console.print("[bold]Running validation harness...[/bold]")
     report = run_validation(task or "", task_file=task_file)
-    console.print(f"\n[bold]Results:[/bold]")
+    console.print("\n[bold]Results:[/bold]")
     console.print(f"  Baseline tool calls:     {report['baseline']['tool_calls']}")
     console.print(f"  Memory-augmented calls:  {report['with_memory']['tool_calls']}")
     console.print(f"  Tool call reduction:     {report['tool_call_reduction']}")

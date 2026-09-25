@@ -120,9 +120,13 @@ def sync_graphify_skeleton(graph: Graph, graphify_data: dict) -> int:
         ))
         added += 1
 
+    new_edge_count = len([
+        link for link in new_links
+        if (link["source"], link["target"], link.get("relation", "references"))
+        not in existing_edge_keys
+    ])
     logger.info("Graphify sync: added %d items (%d nodes, %d edges)",
-                 added, added - len([l for l in new_links if (l["source"], l["target"], l.get("relation", "references")) not in existing_edge_keys]),
-                 len([l for l in new_links if (l["source"], l["target"], l.get("relation", "references")) not in existing_edge_keys]))
+                added, new_edge_count, new_edge_count)
 
     return added
 

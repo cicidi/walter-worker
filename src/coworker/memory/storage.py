@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Any
 
 from .graph import Graph, Node, Edge
-from .confidence import confidence_to_score
 
 # Default storage paths
 MEMORY_DIR = Path.home() / ".coworker" / "memory"

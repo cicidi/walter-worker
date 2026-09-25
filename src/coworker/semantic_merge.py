@@ -12,7 +12,7 @@ same document must produce byte-identical output.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 OUTDATED = "OUTDATED"
 OVERWRITE = "OVERWRITE"

@@ -4,7 +4,6 @@ from datetime import datetime
 from pathlib import Path
 
 from ..config import (
-    GLOBAL_DIR,
     FEATURES_DIR,
     load_feature,
     save_feature,
@@ -13,7 +12,6 @@ from ..config import (
 )
 from ..models import (
     FeatureConfig,
-    FeatureProjectRef,
 )
 from ..adapters.claude import inject_feature, remove_feature
 

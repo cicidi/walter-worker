@@ -49,7 +49,7 @@ def _get_skills(jsonl_file: Path) -> set:
 def _count_jsonl_lines(path: Path) -> int:
     if not path.exists():
         return 0
-    return len([l for l in path.read_text().strip().split("\n") if l.strip()])
+    return len([line for line in path.read_text().strip().split("\n") if line.strip()])
 
 
 def _count_jsonl_skill_calls(path: Path) -> set:
@@ -311,7 +311,6 @@ def run_daemon(interval: int = POLL_INTERVAL):
 
     while True:
         stats = run_once(verbose=True)
-        total = stats["claude_jsonl"] + stats["claude_hooks"] + stats["opencode"]
         print(f"[daemon] {datetime.now().strftime('%H:%M:%S')} "
               f"claude_jsonl={stats['claude_jsonl']} claude_hooks={stats['claude_hooks']} "
               f"opencode={stats['opencode']} skipped={stats['skipped']}")

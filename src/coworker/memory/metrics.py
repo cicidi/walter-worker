@@ -52,7 +52,6 @@ def record_session_metrics(session_id: str, metrics: dict) -> None:
     """
     data = _load_metrics()
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    entry = {"session_id": session_id, "ts": ts, **metrics}
 
     for key in data:
         if key in metrics:

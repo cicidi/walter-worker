@@ -1,6 +1,5 @@
 from __future__ import annotations
 import json
-import os
 import re
 import sys
 from pathlib import Path
@@ -9,18 +8,14 @@ import yaml
 import click
 from rich.console import Console
 from rich.table import Table
-from rich.panel import Panel
-from rich import print as rprint
 
 from .config import (
     GLOBAL_DIR, GLOBAL_CONFIG, PROJECT_CONFIG_NAME,
-    load_global_config, load_project_config, merged_config, save_config,
-    load_project_catalog, save_project_catalog,
-    load_feature, save_feature, list_features, feature_exists,
+    load_global_config, load_project_config, merged_config, load_project_catalog, save_project_catalog,
+    load_feature, save_feature,
 )
 from .models import (
-    CoworkerConfig, ProjectEntry, ProjectRef, ProjectCatalog,
-    FeatureConfig, FeatureProjectRef, LinkRef, Decision, ReferenceDoc,
+    ProjectEntry, ProjectRef, FeatureProjectRef, LinkRef, Decision, ReferenceDoc,
     KnowledgePoolEntry,
 )
 from .adapters import ADAPTERS
@@ -35,7 +30,6 @@ from .templates.local_claude_md import (
 from .templates.project_claude_md import PROJECT_CLAUDE_MD_SENTINEL
 from . import backup
 from .semantic_merge import classify_sections, apply_merge, verify_protected
-from .constants import DOCS_DISCIPLINES, STATE_DIR
 from .templates.global_claude_md import generate_global_claude_md
 from .memory.cli_memory import register_memory_commands
 from .cli_analytics import register_analytics
@@ -135,12 +129,17 @@ def _scan_project() -> dict:
             deps.update(pkg.get("dependencies", {}))
             deps.update(pkg.get("devDependencies", {}))
             info["deps"] = list(deps.keys())
-            if "react" in deps: info["framework"].append("React")
-            if "next" in deps: info["framework"].append("Next.js")
-            if "express" in deps: info["framework"].append("Express")
+            if "react" in deps:
+                info["framework"].append("React")
+            if "next" in deps:
+                info["framework"].append("Next.js")
+            if "express" in deps:
+                info["framework"].append("Express")
             scripts = pkg.get("scripts", {})
-            if "test" in scripts: info["test_command"] = "npm test"
-            if "lint" in scripts: info["lint_command"] = "npm run lint"
+            if "test" in scripts:
+                info["test_command"] = "npm test"
+            if "lint" in scripts:
+                info["lint_command"] = "npm run lint"
         except Exception:
             pass
     elif (cwd / "pyproject.toml").exists():
@@ -150,10 +149,14 @@ def _scan_project() -> dict:
         info["lint_command"] = "ruff"
         try:
             pyproject = (cwd / "pyproject.toml").read_text()
-            if "fastapi" in pyproject.lower(): info["framework"].append("FastAPI")
-            if "django" in pyproject.lower(): info["framework"].append("Django")
-            if "flask" in pyproject.lower(): info["framework"].append("Flask")
-            if "click" in pyproject.lower(): info["framework"].append("Click")
+            if "fastapi" in pyproject.lower():
+                info["framework"].append("FastAPI")
+            if "django" in pyproject.lower():
+                info["framework"].append("Django")
+            if "flask" in pyproject.lower():
+                info["framework"].append("Flask")
+            if "click" in pyproject.lower():
+                info["framework"].append("Click")
         except Exception:
             pass
     elif (cwd / "go.mod").exists():
@@ -165,10 +168,14 @@ def _scan_project() -> dict:
         info["package_manager"] = "cargo"
         info["test_command"] = "cargo test"
     home = Path.home()
-    if (home / ".claude").exists(): info["ides"].append("claude")
-    if (home / ".config/opencode").exists(): info["ides"].append("opencode")
-    if (home / ".gemini").exists(): info["ides"].append("gemini")
-    if (cwd / ".cursor").exists(): info["ides"].append("cursor")
+    if (home / ".claude").exists():
+        info["ides"].append("claude")
+    if (home / ".config/opencode").exists():
+        info["ides"].append("opencode")
+    if (home / ".gemini").exists():
+        info["ides"].append("gemini")
+    if (cwd / ".cursor").exists():
+        info["ides"].append("cursor")
 
     docs_dir = cwd / "docs"
     if docs_dir.exists():
@@ -182,7 +189,6 @@ def _scan_project() -> dict:
 
     try:
         catalog = load_project_catalog()
-        current_path = str(cwd.resolve())
         rels = []
         for entry in catalog.projects:
             for ref in entry.upstream:
@@ -267,11 +273,11 @@ def init(is_global, is_project):
             else:
                 backup.snapshot([claude_md], "init")
                 claude_md.write_text(new_content)
-                console.print(f"[green]Created:[/green] CLAUDE.md (with new template)")
-                console.print(f"[dim]Backup of original CLAUDE.md taken.[/dim]")
+                console.print("[green]Created:[/green] CLAUDE.md (with new template)")
+                console.print("[dim]Backup of original CLAUDE.md taken.[/dim]")
         else:
             claude_md.write_text(new_content)
-            console.print(f"[green]Created:[/green] CLAUDE.md")
+            console.print("[green]Created:[/green] CLAUDE.md")
 
         docs_dir = Path.cwd() / "docs"
         docs_dir.mkdir(parents=True, exist_ok=True)
@@ -295,11 +301,11 @@ def init(is_global, is_project):
             local_content = update_project_info(base_content, info)
             if local_content != old_content:
                 local_md_path.write_text(local_content)
-                console.print(f"[green]Updated:[/green] CLAUDE.local.md (regenerated from latest template)")
+                console.print("[green]Updated:[/green] CLAUDE.local.md (regenerated from latest template)")
         else:
             local_content = update_project_info(generate_local_claude_md(), info)
             local_md_path.write_text(local_content)
-            console.print(f"[green]Created:[/green] CLAUDE.local.md")
+            console.print("[green]Created:[/green] CLAUDE.local.md")
             gitignore_path = Path.cwd() / ".gitignore"
             entries = ["CLAUDE.local.md", "docs/state/"]
             if not gitignore_path.exists():
@@ -398,7 +404,6 @@ def _scan_feature_progress(feature_name: str, project_dir: Path, config) -> dict
     """
     import subprocess
     import sqlite3
-    from datetime import datetime
 
     result: dict = {
         "feature": config,
@@ -442,7 +447,7 @@ def _scan_feature_progress(feature_name: str, project_dir: Path, config) -> dict
             capture_output=True, text=True, cwd=str(project_dir), timeout=5,
         )
         if r.returncode == 0:
-            lines = [l for l in r.stdout.strip().splitlines() if l]
+            lines = [line for line in r.stdout.strip().splitlines() if line]
             result["commits"] = len(lines)
     except Exception:
         pass
@@ -794,7 +799,7 @@ Describe when the AI should invoke this skill.
 3. Step three
 """)
     console.print(f"[green]Created:[/green] {skill_file}")
-    console.print(f"[dim]Add to coworker.yaml:[/dim]")
+    console.print("[dim]Add to coworker.yaml:[/dim]")
     console.print(f"  skills:\n    - name: {name}\n      path: skills/{name}")
 
 
@@ -803,7 +808,7 @@ Describe when the AI should invoke this skill.
 @click.option("--type", "item_type", default=None, help="Filter by type (lesson, convention, preference)")
 def skill_pending(approve_all, item_type):
     """List or approve pending skill review items."""
-    from .memory.pending import list_pending, batch_approve, approve
+    from .memory.pending import list_pending, batch_approve
 
     if approve_all:
         count = batch_approve(item_type)
@@ -1068,7 +1073,9 @@ def feature_create(name, description, proj_dir):
 @click.option("--archive", "do_archive", is_flag=True, default=False, help="Archive the feature")
 def feature_edit(name, proj_dir, description, add_proj, add_link_spec, add_decision_spec, add_doc_spec, do_archive):
     """Edit an existing feature."""
-    pd = Path(proj_dir) if proj_dir else Path.cwd()
+    # Feature config is global (~/.coworker/features/), so --project is not used
+    # here; the option is still accepted because the other feature subcommands
+    # take it. A resolved path was computed and discarded, which only misled.
     config = load_feature(name)
     if config is None:
         console.print(f"[red]Feature '{name}' not found.[/red]")
@@ -1140,7 +1147,7 @@ def feature_list(proj_dir, verbose):
     active = mgr.active_name()
     features = mgr.list_all()
     if not features:
-        console.print(f"[dim]No features found. Use 'coworker feature create'.[/dim]")
+        console.print("[dim]No features found. Use 'coworker feature create'.[/dim]")
         return
 
     table = Table(title="Features")
@@ -1171,7 +1178,6 @@ def feature_show(name, proj_dir):
     if config is None:
         console.print(f"[red]Feature '{name}' not found.[/red]")
         return
-    import yaml
     data = config.model_dump(exclude_none=True)
     console.print(yaml.dump(data, default_flow_style=False, allow_unicode=True))
 

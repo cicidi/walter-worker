@@ -35,7 +35,6 @@ def register_autoworker(main_group: click.Group) -> None:
         import os
         from datetime import datetime, timezone
 
-        from .memory.wrong_history import extract_rules
 
         today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         out_path = (
@@ -57,9 +56,9 @@ def register_autoworker(main_group: click.Group) -> None:
             if os.path.exists(prd_path):
                 lines = open(prd_path).readlines()
                 reqs = [
-                    l
-                    for l in lines
-                    if l.strip().startswith("- R") or "R1" in l or "R2" in l
+                    line
+                    for line in lines
+                    if line.strip().startswith("- R") or "R1" in line or "R2" in line
                 ]
                 findings.append(
                     f"## PRD Scan: {len(reqs)} requirement references found in {prd_path}"
@@ -71,7 +70,7 @@ def register_autoworker(main_group: click.Group) -> None:
             spec_path = "docs/self-evolving-agent/spec/self-evolving-agent-spec.md"
             if os.path.exists(spec_path):
                 sections = [
-                    l for l in open(spec_path).readlines() if l.startswith("## §")
+                    line for line in open(spec_path).readlines() if line.startswith("## §")
                 ]
                 findings.append(
                     f"## Spec Scan: {len(sections)} sections in {spec_path}"
@@ -104,9 +103,9 @@ def register_autoworker(main_group: click.Group) -> None:
                 ["git", "status", "--short"], capture_output=True, text=True
             )
             mods = [
-                l
-                for l in r.stdout.strip().split("\n")
-                if l.strip() and not l.startswith("??")
+                line
+                for line in r.stdout.strip().split("\n")
+                if line.strip() and not line.startswith("??")
             ]
             findings.append(f"  Uncommitted: {len(mods)} modified files")
 

@@ -94,7 +94,8 @@ def import_session(session_dir: Path, conn_or_path=None):
             try:
                 seq = 0
                 for line in raw_jsonl.read_text().strip().split("\n"):
-                    if not line.strip(): continue
+                    if not line.strip():
+                        continue
                     try:
                         d = json.loads(line)
                     except json.JSONDecodeError:

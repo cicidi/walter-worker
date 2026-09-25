@@ -9,7 +9,7 @@ EDGES only. mem0 memory cards use a DIFFERENT, step-function decay already
 implemented in memory/curator.py. The two coexist by design.
 """
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 
 
 # Protection window: no decay for first 20 days after last traversal

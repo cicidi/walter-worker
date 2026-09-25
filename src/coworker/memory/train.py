@@ -189,8 +189,11 @@ def auto_generate_skills(mem0_client, llm_client, db, min_occurrences: int = 3) 
             topic = r.get("metadata", {}).get("topic", "")
             if topic:
                 lessons.append(topic)
-    except: pass
-    
+    except Exception:
+        # Search is best-effort: finishing with no lessons beats failing the run.
+        # Narrowed from a bare `except:` so Ctrl-C and SystemExit still propagate.
+        pass
+
     from collections import Counter
     freq = Counter(lessons)
     generated = []

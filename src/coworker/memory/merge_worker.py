@@ -17,7 +17,6 @@ from .graph import Graph, Node, Edge
 from .confidence import confidence_to_score
 from .storage import (
     PENDING_DIR,
-    GRAPH_PATH,
     load_graph,
     save_graph,
     write_json_atomic,

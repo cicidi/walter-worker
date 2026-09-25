@@ -3,11 +3,9 @@ import logging
 from pathlib import Path
 from importlib.resources import files as resource_files
 
-import yaml
 
 from fastapi import FastAPI, WebSocket, HTTPException
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
 
 from . import queries
 
