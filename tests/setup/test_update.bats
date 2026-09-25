@@ -79,9 +79,16 @@ teardown() {
 # =============================================================================
 # Test: Notifies when skill-factory not installed
 # =============================================================================
-@test "notifies when the-super-lab is not installed" {
-  run grep "Run install.sh first to set it up" "$REPO_ROOT/setup/update.sh"
+@test "notifies when the-super-lab is not a git checkout" {
+  # The message used to say the directory was not found, but the test is for a
+  # .git directory — so a plain checkout landed there while sitting right
+  # there, in a run that had just deployed skills from it.
+  run grep "is not a git checkout, so it was not pulled" "$REPO_ROOT/setup/update.sh"
   [ "$status" -eq 0 ]
+
+  # And it must not claim the directory is absent.
+  run grep -c "not found at" "$REPO_ROOT/setup/update.sh"
+  [ "$output" = "0" ]
 }
 
 @test "resolves the install mode from the manifest, not coworker.yaml" {
