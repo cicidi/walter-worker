@@ -55,7 +55,55 @@ def snapshot(paths, label: str) -> Path:
     # CLI entry point for it at all.
     hint = f"backup: {n} path(s) -> {dest}  (restore: coworker restore {dest.name})"
     print(hint)
+
+    # Self-maintaining: every snapshot trims what has accumulated, so the
+    # directory stays bounded without anyone remembering to run a cleanup.
+    # The directory just written is the newest of its label and is kept.
+    dropped = prune()
+    if dropped:
+        print(f"  pruned {len(dropped)} older backup(s)")
+
     return dest
+
+
+#: Timestamped backups kept per label. Only labels that exceed this are
+#: trimmed, so a deliberate one-off snapshot survives however many runs happen.
+KEEP_PER_LABEL = 20
+
+
+def prune(keep_per_label: int = KEEP_PER_LABEL) -> list[Path]:
+    """Delete older timestamped backups, keeping the newest per label.
+
+    Nothing pruned this directory, so it grew without bound: 1623 directories
+    and 137MB on the development machine, 894 of them `json-sync` and 714
+    `upgrade` — one per changed write, over months. The rest are deliberate
+    snapshots with one or two directories each.
+
+    A label with no more than `keep_per_label` directories is left entirely
+    alone, which is what separates the two: mechanical churn accumulates and
+    gets trimmed, a considered snapshot does not. `pristine`, which uninstall
+    restores from, carries no timestamp and is never a candidate.
+    """
+    if not BACKUP_ROOT.is_dir():
+        return []
+
+    by_label: dict[str, list[Path]] = {}
+    for entry in BACKUP_ROOT.iterdir():
+        m = re.match(r"^\d{8}-\d{6}-(.+)$", entry.name)
+        if m and entry.is_dir():
+            by_label.setdefault(m.group(1), []).append(entry)
+
+    removed: list[Path] = []
+    for dirs in by_label.values():
+        if len(dirs) <= keep_per_label:
+            continue
+        for old in sorted(dirs, key=lambda p: p.name)[:-keep_per_label]:
+            try:
+                shutil.rmtree(old)
+                removed.append(old)
+            except OSError:
+                pass  # in use or permission issue — leave it
+    return removed
 
 
 def restore(backup_dir) -> list[Path]:
