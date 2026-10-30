@@ -14,6 +14,13 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+# mem0's telemetry module opens a PostHog client at import and a second one
+# lazily, so the SDK warns "Multiple active PostHog clients detected for the
+# same project API key" on every Stop hook. The setting is read when mem0 is
+# imported, so it must be defaulted before `from mem0 import Memory` runs.
+# Opt in with MEM0_TELEMETRY=true if you want to send it.
+os.environ.setdefault("MEM0_TELEMETRY", "false")
+
 
 class ConfigError(Exception):
     """Raised when mem0 configuration is invalid (missing keys, bad paths, etc.)."""
