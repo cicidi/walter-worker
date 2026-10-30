@@ -281,7 +281,11 @@ def process_session_end(
                 {"role": "user", "content": f"Session transcript:\n{transcript_text}"},
             ],
             temperature=0.2,
-            max_tokens=1000,
+            # One object holds lessons, skill candidates, graph nodes and
+            # graph edges, so 1000 was not enough: the model ran to the cap
+            # mid-string and json.loads raised "Unterminated string", failing
+            # the whole Stop hook. engine.py asks for 4000 for this prompt.
+            max_tokens=4000,
             response_format={"type": "json_object"},
         )
         data = json.loads(response.content)

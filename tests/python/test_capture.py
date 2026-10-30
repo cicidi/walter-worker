@@ -214,3 +214,51 @@ class TestMemoriesAreTaggedWithTheRealProject:
         assert seen.get("project") == "my-app", (
             "the snapshot filters on the cwd's project, which is what capture tags"
         )
+
+
+class TestSessionEndHasRoomForItsOwnResponse:
+    """process_session_end asked for 1000 output tokens.
+
+    Its prompt asks for lessons, skill candidates, graph nodes and graph edges
+    in one JSON object, so a real session ran to the cap mid-string:
+    finish_reason was "length" and json.loads raised "Unterminated string
+    starting at ...". The Stop hook then exited 1 and the capture was lost.
+    engine.py already asked for 4000 for the same prompt.
+    """
+
+    def test_a_response_larger_than_a_thousand_tokens_still_parses(self, tmp_path):
+        import json as _json
+
+        from coworker.memory import capture
+        from coworker.memory.llm import LLMResponse
+
+        transcript = tmp_path / "t.txt"
+        transcript.write_text("x" * 600)
+        full = _json.dumps(
+            {"lessons": [], "skill_candidates": [], "session_nodes": [], "session_edges": []}
+        )
+
+        class _Mem0:
+            def add(self, **kw):
+                return {"results": [{"id": "m", "memory": "x", "event": "ADD"}]}
+
+        class _LLM:
+            max_tokens = None
+
+            def chat(self, messages, **kw):
+                self.max_tokens = kw.get("max_tokens")
+                # A model that runs out of room returns a cut-off string.
+                if self.max_tokens < 4000:
+                    return LLMResponse(content=full[: len(full) // 2], model="f", provider="f")
+                return LLMResponse(content=full, model="f", provider="f")
+
+        llm = _LLM()
+        result = capture.process_session_end(
+            mem0_client=_Mem0(),
+            llm_client=llm,
+            session_id="s1",
+            transcript_path=str(transcript),
+        )
+
+        assert result.error is None, result.error
+        assert llm.max_tokens >= 4000
