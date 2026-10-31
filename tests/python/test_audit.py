@@ -37,6 +37,21 @@ class TestWriteAuditRecord:
         content = path.read_text()
         assert "error" in content
 
+    def test_a_tilde_path_is_expanded(self, tmp_path, monkeypatch):
+        """capture passes "~/.coworker/memory/", and Path() keeps the tilde.
+
+        Every record then went to a literal `~` directory under the session's
+        cwd instead of the user's home, which is how that path ended up
+        committed in the repo.
+        """
+        monkeypatch.setenv("HOME", str(tmp_path))
+        write_audit_record(
+            "~/.coworker/memory/audit.log", "stop", "sess_tilde", "session-end", 0, 1, "ok"
+        )
+        written = tmp_path / ".coworker" / "memory" / "audit.log"
+        assert written.exists()
+        assert "sess_tilde" in written.read_text()
+
 
 class TestCheckGaps:
     def test_no_file_returns_empty(self, tmp_path):
