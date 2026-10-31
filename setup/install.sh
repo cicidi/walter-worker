@@ -459,7 +459,27 @@ if [[ -n "$OPENCODE_DIR" ]]; then
     pruned=$((pruned + 1))
   done < <(find "$OPENCODE_DIR" -xtype l 2>/dev/null)
   find "$OPENCODE_DIR" -mindepth 1 -type d -empty -delete 2>/dev/null || true
-  [[ $pruned -gt 0 ]] && ok "  Pruned $pruned stale OpenCode symlink(s)"
+
+  # Retire the pre-2026 layout: an earlier release symlinked each skill as
+  # $OPENCODE_DIR/<name>/SKILL.md. Nothing reads a directory named
+  # `instructions` -- OpenCode takes skills from <config>/skill and
+  # <config>/skills, and commands from {command,commands}/**/*.md -- so these
+  # were inert the day they were written and only accumulated. Eleven of them
+  # were still sitting here.
+  #
+  # A directory goes only when its sole entry is a symlink named SKILL.md, which
+  # is exactly and only what that release produced. rmdir is the guard: it
+  # refuses a directory that turns out to hold anything else, so a guess here
+  # cannot delete real content.
+  for legacy in "$OPENCODE_DIR"/*/; do
+    [[ -d "$legacy" && ! -L "${legacy%/}" && -L "${legacy}SKILL.md" ]] || continue
+    [[ "$(find "$legacy" -mindepth 1 -maxdepth 1 | wc -l)" -eq 1 ]] || continue
+    if rm -f "${legacy}SKILL.md" && rmdir "${legacy}" 2>/dev/null; then
+      pruned=$((pruned + 1))
+    fi
+  done
+
+  [[ $pruned -gt 0 ]] && ok "  Pruned $pruned stale OpenCode entr(y|ies)"
   ok "OpenCode sync complete."
 fi
 

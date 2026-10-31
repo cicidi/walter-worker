@@ -573,3 +573,63 @@ print(','.join(bad))
 "
   [ -z "$output" ]
 }
+
+# =============================================================================
+# Test: retire the pre-2026 instructions layout
+#
+# An earlier release symlinked each skill as <name>/SKILL.md under
+# ~/.opencode/instructions. Nothing reads a directory named `instructions`:
+# OpenCode takes skills from <config>/skill and <config>/skills, and commands
+# from {command,commands}/**/*.md. Eleven inert directories had accumulated.
+# =============================================================================
+@test "retires the pre-2026 instruction directory layout" {
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  mkdir -p "$HOME/.opencode/instructions/legacy-skill"
+  ln -s "$HOME/.claude/skills/init/SKILL.md" \
+        "$HOME/.opencode/instructions/legacy-skill/SKILL.md"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ ! -e "$HOME/.opencode/instructions/legacy-skill" ]
+}
+
+@test "leaves an instruction directory holding a real file alone" {
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  # SKILL.md is a regular file here, not the symlink the old release wrote.
+  mkdir -p "$HOME/.opencode/instructions/user-thing"
+  echo "not ours" > "$HOME/.opencode/instructions/user-thing/SKILL.md"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ -f "$HOME/.opencode/instructions/user-thing/SKILL.md" ]
+}
+
+@test "leaves a one-symlink directory whose link is not named SKILL.md alone" {
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  mkdir -p "$HOME/.opencode/instructions/odd"
+  ln -s /etc/hostname "$HOME/.opencode/instructions/odd/something-else.md"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ -e "$HOME/.opencode/instructions/odd" ]
+}
+
+@test "leaves a SKILL.md symlink directory that holds a second entry alone" {
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  mkdir -p "$HOME/.opencode/instructions/two-things"
+  ln -s "$HOME/.claude/skills/init/SKILL.md" \
+        "$HOME/.opencode/instructions/two-things/SKILL.md"
+  ln -s /etc/hostname "$HOME/.opencode/instructions/two-things/extra.md"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ -e "$HOME/.opencode/instructions/two-things" ]
+}
