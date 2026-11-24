@@ -62,10 +62,12 @@ def test_foreign_hook_survives_sync(tmp_path, monkeypatch):
     commands = [h["command"] for g in out["hooks"]["Stop"]
                 for h in g.get("hooks", [])]
     assert "/user/mine.sh" in commands
-    assert "coworker state-update" in commands
+    assert "coworker state-update" not in commands
 
 
-def test_state_update_hook_deduped(tmp_path, monkeypatch):
+def test_sync_adds_no_state_update_hook(tmp_path, monkeypatch):
+    """The state-update Stop hook only ever wrote empty checkpoints, so sync no
+    longer installs it. The command itself still works when called by hand."""
     home = _temp_home(tmp_path, monkeypatch)
     settings = home / ".claude" / "settings.json"
     settings.parent.mkdir(parents=True)
@@ -79,7 +81,7 @@ def test_state_update_hook_deduped(tmp_path, monkeypatch):
     state_cmds = [h["command"] for g in out["hooks"]["Stop"]
                   for h in g.get("hooks", [])
                   if h.get("command") == "coworker state-update"]
-    assert len(state_cmds) == 1
+    assert state_cmds == []
 
 
 def test_mcp_written_to_claude_json_not_settings(tmp_path, monkeypatch):

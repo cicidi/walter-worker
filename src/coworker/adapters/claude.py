@@ -239,24 +239,25 @@ def sync(config: CoworkerConfig, project_dir: Path | None = None) -> list[str]:
     # user's configuration disappear silently on every sync. mcpServers above
     # is different — Claude Code reads MCP from ~/.claude.json, not from here.
 
-    # State-update hook (correctly-shaped — already fixed in prior WIP)
+    # Earlier releases added `coworker state-update` as a Stop hook. Called
+    # without --summary it only ever appended an empty "Progress checkpoint"
+    # line, every turn, and from an unmanaged repo it walked up to $HOME. Sync
+    # now removes it; the command still works when called by hand.
     existing.setdefault("hooks", {})
-    stop_hooks = existing["hooks"].get("Stop", [])
 
     def _is_state_update(h):
         return isinstance(h, dict) and h.get("command") == "coworker state-update"
 
-    stop_hooks = [g for g in stop_hooks if not (_is_state_update(g) and "hooks" not in g)]
-    has_state_update = any(
-        _is_state_update(h)
-        for g in stop_hooks if isinstance(g, dict)
-        for h in (g.get("hooks") or [])
-    )
-    if not has_state_update:
-        stop_hooks.append({
-            "matcher": "",
-            "hooks": [{"type": "command", "command": "coworker state-update"}],
-        })
+    stop_hooks = []
+    for g in existing["hooks"].get("Stop", []):
+        if _is_state_update(g) and "hooks" not in g:
+            continue
+        if isinstance(g, dict) and isinstance(g.get("hooks"), list):
+            kept = [h for h in g["hooks"] if not _is_state_update(h)]
+            if not kept:
+                continue
+            g = {**g, "hooks": kept}
+        stop_hooks.append(g)
     existing["hooks"]["Stop"] = stop_hooks
 
     _write_json_atomic(settings_path, existing)

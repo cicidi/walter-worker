@@ -122,8 +122,8 @@ import json
 m = json.load(open('$MANIFEST'))
 recorded = set(m.get('hook_commands', []))
 
-# The manifest is the primary source, but it goes stale: coworker sync adds
-# the state-update hook on any later run and does not rewrite the manifest, so
+# The manifest is the primary source, but it goes stale: coworker sync in
+# earlier releases added the state-update hook without rewriting the manifest, so
 # uninstall left it firing while the closing banner said coworker entries had
 # been stripped. These are the same patterns install.sh uses to claim its own
 # hooks, so the two sides agree on what is ours.

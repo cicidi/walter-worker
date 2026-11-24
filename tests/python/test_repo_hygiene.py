@@ -160,7 +160,7 @@ def test_the_two_scripts_agree_on_which_hooks_are_ours():
 
     install.sh claims them for the manifest; uninstall.sh removes them, and has
     to know them independently because the manifest goes stale — `coworker
-    sync` adds state-update without rewriting it. Two copies of one fact is how
+    sync` in earlier releases added state-update without rewriting it. Two copies of one fact is how
     the manifest and the removal drifted apart in the first place, so this
     fails when they diverge rather than waiting for someone to notice a hook
     that survived uninstall.

@@ -400,8 +400,8 @@ def test_sync_stale_mcp_from_settings_removed(tmp_path, monkeypatch):
     # test_sync_preserves_user_settings_it_does_not_own.
 
 
-def test_sync_stop_hook_added(tmp_path, monkeypatch):
-    """sync() adds the state-update Stop hook if not present."""
+def test_sync_adds_no_stop_hook(tmp_path, monkeypatch):
+    """sync() no longer adds the state-update Stop hook."""
     project = tmp_path / "proj"
     project.mkdir()
     claude_dir = project / ".claude"
@@ -415,16 +415,12 @@ def test_sync_stop_hook_added(tmp_path, monkeypatch):
     claude.sync(config, project_dir=project)
 
     data = json.loads(settings.read_text())
-    stop_hooks = data["hooks"]["Stop"]
-    assert any(
-        h.get("command") == "coworker state-update"
-        for entry in stop_hooks
-        for h in (entry.get("hooks") or [])
-    )
+    assert data.get("hooks", {}).get("Stop", []) == []
 
 
-def test_sync_stop_hook_not_duplicated(tmp_path, monkeypatch):
-    """sync() should not add a second state-update hook if one exists."""
+def test_sync_removes_existing_state_update_hook(tmp_path, monkeypatch):
+    """sync() removes a state-update Stop hook an earlier release installed,
+    in both shapes, and keeps the user's own hook in the same group."""
     project = tmp_path / "proj"
     project.mkdir()
     claude_dir = project / ".claude"
@@ -432,10 +428,14 @@ def test_sync_stop_hook_not_duplicated(tmp_path, monkeypatch):
     settings = claude_dir / "settings.json"
     settings.write_text(json.dumps({
         "hooks": {
-            "Stop": [{
-                "matcher": "",
-                "hooks": [{"type": "command", "command": "coworker state-update"}],
-            }],
+            "Stop": [
+                {"matcher": "", "hooks": [{"type": "command", "command": "coworker state-update"}]},
+                {"matcher": "", "hooks": [
+                    {"type": "command", "command": "coworker state-update"},
+                    {"type": "command", "command": "/user/mine.sh"},
+                ]},
+                {"type": "command", "command": "coworker state-update"},
+            ],
         }
     }))
 
@@ -445,13 +445,9 @@ def test_sync_stop_hook_not_duplicated(tmp_path, monkeypatch):
     claude.sync(config, project_dir=project)
 
     data = json.loads(settings.read_text())
-    stop_hooks = data["hooks"]["Stop"]
-    count = sum(
-        1 for entry in stop_hooks
-        for h in (entry.get("hooks") or [])
-        if h.get("command") == "coworker state-update"
-    )
-    assert count == 1
+    assert data["hooks"]["Stop"] == [
+        {"matcher": "", "hooks": [{"type": "command", "command": "/user/mine.sh"}]},
+    ]
 
 
 def test_sync_install_skill_dir(tmp_path, monkeypatch):

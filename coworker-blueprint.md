@@ -108,7 +108,7 @@ Team skills live in skill-factory, personal tweaks in random folders, nothing is
 
 Every AI session starts from zero. Past learnings, effective workflows, and mistakes are lost. State is lost on compaction.
 
-**Solution:** State persistence via `coworker state-update` (hook-driven on Stop). Analytics pipeline imports session data into SQLite. Knowledge extraction identifies repeatable patterns.
+**Solution:** State persistence via `coworker state-update`, called by the AI or by hand with a summary. Analytics pipeline imports session data into SQLite. Knowledge extraction identifies repeatable patterns.
 
 ---
 
@@ -427,7 +427,7 @@ reference_docs: [...]
 ### `coworker state-update` command
 
 ```bash
-coworker state-update                    # Called by Stop hook
+coworker state-update                    # Empty checkpoint (no summary)
 coworker state-update -s "finished auth"  # Manual milestone save
 ```
 
@@ -438,16 +438,7 @@ Behavior:
 
 ### Hook configuration
 
-**Claude Code** (`~/.claude/settings.json` or `.claude/settings.json`):
-```json
-{
-  "hooks": {
-    "Stop": [
-      {"type": "command", "command": "coworker state-update"}
-    ]
-  }
-}
-```
+**Claude Code:** no hook. Earlier releases added `coworker state-update` as a Stop hook; it only ever appended an empty checkpoint every turn, and from an unmanaged repo it wrote under `~/docs/state/`. `coworker sync` now removes that hook from `settings.json`.
 
 **OpenCode** (`.opencode/config.json`):
 ```json
@@ -601,7 +592,7 @@ Previously stored identity, docs paths, and session analysis config. **Removed**
 
 | Adapter | Sync target | Context injection | State hook |
 |---------|------------|-------------------|------------|
-| `claude.py` | `~/.claude/settings.json`, `~/.claude/commands/` | `CLAUDE.local.md` (feature) | Stop hook: `coworker state-update` |
+| `claude.py` | `~/.claude/settings.json`, `~/.claude/commands/` | `CLAUDE.local.md` (feature) | None (sync removes the old `state-update` Stop hook) |
 | `opencode.py` | `.opencode/config.json` | `CLAUDE.local.md` (delegates to claude.py) | Permission: `coworker *` allow |
 | `gemini.py` | `.gemini/settings.json` | (not yet) | (not yet) |
 
@@ -643,7 +634,7 @@ pip install --break-system-packages -e .
 
 ```bash
 coworker init        # Creates global + project config, CLAUDE.md, CLAUDE.local.md, docs/
-coworker sync        # Syncs skills to IDEs, configures state-update hooks
+coworker sync        # Syncs skills and settings to IDEs
 coworker status      # Verify everything is set up
 ```
 
@@ -737,7 +728,7 @@ across those mirrors.
 | Claude Code | Event hooks (Stop) | `~/.claude/settings.json` |
 | OpenCode | Tool permissions (allow/ask/deny) | `opencode.json` |
 
-Same intent (enforce `coworker state-update`), different mechanisms. `coworker sync` configures both.
+`coworker sync` configures both. Neither one runs `coworker state-update` automatically.
 
 ### Degradation strategy
 
