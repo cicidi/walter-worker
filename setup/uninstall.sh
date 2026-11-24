@@ -43,6 +43,19 @@ if [[ ! -f "$MANIFEST" ]]; then
   exit 1
 fi
 
+# A manifest without schema_version predates the fix that stopped it claiming
+# files walter-worker never wrote. The refusal used to sit inside the file pass
+# only, so the hook and directory passes below still ran on such a manifest:
+# it stripped hooks and emptied ~/.coworker while saying nothing was removed.
+# Checked here, before the prompt and the backup, so nothing at all changes.
+if ! python3 -c "import json,sys; sys.exit(0 if json.load(open('$MANIFEST')).get('schema_version') == 2 else 1)" 2>/dev/null; then
+  error "SKIPPED: $MANIFEST has no schema_version, so it predates the fix that"
+  echo "  stopped it claiming files walter-worker never wrote, and may list files"
+  echo "  belonging to other tools. Nothing was changed. Run setup/install.sh to"
+  echo "  regenerate the manifest, then uninstall again."
+  exit 1
+fi
+
 echo ""
 if $RESTORE_PRIS; then
   warn "This will restore your pre-install backup AND remove all coworker files."
@@ -215,30 +228,26 @@ log "Cleaning directories..."
 python3 -c "
 import json, shutil, os
 m = json.load(open('$MANIFEST'))
-PRESERVE = {os.path.normpath(os.path.expanduser('~/.coworker')): {'analytics', 'backups'}}
+# ~/.coworker is never emptied, even when an older manifest lists it as owned.
+# It holds the user's API keys in .env, coworker.yaml and the memory graph, none
+# of which install.sh writes; emptying it everywhere but analytics/ and backups/
+# deleted all of them. What install.sh does write there is claimed file by file
+# and was removed by the file pass above.
+COWORKER = os.path.normpath(os.path.expanduser('~/.coworker'))
 for d in reversed(sorted(m.get('owned_dirs', []))):
     d = os.path.normpath(d)
-    if not os.path.isdir(d):
+    if d == COWORKER or COWORKER.startswith(d + os.sep) or not os.path.isdir(d):
         continue
-    keep = PRESERVE.get(d, set())
-    if keep:
-        for entry in sorted(os.listdir(d)):
-            if entry in keep:
-                print(f'  preserved: {os.path.join(d, entry)}')
-                continue
-            p = os.path.join(d, entry)
-            try:
-                shutil.rmtree(p) if os.path.isdir(p) else os.remove(p)
-                print(f'  removed: {p}')
-            except OSError:
-                pass  # permission issue — leave it
-    else:
-        try:
-            shutil.rmtree(d)
-            print(f'  removed dir: {d}')
-        except OSError:
-            pass  # not empty or permission issue — leave it
+    try:
+        shutil.rmtree(d)
+        print(f'  removed dir: {d}')
+    except OSError:
+        pass  # permission issue — leave it
 " 2>/dev/null || warn "Partial directory cleanup — some items may remain."
+
+# The manifest is install.sh's own file. It used to go with the rest of
+# ~/.coworker; now that the directory is kept, remove it by name.
+rm -f "$MANIFEST"
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 ok "Uninstall complete!"

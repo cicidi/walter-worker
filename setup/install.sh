@@ -849,11 +849,18 @@ for _wm_root, _wm_dirs, _wm_fns in os.walk(_wm_src):
 # file-history,sessions,tasks,docs,backups}, ~/.opencode/node_modules, and any
 # ~/.claude/skills/<name> this install did not deploy.
 manifest['files'] = files
-# Global CLAUDE.md — only if this run created it. Claiming it whenever it
+# Global CLAUDE.md — only if an install created it. Claiming it whenever it
 # existed meant a user's own hand-written CLAUDE.md was deleted by uninstall,
 # on a file install.sh had just deliberately declined to touch.
+# The claim is carried forward once made: only the run that created the file
+# could claim it, so the next run dropped the claim and its own prune then
+# deleted the file the previous run had created, edits and all.
+try:
+    _prev_claims = set(json.load(open('$MANIFEST')).get('files', []))
+except Exception:
+    _prev_claims = set()
 md = f'{home}/.claude/CLAUDE.md'
-if '$CREATED_GLOBAL_MD' == '1' and os.path.isfile(md):
+if os.path.isfile(md) and ('$CREATED_GLOBAL_MD' == '1' or md in _prev_claims):
     manifest['files'].append(md)
 # Hook commands from settings.json — only the ones this project installs.
 #
@@ -874,7 +881,9 @@ if os.path.isfile(sf):
                         if OUR_HOOK_PATH in cmd or cmd in OUR_HOOK_CMDS:
                             manifest['hook_commands'].append(cmd)
 # Owned dirs
-for d in [f'{home}/.coworker', f'{home}/.config/opencode/skills/walter-worker']:
+# Not ~/.coworker: it holds the user's .env, coworker.yaml and memory graph,
+# which install.sh never writes, and uninstall emptied whatever was listed here.
+for d in [f'{home}/.config/opencode/skills/walter-worker']:
     if os.path.isdir(d):
         manifest['owned_dirs'].append(d)
 

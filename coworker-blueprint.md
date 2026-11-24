@@ -692,6 +692,11 @@ Step 16 writes `~/.coworker/install-manifest.json`, schema version 2, claiming
 each path **by name** — only what that run wrote. `uninstall.sh` reverses the
 manifest, so an unclaimed file survives uninstall, which is the safe direction.
 
+`~/.coworker` is never an owned directory: it holds the user's `.env`,
+`coworker.yaml` and memory graph, which the installer does not write.
+Uninstall removes only the files claimed there, and refuses a manifest
+without `schema_version` before changing anything.
+
 Two rules keep the mirrors from growing without bound. Each was added after the
 growth was measured, not in anticipation:
 

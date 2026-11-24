@@ -538,6 +538,26 @@ print(n)
   [ "$output" = "1" ]
 }
 
+@test "a second install keeps the CLAUDE.md the first install created" {
+  # Only the creating run claimed CLAUDE.md, so the next run dropped the claim
+  # and its own prune deleted the file — the CLAUDE.md flipped between present
+  # and absent on every install, losing whatever the user had written in it.
+  [ ! -e "$HOME/.claude/CLAUDE.md" ]
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ -f "$HOME/.claude/CLAUDE.md" ]
+  echo "my own rule" >> "$HOME/.claude/CLAUDE.md"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  grep -q "my own rule" "$HOME/.claude/CLAUDE.md"
+  grep -q '/.claude/CLAUDE.md' "$HOME/.coworker/install-manifest.json"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  grep -q "my own rule" "$HOME/.claude/CLAUDE.md"
+}
+
 @test "configures hooks even when the coworker CLI prints output" {
   # install.sh writes settings.json via `python3 -c "…"` — a DOUBLE-QUOTED bash
   # string, so a backtick or dollar-paren anywhere inside it is a command
