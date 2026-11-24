@@ -1245,6 +1245,43 @@ class TestUpgradeFullCoverage:
         assert "- my own rule" in updated
         assert "Behavioral guidelines to reduce common LLM coding mistakes." in updated
 
+    def test_upgrade_keeps_a_reworded_line_when_template_unchanged(self, tmp_path, monkeypatch):
+        """QUES-M: with a base, a line the user reworded in a section the
+        template has not changed since is kept, not overwritten."""
+        from coworker.templates.global_claude_md import generate_global_claude_md
+
+        monkeypatch.setattr("coworker.backup.snapshot", lambda paths, label: None)
+        template = generate_global_claude_md()
+        mine = template.replace(
+            "- No features beyond what was asked.",
+            "- No features beyond what was asked, ever.",
+        )
+        assert mine != template
+        home = self._setup_home(tmp_path, monkeypatch, mine)
+        (home / ".coworker").mkdir()
+        (home / ".coworker" / "claude-md-base.md").write_text(template)
+        result = runner.invoke(main, ["upgrade", "--yes"])
+        assert result.exit_code == 0, result.output
+        assert "ever." in (home / ".claude" / "CLAUDE.md").read_text()
+
+    def test_upgrade_without_base_lists_replaced_lines_and_writes_base(self, tmp_path, monkeypatch):
+        """No base yet: the overwrite still happens, but the lines it replaces
+        are listed first, and the base is written for next time."""
+        from coworker.templates.global_claude_md import generate_global_claude_md
+
+        monkeypatch.setattr("coworker.backup.snapshot", lambda paths, label: None)
+        template = generate_global_claude_md()
+        mine = template.replace(
+            "Behavioral guidelines to reduce common LLM coding mistakes.",
+            "My reworded guideline line.",
+        )
+        home = self._setup_home(tmp_path, monkeypatch, mine)
+        result = runner.invoke(main, ["upgrade", "--yes"])
+        assert result.exit_code == 0, result.output
+        assert "My reworded guideline line." in result.output
+        base = home / ".coworker" / "claude-md-base.md"
+        assert base.read_text().rstrip("\n") == template.rstrip("\n")
+
     def test_upgrade_successful(self, tmp_path, monkeypatch):
         """Lines 450-451, 460-461: successful merge writes updated content."""
         from coworker.templates.global_claude_md import generate_global_claude_md

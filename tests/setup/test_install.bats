@@ -84,6 +84,26 @@ SKEOF
   grep -q "clarifying questions to confirm scope" "$HOME/.claude/CLAUDE.md"
 }
 
+@test "a created CLAUDE.md gets a merge base, claimed for uninstall" {
+  rm -f "$HOME/.claude/CLAUDE.md" "$HOME/.coworker/claude-md-base.md"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  # The base is the template as written, so the next upgrade can tell the
+  # user's edits from the template's (three-way merge).
+  cmp "$HOME/.claude/CLAUDE.md" "$HOME/.coworker/claude-md-base.md"
+  grep -q '/.coworker/claude-md-base.md' "$HOME/.coworker/install-manifest.json"
+}
+
+@test "an existing CLAUDE.md gets no merge base from install" {
+  echo "Custom content" > "$HOME/.claude/CLAUDE.md"
+  rm -f "$HOME/.coworker/claude-md-base.md"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ ! -f "$HOME/.coworker/claude-md-base.md" ]
+}
+
 @test "preserves existing global CLAUDE.md" {
   echo "Custom content" > "$HOME/.claude/CLAUDE.md"
 

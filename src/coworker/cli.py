@@ -27,7 +27,7 @@ from .templates.local_claude_md import (
 )
 from .templates.project_claude_md import PROJECT_CLAUDE_MD_SENTINEL
 from . import backup
-from .semantic_merge import classify_sections, apply_merge, verify_protected
+from .semantic_merge import classify_sections, apply_merge, verify_protected, next_base
 from .templates.global_claude_md import generate_global_claude_md
 from .memory.cli_memory import register_memory_commands
 from .cli_analytics import register_analytics
@@ -729,8 +729,12 @@ def upgrade(dry_run, auto_confirm, force):
 
     current = global_md.read_text(encoding="utf-8")
     future = generate_global_claude_md()
+    # The template as last written. With it the merge is three-way and a
+    # section the user edited is never overwritten silently (QUES-M).
+    base_path = Path.home() / ".coworker" / "claude-md-base.md"
+    base = base_path.read_text(encoding="utf-8") if base_path.exists() else None
 
-    cls = classify_sections(current, future)
+    cls = classify_sections(current, future, base)
     if force:
         # CONFLICT means "taking the template's would drop your lines". --force
         # is the user saying they know, so the decision flips here rather than
@@ -746,7 +750,7 @@ def upgrade(dry_run, auto_confirm, force):
     for c in cls:
         detail = ""
         if c.category == "OVERWRITE":
-            detail = "content differs"
+            detail = f"replaces {len(c.at_risk)} line(s)" if c.at_risk else "template updated"
         elif c.category == "MERGE_ADD":
             detail = "new section"
         elif c.category == "OUTDATED":
@@ -777,6 +781,21 @@ def upgrade(dry_run, auto_confirm, force):
             "or wrap your text in <!-- PROTECTED --> to keep it quietly.[/dim]"
         )
 
+    replaced = [c for c in cls if c.category == "OVERWRITE" and c.at_risk]
+    if replaced:
+        console.print()
+        console.print(
+            "[yellow]No merge base for these sections yet, so the lines below "
+            "may be yours or older template text.[/yellow] Taking the template's "
+            "version replaces:"
+        )
+        for c in replaced:
+            console.print(f"  [dim]{c.heading}[/dim]")
+            for line in c.at_risk[:5]:
+                console.print(f"    [red]-[/red] {line[:100]}")
+            if len(c.at_risk) > 5:
+                console.print(f"    [dim]… and {len(c.at_risk) - 5} more[/dim]")
+
     if dry_run:
         console.print("[dim](--dry-run — no changes written)[/dim]")
         return
@@ -787,6 +806,8 @@ def upgrade(dry_run, auto_confirm, force):
 
     applied = sum(1 for c in cls if c.category in ("OVERWRITE", "MERGE_ADD"))
     if applied == 0:
+        base_path.parent.mkdir(parents=True, exist_ok=True)
+        base_path.write_text(next_base(cls, future, base), encoding="utf-8")
         console.print("[green]Already up to date.[/green]")
         return
 
@@ -805,6 +826,8 @@ def upgrade(dry_run, auto_confirm, force):
         sys.exit(1)
 
     global_md.write_text(merged, encoding="utf-8")
+    base_path.parent.mkdir(parents=True, exist_ok=True)
+    base_path.write_text(next_base(cls, future, base), encoding="utf-8")
     console.print("[green]CLAUDE.md upgraded.[/green]")
 
 

@@ -269,9 +269,15 @@ generate_local_claude_md() -> str
 ### Semantic merge (`semantic_merge.py`)
 
 ```python
-classify_sections(current, future) -> list[SectionClassification]
+classify_sections(current, future, base=None) -> list[SectionClassification]
 apply_merge(classifications, current, future) -> str
-# Categories: KEEP, OVERWRITE, MERGE_ADD, OUTDATED
+next_base(classifications, future, old_base) -> str
+# Categories: KEEP, OVERWRITE, MERGE_ADD, OUTDATED, CONFLICT
+# base = ~/.coworker/claude-md-base.md, the template as last written (install
+#   creates it with CLAUDE.md; upgrade rewrites it). Three-way per section:
+#   only template changed → OVERWRITE; only user → KEEP; both → CONFLICT
+#   (user's kept, --force takes the template). A CONFLICT keeps its old base.
+# No base → two-way heuristic; an OVERWRITE lists the lines it replaces.
 # PROTECTED blocks → always KEEP
 # FEATURE blocks → always KEEP (managed by feature system)
 ```

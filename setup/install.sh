@@ -119,6 +119,10 @@ else
   log "Creating global CLAUDE.md at $GLOBAL_CLAUDE_MD..."
   mkdir -p "$(dirname "$GLOBAL_CLAUDE_MD")"
   echo "$CLAUDE_MD_CONTENT" > "$GLOBAL_CLAUDE_MD"
+  # The template as written, so 'coworker upgrade' can merge three-way and
+  # tell the user's later edits from the template's.
+  mkdir -p "$HOME/.coworker"
+  echo "$CLAUDE_MD_CONTENT" > "$HOME/.coworker/claude-md-base.md"
   ok "Created $GLOBAL_CLAUDE_MD"
   CREATED_GLOBAL_MD=1
 fi
@@ -869,6 +873,10 @@ except Exception:
 md = f'{home}/.claude/CLAUDE.md'
 if os.path.isfile(md) and ('$CREATED_GLOBAL_MD' == '1' or md in _prev_claims):
     manifest['files'].append(md)
+# The upgrade merge base is always ours, whether install or upgrade wrote it.
+merge_base = f'{home}/.coworker/claude-md-base.md'
+if os.path.isfile(merge_base):
+    manifest['files'].append(merge_base)
 # Hook commands from settings.json — only the ones this project installs.
 #
 # This used to claim every hook in the file, including the user's own, so
