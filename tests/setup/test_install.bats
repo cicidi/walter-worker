@@ -189,8 +189,11 @@ print(src in m.get('files', []))
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'1'
   [ "$status" -eq 0 ]
   [ -f "$HOME/.claude/commands/init.md" ]
-  [ -f "$HOME/.claude/commands/skill-create.md" ]
-  [ -f "$HOME/.claude/commands/tdd.md" ]
+  [ -f "$HOME/.claude/commands/dashboard.md" ]
+  # the-super-lab skills arrive as skills, never also as commands.
+  [ -f "$HOME/.claude/skills/skill-create/SKILL.md" ]
+  [ ! -e "$HOME/.claude/commands/skill-create.md" ]
+  [ ! -e "$HOME/.claude/commands/tdd.md" ]
 }
 
 # =============================================================================
@@ -597,14 +600,14 @@ print(n)
   #
   # Skipped rather than answered: routing it through SKILL_CHOICE=1 would mean
   # "All" to the case below, which silently overrode the selection.
-  run bash "$REPO_ROOT/setup/install.sh" --global --skills skill-create < /dev/null
+  run bash "$REPO_ROOT/setup/install.sh" --global --skills dashboard < /dev/null
   [ "$status" -eq 0 ]
   [[ "$output" == *"Reusing the previous selection"* ]]
   [[ "$output" != *"Skill selection:"* ]]
 
-  [ -f "$HOME/.claude/commands/skill-create.md" ]
+  [ -f "$HOME/.claude/commands/dashboard.md" ]
   [ -f "$HOME/.claude/commands/init.md" ]
-  [ ! -f "$HOME/.claude/commands/tdd.md" ]
+  [ ! -f "$HOME/.claude/commands/feature.md" ]
 }
 
 @test "a subset selection installs each skill's own file" {
@@ -612,7 +615,7 @@ print(n)
   # indexed by AVAILABLE order — so any selection that was not "all of them, in
   # order" installed another skill's file under the right name. The manual
   # Select path hit it by entering "3 1"; --skills hit it every time.
-  run bash "$REPO_ROOT/setup/install.sh" --global --skills "skill-create" < /dev/null
+  run bash "$REPO_ROOT/setup/install.sh" --global --skills "feature" < /dev/null
   [ "$status" -eq 0 ]
 
   run python3 -c "
@@ -688,4 +691,57 @@ print(','.join(bad))
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
   [ "$status" -eq 0 ]
   [ -e "$HOME/.opencode/instructions/two-things" ]
+}
+
+# =============================================================================
+# Test: a the-super-lab skill is installed once
+#
+# Step 11b deploys every the-super-lab skill to ~/.claude/skills/<name>/. Step 10
+# also offered them as commands, so a selected one was written twice and showed
+# up twice in the / menu.
+# =============================================================================
+@test "a the-super-lab skill named in --skills is not also written as a command" {
+  run bash "$REPO_ROOT/setup/install.sh" --global --skills "skill-create personal-skill" < /dev/null
+  [ "$status" -eq 0 ]
+  [ -f "$HOME/.claude/skills/skill-create/SKILL.md" ]
+  [ -f "$HOME/.claude/skills/personal-skill/SKILL.md" ]
+  [ ! -e "$HOME/.claude/commands/skill-create.md" ]
+  [ ! -e "$HOME/.claude/commands/personal-skill.md" ]
+  run grep -c "commands/skill-create.md" "$HOME/.coworker/install-manifest.json"
+  [ "$output" -eq 0 ]
+}
+
+@test "retires an unchanged command copy of a the-super-lab skill" {
+  mkdir -p "$HOME/.claude/commands"
+  cp "$SUPERLAB/skills/tdd/SKILL.md" "$HOME/.claude/commands/tdd.md"
+  cp "$SUPERLAB/personal-skills/personal-skill/SKILL.md" "$HOME/.claude/commands/personal-skill.md"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ ! -e "$HOME/.claude/commands/tdd.md" ]
+  [ ! -e "$HOME/.claude/commands/personal-skill.md" ]
+  [ -f "$HOME/.claude/skills/tdd/SKILL.md" ]
+  # And no OpenCode mirror is left pointing at the removed file.
+  [ ! -e "$HOME/.opencode/instructions/tdd.md" ]
+  [ ! -L "$HOME/.opencode/instructions/tdd.md" ]
+}
+
+@test "keeps an edited command copy of a the-super-lab skill and says so" {
+  mkdir -p "$HOME/.claude/commands"
+  { cat "$SUPERLAB/skills/tdd/SKILL.md"; echo "my local note"; } > "$HOME/.claude/commands/tdd.md"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  grep -q "my local note" "$HOME/.claude/commands/tdd.md"
+  [[ "$output" == *"Kept tdd.md"* ]]
+}
+
+@test "leaves a command of the same name that is a symlink alone" {
+  mkdir -p "$HOME/.claude/commands"
+  ln -s "$SUPERLAB/skills/tdd/SKILL.md" "$HOME/.claude/commands/tdd.md"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ -L "$HOME/.claude/commands/tdd.md" ]
+  [ -f "$SUPERLAB/skills/tdd/SKILL.md" ]
 }
