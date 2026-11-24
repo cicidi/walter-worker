@@ -669,7 +669,7 @@ makes them reversible:
 
 | Mirror | Step | Form |
 |--------|------|------|
-| `~/.claude/commands/<name>.md` | 10 | file |
+| `~/.claude/commands/<name>.md` | 10 | file, bundle skills only |
 | `~/.opencode/instructions/<name>.md` | 11 | symlink to the above |
 | `~/.claude/skills/<name>/` | 11b | directory copy |
 | `~/.cursor/skills/<name>/` | 11b | directory copy |
@@ -681,6 +681,12 @@ Both `skills/` and `personal-skills/` deploy through 11b. An earlier release
 wrote a flat `~/.cursor/rules/<name>.md`; current Cursor discovers Agent Skills
 under `~/.cursor/skills/`, so 11b now writes there and the prune retires the old
 rule files a previous manifest claimed.
+
+Step 10 writes commands for the bundle's own `skills/` only. A the-super-lab
+skill already arrives through 11b as a skill, so a command copy of it showed up
+twice in the `/` menu. Step 10 removes a command copy an earlier release wrote
+while it is still identical to the source, and keeps and reports one that
+differs.
 
 Step 16 writes `~/.coworker/install-manifest.json`, schema version 2, claiming
 each path **by name** — only what that run wrote. `uninstall.sh` reverses the

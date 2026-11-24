@@ -248,7 +248,7 @@ fi
 # =============================================================================
 # Step 7 — List available skills from the-super-lab
 # =============================================================================
-log "Loading available skills from the-super-lab..."
+log "Loading the bundle skills offered as commands..."
 
 declare -a AVAILABLE_SKILLS=()
 declare -a SKILL_PATHS=()
@@ -270,8 +270,10 @@ index_skills() {
   done
 }
 
-index_skills "$THE_SUPER_LAB_DIR/skills" "[superlab] "
-index_skills "$THE_SUPER_LAB_DIR/personal-skills" "[personal] "
+# Only the bundle's own skills are offered as commands. Step 11b deploys every
+# the-super-lab skill (skills/ and personal-skills/) to ~/.claude/skills/<name>/
+# regardless of this answer, so one selected here as well was written twice and
+# showed up twice in the / menu: once as a command, once as a skill.
 index_skills "$REPO_ROOT/skills" "[bundle] "
 
 if [[ ${#AVAILABLE_SKILLS[@]} -eq 0 ]]; then
@@ -404,6 +406,23 @@ install_skill() {
     ((SKIPPED++)) || true
   fi
 }
+
+# Retire the command copies of the-super-lab skills an earlier release wrote
+# here; Step 11b now deploys them as skills. Removed only while still identical
+# to the source, so a copy someone edited is kept and reported instead. Done
+# before step 11 mirrors this directory into OpenCode, so no mirror link is left
+# pointing at a removed file.
+for _src in "$THE_SUPER_LAB_DIR"/skills/*/SKILL.md "$THE_SUPER_LAB_DIR"/personal-skills/*/SKILL.md; do
+  [[ -f "$_src" ]] || continue
+  _old="$CLAUDE_DIR/$(basename "$(dirname "$_src")").md"
+  [[ -f "$_old" && ! -L "$_old" ]] || continue
+  if cmp -s "$_src" "$_old"; then
+    rm -f "$_old"
+    ok "  Retired command copy: ${_old##*/} (now a skill)"
+  else
+    warn "  Kept ${_old##*/}: it differs from the-super-lab, so it may hold local edits. It duplicates the skill of the same name."
+  fi
+done
 
 if [[ ${#SELECTED_SKILLS[@]} -gt 0 ]]; then
   echo ""

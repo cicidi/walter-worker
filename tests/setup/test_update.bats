@@ -125,7 +125,8 @@ json.dump({'schema_version': 2, 'install_mode': 'project',
     > "$SUPERLAB/skills/skill-create/SKILL.md"
 
   # The real installer, not the mock this file's setup() provides.
-  run bash "$REPO_ROOT/setup/install.sh" --global --skills skill-create < /dev/null
+  # A bundle skill: the-super-lab skills deploy as skills, not as commands.
+  run bash "$REPO_ROOT/setup/install.sh" --global --skills dashboard < /dev/null
   [ "$status" -eq 0 ]
 
   run bash "$REPO_ROOT/setup/update.sh" < /dev/null
@@ -133,5 +134,5 @@ json.dump({'schema_version': 2, 'install_mode': 'project',
 
   [[ "$output" == *"Reusing the previous skill selection"* ]]
   [[ "$output" != *"Skill selection:"* ]]
-  [ -f "$HOME/.claude/commands/skill-create.md" ]
+  [ -f "$HOME/.claude/commands/dashboard.md" ]
 }
