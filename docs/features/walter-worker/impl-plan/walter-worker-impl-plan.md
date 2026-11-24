@@ -1,3 +1,10 @@
+---
+feature: walter-worker
+type: impl-plan
+state: draft
+health: active
+---
+
 # walter-worker Implementation Plan
 
 ## Change Log

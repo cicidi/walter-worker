@@ -91,7 +91,7 @@ Facts that span areas, such as the home folder layout, live here and must be kep
 | ID | Question | Answer so far | Owner | Blocking |
 |---|---|---|---|---|
 | **QUES-A** | Should the legacy documents in `prd/`, `design/`, `decision-history/`, `plan/`, `spec/`, `state/`, and `work-review/` be folded into the sub-features and removed, renamed to the current standard, or kept as they are? | Kept and linked as parts on 2026-11-24; restructuring needs the owner's decision. | cicidi | no |
-| **QUES-B** | The sub-features record blocking code gaps: setup-deploy QUES-C to QUES-F, core-cli QUES-A, QUES-B, QUES-L, QUES-M, QUES-O, QUES-S, QUES-T, analytics-listener QUES-A, memory-platform QUES-A and QUES-B, autoworker QUES-A. Which are fixed first? | Listed in each sub-feature design; setup-deploy QUES-C to QUES-E have a fix in walter-worker PR #17. | cicidi | no |
+| **QUES-B** | The sub-features record 22 blocking code gaps: setup-deploy QUES-C, QUES-D, QUES-E, QUES-F; core-cli QUES-A, QUES-B, QUES-L, QUES-M, QUES-O, QUES-S, QUES-T; analytics-listener QUES-A, QUES-I, QUES-J, QUES-K; analytics-dashboard QUES-G, QUES-H; memory-platform QUES-A, QUES-B, QUES-I, QUES-J; autoworker QUES-A. Which are fixed first? | Listed in each sub-feature design; setup-deploy QUES-C to QUES-E have a fix in walter-worker PR #17. | cicidi | no |
 
 ## Reversibility
 
@@ -117,6 +117,14 @@ Terms used across walter-worker's specifications. Sub-feature designs may add th
 | Headless session | A Claude Code run started with `-p`, which runs one prompt and exits |
 | Wrong-history | Recorded past mistakes and the rules learned from them |
 | Open Question | A tracked gap or undecided point, with an owner and a blocking flag, in a design's Open Questions table |
+| Turn | One user prompt and the agent's complete reply to it; a session is a series of turns |
+| Stop hook | A hook on Claude Code's Stop event, which fires each time the agent finishes a reply, so once per turn ([hooks docs](https://docs.claude.com/en/docs/claude-code/hooks)) |
+| Embedding | A list of numbers that represents a text's meaning, so that texts with similar meanings get similar numbers |
+| mem0 | The open-source library that keeps memories in a vector store and uses a language model to extract them from text |
+| Qdrant | The vector database that mem0 uses; here it runs in local mode, as files on the user's machine |
+| fastembed | A library that computes embeddings on the local machine without calling an outside service |
+| Graphify | A separate tool that maps a codebase and its documents into a graph file, by default `graphify-out/graph.json` |
+| Language-model provider | An outside service that runs a language model, such as DeepSeek or Gemini, reached over the network with an API key |
 
 ## Change Log
 
@@ -124,3 +132,5 @@ Terms used across walter-worker's specifications. Sub-feature designs may add th
 |---|---|---|
 | 0.1 | 2026-11-04 | Draft by another agent (never committed) |
 | 0.2 | 2026-11-24 | Written as the parent entry with the module map, shared rules, home layout, and glossary; the legacy design linked as a part (ARD-A, ARD-B) |
+| 0.3 | 2026-11-24 | Glossary rows added from the memory-platform review |
+| 0.4 | 2026-11-24 | QUES-B regenerated from every sub-feature's blocking questions |
