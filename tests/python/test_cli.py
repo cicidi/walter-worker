@@ -1218,6 +1218,33 @@ class TestUpgradeFullCoverage:
         assert result.exit_code == 1
         assert "PROTECTED block violation" in result.output
 
+    def test_upgrade_conflict_beside_overwrite_does_not_crash(self, tmp_path, monkeypatch):
+        """A CONFLICT section next to an OVERWRITE made apply_merge raise
+        ValueError after the backup, so the upgrade never finished."""
+        from coworker.templates.global_claude_md import generate_global_claude_md
+
+        monkeypatch.setattr("coworker.backup.snapshot", lambda paths, label: None)
+        template = generate_global_claude_md()
+        # OVERWRITE: a template line reworded in one section.
+        modified = template.replace(
+            "Behavioral guidelines to reduce common LLM coding mistakes.",
+            "Modified guidelines for test coverage.",
+        )
+        # CONFLICT: a line of the user's inserted mid-section in another.
+        modified = modified.replace(
+            "- No features beyond what was asked.\n",
+            "- No features beyond what was asked.\n- my own rule\n",
+        )
+        assert modified.count("my own rule") == 1
+        home = self._setup_home(tmp_path, monkeypatch, modified)
+        result = runner.invoke(main, ["upgrade", "--yes"])
+        assert result.exception is None, result.output
+        assert result.exit_code == 0
+        assert "CLAUDE.md upgraded" in result.output
+        updated = (home / ".claude" / "CLAUDE.md").read_text()
+        assert "- my own rule" in updated
+        assert "Behavioral guidelines to reduce common LLM coding mistakes." in updated
+
     def test_upgrade_successful(self, tmp_path, monkeypatch):
         """Lines 450-451, 460-461: successful merge writes updated content."""
         from coworker.templates.global_claude_md import generate_global_claude_md
