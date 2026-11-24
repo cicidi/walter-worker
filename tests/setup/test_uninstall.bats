@@ -2,9 +2,11 @@
 
 # Tests for uninstall.sh — manifest-driven removal.
 #
-# ~/.coworker is recorded as an owned dir, but it also holds data the script
-# promises to keep, so the removal has to be selective rather than a rmtree of
-# the whole directory.
+# ~/.coworker holds data the script must keep: the analytics database, the
+# backups, and the user's own .env, coworker.yaml and memory graph. Only the
+# files install.sh claimed by name may be removed from it. setup() still lists
+# ~/.coworker as an owned dir, the way manifests written before the fix did, so
+# every test also covers a machine that installed with an older release.
 
 setup() {
   TEST_TMP="$(mktemp -d)"
@@ -23,9 +25,18 @@ setup() {
   echo 'x' > "$HOME/.coworker/scripts/thing.sh"
   echo '{"user":"edited-after-install"}' > "$HOME/.claude/settings.json"
 
+  # The user's own data under ~/.coworker; install.sh never writes these.
+  mkdir -p "$HOME/.coworker/memory"
+  echo 'ANTHROPIC_API_KEY=user-secret' > "$HOME/.coworker/.env"
+  echo 'install_mode: global' > "$HOME/.coworker/coworker.yaml"
+  echo '{"nodes":[]}' > "$HOME/.coworker/memory/graph.json"
+
   python3 -c "
 import json, os
-json.dump({'files': [], 'hook_commands': [], 'owned_dirs': [os.path.expanduser('~/.coworker')]},
+json.dump({'schema_version': 2,
+           'files': [os.path.expanduser('~/.coworker/scripts/thing.sh')],
+           'hook_commands': [],
+           'owned_dirs': [os.path.expanduser('~/.coworker')]},
           open(os.path.expanduser('~/.coworker/install-manifest.json'), 'w'))
 "
 
@@ -138,19 +149,64 @@ teardown() {
 }
 
 @test "refuses to remove files from a pre-schema_version manifest" {
-  # Setup() writes exactly such a manifest (no schema_version). It stands in for
-  # every machine that installed before the fix: the file on disk still claims
-  # ~/.claude/plugins, session transcripts and the analytics database, so
-  # running this script would delete them. Nothing may be removed.
+  # A manifest with no schema_version stands in for every machine that
+  # installed before the fix: the file on disk still claims ~/.claude/plugins,
+  # session transcripts and the analytics database, so running this script
+  # would delete them. Nothing may change — not files, not hooks, not
+  # ~/.coworker. The refusal used to cover only the file list.
   mkdir -p "$HOME/.claude/skills/foreign-tool"
   echo 'foreign' > "$HOME/.claude/skills/foreign-tool/SKILL.md"
+  cat > "$HOME/.claude/settings.json" << 'JSONEOF'
+{"hooks": {"Stop": [{"matcher": "", "hooks": [{"type": "command", "command": "coworker memory capture"}]}]}}
+JSONEOF
+  cp "$HOME/.claude/settings.json" "$TEST_TMP/settings.before"
+  python3 -c "
+import json, os
+json.dump({'files': [os.path.expanduser('~/.claude/skills/foreign-tool/SKILL.md')],
+           'hook_commands': ['coworker memory capture'],
+           'owned_dirs': [os.path.expanduser('~/.coworker')]},
+          open(os.path.expanduser('~/.coworker/install-manifest.json'), 'w'))
+"
 
+  run bash -c "echo y | bash '$REPO_ROOT/setup/uninstall.sh'"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"SKIPPED"* ]]
+
+  [ -f "$HOME/.claude/skills/foreign-tool/SKILL.md" ]
+  cmp -s "$HOME/.claude/settings.json" "$TEST_TMP/settings.before"
+  [ -f "$HOME/.coworker/analytics/analytics.db" ]
+  [ -f "$HOME/.coworker/.env" ]
+  [ -f "$HOME/.coworker/scripts/thing.sh" ]
+  [ -f "$HOME/.coworker/install-manifest.json" ]
+}
+
+@test "uninstall keeps the user's data in ~/.coworker" {
+  # ~/.coworker was emptied of everything but analytics/ and backups/, which
+  # deleted the user's API keys, coworker.yaml and memory graph — none of which
+  # install.sh writes. setup() lists ~/.coworker as owned, as old manifests do.
   run bash -c "echo y | bash '$REPO_ROOT/setup/uninstall.sh'"
   [ "$status" -eq 0 ]
 
-  [ -f "$HOME/.coworker/analytics/analytics.db" ]
-  [ -f "$HOME/.claude/skills/foreign-tool/SKILL.md" ]
-  [[ "$output" == *"SKIPPED"* ]]
+  [ -f "$HOME/.coworker/.env" ]
+  [ -f "$HOME/.coworker/coworker.yaml" ]
+  [ -f "$HOME/.coworker/memory/graph.json" ]
+  # The claimed file and the manifest itself still go.
+  [ ! -f "$HOME/.coworker/scripts/thing.sh" ]
+  [ ! -f "$HOME/.coworker/install-manifest.json" ]
+}
+
+@test "a real install-then-uninstall keeps the user's data in ~/.coworker" {
+  rm -f "$HOME/.coworker/install-manifest.json"
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  run grep -c '/.coworker"' "$HOME/.coworker/install-manifest.json"
+  [ "$output" -eq 0 ]
+
+  run bash -c "echo y | bash '$REPO_ROOT/setup/uninstall.sh'"
+  [ "$status" -eq 0 ]
+  [ -f "$HOME/.coworker/.env" ]
+  [ -f "$HOME/.coworker/memory/graph.json" ]
+  [ ! -f "$HOME/.coworker/analytics/hooks/on-stop.sh" ]
 }
 
 @test "uninstall keeps the user's own CLAUDE.md and their own hooks" {
