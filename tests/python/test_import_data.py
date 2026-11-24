@@ -1049,3 +1049,24 @@ def test_import_session_multiple_skill_calls_same_name(import_db, tmp_path):
     assert skill is not None
     # skill_names is a set, so total_calls is incremented once for this name
     assert skill["total_calls"] == 1
+
+
+def test_import_session_keeps_long_raw_message_whole(import_db, tmp_path, monkeypatch):
+    """Messages from the raw transcript were cut at 10,000 characters. The
+    owner wants the full text kept; the database is local."""
+    from coworker.analytics.import_data import import_session
+
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    raw_dir = tmp_path / ".claude" / "projects" / "-work-proj"
+    raw_dir.mkdir(parents=True)
+    _make_jsonl(raw_dir / "long-1.jsonl", [{
+        "type": "user", "promptSource": "typed", "timestamp": "t",
+        "message": {"role": "user", "content": "y" * 25000},
+    }])
+    d = tmp_path / "sess"
+    d.mkdir()
+    (d / "session.yaml").write_text('session_id: "long-1"\ncwd: /work/proj\ncreated: t\n')
+
+    import_session(d, import_db)
+    assert import_db.execute(
+        "SELECT length(content) FROM messages WHERE session_id='long-1'").fetchone()[0] == 25000

@@ -25,6 +25,28 @@ def _parse_session_id(session_dir: Path) -> str:
     return session_dir.name
 
 
+def _skill_name(block: dict) -> str:
+    """The skill a Skill tool_use names. Claude Code sends it as "skill"; this
+    read only "name", so no Claude Code session ever recorded a skill. "name"
+    is still accepted for data written that way."""
+    args = block.get("input") or {}
+    return args.get("skill") or args.get("name") or ""
+
+
+def _typed_prompt(obj: dict, msg: dict) -> str:
+    """What the user typed, or "". Claude Code stores a typed prompt as a plain
+    string, not a block list, and the importer read only lists — so not one
+    typed prompt reached the database. Strings that Claude Code itself
+    injected (promptSource "system", or isMeta) are not the user's words.
+    Transcripts older than promptSource only have isMeta to go on."""
+    if obj.get("type") != "user" or obj.get("isMeta"):
+        return ""
+    if obj.get("promptSource", "typed") != "typed":
+        return ""
+    content = msg.get("content")
+    return content.strip() if isinstance(content, str) else ""
+
+
 def _get_skills(jsonl_file: Path) -> set:
     """Extract unique skill names from a Claude Code JSONL session."""
     skills = set()
@@ -38,7 +60,7 @@ def _get_skills(jsonl_file: Path) -> set:
                 content = msg.get("content", []) if isinstance(msg.get("content"), list) else []
                 for block in content:
                     if isinstance(block, dict) and block.get("type") == "tool_use" and block.get("name") == "Skill":
-                        sname = block.get("input", {}).get("name", "")
+                        sname = _skill_name(block)
                         if sname:
                             skills.add(sname)
         except json.JSONDecodeError:
@@ -64,7 +86,7 @@ def _count_jsonl_skill_calls(path: Path) -> set:
             if isinstance(msg, dict):
                 for block in msg.get("content", []) if isinstance(msg.get("content"), list) else []:
                     if isinstance(block, dict) and block.get("type") == "tool_use" and block.get("name") == "Skill":
-                        sname = block.get("input", {}).get("name", "")
+                        sname = _skill_name(block)
                         if sname:
                             skills.add(sname)
         except json.JSONDecodeError:
@@ -104,6 +126,12 @@ def import_claude_jsonl(jsonl_file: Path, conn):
     tool_call_rows: list[tuple] = []
     message_rows: list[tuple] = []
 
+    # The Stop hook imports the same session after every reply. Calls already in
+    # tool_calls were counted by an earlier import; counting them again would
+    # add every skill call once per reply.
+    seen_calls = {r[0] for r in conn.execute(
+        "SELECT call_id FROM tool_calls WHERE session_id = ?", (sid,))}
+
     for seq, line in enumerate(lines):
         try:
             obj = json.loads(line)
@@ -126,7 +154,7 @@ def import_claude_jsonl(jsonl_file: Path, conn):
 
         content = msg.get("content", []) if isinstance(msg.get("content"), list) else []
 
-        text = "\n".join(
+        text = _typed_prompt(obj, msg) or "\n".join(
             b.get("text", "") for b in content
             if isinstance(b, dict) and b.get("type") == "text"
         ).strip()
@@ -147,9 +175,9 @@ def import_claude_jsonl(jsonl_file: Path, conn):
                 ))
 
             if btype == "tool_use" and tname == "Skill":
-                active_skill = block.get("input", {}).get("name", "") or None
+                active_skill = _skill_name(block) or None
                 sname = active_skill
-                if sname:
+                if sname and block.get("id", f"{sid}-{seq}") not in seen_calls:
                     conn.execute("INSERT OR IGNORE INTO skills (name) VALUES (?)", (sname,))
                     conn.execute("UPDATE skills SET total_calls = total_calls + 1 WHERE name = ?", (sname,))
 
@@ -177,9 +205,14 @@ def import_claude_jsonl(jsonl_file: Path, conn):
                 # Non-skill, non-file tool — end skill context if one was active
                 active_skill = None
 
+    # An upsert, not INSERT OR REPLACE: REPLACE deletes the old row first, and
+    # once messages and tool_calls reference it the foreign keys refuse that,
+    # so every re-import of a session failed.
     conn.execute(
-        """INSERT OR REPLACE INTO sessions (id, ide, project, cwd, model, created_at)
-           VALUES (?, 'claude-code', ?, ?, ?, ?)""",
+        """INSERT INTO sessions (id, ide, project, cwd, model, created_at)
+           VALUES (?, 'claude-code', ?, ?, ?, ?)
+           ON CONFLICT(id) DO UPDATE SET project=excluded.project, cwd=excluded.cwd,
+               model=excluded.model, created_at=excluded.created_at""",
         (sid, jsonl_file.parent.name, cwd, model, created or ""),
     )
 

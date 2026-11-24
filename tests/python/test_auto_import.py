@@ -1215,3 +1215,131 @@ def test_run_daemon_one_iteration(monkeypatch):
         pass
 
     assert len(iterations) >= 1
+
+
+# ===================================================================
+# Typed prompts, skill names and re-import (StopRecordOnly)
+# ===================================================================
+
+
+def _typed(text, ts="2025-01-01T10:00:01", **extra):
+    return {"type": "user", "timestamp": ts, "cwd": "/tmp/proj",
+            "promptSource": "typed", "message": {"role": "user", "content": text}, **extra}
+
+
+def test_import_claude_jsonl_stores_typed_prompt_string(auto_db, tmp_path):
+    """Claude Code writes what the user typed as a plain string, not a block
+    list. The importer only read lists, so not one typed prompt was stored."""
+    from coworker.analytics.auto_import import import_claude_jsonl
+
+    d = tmp_path / "p"
+    d.mkdir()
+    f = _make_jsonl(d / "s1.jsonl", [
+        _typed("合并吧，然后重装"),
+        {"type": "user", "timestamp": "t", "promptSource": "system",
+         "message": {"content": "<task-notification>done</task-notification>"}},
+        _typed("<local-command-caveat>x</local-command-caveat>", isMeta=True),
+    ])
+    import_claude_jsonl(f, auto_db)
+
+    rows = auto_db.execute("SELECT type, content FROM messages WHERE session_id='s1'").fetchall()
+    assert [(r["type"], r["content"]) for r in rows] == [("user", "合并吧，然后重装")]
+
+
+def test_import_claude_jsonl_typed_prompt_without_prompt_source(auto_db, tmp_path):
+    """Older transcripts carry no promptSource; a non-meta string is the user's."""
+    from coworker.analytics.auto_import import import_claude_jsonl
+
+    d = tmp_path / "p"
+    d.mkdir()
+    line = _typed("hi")
+    del line["promptSource"]
+    import_claude_jsonl(_make_jsonl(d / "s2.jsonl", [line]), auto_db)
+    assert auto_db.execute("SELECT content FROM messages").fetchone()[0] == "hi"
+
+
+def test_import_claude_jsonl_keeps_long_message_whole(auto_db, tmp_path):
+    from coworker.analytics.auto_import import import_claude_jsonl
+
+    d = tmp_path / "p"
+    d.mkdir()
+    long = "x" * 25000
+    import_claude_jsonl(_make_jsonl(d / "s3.jsonl", [_typed(long)]), auto_db)
+    assert auto_db.execute("SELECT length(content) FROM messages").fetchone()[0] == 25000
+
+
+def test_import_claude_jsonl_reads_skill_key(auto_db, tmp_path):
+    """The Skill tool's input names the skill under "skill"; "name" was never
+    sent, so no Claude Code session recorded a skill."""
+    from coworker.analytics.auto_import import import_claude_jsonl
+
+    d = tmp_path / "p"
+    d.mkdir()
+    f = _make_jsonl(d / "s4.jsonl", [{
+        "type": "assistant", "timestamp": "t", "message": {"content": [
+            {"type": "tool_use", "name": "Skill", "id": "c1", "input": {"skill": "spec-write"}}]},
+    }])
+    import_claude_jsonl(f, auto_db)
+    assert auto_db.execute("SELECT total_calls FROM skills WHERE name='spec-write'").fetchone()[0] == 1
+    assert auto_db.execute("SELECT skill_count FROM session_stats").fetchone()[0] == 1
+
+
+def test_import_claude_jsonl_reimport_appends_without_double_counting(auto_db, tmp_path):
+    """The Stop hook imports the same session after every reply. A second
+    import must add the new lines, keep the old ones, and not count a skill
+    call twice. INSERT OR REPLACE on sessions also failed the foreign key once
+    child rows existed."""
+    from coworker.analytics.auto_import import import_claude_jsonl
+
+    d = tmp_path / "p"
+    d.mkdir()
+    lines = [
+        _typed("first"),
+        {"type": "assistant", "timestamp": "t2", "message": {"content": [
+            {"type": "tool_use", "name": "Skill", "id": "c1", "input": {"skill": "s"}},
+            {"type": "tool_use", "name": "Read", "id": "c2", "input": {"file_path": "/a.py"}}]}},
+    ]
+    f = _make_jsonl(d / "s5.jsonl", lines)
+    import_claude_jsonl(f, auto_db)
+    _make_jsonl(f, lines + [_typed("second", ts="t3")])
+    import_claude_jsonl(f, auto_db)
+
+    msgs = [r[0] for r in auto_db.execute("SELECT content FROM messages ORDER BY seq")]
+    assert msgs == ["first", "second"]
+    assert auto_db.execute("SELECT total_calls FROM skills WHERE name='s'").fetchone()[0] == 1
+    assert auto_db.execute("SELECT COUNT(*) FROM file_ops").fetchone()[0] == 1
+    assert auto_db.execute("SELECT message_count FROM session_stats").fetchone()[0] == 2
+
+
+def test_cli_import_session_reads_hook_payload(tmp_path, monkeypatch):
+    """The Stop hook pipes its JSON payload in; the transcript it names is
+    imported, and a second run (the next reply) adds only what is new."""
+    from click.testing import CliRunner
+    from coworker.cli import main
+    from coworker.analytics import auto_import as ai_mod
+    from coworker.analytics.db import get_db
+
+    db = tmp_path / "a.db"
+    monkeypatch.setattr(ai_mod, "get_db", lambda: get_db(db))
+
+    d = tmp_path / "proj"
+    d.mkdir()
+    f = _make_jsonl(d / "sid-9.jsonl", [_typed("hello")])
+    payload = json.dumps({"session_id": "sid-9", "transcript_path": str(f)})
+
+    r = CliRunner().invoke(main, ["analytics", "import-session"], input=payload)
+    assert r.exit_code == 0, r.output
+    _make_jsonl(f, [_typed("hello"), _typed("again", ts="t9")])
+    r = CliRunner().invoke(main, ["analytics", "import-session"], input=payload)
+    assert r.exit_code == 0, r.output
+    rows = get_db(db).execute("SELECT content FROM messages ORDER BY seq").fetchall()
+    assert [x[0] for x in rows] == ["hello", "again"]
+
+
+def test_cli_import_session_quiet_without_transcript(auto_db):
+    from click.testing import CliRunner
+    from coworker.cli import main
+
+    r = CliRunner().invoke(main, ["analytics", "import-session"], input="{}")
+    assert r.exit_code == 0
+    assert auto_db.execute("SELECT COUNT(*) FROM sessions").fetchone()[0] == 0

@@ -230,7 +230,8 @@ This is the reliability-critical layer. PRD R2 demands per-turn persistence; the
 > | `UserPromptSubmit` | `on-user-prompt.sh`, `python3 on-correction.py` |
 > | `PreToolUse` | `on-pre-tool.sh` |
 > | `PostToolUse` | `on-post-tool.sh` |
-> | `Stop` | `on-stop.sh`, `coworker memory capture`, `coworker memory close` |
+> | `Stop` | `on-stop.sh` (records the chat: `coworker analytics import-session`) |
+> | `SessionEnd` | `on-session-end.sh` (detached: `coworker memory capture`, then `coworker memory close`) |
 >
 > Per-turn graph extraction (§3.1's `memory sync`) is deliberately not wired:
 > it costs one LLM call per tool call, and only the session-end half

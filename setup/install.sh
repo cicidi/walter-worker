@@ -671,28 +671,33 @@ _merge_hook('UserPromptSubmit', 'python3 $HOME/.coworker/analytics/hooks/on-corr
 _merge_hook('PreToolUse',        '$HOME/.coworker/analytics/hooks/on-pre-tool.sh')
 _merge_hook('PostToolUse',       '$HOME/.coworker/analytics/hooks/on-post-tool.sh')
 _merge_hook('Stop',              '$HOME/.coworker/analytics/hooks/on-stop.sh')
-# Session-end capture: the memory loop's first stage. It reads the hook
-# payload on stdin, back-fills captures missed during the session and stages
-# skill candidates for review. One LLM call per session, so it is the cheap
-# half of capture; the per-tool-call half is deliberately left unwired.
+# Session summary: memory capture (one LLM call) then memory close, which folds
+# the result into graph.json. It ran on Stop, which fires after every reply, so
+# it made one 15-20 s LLM call per reply. Stop now only records the chat
+# (on-stop.sh imports it into analytics.db); the summary runs once, when the
+# session ends. on-session-end.sh detaches the work, because Claude Code
+# cancels a SessionEnd hook after 1.5 s.
 #
-# The command is invoked as plain coworker, matching the state-update hook that
-# sync() manages. It exits 0 without a word when no API key is configured, so an
-# unconfigured machine is quiet rather than nagging after every session.
+# Earlier installs put capture and close on Stop, alone or joined into one
+# compound hook; those steps are taken off Stop here.
 #
 # NOTE: this block is a double-quoted bash string. A double quote in these
 # comments ends it early; a backtick or dollar-paren runs a command and splices
-# the output in. A previous pair of backticks here executed the coworker CLI and
-# pasted its usage text into the middle of the Python, so the hooks silently
-# stopped being written while the installer still reported success. Describe
-# such characters in words; never write them.
-_merge_hook('Stop',              'coworker memory capture')
-# And the merge that gives capture somewhere to land. capture writes a pending
-# dump; close is the only thing that folds those into graph.json, and nothing
-# called it — so every session added one more file to pending/ and the graph
-# stayed empty for ever. The memory-graph spec names this command as the Stop
-# hook; it was simply never wired.
-_merge_hook('Stop',              'coworker memory close')
+# the output in. Describe such characters in words; never write them.
+_OLD_STOP_STEPS = {'coworker memory capture', 'coworker memory close'}
+_stop = []
+for g in cfg['hooks'].get('Stop', []):
+    if isinstance(g, dict) and isinstance(g.get('hooks'), list):
+        kept = [h for h in g['hooks']
+                if not (isinstance(h, dict)
+                        and set(_steps(h.get('command'))) <= _OLD_STOP_STEPS)]
+        if not kept:
+            continue
+        g = {**g, 'hooks': kept}
+    _stop.append(g)
+if 'Stop' in cfg['hooks']:
+    cfg['hooks']['Stop'] = _stop
+_merge_hook('SessionEnd',        '$HOME/.coworker/analytics/hooks/on-session-end.sh')
 
 with open('$CLAUDE_SETTINGS', 'w') as f: json.dump(cfg, f, indent=2)
 " 2>/dev/null && ok "Claude Code hooks configured" || warn "Failed to configure Claude Code hooks"

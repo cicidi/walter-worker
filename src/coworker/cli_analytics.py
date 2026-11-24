@@ -46,6 +46,32 @@ def register_analytics(main_group: click.Group) -> None:
             f"skipped={stats['skipped']}"
         )
 
+    @analytics.command("import-session")
+    def analytics_import_session():
+        """Import one Claude Code session from a hook payload on stdin.
+
+        The Stop hook runs this after every reply, so the database follows the
+        chat as it happens instead of waiting for a daemon nobody started. A
+        re-import adds only new lines. Quiet and exit 0 on a payload without a
+        transcript, so a hook never nags.
+        """
+        import json
+        import sys
+        from pathlib import Path
+        from .analytics import auto_import
+
+        try:
+            path = Path(json.loads(sys.stdin.read() or "{}").get("transcript_path") or "")
+        except (ValueError, AttributeError):
+            return
+        if not path.name or not path.is_file():
+            return
+        conn = auto_import.get_db()
+        try:
+            auto_import.import_claude_jsonl(path, conn)
+        finally:
+            conn.close()
+
     @analytics.command("dashboard")
     @click.option("--port", default=8080, help="Port to listen on")
     @click.option(

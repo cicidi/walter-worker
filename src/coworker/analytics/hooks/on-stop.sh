@@ -27,6 +27,14 @@ fi
 # The real run happens at most once per 7 days.
 coworker memory curate --if-due >/dev/null 2>&1 || true
 
+# Record the chat in analytics.db after every reply, so the database follows
+# the session as it happens. Nothing else imported it: the daemon was never
+# started, so the database stopped at the last manual import. A re-import adds
+# only new lines, and a 30 MB transcript takes about 0.4 s, so this runs
+# inline. It sits before the dedupe exit below, which skips every turn after
+# the first. Never fails or prints: a hook must not get in the way.
+printf '%s' "$raw" | coworker analytics import-session >/dev/null 2>&1 || true
+
 # Dedupe index entry — skip if this session is already indexed
 INDEX="$BASE/index.jsonl"
 if [[ -f "$INDEX" ]] && grep -qF "\"$SESSION_ID\"" "$INDEX" 2>/dev/null; then
