@@ -247,3 +247,50 @@ class TestHooksParseThePayloadOnce:
             f"hooks starting more than one interpreter per invocation: {over}. "
             f"Parse the payload once and read the fields from that."
         )
+
+
+def _records(path: Path) -> list[dict]:
+    return [json.loads(line) for line in path.read_text().splitlines()]
+
+
+def test_parallel_tool_calls_get_valid_unique_seqs(tmp_path):
+    """Claude Code runs tool calls in parallel, and next_seq read and rewrote
+    .seq with no lock. A hook that read the file mid-write got no number and
+    wrote "seq":, — a line no importer can parse, so the record vanished."""
+    home = tmp_path / "home"
+    home.mkdir()
+    env = {**os.environ, "HOME": str(home)}
+    procs = []
+    for i in range(24):
+        hook = "on-pre-tool.sh" if i % 2 else "on-post-tool.sh"
+        payload = {"session_id": "par", "tool_name": "Bash", "tool_use_id": f"c{i}",
+                   "tool_input": {"command": "ls"}, "tool_response": {"stdout": "x"}}
+        p = subprocess.Popen(["bash", str(HOOKS / hook)], stdin=subprocess.PIPE,
+                             env=env, cwd=str(tmp_path), text=True)
+        p.stdin.write(json.dumps(payload))
+        p.stdin.close()
+        procs.append(p)
+    for p in procs:
+        assert p.wait(timeout=60) == 0
+
+    recs = _records(home / ".coworker/analytics/sessions/par/tools.jsonl")
+    assert len(recs) == 24
+    assert sorted(r["seq"] for r in recs) == list(range(1, 25))
+
+
+def test_tool_id_with_newline_keeps_fields_in_place(tmp_path):
+    """Cursor's tool_use_id can hold a newline. The fields came back one per
+    line through read -r, so a newline shifted every later field: the args
+    landed in duration_ms and the line was invalid."""
+    home = tmp_path / "home"
+    home.mkdir()
+    payload = {"session_id": "nl", "tool_name": "Shell", "tool_use_id": "call_1\nfc_2",
+               "tool_input": {"command": "ls"}, "tool_response": "out", "duration_ms": 7}
+    sessions = _run_hook("on-pre-tool.sh", payload, home, tmp_path)
+    _run_hook("on-post-tool.sh", payload, home, tmp_path)
+
+    before, after = _records(sessions / "nl" / "tools.jsonl")
+    assert before["call_id"] == "call_1\nfc_2"
+    assert before["args"] == {"command": "ls"}
+    assert after["result"] == "out"
+    assert after["duration_ms"] == 7

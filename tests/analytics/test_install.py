@@ -13,7 +13,7 @@ def test_install_creates_all_artifacts(installed_home):
 
     hooks = analytics_dir / "hooks"
     assert hooks.is_dir(), "hooks directory missing"
-    for script in ["common.sh", "on-user-prompt.sh", "on-pre-tool.sh", "on-post-tool.sh", "on-stop.sh"]:
+    for script in ["common.sh", "on-user-prompt.sh", "on-pre-tool.sh", "on-post-tool.sh", "on-stop.sh", "record.py"]:
         assert (hooks / script).exists(), f"Missing hook: {script}"
 
     db = analytics_dir / "analytics.db"

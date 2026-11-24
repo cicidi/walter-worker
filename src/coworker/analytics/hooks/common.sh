@@ -36,22 +36,6 @@ YAML
   SEQ_FILE="$SESSIONS/$SESSION_ID/.seq"
 }
 
-next_seq() {
-  local seq=0
-  [[ -f "$SEQ_FILE" ]] && seq=$(cat "$SEQ_FILE")
-  seq=$((seq + 1))
-  echo "$seq" > "$SEQ_FILE"
-  echo "$seq"
-}
-
-append_jsonl() {
-  local file="$1" json="${2:-}"
-  if [[ -z "$json" ]]; then
-    json=$(cat)
-  fi
-  echo "$json" >> "$SESSIONS/$SESSION_ID/$file" 2>/dev/null || true
-}
-
 escape_json() {
   echo "$1" | sed 's/\\/\\\\/g; s/"/\\"/g' | tr -d '\n'
 }
