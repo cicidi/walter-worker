@@ -363,6 +363,37 @@ class TestVerifyProtected:
         assert violations == []
 
 
+    def test_line_shift_above_untouched_span_is_not_a_violation(self):
+        """The check compared spans at their old line numbers, so a section
+        above that grew by one line reported an untouched span as modified."""
+        original = (
+            "## Above\n"
+            "old\n"
+            "<!-- PROTECTED -->\n"
+            "secret content\n"
+            "<!-- END PROTECTED -->\n"
+        )
+        merged = (
+            "## Above\n"
+            "new\n"
+            "one more line\n"
+            "<!-- PROTECTED -->\n"
+            "secret content\n"
+            "<!-- END PROTECTED -->\n"
+        )
+        assert verify_protected(original, merged) == []
+
+    def test_removed_protected_span_detected(self):
+        original = (
+            "## Safe\n"
+            "<!-- PROTECTED -->\n"
+            "secret content\n"
+            "<!-- END PROTECTED -->\n"
+        )
+        violations = verify_protected(original, "## Safe\n")
+        assert len(violations) == 1
+
+
 class TestMarkerDialectProtection:
     """Both marker dialects must survive a merge.
 

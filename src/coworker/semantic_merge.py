@@ -361,7 +361,7 @@ def apply_merge(
             new_body = c.future_content.rstrip("\n") + "\n\n" if c.future_content else ""
             out.append(Section(heading=c.heading, body=c.future_content,
                               occurrence=1, raw=c.heading + "\n" + new_body))
-        elif c.category not in (KEEP, OVERWRITE, OUTDATED):
+        elif c.category not in (KEEP, CONFLICT, OVERWRITE, OUTDATED):
             raise ValueError(f"Unknown classification: {c.category!r}")
 
     return sections_to_text(header, out)
@@ -372,18 +372,30 @@ def apply_merge(
 
 def verify_protected(original: str, merged: str) -> list[str]:
     """Return violation descriptions.  Each span in 'original' that is marked
-    <!-- PROTECTED --> ... <!-- END PROTECTED --> must be byte-identical in
-    'merged'.  Returns empty list if all spans match."""
+    <!-- PROTECTED --> ... <!-- END PROTECTED --> must appear byte-identical,
+    in the same order, in 'merged'.  Returns empty list if all spans match.
+
+    Spans are paired by order, not by line number: a section above a span may
+    legitimately grow or shrink, and comparing at the old line numbers reported
+    that as a modification of a span nobody touched.
+    """
     violations: list[str] = []
-    orig_lines = original.split("\n")
-    merged_lines = merged.split("\n")
-    for lo, hi in protected_ranges(original):
-        if hi > len(merged_lines):
-            violations.append(f"Protected span {lo}-{hi} is truncated in merged document")
+
+    def spans(text: str) -> list[str]:
+        lines = text.split("\n")
+        return ["\n".join(lines[lo - 1 : hi]) for lo, hi in protected_ranges(text)]
+
+    merged_spans = spans(merged)
+    for i, ((lo, hi), orig_span) in enumerate(zip(protected_ranges(original), spans(original))):
+        if i >= len(merged_spans):
+            violations.append(f"Protected span {lo}-{hi} is missing from the merged document")
             continue
-        orig_span = "\n".join(orig_lines[lo - 1 : hi])
-        merged_span = "\n".join(merged_lines[lo - 1 : hi])
-        if orig_span != merged_span:
+        merged_span = merged_spans[i]
+        if merged_span == orig_span:
+            continue
+        if orig_span.startswith(merged_span):
+            violations.append(f"Protected span {lo}-{hi} is truncated in merged document")
+        else:
             violations.append(
                 f"Protected span {lo}-{hi} was modified. "
                 f"Original {len(orig_span)} bytes, merged {len(merged_span)} bytes."
