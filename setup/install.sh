@@ -635,14 +635,21 @@ if [[ ! -f "$CLAUDE_SETTINGS" ]]; then
   echo '{}' > "$CLAUDE_SETTINGS"
 fi
 python3 -c "
-import json
+import json, re
 with open('$CLAUDE_SETTINGS') as f: cfg = json.load(f)
 cfg.setdefault('hooks', {})
+
+# A hook counts as present when cmd is the whole command or one step of a
+# compound one. A machine that joined capture and close into one async hook
+# with a semicolon got both added back as separate hooks on every install, so
+# session-end capture, an LLM call, ran twice.
+def _steps(command):
+    return [s.strip() for s in re.split(r';|&&|[|][|]', command or '')]
 
 def _merge_hook(event, cmd):
     entries = cfg['hooks'].setdefault(event, [])
     has_it = any(
-        h.get('command') == cmd
+        cmd in _steps(h.get('command'))
         for g in entries if isinstance(g, dict)
         for h in (g.get('hooks') or [])
     )

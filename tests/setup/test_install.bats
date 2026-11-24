@@ -558,6 +558,25 @@ print(n)
   grep -q "my own rule" "$HOME/.claude/CLAUDE.md"
 }
 
+@test "a capture and close joined into one hook are not added back separately" {
+  cat > "$HOME/.claude/settings.json" << 'JSONEOF'
+{"hooks": {"Stop": [{"matcher": "", "hooks": [
+  {"type": "command", "command": "coworker memory capture; coworker memory close", "async": true}
+]}]}}
+JSONEOF
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import json, os
+cfg = json.load(open(os.path.expanduser('~/.claude/settings.json')))
+cmds = [h.get('command') for g in cfg['hooks']['Stop'] for h in (g.get('hooks') or [])]
+print(sum('memory capture' in c for c in cmds), sum('memory close' in c for c in cmds),
+      'coworker memory capture; coworker memory close' in cmds)
+"
+  [ "$output" = "1 1 True" ]
+}
+
 @test "configures hooks even when the coworker CLI prints output" {
   # install.sh writes settings.json via `python3 -c "…"` — a DOUBLE-QUOTED bash
   # string, so a backtick or dollar-paren anywhere inside it is a command
