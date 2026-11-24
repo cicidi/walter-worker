@@ -40,6 +40,8 @@ As a maintainer, I want a quick inspection command that fails when tests fail, s
 | **PRD-E** | `find-issues run` inspects the chosen phases (requirements, specification, web, code), writes a dated report, and exits with a failure status when the code phase finds failing tests or when a phase name is unknown. |
 | **PRD-F** | Lessons recorded as critical in the project's wrong-history are given to the agent before the first round. |
 
+The wrong-history is a folder of recorded past mistakes, each with a severity and the prevention rule learned from it.
+
 ## Out of Scope
 
 What the agent changes in the repository is governed by the user's Claude Code permission settings, not by this feature. The rule classes for gap checking in `src/coworker/autoworker/rules.py` are not called by either command and are not part of this contract. Creating GitHub issues, commits, or branches is not done by the Python code.
@@ -48,9 +50,12 @@ What the agent changes in the repository is governed by the user's Claude Code p
 
 The `claude` command-line tool on the path for `run`; Python with pytest for `find-issues`. Tests are under `tests/python/`.
 
+`run --loop` also needs the `memory` optional extra from `pyproject.toml`, because it imports the `openai` package. Without the extra, it stops with `ModuleNotFoundError` before any round runs (see the design's QUES-G).
+
 ## Change Log
 
 | Version | Date | Description |
 |---|---|---|
 | 0.1 | 2026-11-04 | Draft (never committed) |
 | 0.2 | 2026-11-24 | Rewritten from the code at `a0f4ce0`; the nonexistent `coworker autoworker` command and in-code gap detection removed (ARD-A) |
+| 0.3 | 2026-11-24 | Review fixes: the `memory` extra added to Resources Needed; wrong-history defined; requirements unchanged (ARD-D, ARD-E) |

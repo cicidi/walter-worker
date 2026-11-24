@@ -33,13 +33,13 @@ Verify: `tests/python/test_autoworker_engine.py` `test_uses_the_headless_print_i
 
 The `run` command, the wrong-history injection, the rounds, the stop conditions, and the state file (DSGN-A to DSGN-C). Depends on IMPL-A. Blocks nothing.
 
-Verify: no test covers the loop or the `run` command yet.
+Verify: a test, still to be written in `tests/python/test_autoworker_engine.py`, passes. It points `HOME` at a temporary folder, replaces `_spawn_agent` with a stub and `time.sleep` with a no-op, and calls `AutoWorkerAgent(state_dir=<temporary folder>).run(max_hours=1)`. With a stub that succeeds, it checks that the run stops at 50 rounds and that the state file holds `## Round 1 Agent Output`, a `## Summary` section, and the status completed. With a stub that fails, it checks that the failed rounds are recorded and the run reports failure. The failure half fails today because of [QUES-A](../design/autoworker-design.md#open-questions), the open gap for PRD-D.
 
 ## IMPL-C — `find-issues`
 
 The phases, the report, and the exit statuses (DSGN-D). Depends on nothing. Blocks nothing.
 
-Verify: `tests/python/test_cli.py` `test_unknown_phases_are_an_error`, `test_failing_tests_exit_non_zero`, `test_a_clean_run_exits_zero`, and `test_a_different_project_reads_its_own_docs` pass.
+Verify: `tests/python/test_cli.py` `test_unknown_phases_are_an_error`, `test_failing_tests_exit_non_zero`, `test_a_clean_run_exits_zero`, `test_a_different_project_reads_its_own_docs`, and `test_an_unknown_project_says_so_rather_than_reading_another` pass.
 
 ## Change Log
 
@@ -47,3 +47,4 @@ Verify: `tests/python/test_cli.py` `test_unknown_phases_are_an_error`, `test_fai
 |---|---|---|
 | 0.1 | 2026-11-04 | Draft (never committed) |
 | 0.2 | 2026-11-24 | Rewritten as a record of shipped work with Verify lines; added Acceptance Criteria (ARD-A) |
+| 0.3 | 2026-11-24 | Review fixes: IMPL-B has a checkable Verify line linked to QUES-A; QUES-J recorded as non-blocking; IMPL-C Verify names all five tests (ARD-E) |
