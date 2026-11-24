@@ -344,8 +344,8 @@ print(sum(1 for f in m.get('files', []) if '.cursor/skills/one/' in f))
 }
 
 @test "uninstall strips a coworker hook added after the manifest was written" {
-  # `coworker sync` adds `coworker state-update` on any later run and does not
-  # rewrite the manifest, so the manifest-driven removal missed it and it kept
+  # `coworker sync` in earlier releases added `coworker state-update` without
+  # rewriting the manifest, so the manifest-driven removal missed it and it kept
   # firing after uninstall — while the closing banner said coworker entries had
   # been stripped. Our hooks are identifiable independently of the manifest.
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
