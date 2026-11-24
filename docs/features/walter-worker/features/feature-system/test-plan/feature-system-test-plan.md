@@ -23,11 +23,12 @@ Each case names the requirement from the [PRD](../prd/feature-system-prd.md) it 
 | **TST-F** | PRD-E | A project with no block has no active feature | `test_features_manager.py::test_active_name_no_feature_in_file` |
 | **TST-G** | PRD-F | Edit options change the record, and archiving sets the status | `test_cli.py` `TestFeatureEdit`, `TestFeatureArchive` |
 | **TST-H** | PRD-G | `list` and `show` print without writing | `test_cli.py` `TestFeatureList`, `TestFeatureShow` |
-| **TST-I** | PRD-H | Removing an active feature deactivates it first | `test_features_manager.py::test_remove_deactivates_if_active`; `test_cli.py` `TestFeatureRemove` |
+| **TST-I** | PRD-H | Removing an active feature deactivates it first, clears its block in other catalog projects while keeping their other text, and names the documentation folders it kept | `test_features_manager.py::test_remove_deactivates_if_active`; `test_cli.py` `TestFeatureRemove`, `TestFeatureRemoveSweepsOtherProjects::test_the_block_is_cleared_elsewhere_too`, `TestFeatureRemoveReportsKeptDocs::test_the_kept_docs_are_named` |
 | **TST-J** | PRD-I | The old placeholder is upgraded and old marker blocks are removed; the `initiative` group mirrors every subcommand | `test_local_claude_md.py` `test_legacy_placeholder_is_read_and_upgraded`, `test_legacy_marker_block_is_removed`; `test_cli.py` `test_alias_mirrors_every_feature_subcommand` |
-| **TST-K** | PRD-J | `remove` backs up another project's file before clearing its block | No test yet |
+| **TST-K** | PRD-J | `remove` backs up another project's file before clearing its block | No test yet; the sweep test in TST-I does not check the backup |
+| **TST-L** | PRD-E | Activating a feature twice and then deactivating it leaves the file byte for byte as it was | No test yet; today the case would fail (QUES-G) |
 
-Not covered by any test today: the old `initiatives/` folder (QUES-C), an active-feature lookup on an old marker (QUES-B), the cross-project sweep and backup (TST-K), and how the command line reports an invalid name (QUES-A). These gaps are tracked in the [design](../design/feature-system-design.md#open-questions).
+Not covered by any test today: the backup taken before the cross-project sweep (TST-K), the file staying unchanged across repeated activation (TST-L, QUES-G), the old `initiatives/` folder (QUES-C), an active-feature lookup on an old marker (QUES-B), and how the command line reports an invalid name (QUES-A). These gaps are tracked in the [design](../design/feature-system-design.md#open-questions).
 
 ## Test Execution Order
 
@@ -35,7 +36,7 @@ Run `test_config.py` and `test_features_manager.py` first, because they check th
 
 ## Expected Pass Threshold
 
-Every case with a test must pass; the threshold is 100%. TST-K has no test, so PRD-J is not yet verified.
+Every case with a test must pass; the threshold is 100%. TST-K and TST-L have no test, so PRD-J and the "text outside the block is never changed" part of PRD-E are not yet verified.
 
 ## Traceability
 
@@ -45,7 +46,7 @@ Every case with a test must pass; the threshold is 100%. TST-K has no test, so P
 | PRD-B | TST-B |
 | PRD-C | TST-C |
 | PRD-D | TST-D |
-| PRD-E | TST-E, TST-F |
+| PRD-E | TST-E, TST-F, TST-L |
 | PRD-F | TST-G |
 | PRD-G | TST-H |
 | PRD-H | TST-I |
@@ -58,3 +59,4 @@ Every case with a test must pass; the threshold is 100%. TST-K has no test, so P
 |---|---|---|
 | 0.1 | 2026-11-04 | Draft as `initiative-system` (never committed) |
 | 0.2 | 2026-11-24 | Rewritten with one case per requirement, mapped to pytest tests, untested behavior listed (ARD-A) |
+| 0.3 | 2026-11-24 | Review fixes: the sweep and kept-docs tests mapped to TST-I; TST-K narrowed to the backup; TST-L added for byte stability (ARD-D, ARD-E) |

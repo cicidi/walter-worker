@@ -42,7 +42,7 @@ As a developer who used walter-worker before the rename, I want my initiatives t
 | **PRD-E** | `activate` makes a feature the only active feature of one project, by writing its context block into that project's `CLAUDE.local.md`. `deactivate` removes the block. Text outside the block is never changed. |
 | **PRD-F** | `edit` adds projects, links, decisions, and reference documents, changes the description, or archives the feature. Every option given in one command takes effect, or none does. |
 | **PRD-G** | `list` and `show` display features without changing anything. |
-| **PRD-H** | `remove` asks for confirmation, deletes the record, removes the feature's block from every project in the catalog that has it, and keeps the documentation folders. |
+| **PRD-H** | `remove` asks for confirmation, deletes the record, removes the feature's block from every project in the project catalog (the list kept by `coworker project`) that has it, and keeps the documentation folders. |
 | **PRD-I** | Records, markers, and commands from the old "initiative" name keep working until the user migrates them. |
 | **PRD-J** | A command that changes `CLAUDE.local.md` in a project other than the current one takes a backup first. |
 
@@ -60,3 +60,4 @@ Python 3 with the walter-worker package installed. The pytest suites under `test
 |---|---|---|
 | 0.1 | 2026-11-04 | Draft as `initiative-system` (never committed) |
 | 0.2 | 2026-11-24 | Renamed to `feature-system` and rewritten from the code at `a0f4ce0` (ARD-A) |
+| 0.3 | 2026-11-24 | Review fixes: PRD-H names the project catalog; requirements unchanged (ARD-D, ARD-E) |

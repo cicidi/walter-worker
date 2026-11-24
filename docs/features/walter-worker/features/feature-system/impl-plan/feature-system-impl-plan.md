@@ -13,7 +13,7 @@ This plan was written after the code shipped. Each task records a unit of work t
 
 ## Global Constraints
 
-Every file access goes through the name check in DSGN-A. Activation writes only the given project's `CLAUDE.local.md` and never text outside the feature markers. Records keep unknown keys across a load and save.
+Every file access goes through the name check in DSGN-A. Activation writes only the given project's `CLAUDE.local.md` and never text outside the feature markers; the code does not fully meet the second part today, because blank lines accumulate (QUES-G in the design). Records keep unknown keys across a load and save.
 
 ## Acceptance Criteria
 
@@ -39,13 +39,13 @@ Verify: `tests/python/test_local_claude_md.py` `test_inject_feature_replaces_pre
 
 The eight subcommands with their options and exit statuses (DSGN-C). Depends on IMPL-A and IMPL-B. Blocks IMPL-E.
 
-Verify: `tests/python/test_features_manager.py` `test_create_duplicate` and `test_activate_deactivates_previous_first` pass, and the `TestFeature*` classes in `tests/python/test_cli.py` pass.
+Verify: `tests/python/test_features_manager.py` `test_create_duplicate` and `test_activate_deactivates_previous_first` pass, and the `TestFeature*` classes in `tests/python/test_cli.py` pass. Those classes include the two removal classes named under IMPL-D.
 
 ## IMPL-D — Removal across projects
 
 Deactivate in the current project, delete the record, and clear the block from other catalog projects after backing each file up (DSGN-E). Depends on IMPL-A and IMPL-B. Blocks IMPL-E.
 
-Verify: `tests/python/test_features_manager.py::test_remove_deactivates_if_active` passes. The cross-project sweep and its backup have no test yet.
+Verify: `tests/python/test_features_manager.py::test_remove_deactivates_if_active` passes, and `tests/python/test_cli.py` `TestFeatureRemoveSweepsOtherProjects` and `TestFeatureRemoveReportsKeptDocs` pass. The backup taken before the sweep has no test yet (TST-K in the test plan).
 
 ## IMPL-E — Old "initiative" name
 
@@ -59,3 +59,4 @@ Verify: `tests/python/test_local_claude_md.py` `test_legacy_placeholder_is_read_
 |---|---|---|
 | 0.1 | 2026-11-04 | Draft as `initiative-system` (never committed) |
 | 0.2 | 2026-11-24 | Rewritten as a record of shipped work with Verify lines; added Acceptance Criteria (ARD-A) |
+| 0.3 | 2026-11-24 | Review fixes: IMPL-D Verify names the existing sweep and kept-docs tests; IMPL-C and IMPL-D Verify lines made consistent; the blank-line gap noted in Global Constraints (ARD-D, ARD-E) |

@@ -15,12 +15,17 @@ Decisions about `coworker feature`. Newest first. Each decision has an entry in 
 
 | ID | Date | Decision |
 |---|---|---|
+| **ARD-E** | 2026-11-24 | The review-fix pass for this backfill is applied as edits larger than the 10-line/200-character limit, authorized by the owner's 2026-11-24 instruction to decide the approach ("你自己看着弄"). |
 | **ARD-D** | 2026-11-24 | Where the code does not meet a requirement, the PRD keeps the requirement, the design states what the code does today, and the gap is a design Open Question for the owner to decide. |
 | **ARD-A** | 2026-11-24 | The uncommitted 2026-11-04 `initiative-system` drafts are renamed to `feature-system` and rewritten whole in their first commit. Their IDs were never published, so no old-to-new table is kept. |
 | **ARD-C** | 2026-09-24 | The "initiative" concept is renamed "feature". The old folder, markers, and command group keep working in place; nothing is migrated automatically. |
 | **ARD-B** | 2026-09-24 | Activation writes only the project's `CLAUDE.local.md`, and the block there is the only record of which feature is active. |
 
 ## Evidence Appendix
+
+### ARD-E
+
+The 2026-11-24 adversarial review of this backfill found one critical, five important, and two worth-discussing findings that touch most sections of the design and the test plan. Applying them as one coherent pass keeps each document consistent with the others at every commit. Rejected: splitting the pass into many edits of at most 10 lines and 200 characters each, which would leave the documents contradicting each other between edits. Evidence: the review report `raw/review/2026-11-24-spec-review-feature-system-gaps.md` (local, not committed).
 
 ### ARD-D
 
@@ -43,3 +48,4 @@ The active feature is personal working state: two people on one repository may w
 | Version | Date | Description |
 |---|---|---|
 | 0.1 | 2026-11-24 | Created with ARD-A to ARD-D |
+| 0.2 | 2026-11-24 | Review fixes: ARD-E added for the size of the review-fix pass |
