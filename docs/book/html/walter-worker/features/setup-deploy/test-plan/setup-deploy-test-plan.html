@@ -92,7 +92,7 @@
 <td><strong id="TST-I"><a class="id-ref" href="#TST-I">TST-I</a></strong></td>
 <td><a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-F">PRD-F</a></td>
 <td>Every shipped hook is registered, and a second run adds none</td>
-<td><code>test_install.bats</code> &quot;no shipped on-* hook is left unregistered&quot;, &quot;does not add a second capture hook when one is present&quot;</td>
+<td><code>test_install.bats</code> &quot;no shipped on-* hook is left unregistered&quot;, &quot;does not add a second capture hook when one is present&quot;, &quot;a capture and close joined into one hook are not added back separately&quot;</td>
 </tr>
 <tr>
 <td><strong id="TST-J"><a class="id-ref" href="#TST-J">TST-J</a></strong></td>
@@ -104,7 +104,7 @@
 <td><strong id="TST-K"><a class="id-ref" href="#TST-K">TST-K</a></strong></td>
 <td><a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-H">PRD-H</a></td>
 <td>A second identical run skips every up-to-date file, and answering &quot;None&quot; keeps installed commands</td>
-<td><code>test_install.bats</code> &quot;skips already up-to-date skills&quot;, &quot;skipping skills does not retire the ones already installed&quot;</td>
+<td><code>test_install.bats</code> &quot;skips already up-to-date skills&quot;, &quot;skipping skills does not retire the ones already installed&quot;, &quot;a second install keeps the CLAUDE.md the first install created&quot;</td>
 </tr>
 <tr>
 <td><strong id="TST-L"><a class="id-ref" href="#TST-L">TST-L</a></strong></td>
@@ -116,7 +116,7 @@
 <td><strong id="TST-M"><a class="id-ref" href="#TST-M">TST-M</a></strong></td>
 <td><a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-J">PRD-J</a></td>
 <td>Uninstall aborts without confirmation, refuses a version-1 manifest, keeps the user&#x27;s files, and preserves analytics data</td>
-<td><code>test_uninstall.bats</code> &quot;aborts without confirmation&quot;, &quot;refuses to remove files from a pre-schema_version manifest&quot;, &quot;uninstall keeps the user&#x27;s own CLAUDE.md and their own hooks&quot;, &quot;preserves analytics data it claims to preserve&quot;</td>
+<td><code>test_uninstall.bats</code> &quot;aborts without confirmation&quot;, &quot;refuses to remove files from a pre-schema_version manifest&quot;, &quot;uninstall keeps the user&#x27;s own CLAUDE.md and their own hooks&quot;, &quot;preserves analytics data it claims to preserve&quot;, &quot;uninstall keeps the user&#x27;s data in ~/.coworker&quot;</td>
 </tr>
 <tr>
 <td><strong id="TST-N"><a class="id-ref" href="#TST-N">TST-N</a></strong></td>
@@ -125,7 +125,7 @@
 <td><code>test_update.bats</code> &quot;the-super-lab update can be declined&quot;, &quot;notifies when the-super-lab is not a git checkout&quot;</td>
 </tr>
 </tbody></table></div>
-<p>Three cases check less than their requirement asks. <a class="id-ref" href="#TST-K">TST-K</a> does not run the installer twice after a first run created <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a>, so it misses <a class="id-ref" href="../design/setup-deploy-design.html#QUES-C">QUES-C</a>. <a class="id-ref" href="#TST-M">TST-M</a> checks only the file list for an old manifest, so it misses <a class="id-ref" href="../design/setup-deploy-design.html#QUES-E">QUES-E</a>. <a class="id-ref" href="#TST-I">TST-I</a> checks only the capture hook for duplicates. The open questions are in the <a href="../design/setup-deploy-design.html#open-questions">design</a>.</p>
+<p>One case checks less than its requirement asks. <a class="id-ref" href="#TST-I">TST-I</a> checks only the capture hook for duplicates. The open questions are in the <a href="../design/setup-deploy-design.html#open-questions">design</a>.</p>
 <h3>Test Execution Order</h3>
 <p>Run <code>bats tests/setup/test_install.bats</code> first, because update and uninstall cases install before they act. Then run <code>test_update.bats</code>, then <code>test_uninstall.bats</code>. Within a file the cases are independent; each creates its own temporary home directory.</p>
 <h3>Expected Pass Threshold</h3>

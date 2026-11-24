@@ -287,7 +287,7 @@
 <tr>
 <td><strong id="QUES-I"><a class="id-ref" href="#QUES-I">QUES-I</a></strong></td>
 <td>Capture and <code>close</code> run as Stop hooks, so they run after every turn, not once per session. Each turn repeats the model call with the transcript, stores lessons again, uses up the daily staging limit, and merges the same facts again. Move them to the session-end event, or run them once per session?</td>
-<td>Found in the code at <code>a0f4ce0</code> (<a href="../../../../../setup/install.sh"><code>setup/install.sh</code></a> registers both on <code>Stop</code>).</td>
+<td>Found in the code at <code>a0f4ce0</code> (<a href="../../../../../setup/install.sh"><code>setup/install.sh</code></a> registers both on <code>Stop</code>). A fix is in walter-worker PR #22 (open, <code>ede4fd2</code>): one detached run per session from a SessionEnd hook, and install takes both off <code>Stop</code>.</td>
 <td>cicidi</td>
 <td>yes</td>
 </tr>
@@ -402,6 +402,11 @@
 <td>0.3</td>
 <td>2026-11-24</td>
 <td>Review fixes: capture and merge run every turn; fold, timeout, curator stamp, Graphify decay, init, exit-1, and privacy facts corrected; <a class="id-ref" href="#QUES-I">QUES-I</a> to <a class="id-ref" href="#QUES-P">QUES-P</a> added; <a class="id-ref" href="#QUES-F">QUES-F</a> widened; parent links and glossary moved (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-D">ARD-D</a>, <a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-F">ARD-F</a>, <a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-G">ARD-G</a>)</td>
+</tr>
+<tr>
+<td>0.4</td>
+<td>2026-11-24</td>
+<td><a class="id-ref" href="#QUES-I">QUES-I</a> notes the fix in open PR #22; master behavior unchanged</td>
 </tr>
 </tbody></table></div>
       </div>

@@ -78,19 +78,19 @@
 <p>A &quot;directory copy&quot; copies the files at the top level of the skill directory only; subdirectories such as <code>tests/</code> stay behind, and a file deleted from the source stays in the copy. A real directory found where the OpenCode symlink should go is deleted and replaced by the symlink.</p>
 <p>The the-super-lab skills are deployed on every run, whatever the user answered to the skill question. Only bundle skills are offered in that question, so a the-super-lab skill never also becomes a command (<a class="id-ref" href="../decision-history/setup-deploy-decision-history.html#ARD-C">ARD-C</a>). A command copy of a the-super-lab skill that an earlier release wrote is removed while it is still identical to its source; a copy that differs is kept and reported. If a destination file is the same file as its source, which happens when the destination directory is a symlink back into the-super-lab, the copy is skipped instead of failing the install. The <code>init</code> skill is always installed as a command. These rules implement <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-D">PRD-D</a> and <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-E">PRD-E</a>.</p>
 <h4 id="DSGN-D"><a class="id-ref" href="#DSGN-D">DSGN-D</a> — Hook registration</h4>
-<p>The installer adds seven hook commands to <code>~/.claude/settings.json</code>: four analytics scripts under <code>~/.coworker/analytics/hooks/</code> (prompt submitted, before a tool runs, after a tool runs, session stop), the correction detector on prompt submit, and <code>coworker memory capture</code> and <code>coworker memory close</code> on stop. A hook is added only when no existing entry for that event has the same command string. Entries the installer did not add are never changed or removed. When the OpenCode analytics plugin directory exists in the checkout, the installer also registers it in <code>~/.config/opencode/config.json</code>; when it does not exist, nothing is registered. This implements <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-F">PRD-F</a>. A known gap is tracked as <a class="id-ref" href="#QUES-A">QUES-A</a>.</p>
+<p>The installer adds seven hook commands to <code>~/.claude/settings.json</code>: four analytics scripts under <code>~/.coworker/analytics/hooks/</code> (prompt submitted, before a tool runs, after a tool runs, session stop), the correction detector on prompt submit, and <code>coworker memory capture</code> and <code>coworker memory close</code> on stop. A hook is added only when no existing entry for that event has the same command, either as its whole command or as one step of a compound command joined by <code>;</code>, <code>&amp;&amp;</code>, or <code>||</code> (<a class="id-ref" href="#QUES-A">QUES-A</a>). Entries the installer did not add are never changed or removed. When the OpenCode analytics plugin directory exists in the checkout, the installer also registers it in <code>~/.config/opencode/config.json</code>; when it does not exist, nothing is registered. This implements <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-F">PRD-F</a>.</p>
 <h4 id="DSGN-E"><a class="id-ref" href="#DSGN-E">DSGN-E</a> — Install manifest</h4>
 <p>The last step writes <code>~/.coworker/install-manifest.json</code> with <code>schema_version: 2</code>. There is one manifest per machine, whichever mode wrote it. It holds the install mode, the project path, a list of claimed files, the walter-worker hook commands, and a list of owned directories.</p>
-<p>The claimed files are, by full path: the selected commands and their OpenCode mirrors, every file found in the hooks directory, every file found under each the-super-lab skill&#x27;s Claude Code and Cursor destination, the OpenCode symlinks, and the global <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> when this run created it. The owned directories are <code>~/.coworker</code> and <code>~/.config/opencode/skills/walter-worker</code>; uninstall treats them specially (<a class="id-ref" href="#DSGN-G">DSGN-G</a>). The list does not match <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-G">PRD-G</a> exactly: some written paths are not claimed and some claimed paths were not written by this run, which is tracked as <a class="id-ref" href="#QUES-G">QUES-G</a>.</p>
+<p>The claimed files are, by full path: the selected commands and their OpenCode mirrors, every file found in the hooks directory, every file found under each the-super-lab skill&#x27;s Claude Code and Cursor destination, the OpenCode symlinks, the global <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> when this run or an earlier install created it, and <code>~/.coworker/claude-md-base.md</code> when it exists. The only owned directory is <code>~/.config/opencode/skills/walter-worker</code> (<a class="id-ref" href="#DSGN-G">DSGN-G</a>). The list does not match <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-G">PRD-G</a> exactly: some written paths are not claimed and some claimed paths were not written by this run, which is tracked as <a class="id-ref" href="#QUES-G">QUES-G</a>.</p>
 <p>Before writing, the installer compares the new list with the previous manifest. A path the previous manifest claimed, that still exists, and that this run did not claim is removed, and any directory that removal empties is removed too, but never a root such as <code>~/.claude/skills</code> itself. When the user answers &quot;None&quot; to the skill question, previously claimed paths under <code>~/.claude/commands/</code> are carried forward instead of removed, because &quot;install nothing new&quot; does not mean &quot;delete what I have&quot;; project-mode commands and OpenCode mirrors are not carried (<a class="id-ref" href="#QUES-I">QUES-I</a>).</p>
-<p>Two consequences of the comparison break <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-H">PRD-H</a> today. A second run deletes the global <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> that the first run created, because only the creating run claims it (<a class="id-ref" href="#QUES-C">QUES-C</a>). A project-mode run prunes the paths the global install claimed, because both share one manifest (<a class="id-ref" href="#QUES-F">QUES-F</a>). These rules implement <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-G">PRD-G</a> and <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-H">PRD-H</a>, except where those questions record a conflict.</p>
+<p>One consequence of the comparison breaks <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-H">PRD-H</a> today. A project-mode run prunes the paths the global install claimed, because both share one manifest (<a class="id-ref" href="#QUES-F">QUES-F</a>). These rules implement <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-G">PRD-G</a> and <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-H">PRD-H</a>, except where that question records a conflict.</p>
 <h4 id="DSGN-F"><a class="id-ref" href="#DSGN-F">DSGN-F</a> — Update</h4>
 <p><code>update.sh</code> fetches the default branch of the walter-worker checkout from <code>upstream</code> when that remote exists and from <code>origin</code> otherwise, and merges it. It reads the install mode and the previously selected command names from the manifest, then runs <code>install.sh</code> with <code>--skills &lt;names&gt;</code>, which skips the skill question. It then offers to pull the-super-lab; the user may decline. When the manifest records no commands, <code>--skills</code> is not passed and the installer asks the skill question again. This implements <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-I">PRD-I</a>. Declining the the-super-lab pull currently has no effect, because the installer already ran <code>git pull --ff-only</code> on the-super-lab in its step 3 before the question is asked (<a class="id-ref" href="#QUES-H">QUES-H</a>).</p>
 <h4 id="DSGN-G"><a class="id-ref" href="#DSGN-G">DSGN-G</a> — Uninstall</h4>
-<p><code>uninstall.sh</code> exits with status 1 when there is no manifest, and stops unless the user answers <code>y</code>. It copies <code>settings.json</code> to a backup, then runs four passes. First it removes each claimed file; when the manifest has no <code>schema_version</code> this pass is skipped and a message says nothing was removed. Second it strips walter-worker&#x27;s hook commands from <code>settings.json</code>, including one added after the manifest was written. Third it empties each owned directory: every entry of <code>~/.coworker</code> except <code>analytics/</code> and <code>backups/</code> is deleted, which includes <code>.env</code>, <code>coworker.yaml</code>, and the memory graph. Fourth it removes the directories its removals emptied.</p>
-<p>The second and third passes run even for a manifest without <code>schema_version</code>. So today uninstall does not meet <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-J">PRD-J</a> in two ways: it deletes user data in <code>~/.coworker</code> that no manifest claims (<a class="id-ref" href="#QUES-D">QUES-D</a>), and its refusal of an old manifest protects only the file list (<a class="id-ref" href="#QUES-E">QUES-E</a>). This clause is meant to implement <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-J">PRD-J</a>.</p>
+<p><code>uninstall.sh</code> exits with status 1 when there is no manifest, or, before any change, when the manifest&#x27;s <code>schema_version</code> is not 2. It stops unless the user answers <code>y</code>. It copies <code>settings.json</code> to a backup, then runs four passes. First it removes each claimed file. Second it strips walter-worker&#x27;s hook commands from <code>settings.json</code>, including one added after the manifest was written. Third it removes each owned directory, but never <code>~/.coworker</code> or a folder that contains it, even when an older manifest lists one. Fourth it removes the directories its removals emptied. Last it deletes the manifest by name.</p>
+<p>This clause implements <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-J">PRD-J</a>; walter-worker PR #17 closed <a class="id-ref" href="#QUES-D">QUES-D</a> and <a class="id-ref" href="#QUES-E">QUES-E</a> (<code>setup/uninstall.sh:51,236</code> at <code>e5bfa54</code>).</p>
 <h4 id="DSGN-H"><a class="id-ref" href="#DSGN-H">DSGN-H</a> — Optional dependencies</h4>
-<p>A failed <code>git pull</code> of the-super-lab prints a warning and the install continues with the checkout as it is. When the <code>coworker</code> command is present, the installer runs <code>coworker sync</code>, which writes MCP server settings (MCP, the Model Context Protocol, is how AI tools connect to external tool servers) into each tool&#x27;s config and registers the <code>coworker state-update</code> Stop hook. When the command is missing, the installer prints the <code>pipx install</code> command to run and continues. Several other steps also warn and continue on failure, and the install still exits with status 0: writing hooks, registering the OpenCode plugin, creating the analytics database, running <code>coworker sync</code>, and writing the manifest. This implements <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-K">PRD-K</a>.</p>
+<p>A failed <code>git pull</code> of the-super-lab prints a warning and the install continues with the checkout as it is. When the <code>coworker</code> command is present, the installer runs <code>coworker sync</code>, which writes MCP server settings (MCP, the Model Context Protocol, is how AI tools connect to external tool servers) into each tool&#x27;s config and removes the old <code>coworker state-update</code> Stop hook (core-cli ARD-G). When the command is missing, the installer prints the <code>pipx install</code> command to run and continues. Several other steps also warn and continue on failure, and the install still exits with status 0: writing hooks, registering the OpenCode plugin, creating the analytics database, running <code>coworker sync</code>, and writing the manifest. This implements <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-K">PRD-K</a>.</p>
 <h4>Sub-problem ownership (子问题归属)</h4>
 <div class="table-wrap"><table><thead><tr>
 <th>子问题</th>
@@ -135,15 +135,15 @@
 </tr></thead><tbody>
 <tr>
 <td>A hook is registered twice and runs twice</td>
-<td>The exact-match check in <a class="id-ref" href="#DSGN-D">DSGN-D</a>; <a class="id-ref" href="#QUES-A">QUES-A</a> covers the compound case</td>
+<td>The check in <a class="id-ref" href="#DSGN-D">DSGN-D</a>, which also matches one step of a compound hook (<a class="id-ref" href="#QUES-A">QUES-A</a>)</td>
 </tr>
 <tr>
 <td>Uninstall deletes a user file</td>
-<td>Files are claimed by name; but the owned-directory pass still deletes user data in <code>~/.coworker</code> (<a class="id-ref" href="#QUES-D">QUES-D</a>, open)</td>
+<td>Files are claimed by name, and uninstall never empties <code>~/.coworker</code> (<a class="id-ref" href="#QUES-D">QUES-D</a>, fixed by PR #17)</td>
 </tr>
 <tr>
 <td>A re-install deletes a file the first install created</td>
-<td>Not mitigated today (<a class="id-ref" href="#QUES-C">QUES-C</a>, open)</td>
+<td>A claim on the global <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> is carried forward (<a class="id-ref" href="#QUES-C">QUES-C</a>, fixed by PR #17)</td>
 </tr>
 <tr>
 <td>An edited command copy is lost when retired</td>
@@ -165,7 +165,9 @@
 <tr>
 <td><strong id="QUES-A"><a class="id-ref" href="#QUES-A">QUES-A</a></strong></td>
 <td>Should a hook command that appears as one step of a hand-joined compound hook (such as <code>coworker memory capture; coworker memory close</code>) count as already present?</td>
-<td>Yes, proposed in walter-worker PR #16, not yet merged. Until then each install adds the two commands back as separate hooks.</td>
+<td>Yes. Walter-worker PR #16 (<code>bf6683e</code>) matches a step of a <code>;</code>, <code>&amp;&amp;</code>, or `</td>
+<td></td>
+<td><code> compound (</code>setup/install.sh:646<code> at </code>bf6683e`).</td>
 <td>cicidi</td>
 <td>no</td>
 </tr>
@@ -178,24 +180,24 @@
 </tr>
 <tr>
 <td><strong id="QUES-C"><a class="id-ref" href="#QUES-C">QUES-C</a></strong></td>
-<td>A second install deletes the global <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> that the first install created, losing any edits. Fix the code (claim the file whenever an earlier manifest claimed it), or change <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-H">PRD-H</a>?</td>
-<td>Reproduced by the 2026-11-24 review. Fixed in walter-worker PR #17, not yet merged.</td>
+<td>Before PR #17, a second install deleted the global <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> that the first install created, losing any edits. Fix the code (claim the file whenever an earlier manifest claimed it), or change <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-H">PRD-H</a>?</td>
+<td>Reproduced by the 2026-11-24 review. Fixed in walter-worker PR #17 (<code>e5bfa54</code>): the claim is carried forward.</td>
 <td>cicidi</td>
-<td>yes</td>
+<td>no</td>
 </tr>
 <tr>
 <td><strong id="QUES-D"><a class="id-ref" href="#QUES-D">QUES-D</a></strong></td>
-<td>Uninstall deletes everything in <code>~/.coworker</code> except <code>analytics/</code> and <code>backups/</code>, including API keys in <code>.env</code>, <code>coworker.yaml</code>, and the memory graph. Should the owned-directory pass be removed or narrowed so <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-J">PRD-J</a> holds?</td>
-<td>Reproduced by the 2026-11-24 review. Fixed in PR #17, not yet merged; until then do not run <code>uninstall.sh</code> on a machine with data in <code>~/.coworker</code>.</td>
+<td>Before PR #17, uninstall deleted everything in <code>~/.coworker</code> except <code>analytics/</code> and <code>backups/</code>, including API keys in <code>.env</code>, <code>coworker.yaml</code>, and the memory graph. Should the owned-directory pass be removed or narrowed so <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-J">PRD-J</a> holds?</td>
+<td>Reproduced by the 2026-11-24 review. Fixed in PR #17 (<code>e5bfa54</code>): uninstall never empties <code>~/.coworker</code>.</td>
 <td>cicidi</td>
-<td>yes</td>
+<td>no</td>
 </tr>
 <tr>
 <td><strong id="QUES-E"><a class="id-ref" href="#QUES-E">QUES-E</a></strong></td>
-<td>For a manifest without <code>schema_version</code>, uninstall skips the file list but still strips hooks and empties <code>~/.coworker</code>. Should it stop entirely?</td>
-<td>Reproduced by the 2026-11-24 review; fixed in PR #17, not yet merged.</td>
+<td>Before PR #17, for a manifest without <code>schema_version</code>, uninstall skipped the file list but still stripped hooks and emptied <code>~/.coworker</code>. Should it stop entirely?</td>
+<td>Reproduced by the 2026-11-24 review; fixed in PR #17 (<code>e5bfa54</code>): uninstall now refuses and changes nothing.</td>
 <td>cicidi</td>
-<td>yes</td>
+<td>no</td>
 </tr>
 <tr>
 <td><strong id="QUES-F"><a class="id-ref" href="#QUES-F">QUES-F</a></strong></td>
@@ -299,6 +301,11 @@
 <td>0.3</td>
 <td>2026-11-24</td>
 <td>Review fixes: CLI contract, project-mode side effects, Step 6 copy, real manifest and uninstall behavior; code conflicts recorded as <a class="id-ref" href="#QUES-C">QUES-C</a> to <a class="id-ref" href="#QUES-I">QUES-I</a> (<a class="id-ref" href="../decision-history/setup-deploy-decision-history.html#ARD-E">ARD-E</a>); Terms section added</td>
+</tr>
+<tr>
+<td>0.4</td>
+<td>2026-11-24</td>
+<td><a class="id-ref" href="#QUES-A">QUES-A</a> answered by PR #16; <a class="id-ref" href="#QUES-C">QUES-C</a>, <a class="id-ref" href="#QUES-D">QUES-D</a>, and <a class="id-ref" href="#QUES-E">QUES-E</a> fixed by PR #17; merge base claimed (PR #21)</td>
 </tr>
 </tbody></table></div>
       </div>

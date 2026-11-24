@@ -17,7 +17,7 @@ The scripts run under `set -euo pipefail`, so an unguarded failing command abort
 
 ## Acceptance Criteria
 
-The feature is not done while any blocking question in the design's Open Questions (QUES-C to QUES-F) is open. Beyond that, it is done when all tasks below are done, the bats suites in `tests/setup/` pass in CI, and a real install on a machine that already has walter-worker leaves no duplicate skill, no duplicate hook, and no manifest entry pointing at a missing path.
+The feature is not done while any blocking question in the design's Open Questions (QUES-F) is open. Beyond that, it is done when all tasks below are done, the bats suites in `tests/setup/` pass in CI, and a real install on a machine that already has walter-worker leaves no duplicate skill, no duplicate hook, and no manifest entry pointing at a missing path.
 
 ## Execution order
 

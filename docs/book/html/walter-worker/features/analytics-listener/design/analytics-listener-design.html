@@ -222,14 +222,14 @@
 <tr>
 <td><strong id="QUES-D"><a class="id-ref" href="#QUES-D">QUES-D</a></strong></td>
 <td><code>once</code> skips sessions already imported, so a session imported mid-run is never completed, and hook data is ignored when a transcript exists. Re-import open sessions and merge both sources?</td>
-<td><code>auto_import.py:310-345</code> at <code>a0f4ce0</code>.</td>
+<td><code>auto_import.py:310-345</code> at <code>a0f4ce0</code>. A fix is in walter-worker PR #22 (open, <code>ede4fd2</code>): the Stop hook re-imports the session&#x27;s transcript after every reply.</td>
 <td>cicidi</td>
 <td>no</td>
 </tr>
 <tr>
 <td><strong id="QUES-E"><a class="id-ref" href="#QUES-E">QUES-E</a></strong></td>
 <td><code>import</code> adds to <code>skills.total_calls</code> again on each run, keeps a tool call&#x27;s empty result and zero duration once stored, and counts skills per session while the transcript importer counts per call. Make re-imports repeatable and give <code>total_calls</code> one meaning?</td>
-<td><code>import_data.py:206-211,232-253</code> and <code>auto_import.py:149-154</code> at <code>a0f4ce0</code>.</td>
+<td><code>import_data.py:206-211,232-253</code> and <code>auto_import.py:149-154</code> at <code>a0f4ce0</code>. PR #22 (open, <code>ede4fd2</code>) has the transcript importer count each skill call once across re-imports; the hook importer is unchanged.</td>
 <td>cicidi</td>
 <td>no</td>
 </tr>
@@ -257,14 +257,14 @@
 <tr>
 <td><strong id="QUES-I"><a class="id-ref" href="#QUES-I">QUES-I</a></strong></td>
 <td>The transcript importer drops the user&#x27;s typed prompts, because it keeps only list-shaped content and Claude Code stores a typed prompt as a string; it also leaves branch, feature, closed time, tool results, and durations empty. <code>once</code> and <code>daemon</code> then skip the hook copy. Read string content, and merge the hook data?</td>
-<td><code>auto_import.py:127-134,143-147,180-184,310-345</code> at <code>a0f4ce0</code>; reproduced in the <code>../raw/review/2026-11-24-spec-review-analytics-listener-gaps.md</code>, finding C1.</td>
+<td><code>auto_import.py:127-134,143-147,180-184,310-345</code> at <code>a0f4ce0</code>; reproduced in the <code>../raw/review/2026-11-24-spec-review-analytics-listener-gaps.md</code>, finding C1. PR #22 (open, <code>ede4fd2</code>) stores string-content typed prompts; the other gaps stay.</td>
 <td>cicidi</td>
 <td>yes</td>
 </tr>
 <tr>
 <td><strong id="QUES-J"><a class="id-ref" href="#QUES-J">QUES-J</a></strong></td>
 <td>The hooks write lines that are not valid JSON when a field contains a newline, the payload is not JSON, or <code>duration_ms</code> is null, and the importer skips them silently; about 19% of tool records on the owner&#x27;s machine do not parse. Emit each whole record from one <code>json.dumps</code> call?</td>
-<td><code>on-pre-tool.sh:9-15</code>, <code>on-post-tool.sh:10-19</code>, <code>on-user-prompt.sh:13-21</code> at <code>a0f4ce0</code>; counts in the <code>../raw/review/2026-11-24-spec-review-analytics-listener-gaps.md</code>, finding C2.</td>
+<td><code>on-pre-tool.sh:9-15</code>, <code>on-post-tool.sh:10-19</code>, <code>on-user-prompt.sh:13-21</code> at <code>a0f4ce0</code>; counts in the <code>../raw/review/2026-11-24-spec-review-analytics-listener-gaps.md</code>, finding C2. PR #22 (open) does not change these hooks; the line-by-line field reading is the same at <code>f917bbf</code>.</td>
 <td>cicidi</td>
 <td>yes</td>
 </tr>
@@ -368,6 +368,11 @@
 <td>0.3</td>
 <td>2026-11-24</td>
 <td>Review fixes: Stop fires per turn; <a class="id-ref" href="#DSGN-B">DSGN-B</a> fallback and quarantine claims corrected; transcript importer, re-import, and pruning gaps stated; <a class="id-ref" href="#DSGN-D">DSGN-D</a> reduced to its contract; memory platform linked; <code>file:line</code> evidence added; <a class="id-ref" href="#QUES-I">QUES-I</a> to <a class="id-ref" href="#QUES-O">QUES-O</a> added (<a class="id-ref" href="../decision-history/analytics-listener-decision-history.html#ARD-D">ARD-D</a>, <a class="id-ref" href="../decision-history/analytics-listener-decision-history.html#ARD-E">ARD-E</a>)</td>
+</tr>
+<tr>
+<td>0.4</td>
+<td>2026-11-24</td>
+<td><a class="id-ref" href="#QUES-D">QUES-D</a>, <a class="id-ref" href="#QUES-E">QUES-E</a>, <a class="id-ref" href="#QUES-I">QUES-I</a>, and <a class="id-ref" href="#QUES-J">QUES-J</a> note what open PR #22 changes; master behavior unchanged</td>
 </tr>
 </tbody></table></div>
       </div>

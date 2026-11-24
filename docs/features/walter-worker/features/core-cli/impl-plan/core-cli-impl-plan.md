@@ -17,7 +17,7 @@ No configuration command makes a network call. A command that overwrites a user-
 
 ## Acceptance Criteria
 
-The feature is not done while any blocking open question is open: QUES-A, QUES-B, QUES-L, QUES-M, QUES-O, QUES-S, or QUES-T. Beyond that, it is done when the tasks below are done, the pytest suites in their Verify lines pass, and every other open question is fixed or explicitly accepted by the owner.
+The feature is not done while any blocking open question is open: QUES-B, QUES-O, QUES-S, or QUES-T. Beyond that, it is done when the tasks below are done, the pytest suites in their Verify lines pass, and every other open question is fixed or explicitly accepted by the owner.
 
 ## Execution order
 

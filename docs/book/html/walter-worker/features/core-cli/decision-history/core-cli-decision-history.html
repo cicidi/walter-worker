@@ -40,6 +40,16 @@
 <th>Decision</th>
 </tr></thead><tbody>
 <tr>
+<td><strong><a class="id-ref" href="#ARD-H">ARD-H</a></strong></td>
+<td>2026-11-24</td>
+<td><code>upgrade</code> merges three-way against <code>~/.coworker/claude-md-base.md</code>, the template as last written. A section both sides changed is a conflict and keeps the user&#x27;s text.</td>
+</tr>
+<tr>
+<td><strong><a class="id-ref" href="#ARD-G">ARD-G</a></strong></td>
+<td>2026-11-24</td>
+<td><code>sync</code> no longer adds <code>coworker state-update</code> as a Claude Code Stop hook, and removes that hook where an earlier release added it. The command stays for manual use.</td>
+</tr>
+<tr>
 <td><strong><a class="id-ref" href="#ARD-F">ARD-F</a></strong></td>
 <td>2026-11-24</td>
 <td>The review-fix pass for this backfill is applied as edits larger than the 10-line/200-character limit, authorized by the owner&#x27;s 2026-11-24 instruction to decide the approach (&quot;你自己看着弄&quot;).</td>
@@ -71,6 +81,10 @@
 </tr>
 </tbody></table></div>
 <h3>Evidence Appendix</h3>
+<h4 id="ARD-H"><a class="id-ref" href="#ARD-H">ARD-H</a></h4>
+<p>With only the user&#x27;s file and the new template, <code>upgrade</code> could not tell a user&#x27;s line from an old template line, so it overwrote a section both had changed (<a class="id-ref" href="../design/core-cli-design.html#QUES-M">QUES-M</a>). The installer writes the first base when it creates <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a>, and <code>upgrade</code> rewrites it after each run; a conflicted section keeps its old base. Without a base, the old two-way rule stays, but the plan lists the lines an overwrite replaces. Rejected: UNKNOWN; the commit names no alternative. Evidence: walter-worker PR #21, <code>src/coworker/semantic_merge.py:270-282</code> at <code>f917bbf</code>.</p>
+<h4 id="ARD-G"><a class="id-ref" href="#ARD-G">ARD-G</a></h4>
+<p>Called by the hook without a summary, the command only appended an empty progress line after every reply, and from an unmanaged repository it wrote under <code>~/docs/state/</code> (<a class="id-ref" href="../design/core-cli-design.html#QUES-L">QUES-L</a>). Rejected: UNKNOWN; the commit names no alternative. Evidence: walter-worker PR #19, <code>src/coworker/adapters/claude.py:242-261</code> at <code>b03f596</code>.</p>
 <h4 id="ARD-F"><a class="id-ref" href="#ARD-F">ARD-F</a></h4>
 <p>The spec standard limits each AI edit under <code>docs/</code> to 10 lines and 200 characters unless a human authorizes a larger change and the authorization is recorded as an ARD. The 2026-11-24 review found false sentences and missing behavior across the design, implementation plan, and test plan, and the owner told the agent to decide the approach. Rejected: applying the pass as a long series of edits within the limit. Evidence: the review report <code>../raw/review/2026-11-24-spec-review-core-cli-gaps.md</code> (local, not committed).</p>
 <h4 id="ARD-D"><a class="id-ref" href="#ARD-D">ARD-D</a></h4>
@@ -98,6 +112,11 @@
 <td>0.2</td>
 <td>2026-11-24</td>
 <td>Review fixes: added <a class="id-ref" href="#ARD-F">ARD-F</a>, which authorizes the review-fix pass as larger edits</td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>2026-11-24</td>
+<td>Added <a class="id-ref" href="#ARD-G">ARD-G</a> (PR #19) and <a class="id-ref" href="#ARD-H">ARD-H</a> (PR #21)</td>
 </tr>
 </tbody></table></div>
       </div>

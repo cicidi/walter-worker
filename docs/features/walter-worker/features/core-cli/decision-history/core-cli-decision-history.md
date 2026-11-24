@@ -15,6 +15,8 @@ Decisions about the configuration commands. Newest first. Each decision has an e
 
 | ID | Date | Decision |
 |---|---|---|
+| **ARD-H** | 2026-11-24 | `upgrade` merges three-way against `~/.coworker/claude-md-base.md`, the template as last written. A section both sides changed is a conflict and keeps the user's text. |
+| **ARD-G** | 2026-11-24 | `sync` no longer adds `coworker state-update` as a Claude Code Stop hook, and removes that hook where an earlier release added it. The command stays for manual use. |
 | **ARD-F** | 2026-11-24 | The review-fix pass for this backfill is applied as edits larger than the 10-line/200-character limit, authorized by the owner's 2026-11-24 instruction to decide the approach ("你自己看着弄"). |
 | **ARD-D** | 2026-11-24 | Where the code does not meet a requirement, the PRD keeps the requirement, the design states what the code does today, and the gap is a design Open Question for the owner to decide. |
 | **ARD-A** | 2026-11-24 | The uncommitted 2026-11-04 drafts are rewritten whole in their first commit. Their IDs were never published, so no old-to-new table is kept. |
@@ -23,6 +25,14 @@ Decisions about the configuration commands. Newest first. Each decision has an e
 | **ARD-C** | 2026-07-07 | Every command that overwrites a user-visible file first copies it under `~/.coworker/backups/<timestamp>-<label>/`, keeping at most twenty copies per label. |
 
 ## Evidence Appendix
+
+### ARD-H
+
+With only the user's file and the new template, `upgrade` could not tell a user's line from an old template line, so it overwrote a section both had changed (QUES-M). The installer writes the first base when it creates `CLAUDE.md`, and `upgrade` rewrites it after each run; a conflicted section keeps its old base. Without a base, the old two-way rule stays, but the plan lists the lines an overwrite replaces. Rejected: UNKNOWN; the commit names no alternative. Evidence: walter-worker PR #21, `src/coworker/semantic_merge.py:270-282` at `f917bbf`.
+
+### ARD-G
+
+Called by the hook without a summary, the command only appended an empty progress line after every reply, and from an unmanaged repository it wrote under `~/docs/state/` (QUES-L). Rejected: UNKNOWN; the commit names no alternative. Evidence: walter-worker PR #19, `src/coworker/adapters/claude.py:242-261` at `b03f596`.
 
 ### ARD-F
 
@@ -54,3 +64,4 @@ Several commands rewrote files the user also edits: the global `CLAUDE.md`, proj
 |---|---|---|
 | 0.1 | 2026-11-24 | Created with ARD-A to ARD-E |
 | 0.2 | 2026-11-24 | Review fixes: added ARD-F, which authorizes the review-fix pass as larger edits |
+| 0.3 | 2026-11-24 | Added ARD-G (PR #19) and ARD-H (PR #21) |

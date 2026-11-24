@@ -91,7 +91,7 @@ Facts that span areas, such as the home folder layout, live here and must be kep
 | ID | Question | Answer so far | Owner | Blocking |
 |---|---|---|---|---|
 | **QUES-A** | Should the legacy documents in `prd/`, `design/`, `decision-history/`, `plan/`, `spec/`, `state/`, and `work-review/` be folded into the sub-features and removed, renamed to the current standard, or kept as they are? | Kept and linked as parts on 2026-11-24; restructuring needs the owner's decision. | cicidi | no |
-| **QUES-B** | The sub-features record 22 blocking code gaps: setup-deploy QUES-C, QUES-D, QUES-E, QUES-F; core-cli QUES-A, QUES-B, QUES-L, QUES-M, QUES-O, QUES-S, QUES-T; analytics-listener QUES-A, QUES-I, QUES-J, QUES-K; analytics-dashboard QUES-G, QUES-H; memory-platform QUES-A, QUES-B, QUES-I, QUES-J; autoworker QUES-A. Which are fixed first? | Listed in each sub-feature design; setup-deploy QUES-C to QUES-E have a fix in walter-worker PR #17. | cicidi | no |
+| **QUES-B** | The sub-features record 16 blocking code gaps: setup-deploy QUES-F; core-cli QUES-B, QUES-O, QUES-S, QUES-T; analytics-listener QUES-A, QUES-I, QUES-J, QUES-K; analytics-dashboard QUES-G, QUES-H; memory-platform QUES-A, QUES-B, QUES-I, QUES-J; autoworker QUES-A. Which are fixed first? | Listed in each sub-feature design; walter-worker PRs #17, #19, #20, and #21 cleared six others; open PR #22 has a fix for memory-platform QUES-I. | cicidi | no |
 
 ## Reversibility
 
@@ -134,3 +134,4 @@ Terms used across walter-worker's specifications. Sub-feature designs may add th
 | 0.2 | 2026-11-24 | Written as the parent entry with the module map, shared rules, home layout, and glossary; the legacy design linked as a part (ARD-A, ARD-B) |
 | 0.3 | 2026-11-24 | Glossary rows added from the memory-platform review |
 | 0.4 | 2026-11-24 | QUES-B regenerated from every sub-feature's blocking questions |
+| 0.5 | 2026-11-24 | QUES-B updated after walter-worker PRs #16 to #21 |
