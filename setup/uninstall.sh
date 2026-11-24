@@ -35,7 +35,7 @@ if [[ ! -f "$MANIFEST" ]]; then
   echo "  This may be a pre-manifest install. To clean up manually:"
   echo "    - ~/.claude/skills/<name>/ for each skill install.sh deployed"
   echo "    - ~/.claude/commands/<name>.md for the bundle skills"
-  echo "    - ~/.cursor/rules/<name>.md and ~/.opencode/instructions/<name>.md"
+  echo "    - ~/.cursor/skills/<name>/ and ~/.opencode/instructions/<name>.md"
   echo "  Keep ~/.coworker/analytics/ and ~/.coworker/backups/ — this"
   echo "  script preserves both, and there is no manifest-free way to tell"
   echo "  your data from its own scripts."
@@ -185,8 +185,11 @@ m = json.load(open('$MANIFEST'))
 # friends are standard locations, empty or not.
 TREES = [os.path.normpath(os.path.expanduser(p)) for p in (
     '~/.claude/skills', '~/.claude/commands', '~/.cursor/rules',
-    '~/.opencode/instructions', '~/.config/opencode/skills/walter-worker',
-    '~/.config/opencode/skills/the-super-lab', '~/.coworker/analytics/hooks',
+    '~/.cursor/skills', '~/.opencode/instructions',
+    '~/.config/opencode/skills/walter-worker',
+    '~/.config/opencode/skills/the-super-lab',
+    '~/.config/opencode/skills/the-super-lab-personal',
+    '~/.coworker/analytics/hooks',
 )]
 def inside(p):
     return any(p.startswith(t + os.sep) for t in TREES)

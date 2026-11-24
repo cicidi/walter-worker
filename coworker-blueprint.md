@@ -664,7 +664,7 @@ coworker status      # Verify everything is set up
 
 ### Skill mirror ownership
 
-`install.sh` deploys skills into six mirrors, and the install manifest is what
+`install.sh` deploys skills into seven mirrors, and the install manifest is what
 makes them reversible:
 
 | Mirror | Step | Form |
@@ -672,9 +672,15 @@ makes them reversible:
 | `~/.claude/commands/<name>.md` | 10 | file |
 | `~/.opencode/instructions/<name>.md` | 11 | symlink to the above |
 | `~/.claude/skills/<name>/` | 11b | directory copy |
-| `~/.cursor/rules/<name>.md` | 11b | file |
+| `~/.cursor/skills/<name>/` | 11b | directory copy |
 | `~/.config/opencode/skills/walter-worker/` | 6 | rsync mirror, also an owned dir |
 | `~/.config/opencode/skills/the-super-lab/<name>` | 11b | symlink to the source |
+| `~/.config/opencode/skills/the-super-lab-personal/<name>` | 11b | symlink to the source |
+
+Both `skills/` and `personal-skills/` deploy through 11b. An earlier release
+wrote a flat `~/.cursor/rules/<name>.md`; current Cursor discovers Agent Skills
+under `~/.cursor/skills/`, so 11b now writes there and the prune retires the old
+rule files a previous manifest claimed.
 
 Step 16 writes `~/.coworker/install-manifest.json`, schema version 2, claiming
 each path **by name** — only what that run wrote. `uninstall.sh` reverses the

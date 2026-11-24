@@ -19,7 +19,11 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # script deploys its skills to Claude Code, OpenCode, and Cursor.
 THE_SUPER_LAB_DIR="${THE_SUPER_LAB_DIR:-$HOME/project/the-super-lab}"
 THE_SUPER_LAB_OPENCODE_DIR="$HOME/.config/opencode/skills/the-super-lab"
-CURSOR_RULES_DIR="$HOME/.cursor/rules"
+THE_SUPER_LAB_OPENCODE_PERSONAL_DIR="$HOME/.config/opencode/skills/the-super-lab-personal"
+# Cursor loads Agent Skills from <root>/skills/<name>/SKILL.md. The flat
+# ~/.cursor/rules/<name>.md files an earlier release wrote are rules, not
+# skills, and current Cursor does not discover them as skills.
+CURSOR_SKILLS_DIR="$HOME/.cursor/skills"
 GLOBAL_CLAUDE_MD="$HOME/.claude/CLAUDE.md"
 
 INSTALL_MODE=""
@@ -484,51 +488,73 @@ if [[ -n "$OPENCODE_DIR" ]]; then
 fi
 
 # =============================================================================
-# Step 11b — Deploy the-super-lab skills to Claude, OpenCode, and Cursor
+# Step 11b — Deploy the-super-lab skills to Claude, Cursor, and OpenCode
 # =============================================================================
 # the-super-lab is the source of truth. Each skill deploys to three harnesses:
 #   Claude Code  ~/.claude/skills/<name>/SKILL.md                (directory copy)
-#   OpenCode     ~/.config/opencode/skills/the-super-lab/<name>  (symlink to source)
-#   Cursor       ~/.cursor/rules/<name>.md                       (verbatim copy)
-# Claude and OpenCode receive whole directories so sibling files (for example
-# domain-modeling/ADR-FORMAT.md) travel with the skill. A flattened SKILL.md
-# copy silently drops them.
-if [[ -d "$THE_SUPER_LAB_DIR/skills" ]]; then
+#   Cursor       ~/.cursor/skills/<name>/SKILL.md                (directory copy)
+#   OpenCode     <opencode dir>/<name>                            (symlink to source)
+# Directory copies keep sibling files (domain-modeling/ADR-FORMAT.md) with the
+# skill; a flattened SKILL.md copy silently drops them.
+#
+# Both source trees deploy: skills/ into the-super-lab, personal-skills/ into
+# the-super-lab-personal. Keeping the OpenCode mirrors apart means a personal
+# skill cannot silently shadow a same-named the-super-lab skill.
+if [[ -d "$THE_SUPER_LAB_DIR" ]]; then
   echo ""
-  log "Deploying the-super-lab skills to Claude, OpenCode, Cursor..."
+  log "Deploying the-super-lab skills to Claude, Cursor, OpenCode..."
 
-  mkdir -p "$HOME/.claude/skills" "$THE_SUPER_LAB_OPENCODE_DIR" "$CURSOR_RULES_DIR"
-  DEPLOYED=0
-
-  for skill_dir in "$THE_SUPER_LAB_DIR/skills"/*/; do
-    [[ -d "$skill_dir" ]] || continue
-    skill_file="${skill_dir}SKILL.md"
-    [[ -f "$skill_file" ]] || continue
-    name="$(basename "$skill_dir")"
-
-    # Claude Code — directory, so sibling files travel
-    mkdir -p "$HOME/.claude/skills/$name"
-    cp "$skill_file" "$HOME/.claude/skills/$name/SKILL.md"
-    for sibling in "$skill_dir"*; do
-      [[ -f "$sibling" ]] || continue
-      [[ "$(basename "$sibling")" == "SKILL.md" ]] && continue
-      cp "$sibling" "$HOME/.claude/skills/$name/"
+  # Copy the top-level files of one skill into <dest_root>/<name>. A sibling
+  # directory (tests/) stays behind; SKILL.md does not reference it at runtime.
+  deploy_skill_copy() {
+    local src_dir="$1" dest_root="$2" name="$3"
+    local target="$dest_root/$name"
+    local f dst
+    mkdir -p "$target"
+    for f in "$src_dir"/*; do
+      [[ -f "$f" ]] || continue
+      dst="$target/$(basename "$f")"
+      # -ef catches a destination symlinked back to the source. cp reports
+      # "same file" and exits 1 there, which under set -e aborted the whole
+      # install part-way through the skill loop.
+      if [[ -e "$dst" && "$f" -ef "$dst" ]]; then
+        continue
+      fi
+      cp "$f" "$dst"
     done
+  }
 
-    # OpenCode — symlink the whole directory to the source
-    opencode_target="$THE_SUPER_LAB_OPENCODE_DIR/$name"
-    if [[ -e "$opencode_target" && ! -L "$opencode_target" ]]; then
-      rm -rf "$opencode_target"
-    fi
-    ln -sfn "${skill_dir%/}" "$opencode_target"
+  deploy_superlab_tree() {
+    local src_root="$1" opencode_dir="$2" label="$3"
+    local skill_dir skill_file name deployed=0
+    [[ -d "$src_root" ]] || { warn "No $label at $src_root — skipping."; return; }
+    for skill_dir in "$src_root"/*/; do
+      [[ -d "$skill_dir" ]] || continue
+      skill_file="${skill_dir}SKILL.md"
+      [[ -f "$skill_file" ]] || continue
+      name="$(basename "$skill_dir")"
 
-    # Cursor — verbatim flattened copy
-    cp "$skill_file" "$CURSOR_RULES_DIR/$name.md"
+      deploy_skill_copy "${skill_dir%/}" "$HOME/.claude/skills" "$name"
+      deploy_skill_copy "${skill_dir%/}" "$CURSOR_SKILLS_DIR" "$name"
 
-    ((DEPLOYED++)) || true
-  done
+      # OpenCode — symlink the whole directory to the source
+      if [[ -e "$opencode_dir/$name" && ! -L "$opencode_dir/$name" ]]; then
+        rm -rf "$opencode_dir/$name"
+      fi
+      ln -sfn "${skill_dir%/}" "$opencode_dir/$name"
 
-  ok "Deployed $DEPLOYED the-super-lab skills to Claude, OpenCode, and Cursor."
+      deployed=$((deployed + 1))
+    done
+    ok "Deployed $deployed $label skill(s) to Claude, Cursor, and OpenCode."
+  }
+
+  mkdir -p "$HOME/.claude/skills" "$CURSOR_SKILLS_DIR" \
+           "$THE_SUPER_LAB_OPENCODE_DIR" "$THE_SUPER_LAB_OPENCODE_PERSONAL_DIR"
+
+  deploy_superlab_tree "$THE_SUPER_LAB_DIR/skills" \
+                       "$THE_SUPER_LAB_OPENCODE_DIR" "the-super-lab"
+  deploy_superlab_tree "$THE_SUPER_LAB_DIR/personal-skills" \
+                       "$THE_SUPER_LAB_OPENCODE_PERSONAL_DIR" "personal-skills"
 fi
 
 # =============================================================================
@@ -708,6 +734,12 @@ if [[ -d "$THE_SUPER_LAB_DIR/skills" ]]; then
     [[ -f "${_d}SKILL.md" ]] && MANIFEST_SUPERLAB+="$(basename "$_d") "
   done
 fi
+MANIFEST_SUPERLAB_PERSONAL=""
+if [[ -d "$THE_SUPER_LAB_DIR/personal-skills" ]]; then
+  for _d in "$THE_SUPER_LAB_DIR/personal-skills"/*/; do
+    [[ -f "${_d}SKILL.md" ]] && MANIFEST_SUPERLAB_PERSONAL+="$(basename "$_d") "
+  done
+fi
 
 python3 -c "
 import json, os, glob, shutil
@@ -715,6 +747,7 @@ home = os.environ['HOME']
 claude_dir = '${CLAUDE_DIR}'
 selected = '${MANIFEST_SKILLS}'.split()
 deployed = '${MANIFEST_SUPERLAB}'.split()
+deployed_personal = '${MANIFEST_SUPERLAB_PERSONAL}'.split()
 manifest = {
     # 2 = files are claimed by name, only what this installer wrote. Manifest 1
     # claimed every file found under ~/.claude, ~/.opencode and
@@ -748,17 +781,34 @@ for name in selected:
     # every mirror behind as a dangling symlink.
     claim(f'$OPENCODE_DIR/{name}.md')
 
-# the-super-lab skills deployed in step 11b, by name: the Claude directory copy,
-# the Cursor rules file, and the OpenCode symlink. That last one was not claimed
-# before, and the comment here claimed owned_dirs covered it — it does not, it
-# holds only .../skills/walter-worker. So a skill dropped from the source left a
-# symlink to a deleted directory behind for ever.
+# the-super-lab skills deployed in step 11b, by name: the Claude and Cursor
+# directory copies, and the OpenCode symlink. The OpenCode symlink was not
+# claimed before, and the comment here claimed owned_dirs covered it — it does
+# not, it holds only .../skills/walter-worker. So a skill dropped from the
+# source left a symlink to a deleted directory behind for ever.
+#
+# A Claude or Cursor target that is itself a symlink back into the-super-lab is
+# claimed as that link, never walked: walking it would claim the source files,
+# and uninstall would then delete them out of the repository.
+def claim_tree(root):
+    if os.path.islink(root):
+        claim(root)
+        return
+    for dirpath, _dirs, fns in os.walk(root):
+        for fn in fns:
+            claim(os.path.join(dirpath, fn))
+
 for name in deployed:
     claim(f'$THE_SUPER_LAB_OPENCODE_DIR/{name}')
-    for root, _dirs, fns in os.walk(f'{home}/.claude/skills/{name}'):
-        for fn in fns:
-            claim(os.path.join(root, fn))
-    claim(f'{home}/.cursor/rules/{name}.md')
+    claim_tree(f'{home}/.claude/skills/{name}')
+    claim_tree(f'{home}/.cursor/skills/{name}')
+
+# personal-skills/ deploys to its own OpenCode mirror, so a personal skill never
+# shadows a same-named the-super-lab skill (and vice versa).
+for name in deployed_personal:
+    claim(f'$THE_SUPER_LAB_OPENCODE_PERSONAL_DIR/{name}')
+    claim_tree(f'{home}/.claude/skills/{name}')
+    claim_tree(f'{home}/.cursor/skills/{name}')
 
 # The walter-worker skill tree this installer owns outright. Claim what the
 # rsync in step 6 PRODUCES, read from the source tree rather than from the
@@ -836,7 +886,10 @@ try:
     # leave the bare directory behind, so emptied ones are retired with it. The
     # walk stops at each tree root, never above it.
     _trees = (f'{home}/.claude/skills',
-              f'{home}/.config/opencode/skills/walter-worker')
+              f'{home}/.cursor/skills',
+              f'{home}/.config/opencode/skills/walter-worker',
+              f'{home}/.config/opencode/skills/the-super-lab',
+              f'{home}/.config/opencode/skills/the-super-lab-personal')
 
     def _retire_empty(d):
         while any(d.startswith(t + os.sep) for t in _trees):

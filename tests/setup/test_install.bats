@@ -13,7 +13,7 @@ setup() {
   SUPERLAB="$HOME/project/the-super-lab"
   _fake_skill "$SUPERLAB/skills/skill-create" skill-create
   _fake_skill "$SUPERLAB/skills/tdd" tdd
-  mkdir -p "$SUPERLAB/personal-skills"
+  _fake_skill "$SUPERLAB/personal-skills/personal-skill" personal-skill
 
   # Mock git — install.sh still pulls the-super-lab
   mkdir -p "$TEST_TMP/bin"
@@ -101,7 +101,39 @@ SKEOF
   # install.sh reads the-super-lab in place and deploys it; it does not clone.
   [ -f "$HOME/.claude/skills/skill-create/SKILL.md" ]
   [ -f "$HOME/.config/opencode/skills/the-super-lab/skill-create/SKILL.md" ]
-  [ -f "$HOME/.cursor/rules/skill-create.md" ]
+  [ -f "$HOME/.cursor/skills/skill-create/SKILL.md" ]
+}
+
+@test "deploys personal-skills to the three harnesses" {
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ -f "$HOME/.claude/skills/personal-skill/SKILL.md" ]
+  [ -f "$HOME/.config/opencode/skills/the-super-lab-personal/personal-skill/SKILL.md" ]
+  [ -f "$HOME/.cursor/skills/personal-skill/SKILL.md" ]
+}
+
+@test "a skill directory symlinked back to the source does not abort the install" {
+  # The SDD installer symlinks spec-write and spec-review from ~/.claude/skills
+  # back into the-super-lab so edits are live. cp reports "same file" there and
+  # exits 1, which under set -e aborted the whole install part-way through the
+  # skill loop — before the hooks and manifest steps ran.
+  mkdir -p "$HOME/.claude/skills"
+  ln -s "$SUPERLAB/skills/skill-create" "$HOME/.claude/skills/skill-create"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ -L "$HOME/.claude/skills/skill-create" ]
+  [ -f "$SUPERLAB/skills/skill-create/SKILL.md" ]
+
+  # The manifest must claim the link, not the files it resolves to: an
+  # uninstall that walked through would delete the source skill.
+  run python3 -c "
+import json, os
+m = json.load(open(os.path.expanduser('~/.coworker/install-manifest.json')))
+src = '$SUPERLAB/skills/skill-create/SKILL.md'
+print(src in m.get('files', []))
+"
+  [ "$output" = "False" ]
 }
 
 # =============================================================================
@@ -355,7 +387,7 @@ MDEOF
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
   [ "$status" -eq 0 ]
   [ -f "$HOME/.claude/skills/skill-create/SKILL.md" ]
-  [ -f "$HOME/.cursor/rules/skill-create.md" ]
+  [ -f "$HOME/.cursor/skills/skill-create/SKILL.md" ]
 
   # Drop it from the source, the way a rename or a merge would.
   rm -rf "$SUPERLAB/skills/skill-create"
@@ -363,7 +395,7 @@ MDEOF
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
   [ "$status" -eq 0 ]
   [ ! -e "$HOME/.claude/skills/skill-create/SKILL.md" ]
-  [ ! -e "$HOME/.cursor/rules/skill-create.md" ]
+  [ ! -e "$HOME/.cursor/skills/skill-create/SKILL.md" ]
 }
 
 @test "retires the emptied skill directory, not only the file inside it" {
@@ -401,6 +433,30 @@ json.dump(m, open(p, 'w'))
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
   [ "$status" -eq 0 ]
   [ ! -e "$HOME/.config/opencode/skills/walter-worker/initiative-edit" ]
+}
+
+@test "retires the legacy flat Cursor rule it no longer writes" {
+  # An earlier release wrote ~/.cursor/rules/<name>.md. Current Cursor reads
+  # skills from ~/.cursor/skills/, so step 11b changed destination. A rule the
+  # previous manifest claimed must not survive as a ghost of the old layout.
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  mkdir -p "$HOME/.cursor/rules"
+  echo "legacy" > "$HOME/.cursor/rules/skill-create.md"
+  run python3 -c "
+import json, os
+p = os.path.expanduser('~/.coworker/install-manifest.json')
+m = json.load(open(p))
+m['files'].append(os.path.expanduser('~/.cursor/rules/skill-create.md'))
+json.dump(m, open(p, 'w'))
+"
+  [ "$status" -eq 0 ]
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ ! -e "$HOME/.cursor/rules/skill-create.md" ]
+  [ -f "$HOME/.cursor/skills/skill-create/SKILL.md" ]
 }
 
 @test "leaves a skill this installer never wrote alone" {
