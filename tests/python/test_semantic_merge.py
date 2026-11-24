@@ -15,6 +15,8 @@ from coworker.semantic_merge import (
     MERGE_ADD,
     KEEP,
     OUTDATED,
+    CONFLICT,
+    next_base,
 )
 
 CURRENT = """# Project CLAUDE.md
@@ -474,3 +476,67 @@ class TestProtectedMarkerSpellings:
         end_marker = "<!-- PROTECTED END -->"
         assert _PROTECTED_END_RE.search(end_marker)
         assert not _PROTECTED_START_RE.search(end_marker)
+
+
+class TestThreeWayMerge:
+    """With a base (the template as last written), upgrade can tell the
+    user's edits from the template's. Without one it could not, and a section
+    both sides changed was overwritten, discarding the user's lines (QUES-M)."""
+
+    BASE = "# T\n\n## Rules\n- one\n- two\n- three\n"
+
+    @staticmethod
+    def _cat(cls, heading="## Rules"):
+        return next(c for c in cls if c.heading == heading)
+
+    def test_user_reworded_template_unchanged_is_kept(self):
+        current = self.BASE.replace("- two", "- two, my way")
+        c = self._cat(classify_sections(current, self.BASE, self.BASE))
+        assert c.category == KEEP
+
+    def test_without_base_the_same_edit_was_overwritten(self):
+        current = self.BASE.replace("- two", "- two, my way")
+        c = self._cat(classify_sections(current, self.BASE.replace("- one", "- one!")))
+        assert c.category == OVERWRITE
+        # Listed before writing. Without a base, the old template line it
+        # replaces cannot be told apart from the user's, so both are shown.
+        assert c.at_risk == ["- one", "- two, my way"]
+
+    def test_template_reworded_user_untouched_is_overwritten(self):
+        future = self.BASE.replace("- one", "- one, reworded")
+        c = self._cat(classify_sections(self.BASE, future, self.BASE))
+        assert c.category == OVERWRITE
+        assert c.at_risk == []
+
+    def test_both_changed_is_a_conflict(self):
+        current = self.BASE.replace("- two", "- two, my way")
+        future = self.BASE.replace("- one", "- one, reworded")
+        c = self._cat(classify_sections(current, future, self.BASE))
+        assert c.category == CONFLICT
+        assert c.at_risk == ["- two, my way"]
+
+    def test_conflict_merge_keeps_the_users_section(self):
+        current = self.BASE.replace("- two", "- two, my way")
+        future = self.BASE.replace("- one", "- one, reworded")
+        cls = classify_sections(current, future, self.BASE)
+        assert "- two, my way" in apply_merge(cls, current, future)
+
+    def test_next_base_keeps_old_base_for_a_conflict(self):
+        current = self.BASE.replace("- two", "- two, my way") + "\n## Other\nx\n"
+        future = self.BASE.replace("- one", "- one, reworded") + "\n## Other\ny\n"
+        base = self.BASE + "\n## Other\nx\n"
+        cls = classify_sections(current, future, base)
+        nb = next_base(cls, future, base)
+        # The conflict section keeps its old base, so it is reported again
+        # next time instead of being read as "template unchanged".
+        assert "- one\n" in nb and "- one, reworded" not in nb
+        assert "## Other\ny" in nb
+
+    def test_next_base_omits_a_conflict_with_no_old_base(self):
+        current = "# T\n\n## Rules\n- one\n- mine\n- two\n"
+        future = "# T\n\n## Rules\n- one\n- two\n\n## New\nz\n"
+        cls = classify_sections(current, future)
+        assert self._cat(cls).category == CONFLICT
+        nb = next_base(cls, future, None)
+        assert "## Rules" not in nb
+        assert "## New\nz" in nb

@@ -202,15 +202,27 @@ def protected_ranges(text: str) -> list[tuple[int, int]]:
 # ── classification ────────────────────────────────────────────────────────────
 
 
-def classify_sections(current: str, future: str) -> list[SectionClassification]:
+def classify_sections(
+    current: str, future: str, base: str | None = None,
+) -> list[SectionClassification]:
     """Compare current and future CLAUDE.md, classify each section.
 
     Sections wholly inside a <!-- PROTECTED --> .. <!-- END PROTECTED --> span
     are forced KEEP regardless of body changes.  The header (content before the
     first heading) is always kept.
+
+    ``base`` is the template as it was last written to the file. With it, a
+    differing section is a three-way decision: only the template changed →
+    OVERWRITE; only the user changed → KEEP; both → CONFLICT. Without it, the
+    two-way heuristic below decides, and an OVERWRITE lists in ``at_risk`` the
+    lines it replaces so the caller can show them before writing.
     """
     header, current_sections = parse_sections(current)
     _, future_sections = parse_sections(future)
+    base_by_key: dict[tuple[str, int], Section] = {}
+    if base is not None:
+        for b in parse_sections(base)[1]:
+            base_by_key[(b.heading, b.occurrence)] = b
 
     # Build (heading, occurrence) -> future section lookup
     future_by_key: dict[tuple[str, int], Section] = {}
@@ -255,6 +267,19 @@ def classify_sections(current: str, future: str) -> list[SectionClassification]:
                     # The user appended to the template's text, or the slot is
                     # still a placeholder: nothing of theirs is at stake.
                     cat = KEEP
+                elif key in base_by_key:
+                    old = base_by_key[key].body.strip()
+                    user_changed = s.body.strip() != old
+                    template_changed = fut.body.strip() != old
+                    if not user_changed:
+                        cat = OVERWRITE
+                    elif not template_changed:
+                        cat = KEEP
+                    else:
+                        cat = CONFLICT
+                        # The base says which lines are the user's own.
+                        theirs = set(_user_added_lines(s.body, base_by_key[key].body))
+                        at_risk = [l for l in _user_added_lines(s.body, fut.body) if l in theirs]
                 else:
                     user_only = _user_added_lines(s.body, fut.body)
                     template_only = _user_added_lines(fut.body, s.body)
@@ -270,7 +295,10 @@ def classify_sections(current: str, future: str) -> list[SectionClassification]:
                         cat = CONFLICT
                         at_risk = user_only
                     else:
+                        # No base, so these may be old template lines rather
+                        # than the user's; either way they are shown first.
                         cat = OVERWRITE
+                        at_risk = user_only
                 classifications.append(SectionClassification(
                     heading=s.heading, category=cat,
                     current_content=s.body,
@@ -364,6 +392,30 @@ def apply_merge(
         elif c.category not in (KEEP, CONFLICT, OVERWRITE, OUTDATED):
             raise ValueError(f"Unknown classification: {c.category!r}")
 
+    return sections_to_text(header, out)
+
+
+def next_base(
+    classifications: list[SectionClassification],
+    future: str,
+    old_base: str | None,
+) -> str:
+    """The base to store after an upgrade: the template just merged, except
+    that a CONFLICT section keeps its old base (or is left out when there was
+    none). Taking the new template text there would make the next upgrade read
+    the section as "template unchanged, user changed" and stop reporting it.
+    """
+    conflicts = {c.heading for c in classifications if c.category == CONFLICT}
+    header, future_sections = parse_sections(future)
+    old = {}
+    if old_base is not None:
+        old = {(s.heading, s.occurrence): s for s in parse_sections(old_base)[1]}
+    out: list[Section] = []
+    for s in future_sections:
+        if s.heading not in conflicts:
+            out.append(s)
+        elif (s.heading, s.occurrence) in old:
+            out.append(old[(s.heading, s.occurrence)])
     return sections_to_text(header, out)
 
 
