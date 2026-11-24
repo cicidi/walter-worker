@@ -140,7 +140,7 @@ The project layer cannot override per-tool settings or a global skill of the sam
 | ID | Question | Answer so far | Owner | Blocking |
 |---|---|---|---|---|
 | **QUES-A** | `upgrade` crashes when one section is a conflict and another is an overwrite or an addition, and `--force` was not given; the backup is taken and nothing is written. Fix the merge to keep conflicts? | Reproduced in an in-memory run on 2026-11-24; no test covers the mix. | cicidi | yes |
-| **QUES-B** | `init --project` overwrites an existing `.coworker/coworker.yaml` with no backup. Back it up, or refuse? | Found in the code at `a0f4ce0`. Run in the home folder, it overwrites the global `~/.coworker/coworker.yaml` the same way ([review W1](../raw/review/2026-11-24-spec-review-core-cli-gaps.md)). | cicidi | yes |
+| **QUES-B** | `init --project` overwrites an existing `.coworker/coworker.yaml` with no backup. Back it up, or refuse? | Found in the code at `a0f4ce0`. Run in the home folder, it overwrites the global `~/.coworker/coworker.yaml` the same way (`../raw/review/2026-11-24-spec-review-core-cli-gaps.md`). | cicidi | yes |
 | **QUES-C** | An invalid `coworker.yaml` ends any command with a traceback. Print a one-line error naming the file? | Found in the code at `a0f4ce0`. | cicidi | no |
 | **QUES-D** | `skill approve` reports a failed safety check as "Not found" and exits 0. Report the real reason? | Found in the code at `a0f4ce0`. | cicidi | no |
 | **QUES-E** | The OpenCode adapter writes its file in place, twice, with no backup. Make it atomic and backed up like the others? | Found in the code at `a0f4ce0`. | cicidi | no |

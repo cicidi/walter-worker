@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auto-worker — PRD · prd · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-leaf"><a class="tree-link" href="autoworker-prd.html" aria-current="page"><span class="tree-ord">1</span>Auto-worker — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/autoworker-decision-history.html"><span class="tree-ord">2</span>Auto-worker — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/autoworker-design.html"><span class="tree-ord">3</span>Auto-worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/autoworker-impl-plan.html"><span class="tree-ord">4</span>Auto-worker — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/autoworker-test-plan.html"><span class="tree-ord">5</span>Auto-worker — Test Plan</a></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>autoworker</span> / <span>prd</span> / <span>Auto-worker — PRD</span></nav>
+    <article class="doc" data-doc="autoworker/prd/autoworker-prd">
+      <header class="doc-head">
+        <p class="eyebrow">autoworker</p>
+        <h1>Auto-worker — PRD</h1>
+        <p class="source">Canonical: docs/features/autoworker/prd/autoworker-prd.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Auto-worker — PRD</h2>
+<h3>Overview</h3>
+<p>The auto-worker runs unattended review of a project. <code>coworker run --loop</code> repeatedly starts a headless Claude Code session (one that runs a single prompt and exits, with no interactive window) whose prompt asks it to audit the project against its specifications, fix real problems, and report what it found; each round&#x27;s report is appended to a dated state file. <code>coworker find-issues run</code> is a quick inspection that counts requirement and specification entries and runs the test suite. Both are meant for long, unwatched runs, so they must stop on their own, leave a record, and never claim success they did not have.</p>
+<p>This document states what the auto-worker must do. The <a href="../design/autoworker-design.html">design</a> states how it behaves today, including where the code does not yet meet a requirement. Facts were checked against the code at commit <code>a0f4ce0</code>.</p>
+<h3>Goals and Success Metrics</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Goal</th>
+<th>Success metric</th>
+</tr></thead><tbody>
+<tr>
+<td>Unattended runs end by themselves</td>
+<td>A loop never runs past its time budget by more than one round, nor past its round cap</td>
+</tr>
+<tr>
+<td>Every round leaves a record</td>
+<td>The state file shows each round, including rounds whose agent failed to start</td>
+</tr>
+<tr>
+<td>Failures are visible</td>
+<td>A run where every round failed does not report success</td>
+</tr>
+</tbody></table></div>
+<h3>User Stories</h3>
+<p>As a maintainer, I want to start a review loop before I leave, so that I come back to findings and fixes instead of an untouched backlog.</p>
+<p>As a maintainer, I want a quick inspection command that fails when tests fail, so that a script or a scheduled job can tell a healthy project from a broken one.</p>
+<h3>Functional Requirements</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Requirement</th>
+</tr></thead><tbody>
+<tr>
+<td><strong id="PRD-A"><a class="id-ref" href="#PRD-A">PRD-A</a></strong></td>
+<td><code>coworker run</code> does nothing unless <code>--loop</code> is given.</td>
+</tr>
+<tr>
+<td><strong id="PRD-B"><a class="id-ref" href="#PRD-B">PRD-B</a></strong></td>
+<td>The loop stops when its time budget (<code>--max-hours</code>) is spent or after a fixed maximum number of rounds, and each round has a time limit.</td>
+</tr>
+<tr>
+<td><strong id="PRD-C"><a class="id-ref" href="#PRD-C">PRD-C</a></strong></td>
+<td>Each round runs the agent with the project&#x27;s specifications and the prior round&#x27;s state as its context, and appends the agent&#x27;s report to a dated state file for the project.</td>
+</tr>
+<tr>
+<td><strong id="PRD-D"><a class="id-ref" href="#PRD-D">PRD-D</a></strong></td>
+<td>A round whose agent cannot start or fails is recorded as failed, and a run whose rounds all failed exits with a failure status.</td>
+</tr>
+<tr>
+<td><strong id="PRD-E"><a class="id-ref" href="#PRD-E">PRD-E</a></strong></td>
+<td><code>find-issues run</code> inspects the chosen phases (requirements, specification, web, code), writes a dated report, and exits with a failure status when the code phase finds failing tests or when a phase name is unknown.</td>
+</tr>
+<tr>
+<td><strong id="PRD-F"><a class="id-ref" href="#PRD-F">PRD-F</a></strong></td>
+<td>Lessons recorded as critical in the project&#x27;s wrong-history are given to the agent before the first round.</td>
+</tr>
+</tbody></table></div>
+<p>The wrong-history is a folder of recorded past mistakes, each with a severity and the prevention rule learned from it.</p>
+<h3>Out of Scope</h3>
+<p>What the agent changes in the repository is governed by the user&#x27;s Claude Code permission settings, not by this feature. The rule classes for gap checking in <a href="../../../../../src/coworker/autoworker/rules.py"><code>src/coworker/autoworker/rules.py</code></a> are not called by either command and are not part of this contract. Creating GitHub issues, commits, or branches is not done by the Python code.</p>
+<h3>Resources Needed</h3>
+<p>The <code>claude</code> command-line tool on the path for <code>run</code>; Python with pytest for <code>find-issues</code>. Tests are under <code>tests/python/</code>.</p>
+<p><code>run --loop</code> also needs the <code>memory</code> optional extra from <code>pyproject.toml</code>, because it imports the <code>openai</code> package. Without the extra, it stops with <code>ModuleNotFoundError</code> before any round runs (see the design&#x27;s <a class="id-ref" href="../design/autoworker-design.html#QUES-G">QUES-G</a>).</p>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Version</th>
+<th>Date</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td>0.1</td>
+<td>2026-11-04</td>
+<td>Draft (never committed)</td>
+</tr>
+<tr>
+<td>0.2</td>
+<td>2026-11-24</td>
+<td>Rewritten from the code at <code>a0f4ce0</code>; the nonexistent <code>coworker autoworker</code> command and in-code gap detection removed (<a class="id-ref" href="../decision-history/autoworker-decision-history.html#ARD-A">ARD-A</a>)</td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>2026-11-24</td>
+<td>Review fixes: the <code>memory</code> extra added to Resources Needed; wrong-history defined; requirements unchanged (<a class="id-ref" href="../decision-history/autoworker-decision-history.html#ARD-D">ARD-D</a>, <a class="id-ref" href="../decision-history/autoworker-decision-history.html#ARD-E">ARD-E</a>)</td>
+</tr>
+</tbody></table></div>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><span></span><a class="next" href="../decision-history/autoworker-decision-history.html"><span class="label">Next</span>Auto-worker — Decision History</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

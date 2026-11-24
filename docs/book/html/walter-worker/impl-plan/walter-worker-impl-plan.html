@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>walter-worker Implementation Plan · impl-plan · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/walter-worker-prd.html"><span class="tree-ord">1</span>walter-worker — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-core-prd.html">Core CLI &amp; Initiative System PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-dashboard-prd.html">Dashboard PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-knowledge-skill-prd.html">Knowledge Skill PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/ai-coworker-prd.html">walter-worker PRD</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../decision-history/walter-worker-decision-history.html"><span class="tree-ord">2</span>walter-worker — Decision History</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../decision-history/2025-04-10-integrate-loop-engineering-framework-by-running-lo-decision.html">Decision Record — 2025-04-10</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-03-30-feat-initial-commit--unified-ai-coworker-dev-env-decision.html">Decision Record — 2026-03-30</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.html">Decision Record — 2026-05-01</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-05-06-feat-add-skill-meta-import-skill--import-externa-decision.html">Decision Record — 2026-05-06</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.html">Decision Record — 2026-06-11</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-12-feat-add-opencode-context-injection-initiativema-decision.html">Decision Record — 2026-06-12</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.html">Decision Record — 2026-06-16</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-23-chore-remove-self-strain-decision.html">Decision Record — 2026-06-23</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-24-chore-review-fixes--broken-refs-tests-docs-ch-decision.html">Decision Record — 2026-06-24</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-30-fix-deploy-ai-coworker-skills-to-opencode-skill-d-decision.html">Decision Record — 2026-06-30</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.html">Decision Record — 2026-07-02</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.html">Decision Record — 2026-07-07</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.html">Decision Record — 2026-07-08</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.html">Decision Record — 2026-07-10</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-13-feat-add-emoji-and-color-coded-fields-to-tmux-sta-decision.html">Decision Record — 2026-07-13</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-17-docs-add-doc-organize--indexmd-refs-to-claudem-decision.html">Decision Record — 2026-07-17</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.html">Decision Record — 2026-07-24</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/unknown-remove-budget-related-features-from-prd-budget-fl-decision.html">Decision Record — unknown</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../design/walter-worker-design.html"><span class="tree-ord">3</span>walter-worker — Design</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../design/ai-coworker-design.html">walter-worker Design</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-analytics-dashboard-superpowers.html">Analytics Listener + Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-analytics-listener-design.html">Analytics Listener — Design Document</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-core-architecture-design.html">Core Architecture Design</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-feature-tracker.html">Feature Tracker</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-planning-hub.html">Planning Hub</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-09-25-deletion-list.html">Deletion List — 2026-09-25</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/2026-06-12-initiative-project-level-design.html">Initiative — Global to Project-Level Design</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/ai-coworker-spec.html">walter-worker Technical Specification</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-26-decision-timeline.html">Decision Timeline — walter-worker</a></li><li class="tree-leaf"><a class="tree-link" href="../work-review/2026-06-11-analytics-dashboard/acceptance.html">Analytics Dashboard — Acceptance Review</a></li><li class="tree-leaf"><a class="tree-link" href="../work-review/2026-06-11-analytics-dashboard/report.html">Acceptance Report — Analytics Dashboard</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="walter-worker-impl-plan.html" aria-current="page"><span class="tree-ord">4</span>walter-worker Implementation Plan</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/walter-worker-test-plan.html"><span class="tree-ord">5</span>walter-worker — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/ai-coworker-test-plan.html">walter-worker Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><span class="tree-link"><span class="tree-ord">10</span>sub-feature</span></summary><ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/analytics-dashboard/design/analytics-dashboard-design.html">analytics-dashboard</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/prd/analytics-dashboard-prd.html"><span class="tree-ord">1</span>Analytics Dashboard — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/decision-history/analytics-dashboard-decision-history.html"><span class="tree-ord">2</span>Analytics Dashboard — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/design/analytics-dashboard-design.html"><span class="tree-ord">3</span>Analytics Dashboard — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/impl-plan/analytics-dashboard-impl-plan.html"><span class="tree-ord">4</span>Analytics Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/test-plan/analytics-dashboard-test-plan.html"><span class="tree-ord">5</span>Analytics Dashboard — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/analytics-listener/design/analytics-listener-design.html">analytics-listener</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/prd/analytics-listener-prd.html"><span class="tree-ord">1</span>Analytics Listener — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/decision-history/analytics-listener-decision-history.html"><span class="tree-ord">2</span>Analytics Listener — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/design/analytics-listener-design.html"><span class="tree-ord">3</span>Analytics Listener — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/impl-plan/analytics-listener-impl-plan.html"><span class="tree-ord">4</span>Analytics Listener — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/test-plan/analytics-listener-test-plan.html"><span class="tree-ord">5</span>Analytics Listener — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/core-cli/design/core-cli-design.html">core-cli</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/prd/core-cli-prd.html"><span class="tree-ord">1</span>Core CLI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/decision-history/core-cli-decision-history.html"><span class="tree-ord">2</span>Core CLI — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/design/core-cli-design.html"><span class="tree-ord">3</span>Core CLI — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/impl-plan/core-cli-impl-plan.html"><span class="tree-ord">4</span>Core CLI — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/test-plan/core-cli-test-plan.html"><span class="tree-ord">5</span>Core CLI — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/feature-system/design/feature-system-design.html">feature-system</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/prd/feature-system-prd.html"><span class="tree-ord">1</span>Feature System — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/decision-history/feature-system-decision-history.html"><span class="tree-ord">2</span>Feature System — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/design/feature-system-design.html"><span class="tree-ord">3</span>Feature System — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/impl-plan/feature-system-impl-plan.html"><span class="tree-ord">4</span>Feature System — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/test-plan/feature-system-test-plan.html"><span class="tree-ord">5</span>Feature System — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/setup-deploy/design/setup-deploy-design.html">setup-deploy</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/prd/setup-deploy-prd.html"><span class="tree-ord">1</span>Setup and Deploy — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/decision-history/setup-deploy-decision-history.html"><span class="tree-ord">2</span>Setup and Deploy — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/design/setup-deploy-design.html"><span class="tree-ord">3</span>Setup and Deploy — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/impl-plan/setup-deploy-impl-plan.html"><span class="tree-ord">4</span>Setup and Deploy — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/test-plan/setup-deploy-test-plan.html"><span class="tree-ord">5</span>Setup and Deploy — Test Plan</a></li></ul></details></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>walter-worker</span> / <span>impl-plan</span> / <span>walter-worker Implementation Plan</span></nav>
+    <article class="doc" data-doc="walter-worker/impl-plan/walter-worker-impl-plan">
+      <header class="doc-head">
+        <p class="eyebrow">walter-worker</p>
+        <h1>walter-worker Implementation Plan</h1>
+        <p class="source">Canonical: docs/features/walter-worker/impl-plan/walter-worker-impl-plan.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>walter-worker Implementation Plan</h2>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Date</th>
+<th>Version</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td>2026-03-30</td>
+<td>v0.1</td>
+<td>Initial commit – unified walter-worker dev environment</td>
+</tr>
+<tr>
+<td>2026-05-06</td>
+<td>v0.2</td>
+<td>Skill restructuring – coworker-{category} naming, public skills/ directory</td>
+</tr>
+<tr>
+<td>2026-06-12</td>
+<td>v0.3</td>
+<td>Analytics listener + dashboard – MVP with 36 tests</td>
+</tr>
+<tr>
+<td>2026-06-12</td>
+<td>v0.4</td>
+<td>Initiative migration – global to project-level storage</td>
+</tr>
+<tr>
+<td>2026-06-23</td>
+<td>v0.5</td>
+<td>Major cleanup – skill consolidation, CLI commands, docs reorganization</td>
+</tr>
+<tr>
+<td>2026-07-10</td>
+<td>v0.6</td>
+<td>CLAUDE.md optimization – three-layer architecture, 95→60 lines</td>
+</tr>
+<tr>
+<td>2026-07-25</td>
+<td>v0.7</td>
+<td>Self-evolving agent – PRD, design docs, memory substrate, auto-worker</td>
+</tr>
+<tr>
+<td>2026-07-25</td>
+<td>v0.8</td>
+<td>Dashboard expansion – 10+ views, 96% test coverage</td>
+</tr>
+</tbody></table></div>
+<h3>Introduction</h3>
+<p>This implementation plan reconstructs the development order of the walter-worker project based on all recorded decisions (git commits and Claude Code actions). The project evolved from a monolithic dev environment into a modular context‑management system with analytics, memory, and autonomous‑agent capabilities. Each milestone describes the build order, dependencies, key deliverables, and the commits that mark the transition.</p>
+<hr>
+<h3>Milestone 1: Foundation and Initial Dev Environment</h3>
+<p><strong>Period:</strong> 2026-03-30 → 2026-04-30</p>
+<h4>Description</h4>
+<p>The first commit established a unified environment for AI‑coworker development. No other changes are recorded in this period, indicating a baseline setup.</p>
+<h4>Deliverables</h4>
+<ul>
+<li>Initial monorepo structure</li>
+<li>Basic configuration and tooling</li>
+</ul>
+<h4>Dependencies</h4>
+<ul>
+<li>None (starting point)</li>
+</ul>
+<h4>Build Order</h4>
+<ol>
+<li>Create repository</li>
+<li>Add initial development environment files</li>
+</ol>
+<h4>Key Commits</h4>
+<ul>
+<li><code>c3f771f7</code> – <code>feat: initial commit — unified walter-worker dev environment</code> (2026-03-30)</li>
+</ul>
+<hr>
+<h3>Milestone 2: Skill Restructuring and Naming Convention</h3>
+<p><strong>Period:</strong> 2026-05-01 → 2026-05-06</p>
+<h4>Description</h4>
+<p>A major refactoring introduced a consistent <code>coworker-{category}</code> naming scheme and moved all skills to a public <code>skills/</code> directory. The <code>meta-import-skill</code> skill was added to support external skill installation with license checks.</p>
+<h4>Deliverables</h4>
+<ul>
+<li>Skill naming convention (<code>coworker-{category}</code>)</li>
+<li>Unified <code>skills/</code> directory</li>
+<li><code>meta-import-skill</code> for external skill installation</li>
+</ul>
+<h4>Dependencies</h4>
+<ul>
+<li>Milestone 1 (base repo)</li>
+</ul>
+<h4>Build Order</h4>
+<ol>
+<li>Plan the restructuring (<code>bd85e364</code>)</li>
+<li>Move all skills to <code>skills/</code> (<code>c4577dbf</code>)</li>
+<li>Implement import skill (<code>6695052b</code>)</li>
+</ol>
+<h4>Key Commits</h4>
+<ul>
+<li><code>bd85e364</code> – <code>refactor: add skill restructure plan for coworker-{category} naming</code></li>
+<li><code>c4577dbf</code> – <code>refactor: move all skills to public skills/ directory</code></li>
+<li><code>6695052b</code> – <code>feat: add skill meta-import-skill — import external skills with license check and auto-install</code></li>
+</ul>
+<hr>
+<h3>Milestone 3: Analytics and Dashboard – Design &amp; MVP</h3>
+<p><strong>Period:</strong> 2026-06-11 → 2026-06-12</p>
+<h4>Description</h4>
+<p>An analytics listener framework was designed, including SQLite schema, import pipeline, and a web dashboard. The MVP delivered a fully working backend + frontend with 36 passing tests and 12/12 acceptance criteria.</p>
+<h4>Deliverables</h4>
+<ul>
+<li>Analytics listener design spec (PRD, spec, plan, test)</li>
+<li>SQLite database schema (<code>skills</code>, <code>knowledge</code>, <code>session_summaries</code>)</li>
+<li>Analytics listener + import pipeline (backend)</li>
+<li>Dashboard (frontend)</li>
+<li>Integration installer, uninstall cleanup, verification tests</li>
+</ul>
+<h4>Dependencies</h4>
+<ul>
+<li>Milestone 2 (skills directory structure)</li>
+</ul>
+<h4>Build Order</h4>
+<ol>
+<li>Design analytics listener (<code>a98923f0</code>, <code>5ede172e</code>, <code>51cf5480</code>)</li>
+<li>Reorganize docs into <code>prd/spec/plan/test</code> structure (<code>8833de20</code>)</li>
+<li>Add dashboard tables to schema (<code>12231ff1</code>)</li>
+<li>Write comprehensive implementation plan (<code>0213e72d</code>)</li>
+<li>Implement backend + frontend (<code>2d6924dc</code>)</li>
+<li>Add knowledge skill and e2e tests (<code>5aa3871c</code>)</li>
+<li>Integration installer and tests (<code>5c2aa776</code>)</li>
+<li>Acceptance review – 36 tests, 12/12 criteria signed (<code>4ce6a95e</code>)</li>
+</ol>
+<h4>Key Commits</h4>
+<ul>
+<li><code>a98923f0</code>, <code>51cf5480</code>, <code>12231ff1</code> – design docs</li>
+<li><code>0213e72d</code> – implementation plan</li>
+<li><code>2d6924dc</code> – <code>feat: add analytics listener, import pipeline, dashboard</code></li>
+<li><code>5aa3871c</code> – knowledge skill and e2e tests</li>
+<li><code>5c2aa776</code> – installer integration</li>
+<li><code>4ce6a95e</code> – final acceptance</li>
+</ul>
+<hr>
+<h3>Milestone 4: Initiative Migration (Global → Project-Level)</h3>
+<p><strong>Period:</strong> 2026-06-12</p>
+<h4>Description</h4>
+<p>The initiative system was migrated from global storage to project-level storage. This involved design docs, refactoring, and a new <code>InitiativeManager</code> with corresponding skills.</p>
+<h4>Deliverables</h4>
+<ul>
+<li>Initiative migration design doc</li>
+<li>Project-level initiative storage</li>
+<li><code>InitiativeManager</code> class</li>
+<li>Initiative skills</li>
+</ul>
+<h4>Dependencies</h4>
+<ul>
+<li>Milestone 3 (analytics infrastructure – imported session data needed for initiatives)</li>
+</ul>
+<h4>Build Order</h4>
+<ol>
+<li>Write migration design (<code>e4887745</code>)</li>
+<li>Refactor storage layer (<code>2a9e69ea</code>)</li>
+<li>Implement manager + skills (<code>426453a0</code>)</li>
+</ol>
+<h4>Key Commits</h4>
+<ul>
+<li><code>e4887745</code> – <code>docs: add initiative global-to-project-level migration design</code></li>
+<li><code>2a9e69ea</code> – <code>refactor: migrate initiative from global to project-level storage</code></li>
+<li><code>426453a0</code> – <code>feat: add OpenCode context injection, InitiativeManager, initiative skills</code></li>
+</ul>
+<hr>
+<h3>Milestone 5: Workflow Simplification and Major Cleanup</h3>
+<p><strong>Period:</strong> 2026-06-16 → 2026-06-23</p>
+<h4>Description</h4>
+<p>The 8‑stage development pipeline was replaced with a simpler 5‑stage workflow. A massive cleanup removed unused files, renamed skills, consolidated CLI commands, and restructured the repository. The project’s identity shifted from a dev tool to a context manager.</p>
+<h4>Deliverables</h4>
+<ul>
+<li>5‑stage workflow (Karpathy static context)</li>
+<li>Cleaned repo: removed <code>docs/</code>, <code>global/</code>, <code>personal/skills/</code>, <code>.mcp.json</code>, etc.</li>
+<li>Renamed <code>setup-coworker</code> to <code>init</code></li>
+<li>New naming scheme for all skills</li>
+<li>18 CLI command skills (analytics, initiative, project, status)</li>
+<li>Auto-scan in <code>coworker init</code></li>
+<li>New <code>README</code> and blueprint</li>
+<li>Analytics auto‑import daemon</li>
+<li>Session memory skill</li>
+<li>Self‑heal hooks for Claude Code + OpenCode</li>
+<li>Merged bug‑related skills into unified <code>bug-report</code> and <code>bug-hunt</code></li>
+<li>Removed pipeline skills (<code>flow-*</code>, <code>gate-*</code>, <code>connect-*</code>)</li>
+</ul>
+<h4>Dependencies</h4>
+<ul>
+<li>Milestones 3 and 4 (existing analytics and initiative code)</li>
+</ul>
+<h4>Build Order</h4>
+<ol>
+<li>Replace pipeline (<code>455d9e99</code>)</li>
+<li>Remove tracked directories, add to gitignore (<code>c114ee45</code>)</li>
+<li>Rename <code>setup-coworker</code> → <code>init</code> (<code>47740a4d</code>)</li>
+<li>Rename all skills (<code>b22a2b8c</code>)</li>
+<li>Remove <code>.mcp.json</code> and <code>global/</code> (<code>0f5824bf</code>, <code>28c0f1df</code>)</li>
+<li>Move personal skills out (<code>1989bb09</code>)</li>
+<li>Add 18 CLI skills (<code>1e2bddb1</code>)</li>
+<li>Remove obsolete commands (<code>796f29db</code>)</li>
+<li>Replace flat doc with skill-based init (<code>f849a7fd</code>)</li>
+<li>Add auto-scan to init (<code>f9d30bf9</code>)</li>
+<li>Remove backup (<code>a9f48e17</code>)</li>
+<li>Update README and blueprint (<code>f8f7b302</code>, <code>e55482c6</code>, <code>59067677</code>)</li>
+<li>Add roadmaps and analytics daemon (<code>c7660be2</code>, <code>cdf88052</code>)</li>
+<li>Add DeepSeek API key prompt (<code>267ed5b0</code>)</li>
+<li>Improve analytics checkpointing (<code>6a642a28</code>)</li>
+<li>Import Claude Code native JSONL sessions (<code>0b57ec39</code>)</li>
+<li>Track file reads per session (<code>35da1c8e</code>)</li>
+<li>Add session memory skill (<code>bf28b735</code>)</li>
+<li>Rewrite self‑heal/self‑analyze (<code>5138ea3e</code>, <code>45e9edf0</code>)</li>
+<li>Merge bug skills (<code>4285718b</code>, <code>6511f376</code>, <code>af88df6e</code>, <code>f8b7ffb6</code>)</li>
+<li>Delete obsolete skills (<code>bbb04a94</code>, <code>feea84bd</code>, <code>5d56b85c</code>, <code>e2e56c14</code>, <code>d5058d63</code>)</li>
+<li>Rename <code>self-patch</code> → <code>english-grammar-fix</code> (<code>be857b45</code>)</li>
+<li>Remove <code>self-strain</code> (<code>f342761c</code>)</li>
+<li>Final review fixes (<code>7062875b</code>)</li>
+</ol>
+<h4>Key Commits</h4>
+<ul>
+<li><code>455d9e99</code> – 5‑stage workflow</li>
+<li><code>c114ee45</code> – gitignore update</li>
+<li><code>47740a4d</code> – init rename</li>
+<li><code>b22a2b8c</code> – skill renaming</li>
+<li><code>1e2bddb1</code> – 18 CLI skills</li>
+<li><code>cdf88052</code> – analytics daemon</li>
+<li><code>0b57ec39</code> – Claude Code JSONL import</li>
+<li><code>bf28b735</code> – session memory</li>
+<li><code>5138ea3e</code> – self‑heal rewrite</li>
+<li><code>f8b7ffb6</code> – merged bug‑hunt</li>
+<li><code>7062875b</code> – final review</li>
+</ul>
+<hr>
+<h3>Milestone 6: CLAUDE.md Architecture and Optimization</h3>
+<p><strong>Period:</strong> 2026-06-30 → 2026-07-10</p>
+<h4>Description</h4>
+<p>A three‑layer CLAUDE.md architecture (Global → Project → Local) was introduced. The project CLAUDE.md was optimized from 95 lines to 56 lines (41% reduction). Global initiatives, fix‑walter-worker skill, and a tmux status bar were added. Worktree support and OpenCode plugin refactoring were completed.</p>
+<h4>Deliverables</h4>
+<ul>
+<li>Three‑layer CLAUDE.md architecture</li>
+<li>Global initiatives and fix‑walter-worker skill</li>
+<li>Tmux status bar with worktree support</li>
+<li>Skill sync via content hash (no <code>--delete</code>)</li>
+<li>OpenCode plugin v1 format</li>
+<li>State files in <code>docs/state/</code>, auto‑timestamped</li>
+<li>Documentation topic‑based convention</li>
+</ul>
+<h4>Dependencies</h4>
+<ul>
+<li>Milestone 5 (clean repo, init command)</li>
+</ul>
+<h4>Build Order</h4>
+<ol>
+<li>Deploy walter-worker skills to OpenCode (<code>b0458e70</code>)</li>
+<li>Add three‑layer CLAUDE.md (<code>81e946e8</code>)</li>
+<li>Add global initiatives and fix skill (<code>daaf0ef0</code>)</li>
+<li>Deploy tmux status bar (<code>579ad509</code>)</li>
+<li>Fix skill sync (<code>7d90e61c</code>)</li>
+<li>Fix worktree detection (<code>9edd66d5</code>)</li>
+<li>Refactor OpenCode plugin to v1 (<code>c2ce14a0</code>)</li>
+<li>Move state files to <code>docs/state/</code> (<code>432536cc</code>)</li>
+<li>Keep state prefix (<code>b66cd6ce</code>)</li>
+<li>Auto‑timestamp state files (<code>c1dfa568</code>)</li>
+<li>CLAUDE.md optimization rounds 1–7 (<code>3a46c8cf</code>, <code>efe73750</code>, <code>f358a460</code>)</li>
+<li>Methodology report (<code>e47fd2b2</code>)</li>
+<li>English translation and topic‑based docs (<code>1600db8a</code>, <code>b78ec27a</code>)</li>
+<li>Add “suggest next actions” to Development Loop (<code>71807234</code>)</li>
+<li>Add <code>--force</code> flag to init (<code>5d697988</code>)</li>
+<li>Emoji/color tmux (<code>87f4413e</code>)</li>
+</ol>
+<h4>Key Commits</h4>
+<ul>
+<li><code>81e946e8</code> – three‑layer architecture</li>
+<li><code>daaf0ef0</code> – global initiatives</li>
+<li><code>579ad509</code> – tmux status bar</li>
+<li><code>c2ce14a0</code> – OpenCode plugin v1</li>
+<li><code>3a46c8cf</code>, <code>efe73750</code>, <code>f358a460</code> – CLAUDE.md optimization</li>
+<li><code>e47fd2b2</code> – methodology report</li>
+</ul>
+<hr>
+<h3>Milestone 7: Fix Round – B1, S3, Polish Loop, and Core Stability</h3>
+<p><strong>Period:</strong> 2026-07-07 → 2026-07-08</p>
+<h4>Description</h4>
+<p>A coordinated bug‑fix round addressed over 20 issues across hooks, install script, tests, and core components. This included a hermetic install fixture, semantic merge rewrite, dashboard polish loop, and comprehensive test fixes. All pull requests were merged.</p>
+<h4>Deliverables</h4>
+<ul>
+<li>License, CONTRIBUTING, CI (<code>96b5e467</code>)</li>
+<li>Backup snapshot/restore (<code>8d670d14</code>)</li>
+<li>Hermetic install fixture (<code>c9240244</code>)</li>
+<li>Relative imports, stats keys, DB bootstrap fix (<code>a12ac2c3</code>)</li>
+<li>Init mkdir + sentinel constant (<code>a8cc5eb3</code>)</li>
+<li>Bash 3.2 compat (<code>7476a7b3</code>)</li>
+<li>Core skill path and MCP fixes (<code>d64f86e4</code>, <code>af8cc90e</code>)</li>
+<li>Parameterized paths (env vars) (<code>85afe0bd</code>)</li>
+<li>Semantic merge rewrite (<code>37a42e72</code>)</li>
+<li>Coworker upgrade command wired (<code>09e0a50e</code>)</li>
+<li>Settings ownership (<code>68d41098</code>)</li>
+<li>Manifest‑driven install/uninstall (<code>4867eb69</code>)</li>
+<li>Canonical frontmatter schema (<code>3c04edaf</code>)</li>
+<li>Docs‑dirs constant (<code>003edf11</code>)</li>
+<li>README honesty and roadmap (<code>190c51f9</code>)</li>
+<li>State‑update test fixes (<code>46f7badc</code>)</li>
+<li>Dashboard polish loop (<code>c26e4ab5</code>, <code>5eec456c</code>)</li>
+<li>B1 changelog + timeout (<code>02b8799b</code>)</li>
+<li>Core design specs (<code>beaea2a4</code>)</li>
+<li>QA PROTECTED heuristic (<code>abc3c5b6</code>)</li>
+<li>Three merged PRs (<code>88eb2a27</code>, <code>df441ef0</code>, <code>2a738d94</code>)</li>
+<li>Dashboard host binding (<code>2705c67c</code>)</li>
+<li>Analytics dedup (<code>8cf42041</code>)</li>
+</ul>
+<h4>Dependencies</h4>
+<ul>
+<li>Milestones 3, 5, 6 (features that needed stabilization)</li>
+</ul>
+<h4>Build Order</h4>
+<p>(Grouped by subsystem – see commit list for exact order)</p>
+<h4>Key Commits</h4>
+<ul>
+<li><code>96b5e467</code> – license + CI</li>
+<li><code>37a42e72</code> – semantic merge rewrite</li>
+<li><code>09e0a50e</code> – upgrade command</li>
+<li><code>4867eb69</code> – manifest install</li>
+<li><code>88eb2a27</code>, <code>df441ef0</code>, <code>2a738d94</code> – merged PRs</li>
+<li><code>2705c67c</code> – dashboard host</li>
+<li><code>8cf42041</code> – analytics dedup</li>
+</ul>
+<hr>
+<h3>Milestone 8: Dashboard Expansion and Analytics Enhancements</h3>
+<p><strong>Period:</strong> 2026-07-07 → 2026-07-08 (overlapped with Fix Round)</p>
+<h4>Description</h4>
+<p>The dashboard gained new views (session monitor, file ops, skill usage, unified timeline) and the analytics pipeline was refined with session dedup and LLM‑driven knowledge dedup.</p>
+<h4>Deliverables</h4>
+<ul>
+<li>Session monitor dashboard view</li>
+<li>Unified timeline with file ops and skill usage</li>
+<li>Corrected DB column names</li>
+<li>Dashboard polish‑loop infrastructure</li>
+<li>Analytics dedup (session + knowledge)</li>
+</ul>
+<h4>Dependencies</h4>
+<ul>
+<li>Milestone 3 (existing dashboard), Milestone 7 (test fixes)</li>
+</ul>
+<h4>Key Commits</h4>
+<ul>
+<li><code>554b4285</code> –</li>
+</ul>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../work-review/2026-06-11-analytics-dashboard/report.html"><span class="label">Previous</span>Acceptance Report — Analytics Dashboard</a><a class="next" href="../test-plan/walter-worker-test-plan.html"><span class="label">Next</span>walter-worker — Test Plan</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

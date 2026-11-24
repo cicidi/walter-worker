@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Devil&#x27;s Advocate Reviews — Consolidated Decision History · decision-history · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/dashboard-ui-prd.html">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="2026-07-29-devil-advocate-reviews-summary.html" aria-current="page">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/auto-worker-design.html">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/dashboard-design.html">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/qa-autonomous-agent-design.html">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../INDEX.html">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/band-ai-docs.html">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-agent-README.html">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-ai-docs.html">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-README.html">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-docs.html">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-agent-README.html">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/pioneer-docs.html">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/memory-graph-spec.html">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/qa-autonomous-agent-spec.html">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/self-evolving-agent-spec.html">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-29-current-state.html">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-dashboard-data-not-verified.html">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../impl-plan/self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../impl-plan/dependency-and-sequencing-impl-plan.html">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/qa-autonomous-agent-impl-plan.html">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/self-evolving-agent-test-plan.html"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/2026-07-29-test-execution-report.html">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-graph-test-plan.html">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>decision-history</span> / <span>Devil&#x27;s Advocate Reviews — Consolidated Decision History</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/decision-history/2026-07-29-devil-advocate-reviews-summary">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>Devil&#x27;s Advocate Reviews — Consolidated Decision History</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/decision-history/2026-07-29-devil-advocate-reviews-summary.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Devil&#x27;s Advocate Reviews — Consolidated Decision History</h2>
+<p><strong>Date:</strong> 2026-07-29 <strong>Source:</strong> 6 rounds of adversarial review across <code>docs/self-evolving-agent/raw/devil-advocate-reviews/</code> <strong>Method:</strong> 3-agent debate (CON / PRO / JUDGE) per round, with one independent re-review using a different model.</p>
+<hr>
+<h3>Round 1 — 2026-07-24: PRD (v3) Initial Review</h3>
+<p><strong>What was reviewed:</strong> The original Self-Evolving Agent PRD (v3). <strong>Method:</strong> Full document review, 21 claims across 2 rounds.</p>
+<p><strong>Key verdicts:</strong></p>
+<ul>
+<li><strong>CONFIRMED (16 CON wins):</strong> The PRD had zero safety/alignment guardrails for autonomous skill creation, no loop termination conditions, and an unimplementable core loop specification (<code>coworker run --loop</code> described in 3 sentences with no state machine). PostToolUse hooks were found to have 9 documented failure modes that would break the per-turn memory sync pipeline. Subagent findings are structurally invisible to the memory system because PostToolUse hooks do not fire for Agent tool completions. No cost model, no quality metrics for evolution, no error handling specification.</li>
+<li><strong>REFUTED (5 PRO wins):</strong> Hermes IP contamination risk was resolved (MIT license protects pattern reuse; PRD describes clean-room reimplementation). The sync architecture (write-now, read-later eventual consistency) was validated as coherent. Guild Agent was confirmed as complementary, not a replacement (fails R2 no-manual-save and R7 no-background-server requirements). Pioneer&#x27;s model-level improvement was correctly deferred to v2.</li>
+<li><strong>AMENDED:</strong> None directly, but 3 blocking recommendations were issued: add safety architecture, specify loop termination, address hook reliability.</li>
+</ul>
+<p><strong>Critical issues found:</strong> 3 BLOCKING (safety, loop termination, hook reliability), 5 HIGH (Guild evaluation, cost model, quality metrics, error handling, OpenCode hooks), 5 MEDIUM.</p>
+<p><strong>Outcome:</strong> PRD conceptual architecture survived. Specification and safety did not. Revise PRD with must-fix items before implementation.</p>
+<hr>
+<h3>Round 2 — 2026-07-24: PRD + Spec + Design + Impl-Plan Cross-Review</h3>
+<p><strong>What was reviewed:</strong> PRD (v3, en + zh), QA autonomous agent spec, design, and implementation plan — all four documents together. <strong>Method:</strong> Direct codebase verification + 3 parallel subagents (doc reconciliation, impl-plan feasibility, Claude Code hook ground-truth). Code-verified, not speculative.</p>
+<p><strong>Key verdicts:</strong></p>
+<ul>
+<li><strong>CONFIRMED:</strong> The spec/design/impl-plan build a QA-agent skill (a supplement on top of walter-worker), NOT the self-evolution engine. The platform (memory_store, FTS5, sync, curator, lifecycle) is entirely greenfield with no implementation-level specification. The impl-plan is a non-functional stub skeleton: every working function returns <code>NotImplementedError</code> or dummy results.</li>
+<li><strong>REFUTED:</strong> The PRD&#x27;s hook architecture had 5 concrete technical errors when verified against actual Claude Code 2026 documentation: (1) &quot;SessionStop&quot; hook does not exist — <code>Stop</code> is per-turn, <code>SessionEnd</code> is per-session; (2) Stop as PostToolUse fallback is wrong granularity; (3) <code>SubagentStop</code> hook exists but PRD never mentions it; (4) session_id arrives via stdin JSON, not <code>$SESSION_ID</code> env var; (5) hooks are synchronous by default with 600s timeout — every PostToolUse blocks on a DeepSeek call.</li>
+<li><strong>AMENDED:</strong> 6 broken document cross-references found and fixed (e.g., spec cites fabricated <code>PRD section 5.7</code>). Prior review&#x27;s 3 blockers were checked: safety got framework-level fixes (shallow), loop termination solved for SDK mode only (primary implicit experience still has no convergence concept), hook reliability fixed in the wrong direction (wrong hook name, missing SubagentStop, missing async, session_id bug).</li>
+</ul>
+<p><strong>Critical issues found:</strong> Platform is unbuilt and unspecified. Foundation (hooks, analytics DB, reuse infra) is verified real and working. But the current spec + impl-plan will NOT deliver daily self-evolution.</p>
+<p><strong>Outcome:</strong> Reframe: PRD is the platform, QA skill is one application. Build the platform&#x27;s greenfield modules — that is where &quot;smarter&quot; comes from. Fix hook architecture before code.</p>
+<hr>
+<h3>Round 3 — 2026-07-25: PRD v4 Review</h3>
+<p><strong>What was reviewed:</strong> PRD v4 (after addressing Round 1 blockers). <strong>Method:</strong> Full document review, 14 claims in 1 round.</p>
+<p><strong>Key verdicts:</strong></p>
+<ul>
+<li><strong>CONFIRMED (10 CON wins):</strong> Hook config still missing <code>async: true</code> — PostToolUse would block every tool call. Hook name <code>SessionEnd</code> still doesn&#x27;t exist (real hook is <code>Stop</code>). Privacy contradiction: PRD sends transcripts to DeepSeek, but <code>session-memory</code> skill requires local-only processing. Safety defenses are syntactic (rm -rf grep) but cited threats are semantic (phishing 71.4%, refusal collapse 54.4%). 3 of 5 hook errors from prior review (2026-07-24) remain UNFIXED. Tier 3 (lesson extraction) has no schema or dedup strategy. Review-mode creates an unbounded pending queue (35-210 items/week with no batch operations).</li>
+<li><strong>REFUTED (3 PRO wins):</strong> Frozen snapshot vs per-turn learning is a valid design tradeoff, not a contradiction. Non-blocking sync is architecturally achievable (backgrounding is trivial). Overall progress: 3 blocking issues from prior review were addressed at the framework level (though implementation details were wrong).</li>
+<li><strong>AMENDED:</strong> None directly amended; 7 priority fixes recommended for v5.</li>
+</ul>
+<p><strong>Critical issues found:</strong> 3 BLOCKING (async:true missing, wrong hook name, privacy contradiction). 3 HIGH (unfixed prior errors, safety asymmetry, Tier 3 underspecified).</p>
+<p><strong>Outcome:</strong> Architecture and requirements-first approach survive. Implementation details have significant gaps. Three blocking issues must be resolved before code.</p>
+<hr>
+<h3>Round 4 — 2026-07-25: PRD v5 Feasibility Review</h3>
+<p><strong>What was reviewed:</strong> PRD v5 (final). Three dimensions: Feasibility, Spec-Capability, Plan Reasonableness. <strong>Method:</strong> 3-agent debate, 1 round.</p>
+<p><strong>Key verdicts:</strong></p>
+<ul>
+<li><strong>CONFIRMED (Qualified YES — can be built):</strong> Hook infrastructure validated: 37 sessions, 15K+ tool calls captured in production. Analytics DB (8 tables, WAL mode, three-tier dedup) is real and reusable. CLI template injection pattern exists. Semantic merge (329 lines, PROTECTED block enforcement) production-verified. <code>async:true</code> added in v5. Cost model viable (~$0.002/session).</li>
+<li><strong>REFUTED (Plan estimates too low):</strong> Claimed ~1,840 lines is ~25% low. Realistic: ~2,290 lines. Loop driver ~450 lines (not 200). CLI scaffolding for 16+ commands missing (~200 lines). Post-session summarization most complex component and underspecified.</li>
+<li><strong>AMENDED:</strong> Three key missing specs identified: Tier 3 lesson schema (adopt analytics DB knowledge table fields), pending queue management (batch ops, 30-day auto-expiry, quality scoring), MEMORY.md entry format (define section entry fields).</li>
+</ul>
+<p><strong>Critical issues found:</strong> Subagent data loss still the top risk (SubagentStop hook NOT configured, <code>/memory-add</code> workaround violates R2). LLM extraction quality unvalidated (entire pipeline depends on cheap model extracting accurate lessons). Safety asymmetry: syntactic defenses vs semantic threats.</p>
+<p><strong>Outcome:</strong> PRD v5 is buildable. Infrastructure is real. Three missing specs should be filled in before code. Top 3 risks must be managed during implementation.</p>
+<hr>
+<h3>Round 5 — 2026-07-27: Memory Graph Spec (v1)</h3>
+<p><strong>What was reviewed:</strong> Memory graph spec (sections 0-11) and test plan. <strong>Method:</strong> 3-agent debate, 1 round. PRO surrendered on all 12 claims (methodological weakness noted later).</p>
+<p><strong>Key verdicts:</strong></p>
+<ul>
+<li><strong>CONFIRMED (5 Category B design flaws fixed in spec):</strong> Concurrency (last-write-wins loses edges) resolved by write-ahead queue design. Schema version field added (<code>&quot;schema_version&quot;: &quot;1.0&quot;</code>). Verification signals replaced with concrete <code>verify_finding()</code> API. Baseline contradiction clarified. Session-node deduplication added with 0.7 similarity threshold.</li>
+<li><strong>REFUTED (no claims refuted — PRO surrendered on all 12):</strong> This was later identified as a broken review pattern.</li>
+<li><strong>AMENDED:</strong> 5 spec amendments applied. 12 new test cases added (W1-W3, D1-D3, V1-V4).</li>
+</ul>
+<p><strong>Critical issues found:</strong> 4 Category A (implementation gaps — expected for draft spec), 3 Category C (acknowledged tradeoffs — file rename orphaning, graph-vs-vector conflict, confidence calibration).</p>
+<p><strong>Outcome:</strong> Declared &quot;ready for implementation.&quot; <strong>This verdict was later OVERTURNED by Round 6.</strong></p>
+<hr>
+<h3>Round 6 — 2026-07-27: Memory Graph Spec (v2, Independent Re-Review)</h3>
+<p><strong>What was reviewed:</strong> Memory graph spec and test plan — same documents as Round 5, but with a different model (glm-5.2) and independence constraint (subagents did NOT read the prior review). <strong>Method:</strong> 3-agent debate with enforced adversarial rigor. PRO was required to genuinely argue and verify evidence.</p>
+<p><strong>Key verdicts:</strong></p>
+<ul>
+<li><strong>CONFIRMED (9 CON wins — 4 HIGH blocking):</strong> (1) Section 4.0 claim &quot;capture.py already supports both IDEs&quot; is FALSE — OpenCode has no hooks, Claude PostToolUse routes to analytics JSONL only, no hook calls <code>coworker memory sync</code>. (2) Reinforcement string-compare bug: <code>if edge[&quot;confidence&quot;] &lt; &quot;EXTRACTED&quot;:</code> only reinforces AMBIGUOUS edges, skips INFERRED — the core reinforcement mechanic is inverted. (3) Write-path contradiction: section 4.3 dedup runs in capture.py on full graph, but section 8.3 forbids capture.py from touching graph.json. (4) <code>verify_finding</code>/<code>record_traversal</code> have zero callers anywhere in the codebase — decay never fires, making the self-cleaning property dead code.</li>
+<li><strong>REFUTED (5 PRO wins):</strong> Baseline contradiction claim (v1 Category B) was over-classified — section 9.5 honestly resolves it in-text. ID collision concern is speculative (type+provenance fields provide structural markers). Different decay models for graph edges vs mem0 cards is sound architecture, not a bug.</li>
+<li><strong>AMENDED:</strong> 4 must-fix spec edits required before implementation. 6 should-fix (non-blocking quality improvements). <strong>Critical: 3 of v1&#x27;s 5 &quot;fixes&quot; were found to be DEFECTIVE — they introduced new contradictions or were dead code.</strong></li>
+</ul>
+<p><strong>Critical issues found:</strong> The reinforcement loop (the agent&#x27;s core &quot;self-evolving&quot; value proposition) is non-existent in v1 — graph only weakens, never strengthens. Section 4.0&#x27;s false premise means all of section 4 inherits a hook integration that doesn&#x27;t exist. The methodological lesson: v1&#x27;s PRO surrendering 12/12 turned a 3-agent debate into a 1-agent monologue — genuine adversarial review is bidirectional.</p>
+<p><strong>Outcome:</strong> Spec is NOT implementation-ready. v1&#x27;s &quot;ready for implementation&quot; verdict was wrong and should be retracted. Four HIGH items must be fixed in the spec before any code is written.</p>
+<hr>
+<h3>Overall Pattern: What Kinds of Issues Were Repeatedly Caught?</h3>
+<p>Across 6 rounds, adversarial review consistently caught the same categories of issues:</p>
+<h4>1. Hook Infrastructure Gaps (every PRD round: 1, 2, 3, 4)</h4>
+<p>The entire self-evolution engine depends on Claude Code hooks. Every review found that the hook configuration was wrong: wrong hook names (<code>SessionEnd</code> instead of <code>Stop</code>), missing <code>async:true</code>, missing <code>SubagentStop</code>, wrong session_id mechanism, subagent content structurally invisible. These errors persisted across PRD v3, v4, and were only partially fixed in v5. The implication: <strong>specifications written from documentation memory rather than live verification against the actual hook system are systematically wrong.</strong></p>
+<h4>2. Loop Specification Underspecification (Rounds 1, 2, 4)</h4>
+<p>The product&#x27;s defining feature — <code>coworker run --loop</code> — was consistently described at too high a level. No state machine, no termination conditions, no analytics-to-action mapping. Estimates were systematically low (200 lines claimed vs. 450 lines actual scope). This pattern reflects a broader issue: <strong>the gap between &quot;desired behavior&quot; prose and implementable specification was the single largest source of CON-won claims.</strong></p>
+<h4>3. Safety Architecture Asymmetry (Rounds 1, 3, 4)</h4>
+<p>Safety defenses were syntactic (grep for <code>rm -rf</code>) while the cited threats were semantic (phishing, refusal collapse, memory poisoning). The circuit breaker (3 skills/24h) catches volume but not quality — one subtly-wrong skill used 100 times causes more damage. Self-reinforcing error loops (wrong lesson -&gt; MEMORY.md -&gt; next session acts on it -&gt; &quot;confirms&quot; it) had no contradiction detection that actually worked. <strong>Defenses were designed for the threats the authors could easily imagine, not the threats the cited research documented.</strong></p>
+<h4>4. Missing Operational Fundamentals (Rounds 1, 3, 4)</h4>
+<p>Cost models, budget caps, error handling, degraded-mode paths, quality metrics, pending queue management — these were consistently absent in early versions and only partially addressed later. The pattern: <strong>the system was designed for the happy path; failure modes and operational realities were afterthoughts.</strong></p>
+<h4>5. Review Methodology Failures (Round 6, evaluating Round 5)</h4>
+<p>The most meta finding: <strong>adversarial review itself can fail when PRO surrenders without arguing.</strong> Round 5&#x27;s PRO accepted all 12 CON claims, turning a 3-agent debate into a monologue. Round 6&#x27;s independent re-review with enforced adversarial rigor found that 3 of Round 5&#x27;s 5 &quot;fixes&quot; were defective — they introduced new contradictions or were dead code. A non-arguing PRO is not &quot;agreeable&quot; — it is a broken reviewer. <strong>Genuine adversarial review requires both sides to fight; otherwise the judge rubber-stamps the critic and real bugs survive.</strong></p>
+<h4>6. Specification-Code Disconnect (Round 6)</h4>
+<p>Section 4.0 claimed &quot;capture.py already supports both IDEs&quot; — a claim neither side verified against the actual codebase. When verified, it was false. This pattern of <strong>unverified implementation claims in specification documents</strong> recurred: cross-references to non-existent sections, claims about hook behavior contradicted by actual hook documentation, and function stubs described as working code.</p>
+<h4>7. Estimate Optimism (Rounds 2, 4, 6)</h4>
+<p>Every round that checked implementation estimates found them low: impl-plan stubs that looked complete, memory graph spec estimated at ~50 lines for a dashboard that realistically needs 200-400, loop driver at 200 vs. 450, total plan ~25% low. <strong>Optimism bias in estimates was universal and systematically caught by adversarial review.</strong></p>
+<hr>
+<h3>Summary Statistics</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Round</th>
+<th>Date</th>
+<th>What</th>
+<th>CON Wins</th>
+<th>PRO Wins</th>
+<th>Deferred</th>
+<th>Blocking Issues</th>
+</tr></thead><tbody>
+<tr>
+<td>1</td>
+<td>2026-07-24</td>
+<td>PRD v3</td>
+<td>16</td>
+<td>5</td>
+<td>0</td>
+<td>3</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2026-07-24</td>
+<td>PRD+Spec+Design+Impl</td>
+<td>code-verified</td>
+<td>code-verified</td>
+<td>—</td>
+<td>5 (hook errors) + 6 (cross-refs)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>2026-07-25</td>
+<td>PRD v4</td>
+<td>10</td>
+<td>3</td>
+<td>1</td>
+<td>3</td>
+</tr>
+<tr>
+<td>4</td>
+<td>2026-07-25</td>
+<td>PRD v5 (feasibility)</td>
+<td>Qualified YES</td>
+<td>—</td>
+<td>—</td>
+<td>0 (3 risks to manage)</td>
+</tr>
+<tr>
+<td>5</td>
+<td>2026-07-27</td>
+<td>Memory Graph Spec v1</td>
+<td>5 design flaws</td>
+<td>0 disputed</td>
+<td>—</td>
+<td>5 (fixed in spec)</td>
+</tr>
+<tr>
+<td>6</td>
+<td>2026-07-27</td>
+<td>Memory Graph Spec v2</td>
+<td>9</td>
+<td>5</td>
+<td>0</td>
+<td>4 (v1 fixes defective)</td>
+</tr>
+</tbody></table></div>
+<p><strong>Total across all rounds:</strong> 40+ CON-won claims, 18+ PRO-won defenses, 10+ blocking issues found before implementation.</p>
+<hr>
+<h3>Bottom Line</h3>
+<p>The adversarial review process was effective at catching: hook configuration errors, underspecified loops, safety architecture gaps, missing operational fundamentals, estimation optimism, and — critically — defective fixes from prior review rounds. The most important methodological finding is that adversarial review requires genuine opposition: a PRO that surrenders on all claims is a broken reviewer, and fixes applied without independent re-verification can introduce new bugs that are harder to find than the originals.</p>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../prd/self-evolving-agent-prd-zh.html"><span class="label">Previous</span>Self-Evolving Agent — PRD</a><a class="next" href="../design/auto-worker-design.html"><span class="label">Next</span>Auto-Worker — Design</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

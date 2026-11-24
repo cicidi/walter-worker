@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memory Platform — Test Plan · test-plan · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/memory-platform-prd.html"><span class="tree-ord">1</span>Memory Platform — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/memory-platform-decision-history.html"><span class="tree-ord">2</span>Memory Platform — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/memory-platform-design.html"><span class="tree-ord">3</span>Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/memory-platform-impl-plan.html"><span class="tree-ord">4</span>Memory Platform — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="memory-platform-test-plan.html" aria-current="page"><span class="tree-ord">5</span>Memory Platform — Test Plan</a></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>memory-platform</span> / <span>test-plan</span> / <span>Memory Platform — Test Plan</span></nav>
+    <article class="doc" data-doc="memory-platform/test-plan/memory-platform-test-plan">
+      <header class="doc-head">
+        <p class="eyebrow">memory-platform</p>
+        <h1>Memory Platform — Test Plan</h1>
+        <p class="source">Canonical: docs/features/memory-platform/test-plan/memory-platform-test-plan.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Memory Platform — Test Plan</h2>
+<p>Each case names the requirement from the <a href="../prd/memory-platform-prd.html">PRD</a> it covers and the test that implements it at commit <code>a0f4ce0</code>. The tests named below are mocked: the language model and mem0 are replaced, so they make no outside call and need no key. Some of the same files also hold key-gated tests. Tests marked <code>real</code> call DeepSeek when <code>DEEPSEEK_API_KEY</code> is set and are skipped otherwise. Tests marked <code>integration</code> use the real mem0 store under the user&#x27;s home folder and are skipped when mem0 is not configured. No case below relies on a key-gated test.</p>
+<h3>Test Cases</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Covers</th>
+<th>Case</th>
+<th>Test</th>
+</tr></thead><tbody>
+<tr>
+<td><strong id="TST-A"><a class="id-ref" href="#TST-A">TST-A</a></strong></td>
+<td><a class="id-ref" href="../prd/memory-platform-prd.html#PRD-A">PRD-A</a></td>
+<td>Capture without a configured key stays quiet, empty input is an error, the skill threshold is configurable, and memories carry the real project</td>
+<td><a href="../../../../../tests/python/test_cli.py"><code>tests/python/test_cli.py</code></a> <code>test_unconfigured_mem0_skips_quietly</code>, <code>test_empty_stdin_is_an_error_not_a_silent_pass</code>; <a href="../../../../../tests/python/test_capture.py"><code>tests/python/test_capture.py</code></a> <code>TestSkillThresholdIsConfigurable</code>, <code>TestMemoriesAreTaggedWithTheRealProject</code></td>
+</tr>
+<tr>
+<td><strong id="TST-B"><a class="id-ref" href="#TST-B">TST-B</a></strong></td>
+<td><a class="id-ref" href="../prd/memory-platform-prd.html#PRD-B">PRD-B</a></td>
+<td>Nodes are folded, edges are weighted, writes are atomic, and a named session merges only its own dump</td>
+<td><a href="../../../../../tests/memory/test_graph_core.py"><code>tests/memory/test_graph_core.py</code></a> <code>TestNodeDedup</code>, <code>TestEdgeEnrichment</code>, <code>TestAtomicWrite</code>; <a href="../../../../../tests/python/test_cli.py"><code>tests/python/test_cli.py</code></a> <code>test_a_named_session_processes_only_that_dump</code></td>
+</tr>
+<tr>
+<td><strong id="TST-C"><a class="id-ref" href="#TST-C">TST-C</a></strong></td>
+<td><a class="id-ref" href="../prd/memory-platform-prd.html#PRD-C">PRD-C</a></td>
+<td>Queries respect the budget and the minimum score, and vector search works without a graph</td>
+<td><a href="../../../../../tests/memory/test_query_quality.py"><code>tests/memory/test_query_quality.py</code></a> <code>test_budget_zero_returns_nothing</code>, <code>TestMinScoreFiltering</code>; <a href="../../../../../tests/python/test_cli.py"><code>tests/python/test_cli.py</code></a> <code>TestQueryVectorDoesNotNeedAGraph</code></td>
+</tr>
+<tr>
+<td><strong id="TST-D"><a class="id-ref" href="#TST-D">TST-D</a></strong></td>
+<td><a class="id-ref" href="../prd/memory-platform-prd.html#PRD-D">PRD-D</a></td>
+<td>The due check works, decay runs, imported old sessions are pruned, and the hook path stays quiet</td>
+<td><a href="../../../../../tests/python/test_curator.py"><code>tests/python/test_curator.py</code></a> <code>TestDueCheck</code>, <code>TestDecayActuallyRuns</code>, <code>test_an_imported_old_session_is_pruned</code>; <a href="../../../../../tests/python/test_cli.py"><code>tests/python/test_cli.py</code></a> <code>test_curate_stays_quiet_on_the_hook_path</code></td>
+</tr>
+<tr>
+<td><strong id="TST-E"><a class="id-ref" href="#TST-E">TST-E</a></strong></td>
+<td><a class="id-ref" href="../prd/memory-platform-prd.html#PRD-E">PRD-E</a></td>
+<td>Blocks for different projects keep separate markers</td>
+<td><a href="../../../../../tests/python/test_inject.py"><code>tests/python/test_inject.py</code></a> <code>test_different_project_markers</code></td>
+</tr>
+<tr>
+<td><strong id="TST-F"><a class="id-ref" href="#TST-F">TST-F</a></strong></td>
+<td><a class="id-ref" href="../prd/memory-platform-prd.html#PRD-F">PRD-F</a></td>
+<td>Staging trips after the limit, a damaged counter is handled, and training respects the limit</td>
+<td><a href="../../../../../tests/python/test_safety.py"><code>tests/python/test_safety.py</code></a> <code>test_trips_after_limit</code>, <code>test_corrupt_state_file</code>; <a href="../../../../../tests/python/test_train.py"><code>tests/python/test_train.py</code></a> <code>test_training_respects_the_circuit_breaker</code></td>
+</tr>
+<tr>
+<td><strong id="TST-G"><a class="id-ref" href="#TST-G">TST-G</a></strong></td>
+<td><a class="id-ref" href="../prd/memory-platform-prd.html#PRD-G">PRD-G</a></td>
+<td>A summary is written, and a nonsense <code>--since</code> is rejected</td>
+<td><a href="../../../../../tests/python/test_knowledge.py"><code>tests/python/test_knowledge.py</code></a> <code>test_summarize_session_writes_the_summary</code>, <code>test_get_all_sessions_since_rejects_nonsense</code></td>
+</tr>
+<tr>
+<td><strong id="TST-H"><a class="id-ref" href="#TST-H">TST-H</a></strong></td>
+<td><a class="id-ref" href="../prd/memory-platform-prd.html#PRD-H">PRD-H</a></td>
+<td>Keys are read from <code>~/.coworker/.env</code>, and a memory can be deleted</td>
+<td>No test; not implemented (<a class="id-ref" href="../design/memory-platform-design.html#QUES-D">QUES-D</a>)</td>
+</tr>
+<tr>
+<td><strong id="TST-I"><a class="id-ref" href="#TST-I">TST-I</a></strong></td>
+<td><a class="id-ref" href="../prd/memory-platform-prd.html#PRD-I">PRD-I</a></td>
+<td><code>init</code> refuses to overwrite a populated graph, and Graphify sync imports nodes and edges while keeping existing weights</td>
+<td><a href="../../../../../tests/python/test_cli.py"><code>tests/python/test_cli.py</code></a> <code>test_refuses_to_overwrite_a_populated_graph</code>; <a href="../../../../../tests/memory/test_graph_core.py"><code>tests/memory/test_graph_core.py</code></a> <code>TestGraphifySync</code>, <code>TestGraphifyEdgeCases</code></td>
+</tr>
+<tr>
+<td><strong id="TST-J"><a class="id-ref" href="#TST-J">TST-J</a></strong></td>
+<td><a class="id-ref" href="../prd/memory-platform-prd.html#PRD-J">PRD-J</a></td>
+<td>Wrong-history entries keep their continuation lines</td>
+<td><a href="../../../../../tests/python/test_wrong_history.py"><code>tests/python/test_wrong_history.py</code></a> <code>test_the_continuation_is_kept</code></td>
+</tr>
+</tbody></table></div>
+<p>Not covered today: a dump with invalid values (<a class="id-ref" href="../design/memory-platform-design.html#QUES-A">QUES-A</a>), concurrent merges (<a class="id-ref" href="../design/memory-platform-design.html#QUES-B">QUES-B</a>), a damaged <code>graph.json</code> (<a class="id-ref" href="../design/memory-platform-design.html#QUES-C">QUES-C</a>), and the wrong-history commands run from another folder (<a class="id-ref" href="../design/memory-platform-design.html#QUES-F">QUES-F</a>). Also not covered: capture and merge repeated on every turn (<a class="id-ref" href="../design/memory-platform-design.html#QUES-I">QUES-I</a>), edges of a folded node (<a class="id-ref" href="../design/memory-platform-design.html#QUES-J">QUES-J</a>), a locked Qdrant store during capture (<a class="id-ref" href="../design/memory-platform-design.html#QUES-K">QUES-K</a>), and capture outlasting the hook time limit (<a class="id-ref" href="../design/memory-platform-design.html#QUES-L">QUES-L</a>). The open questions are in the <a href="../design/memory-platform-design.html#open-questions">design</a>.</p>
+<h3>Test Execution Order</h3>
+<p>Run <a href="../../../../../tests/memory/test_graph_core.py"><code>tests/memory/test_graph_core.py</code></a> and <a href="../../../../../tests/python/test_mem0_client.py"><code>tests/python/test_mem0_client.py</code></a> first, because the stores underlie everything else. Then capture, curator, injection, safety, and knowledge tests, then the memory classes in <code>test_cli.py</code>.</p>
+<h3>Expected Pass Threshold</h3>
+<p>Every mocked test named in a case must pass; the threshold is 100%. A skipped test counts as not run: it neither passes nor fails a case, and it never counts toward the 100%. So a run without a key verifies nothing about the key-gated tests. A run with a key and a configured mem0 should also pass them, but no case depends on that. <a class="id-ref" href="#TST-H">TST-H</a> has no test, so <a class="id-ref" href="../prd/memory-platform-prd.html#PRD-H">PRD-H</a> is not verified.</p>
+<h3>Traceability</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Requirement</th>
+<th>Test cases</th>
+</tr></thead><tbody>
+<tr>
+<td><a class="id-ref" href="../prd/memory-platform-prd.html#PRD-A">PRD-A</a></td>
+<td><a class="id-ref" href="#TST-A">TST-A</a></td>
+</tr>
+<tr>
+<td><a class="id-ref" href="../prd/memory-platform-prd.html#PRD-B">PRD-B</a></td>
+<td><a class="id-ref" href="#TST-B">TST-B</a></td>
+</tr>
+<tr>
+<td><a class="id-ref" href="../prd/memory-platform-prd.html#PRD-C">PRD-C</a></td>
+<td><a class="id-ref" href="#TST-C">TST-C</a></td>
+</tr>
+<tr>
+<td><a class="id-ref" href="../prd/memory-platform-prd.html#PRD-D">PRD-D</a></td>
+<td><a class="id-ref" href="#TST-D">TST-D</a></td>
+</tr>
+<tr>
+<td><a class="id-ref" href="../prd/memory-platform-prd.html#PRD-E">PRD-E</a></td>
+<td><a class="id-ref" href="#TST-E">TST-E</a></td>
+</tr>
+<tr>
+<td><a class="id-ref" href="../prd/memory-platform-prd.html#PRD-F">PRD-F</a></td>
+<td><a class="id-ref" href="#TST-F">TST-F</a></td>
+</tr>
+<tr>
+<td><a class="id-ref" href="../prd/memory-platform-prd.html#PRD-G">PRD-G</a></td>
+<td><a class="id-ref" href="#TST-G">TST-G</a></td>
+</tr>
+<tr>
+<td><a class="id-ref" href="../prd/memory-platform-prd.html#PRD-H">PRD-H</a></td>
+<td><a class="id-ref" href="#TST-H">TST-H</a></td>
+</tr>
+<tr>
+<td><a class="id-ref" href="../prd/memory-platform-prd.html#PRD-I">PRD-I</a></td>
+<td><a class="id-ref" href="#TST-I">TST-I</a></td>
+</tr>
+<tr>
+<td><a class="id-ref" href="../prd/memory-platform-prd.html#PRD-J">PRD-J</a></td>
+<td><a class="id-ref" href="#TST-J">TST-J</a></td>
+</tr>
+</tbody></table></div>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Version</th>
+<th>Date</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td>0.1</td>
+<td>2026-11-04</td>
+<td>Draft (never committed)</td>
+</tr>
+<tr>
+<td>0.2</td>
+<td>2026-11-24</td>
+<td>Rewritten with one case per requirement, mapped to tests, untested behavior listed (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-A">ARD-A</a>)</td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>2026-11-24</td>
+<td>Review fixes: only mocked tests cited, key-gated tests and skips explained, <code>test_min_score_filters_quality</code> replaced by <code>TestMinScoreFiltering</code>, Graphify sync tests added to <a class="id-ref" href="#TST-I">TST-I</a>, new gaps listed (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-D">ARD-D</a>, <a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-F">ARD-F</a>)</td>
+</tr>
+</tbody></table></div>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../impl-plan/memory-platform-impl-plan.html"><span class="label">Previous</span>Memory Platform — Implementation Plan</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hermes Agent — Reference Documentation · reference · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/dashboard-ui-prd.html">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-29-devil-advocate-reviews-summary.html">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/auto-worker-design.html">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/dashboard-design.html">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/qa-autonomous-agent-design.html">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../INDEX.html">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="band-ai-docs.html">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="guild-agent-README.html">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="guild-ai-docs.html">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="hermes-agent-README.html">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="hermes-agent-docs.html" aria-current="page">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="jam-agent-README.html">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="pioneer-docs.html">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/memory-graph-spec.html">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/qa-autonomous-agent-spec.html">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/self-evolving-agent-spec.html">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-29-current-state.html">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-dashboard-data-not-verified.html">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../impl-plan/self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../impl-plan/dependency-and-sequencing-impl-plan.html">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/qa-autonomous-agent-impl-plan.html">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/self-evolving-agent-test-plan.html"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/2026-07-29-test-execution-report.html">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-graph-test-plan.html">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>reference</span> / <span>Hermes Agent — Reference Documentation</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/reference/hermes-agent-docs">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>Hermes Agent — Reference Documentation</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/reference/hermes-agent-docs.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Hermes Agent — Reference Documentation</h2>
+<blockquote class="callout" data-label="NOTE"><p>Source: https://github.com/NousResearch/hermes-agent Tagline: &quot;The agent that grows with you&quot; Latest: v0.18.2 (July 2026) | MIT License | Nous Research</p></blockquote>
+<h3>Overview</h3>
+<p>Hermes Agent is an open-source, multi-platform autonomous agent with a built-in <strong>closed learning loop</strong> — it creates skills from experience, improves them during use, persists knowledge across sessions, and builds a deepening model of users over time. Accessible from 22+ messaging platforms, supports 25+ LLM providers.</p>
+<h3>Core Self-Evolving Learning Loop</h3>
+<h4>1. Autonomous Skill Creation</h4>
+<p>After completing a complex task involving <strong>5+ tool calls</strong>, the agent automatically creates a reusable <code>SKILL.md</code> file (agentskills.io standard). Ships with 166+ tracked skills (87 bundled + 79 optional) across 26+ categories.</p>
+<h4>2. Skill Self-Improvement (Patch/Edit)</h4>
+<p>When a skill becomes outdated or wrong during use, the agent <strong>autonomously patches</strong> it. <code>patch</code> action: surgical edits via old_string/new_string. <code>edit</code> action: major rewrites. <code>patch_count</code> telemetry feeds the Curator.</p>
+<h4>3. The Autonomous Curator</h4>
+<p>Background process every 7 days (after 2+ hours idle):</p>
+<ul>
+<li>Tracks view_count, use_count, patch_count per skill</li>
+<li>Moves unused skills: active → stale (30d) → archived (90d)</li>
+<li>Consolidates overlapping skills, generates REPORT.md</li>
+<li>Never touches bundled or hub-installed skills</li>
+</ul>
+<h4>4. GEPA-Driven Self-Evolution</h4>
+<p>Pairs DSPy with GEPA (Genetic-Pareto prompt evolution). Reads execution traces, proposes targeted mutations. Evolved variants must pass test suite + size limits + caching checks + PR review. ~$2-10 per optimization run, no GPU training needed.</p>
+<h4>5. Procedural Memory (Three-Layer)</h4>
+<ul>
+<li><strong>Context compression</strong>: configurable first-turn protection + recent-message floor (default: 20)</li>
+<li><strong>SQLite FTS5 session search</strong> with LLM summarization for cross-session recall</li>
+<li><strong>Persistent MEMORY.md</strong>: agent-curated facts with periodic nudges</li>
+</ul>
+<h3>Architecture</h3>
+<ul>
+<li><strong>Single agent core</strong> (<code>AIAgent</code>): one implementation serves CLI, gateway, ACP, cron, API</li>
+<li><strong>Transport abstraction</strong>: <code>ProviderTransport</code> ABC separates provider-specific format from agent orchestration</li>
+<li><strong>Concurrent tool execution</strong>: ThreadPoolExecutor (max 8), interactive tools force sequential</li>
+<li><strong>Six terminal backends</strong>: Local, Docker, SSH, Daytona, Singularity, Modal</li>
+<li><strong>Plugin architecture</strong>: drop Python files into <code>~/.hermes/plugins/</code> for custom tools, commands, hooks, dashboards, platforms</li>
+<li><strong>Lifecycle hooks</strong>: pre_llm_call, post_llm_call, on_session_start, on_session_end</li>
+<li><strong>Profile system</strong>: run multiple isolated Hermes instances from same installation</li>
+</ul>
+<h3>Key Design Patterns</h3>
+<ol>
+<li>Single-agent-core consistency across all surfaces</li>
+<li>Self-improving loop: create → use → patch → curator cycle</li>
+<li>Plugin-first extensibility without forking</li>
+<li>Progressive disclosure: autonomous by default, checkpoints on critical actions</li>
+<li>Serverless-friendly: hibernate when idle, near-zero cost</li>
+<li>Research-to-production pipeline: export ShareGPT traces for SFT/RL training</li>
+<li>Smart approval system that learns safe commands over time</li>
+</ol>
+<h3>Install</h3>
+<pre><code>curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash</code></pre>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="hermes-agent-README.html"><span class="label">Previous</span>Hermes Agent ☤</a><a class="next" href="jam-agent-README.html"><span class="label">Next</span>jam agent README</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

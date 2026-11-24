@@ -25,7 +25,7 @@ Decisions about session capture and import. Newest first. Each decision has an e
 
 ### ARD-E
 
-The 2026-11-24 gaps review found 14 findings rated 3 or higher across all five documents, several of which needed whole paragraphs rewritten (DSGN-B, DSGN-C, DSGN-E) and seven new open questions (QUES-I to QUES-O). The spec standard limits an AI edit to 10 lines and 200 characters unless a human authorizes more and the authorization is recorded as an ARD. The owner was asked how to apply the fixes and answered "你自己看着弄" (decide it yourself). Rejected: splitting the pass into dozens of small edits, which would leave the documents contradicting themselves between edits. Evidence: [the review](../raw/review/2026-11-24-spec-review-analytics-listener-gaps.md); the owner's instruction of 2026-11-24.
+The 2026-11-24 gaps review found 14 findings rated 3 or higher across all five documents, several of which needed whole paragraphs rewritten (DSGN-B, DSGN-C, DSGN-E) and seven new open questions (QUES-I to QUES-O). The spec standard limits an AI edit to 10 lines and 200 characters unless a human authorizes more and the authorization is recorded as an ARD. The owner was asked how to apply the fixes and answered "你自己看着弄" (decide it yourself). Rejected: splitting the pass into dozens of small edits, which would leave the documents contradicting themselves between edits. Evidence: `../raw/review/2026-11-24-spec-review-analytics-listener-gaps.md`; the owner's instruction of 2026-11-24.
 
 ### ARD-D
 

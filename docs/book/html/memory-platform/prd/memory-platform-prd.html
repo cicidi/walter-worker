@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memory Platform — PRD · prd · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-leaf"><a class="tree-link" href="memory-platform-prd.html" aria-current="page"><span class="tree-ord">1</span>Memory Platform — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/memory-platform-decision-history.html"><span class="tree-ord">2</span>Memory Platform — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/memory-platform-design.html"><span class="tree-ord">3</span>Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/memory-platform-impl-plan.html"><span class="tree-ord">4</span>Memory Platform — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-platform-test-plan.html"><span class="tree-ord">5</span>Memory Platform — Test Plan</a></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>memory-platform</span> / <span>prd</span> / <span>Memory Platform — PRD</span></nav>
+    <article class="doc" data-doc="memory-platform/prd/memory-platform-prd">
+      <header class="doc-head">
+        <p class="eyebrow">memory-platform</p>
+        <h1>Memory Platform — PRD</h1>
+        <p class="source">Canonical: docs/features/memory-platform/prd/memory-platform-prd.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Memory Platform — PRD</h2>
+<h3>Overview</h3>
+<p>The memory platform lets walter-worker remember across sessions. At the end of each Claude Code session, it asks a language model to extract lessons and candidate skills from the transcript. Lessons go into a local vector store, a database that finds text by meaning rather than by exact words. Facts about code, documents, and decisions go into a local knowledge graph at <code>~/.coworker/memory/graph.json</code>. Later sessions query both, and a weekly curator ages old memories. A snapshot of the project&#x27;s memories can be written into <code>~/CLAUDE.local.md</code>, so the next session starts with them. A related command group, <code>coworker knowledge</code>, summarizes recorded sessions into the analytics database. Today the code runs capture after every turn rather than once at session end; the design records this gap as <a class="id-ref" href="../design/memory-platform-design.html#QUES-I">QUES-I</a>.</p>
+<p>This feature implements <a class="id-ref" href="#PRD-E">PRD-E</a> of the <a href="../../walter-worker/prd/walter-worker-prd.html">parent walter-worker PRD</a>, and it must meet the parent&#x27;s <a class="id-ref" href="#PRD-G">PRD-G</a> (no component blocks a session through its own failure) and <a class="id-ref" href="#PRD-H">PRD-H</a> (session content leaves the machine only where documented). Terms are defined in the <a href="../../walter-worker/design/walter-worker-design.html#glossary">parent glossary</a>.</p>
+<p>This document states what the memory platform must do. The <a href="../design/memory-platform-design.html">design</a> states how it behaves today, including where the code does not yet meet a requirement. Facts were checked against the code at commit <code>a0f4ce0</code>.</p>
+<h3>Goals and Success Metrics</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Goal</th>
+<th>Success metric</th>
+</tr></thead><tbody>
+<tr>
+<td>Sessions leave memories</td>
+<td>After a session ends on a configured machine, its lessons can be found with <code>coworker memory search</code></td>
+</tr>
+<tr>
+<td>Memory never gets in the way</td>
+<td>A missing key, a missing library, or a bad dump never stops a session or blocks later captures</td>
+</tr>
+<tr>
+<td>The user knows what leaves the machine</td>
+<td>Every place session content is sent to an outside service is documented, and nothing else is sent</td>
+</tr>
+</tbody></table></div>
+<h3>User Stories</h3>
+<p>As a developer, I want lessons from past sessions captured without my effort, so that the agent stops repeating mistakes I already corrected.</p>
+<p>As a developer starting a session, I want the project&#x27;s key memories in front of the agent, so that I do not re-explain conventions every time.</p>
+<p>As a developer, I want old and unused memories to fade on their own, so that the store stays relevant.</p>
+<p>As a privacy-conscious developer, I want to know which content goes to which provider, and to be able to delete what was stored.</p>
+<h3>Functional Requirements</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Requirement</th>
+</tr></thead><tbody>
+<tr>
+<td><strong id="PRD-A"><a class="id-ref" href="#PRD-A">PRD-A</a></strong></td>
+<td>At session end, the transcript is turned into lessons, candidate skills, and graph facts. Without a configured key, capture does nothing and stays quiet; no failure in capture blocks the session.</td>
+</tr>
+<tr>
+<td><strong id="PRD-B"><a class="id-ref" href="#PRD-B">PRD-B</a></strong></td>
+<td>Graph facts are merged into the knowledge graph with duplicates folded together. A dump that cannot be merged is set aside and does not block the dumps after it, and concurrent merges do not lose updates.</td>
+</tr>
+<tr>
+<td><strong id="PRD-C"><a class="id-ref" href="#PRD-C">PRD-C</a></strong></td>
+<td><code>memory query</code> searches the graph and the vector store together and returns results within a size budget; <code>memory search</code> searches the vector store.</td>
+</tr>
+<tr>
+<td><strong id="PRD-D"><a class="id-ref" href="#PRD-D">PRD-D</a></strong></td>
+<td>A curator runs at most weekly: it marks unused memories stale, archives long-stale ones, exports active memories to <code>MEMORY.md</code>, expires old pending skills, and removes raw analytics session folders that are already imported and old.</td>
+</tr>
+<tr>
+<td><strong id="PRD-E"><a class="id-ref" href="#PRD-E">PRD-E</a></strong></td>
+<td><code>memory refresh</code> writes the current project&#x27;s memory snapshot and the critical wrong-history rules into <code>~/CLAUDE.local.md</code>, changing only the text between its markers.</td>
+</tr>
+<tr>
+<td><strong id="PRD-F"><a class="id-ref" href="#PRD-F">PRD-F</a></strong></td>
+<td>Candidate skills are staged for human approval, at most three per day, and never promoted without approval.</td>
+</tr>
+<tr>
+<td><strong id="PRD-G"><a class="id-ref" href="#PRD-G">PRD-G</a></strong></td>
+<td><code>knowledge summarize</code> and <code>knowledge analyze</code> turn recorded sessions into summaries and knowledge cards in the analytics database.</td>
+</tr>
+<tr>
+<td><strong id="PRD-H"><a class="id-ref" href="#PRD-H">PRD-H</a></strong></td>
+<td>Keys are read from the environment or from <code>~/.coworker/.env</code>. The user can delete stored memories.</td>
+</tr>
+<tr>
+<td><strong id="PRD-I"><a class="id-ref" href="#PRD-I">PRD-I</a></strong></td>
+<td><code>memory init</code> and <code>memory sync</code> build or extend the graph from Graphify output (a tool that maps a codebase into a graph); <code>init</code> never replaces a populated graph without <code>--force</code> and a backup.</td>
+</tr>
+<tr>
+<td><strong id="PRD-J"><a class="id-ref" href="#PRD-J">PRD-J</a></strong></td>
+<td><code>memory wrong-history record</code> writes a lesson entry and rebuilds the index; <code>index</code> rebuilds only.</td>
+</tr>
+</tbody></table></div>
+<h3>Out of Scope</h3>
+<p>Recording sessions into the analytics database is the <a href="../../walter-worker/features/analytics-listener/prd/analytics-listener-prd.html">analytics listener</a>. Approving and rejecting staged skills is done through <code>coworker skill</code>, in the <a href="../../walter-worker/features/core-cli/prd/core-cli-prd.html">core CLI</a>. The model-backed validation command (<code>memory validate</code>) and batch training (<code>memory train</code>) are experimental and described only briefly.</p>
+<h3>Resources Needed</h3>
+<p>Python with the <code>memory</code> extras: mem0, Qdrant in local mode, and fastembed, each defined in the <a href="../../walter-worker/design/walter-worker-design.html#glossary">parent glossary</a>. A DeepSeek API key for capture, the curator, search, and the snapshot; a Gemini key is an optional fallback for language-model calls. Graphify for <code>init</code> and <code>sync</code>. Tests live under <code>tests/memory/</code> and <code>tests/python/</code>.</p>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Version</th>
+<th>Date</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td>0.1</td>
+<td>2026-11-04</td>
+<td>Draft (never committed)</td>
+</tr>
+<tr>
+<td>0.2</td>
+<td>2026-11-24</td>
+<td>Rewritten from the code at <code>a0f4ce0</code>; the graph pipeline added, the false write-safety and audit claims removed (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-A">ARD-A</a>)</td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>2026-11-24</td>
+<td>Review fixes: the per-turn capture gap noted, parent PRD and glossary linked, long sentences split (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-D">ARD-D</a>, <a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-F">ARD-F</a>)</td>
+</tr>
+</tbody></table></div>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><span></span><a class="next" href="../decision-history/memory-platform-decision-history.html"><span class="label">Next</span>Memory Platform — Decision History</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

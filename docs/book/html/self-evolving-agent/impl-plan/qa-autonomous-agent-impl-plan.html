@@ -1,0 +1,1113 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QA Autonomous Agent Implementation Plan ⚠️ DEFERRED · impl-plan · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/dashboard-ui-prd.html">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-29-devil-advocate-reviews-summary.html">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/auto-worker-design.html">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/dashboard-design.html">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/qa-autonomous-agent-design.html">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../INDEX.html">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/band-ai-docs.html">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-agent-README.html">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-ai-docs.html">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-README.html">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-docs.html">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-agent-README.html">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/pioneer-docs.html">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/memory-graph-spec.html">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/qa-autonomous-agent-spec.html">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/self-evolving-agent-spec.html">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-29-current-state.html">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-dashboard-data-not-verified.html">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="dependency-and-sequencing-impl-plan.html">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="qa-autonomous-agent-impl-plan.html" aria-current="page">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/self-evolving-agent-test-plan.html"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/2026-07-29-test-execution-report.html">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-graph-test-plan.html">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>impl-plan</span> / <span>QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/impl-plan/qa-autonomous-agent-impl-plan">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/impl-plan/qa-autonomous-agent-impl-plan.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</h2>
+<blockquote class="callout" data-label="NOTE"><p><strong>Status: DEFERRED (2026-07-25)</strong>  This document has been renamed conceptually to <strong>auto-worker</strong> — a self-discovering, self-fixing agent. It will be rewritten after the memory platform (PRD v4) is built.  This document is preserved as-is for reference. Do NOT implement from it.</p></blockquote>
+<blockquote class="callout" data-label="NOTE"><p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax for tracking.</p></blockquote>
+<p class="impl-goal"><strong>Goal:</strong> Implement the QA autonomous agent pipeline — 7 skills that autonomously find gaps between PRD and reality, fix them, and continuously discover optimizations. Built on MEMORY.md (content) + sqlite-vec + fastembed (semantic KNN search, 384-dim, in-process).</p>
+<p><strong>Architecture:</strong> New <code>src/coworker/qa/</code> module with 7 files. sqlite-vec (in-process SQLite extension) + fastembed (ONNX, <code>BAAI/bge-small-en-v1.5</code>) provide semantic KNN search — replacing FTS5 from v1. Lightweight SQLite <code>knowledge_index</code> retained for exact structured queries (<code>WHERE project=? AND topic=? AND problem=?</code>). Task tracking and session continuity via state files (<code>docs/&lt;initiative&gt;/state/</code>). Discovery uses grep/coverage/deps/perf/security scans — no third-party MCP required.</p>
+<p><strong>Tech Stack:</strong> Python 3.12+, Click, SQLite3 (stdlib), pytest, sqlite-vec (Python package, pip install, in-process), fastembed (ONNX, pip install, zero GPU), DeepSeek API, Claude/GLM API</p>
+<h3>Global Constraints</h3>
+<ul>
+<li>Follow existing project patterns: <a href="../../../../../src/coworker/analytics/db.py"><code>src/coworker/analytics/db.py</code></a> for DB, <a href="../../../../../src/coworker/cli.py"><code>src/coworker/cli.py</code></a> for Click commands</li>
+<li>DB path: <code>~/.coworker/qa/knowledge.db</code> (exact-match queries only — semantic search is vec0)</li>
+<li>All skills go to <code>~/.coworker/skills/qa-*/SKILL.md</code></li>
+<li>Never commit half-done work; atomic commits per task</li>
+<li>Do NOT build a parallel memory system — MEMORY.md stores full content, <code>knowledge_vec</code> (vec0) stores 384-dim embeddings for KNN search, same <code>analytics.db</code></li>
+<li>Research + Advocate gate (Global CLAUDE.md §0.5) applies before any auto action</li>
+<li>Run tests after every code change before marking task complete</li>
+</ul>
+<hr>
+<h3>Architecture: What sqlite-vec replaces</h3>
+<pre><code>v1 (纯自建)                              v2 (sqlite-vec + fastembed)
+──────────                              ──────────────────────────────
+
+knowledge_index.py • FTS5 全文搜索      → knowledge_vec (vec0 KNN, 384-dim)
+                                         knowledge_index.py 精简为只做精确 SQL 查询
+
+state 文件 • Gap 列表 (手动 markdown)    → state 文件 (保留，pending/fixing/done)
+state 文件 • 进度快照                     → state 文件 (保留，phase headers)
+
+无 (关键词搜索)                           → fastembed (ONNX, BAAI/bge-small-en-v1.5)
+
+保留:                                   保留:
+  knowledge_index.py (精确查询)           MEMORY.md (完整内容，PRD 核心)
+  三层验证逻辑 (static/test/dynamic)      7 维度 discovery 扫描
+  test plan 生成 + discussion            orchestrator 循环
+  7 个 skill 的业务逻辑                   LLM 模型路由</code></pre>
+<hr>
+<h3>File Structure</h3>
+<pre><code>src/coworker/qa/
+├── __init__.py              # Module init, version
+├── errors.py                # QA error codes (QA_E001 - QA_E010)
+├── knowledge_index.py       # SQLite exact-match queries only (no FTS5)
+├── knowledge_extract.py     # Ingestion: source → standardizer → SQLite + MEMORY.md + vec0
+├── knowledge_search.py      # Layer 1: SQLite exact → Layer 2: vec0 semantic
+├── test_plan.py             # Research → discussion → test plan generation
+├── gap_check.py             # Three-layer verification (static → test → dynamic)
+├── fix.py                   # Fix with state tracking + mini test plan
+├── discovery.py             # 7-dimension discovery
+├── orchestrator.py          # Main loop: state-driven gap tracking, state-driven continuity
+└── cli.py                   # Click commands: `qa run`, `qa hook-push`</code></pre>
+<p>Skills (7 new, in <code>~/.coworker/skills/</code>):</p>
+<pre><code>qa-orchestrator/SKILL.md
+qa-knowledge-extract/SKILL.md
+qa-knowledge-search/SKILL.md
+qa-test-plan/SKILL.md
+qa-gap-check/SKILL.md
+qa-fix/SKILL.md
+qa-continuous-discovery/SKILL.md</code></pre>
+<p>Modified files:</p>
+<ul>
+<li><a href="../../../../../src/coworker/cli.py"><code>src/coworker/cli.py</code></a> — add <code>qa</code> command group</li>
+<li><code>~/.claude/settings.json</code> — add git push hook</li>
+</ul>
+<hr>
+<h4>Task 0: sqlite-vec + fastembed Setup</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>docs/self-evolving-agent/how-to/sqlite-vec-setup-how-to.md</code></li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 1: Install sqlite-vec</strong></li>
+</ul>
+<pre><code>pip install sqlite-vec
+python3 -c &quot;import sqlite_vec; print(&#x27;✅ sqlite-vec loaded&#x27;)&quot;</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Install fastembed</strong></li>
+</ul>
+<pre><code>pip install fastembed
+python3 -c &quot;from fastembed import TextEmbedding; m = TextEmbedding(); v = list(m.embed([&#x27;test&#x27;]))[0]; print(f&#x27;✅ fastembed, dim={v.shape[0]}&#x27;)&quot;</code></pre>
+<ul>
+<li>[ ] <strong>Step 3: Create knowledge_vec table on analytics.db</strong></li>
+</ul>
+<pre><code>import sqlite3, sqlite_vec
+db = sqlite3.connect(&quot;~/.coworker/analytics/analytics.db&quot;)
+db.enable_load_extension(True)
+sqlite_vec.load(db)
+db.execute(&quot;CREATE VIRTUAL TABLE IF NOT EXISTS knowledge_vec USING vec0(embedding float[384])&quot;)
+db.commit()
+print(&quot;✅ knowledge_vec created&quot;)</code></pre>
+<ul>
+<li>[ ] <strong>Step 4: Embed + store first entry, verify self-match</strong></li>
+</ul>
+<pre><code>from fastembed import TextEmbedding
+import numpy as np
+
+embed = TextEmbedding()
+text = &quot;test knowledge entry&quot;
+vec = list(embed.embed([text]))[0]
+vec = vec / np.linalg.norm(vec)
+
+db.execute(&quot;INSERT OR REPLACE INTO knowledge_vec(rowid, embedding) VALUES (?, ?)&quot;,
+           [1, vec.astype(np.float32).tobytes()])
+db.commit()
+
+result = db.execute(&quot;&quot;&quot;
+    SELECT rowid, vec_distance_l2(embedding, ?) as dist
+    FROM knowledge_vec ORDER BY dist LIMIT 1
+&quot;&quot;&quot;, [vec.astype(np.float32).tobytes()]).fetchone()
+print(f&quot;✅ Self-match: rowid={result[0]}, dist={result[1]:.6f} (expect ~0.0)&quot;)</code></pre>
+<ul>
+<li>[ ] <strong>Step 5: Commit</strong></li>
+</ul>
+<pre><code>git add docs/self-evolving-agent/how-to/sqlite-vec-setup-how-to.md
+git commit -m &quot;chore(qa): add sqlite-vec + fastembed setup guide&quot;</code></pre>
+<blockquote class="callout" data-label="NOTE"><p>✅ Spike validated 2026-07-24: 6/6 semantic queries correctly retrieved on real knowledge entries in analytics.db.</p></blockquote>
+<hr>
+<h4>Task 1: QA Error Codes</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>src/coworker/qa/__init__.py</code></li>
+<li>Create: <code>src/coworker/qa/errors.py</code></li>
+<li>Create: <code>tests/qa/test_errors.py</code></li>
+</ul>
+<p><strong>Interfaces:</strong></p>
+<ul>
+<li>Produces: <code>QAError(Exception)</code> base class, 10 error subclasses with codes, <code>error_registry</code> dict</li>
+</ul>
+<p>新增错误：</p>
+<ul>
+<li>[ ] <strong>Step 1: Write failing tests</strong></li>
+</ul>
+<pre><code># tests/qa/test_errors.py
+import pytest
+from coworker.qa.errors import (
+    QAError, QA_E001_ProjectNotFound, QA_E002_PRDNotFound,
+    QA_E003_MemoryCorrupted, QA_E005_LLMTimeout_DeepSeek,
+    QA_E006_LLMTimeout_Claude, QA_E007_TestInfraError, QA_E008_TimeBudgetExhausted,
+    QA_E009_DiskFull, QA_E010_CircuitBreakerTripped,
+    QA_E011_EmbeddingUnavailable, QA_E012_StateConflict,
+    error_registry,
+)
+
+class TestQAErrors:
+    def test_each_error_has_unique_code(self):
+        codes = [cls.code for cls in error_registry.values()]
+        assert len(codes) == len(set(codes))
+        assert len(codes) == 12  # E001-E010 + E011-E012
+
+    def test_qa_e011_embedding_unavailable(self):
+        err = QA_E011_EmbeddingUnavailable()
+        assert &quot;sqlite-vec&quot; in str(err)
+        assert err.code == &quot;QA_E011&quot;
+
+    def test_qa_e012_state_assign_conflict(self):
+        err = QA_E012_StateConflict(quest_id=&quot;quest-gap-03&quot;, claimed_by=&quot;agent-b&quot;)
+        assert &quot;quest-gap-03&quot; in str(err)
+        assert &quot;agent-b&quot; in str(err)</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Run tests — verify they fail</strong></li>
+</ul>
+<pre><code>pytest tests/qa/test_errors.py -v</code></pre>
+<p>Expected: all fail (module not found)</p>
+<ul>
+<li>[ ] <strong>Step 3: Create <code>__init__.py</code> + <code>errors.py</code></strong></li>
+</ul>
+<pre><code># src/coworker/qa/__init__.py
+&quot;&quot;&quot;QA autonomous agent module. Part of self-evolving-agent initiative.&quot;&quot;&quot;
+__version__ = &quot;0.2.0&quot;</code></pre>
+<pre><code># src/coworker/qa/errors.py
+
+class QAError(Exception):
+    &quot;&quot;&quot;Base error for QA module.&quot;&quot;&quot;
+    code: str = &quot;QA_E000&quot;
+    def __init__(self, message: str | None = None, **ctx):
+        self.ctx = ctx
+        super().__init__(message or self.default_message())
+    def default_message(self) -&gt; str:
+        return f&quot;{self.code}: An unknown QA error occurred.&quot;
+
+
+class QA_E001_ProjectNotFound(QAError):
+    code = &quot;QA_E001&quot;
+    def default_message(self) -&gt; str:
+        return f&quot;QA_E001: Project &#x27;{self.ctx.get(&#x27;project&#x27;,&#x27;unknown&#x27;)}&#x27; not in catalog. Use --project or &#x27;project-add&#x27;.&quot;
+
+class QA_E002_PRDNotFound(QAError):
+    code = &quot;QA_E002&quot;
+    def default_message(self) -&gt; str:
+        return f&quot;QA_E002: No PRD found at &#x27;{self.ctx.get(&#x27;path&#x27;,&#x27;docs/&#x27;)}&#x27;.&quot;
+
+class QA_E003_MemoryCorrupted(QAError):
+    code = &quot;QA_E003&quot;
+    def default_message(self) -&gt; str:
+        return &quot;QA_E003: MEMORY.md corrupted. Degrading to vec0-only search.&quot;
+
+class QA_E005_LLMTimeout_DeepSeek(QAError):
+    code = &quot;QA_E005&quot;
+    def default_message(self) -&gt; str:
+        return &quot;QA_E005: DeepSeek API timeout. Switching to backup provider.&quot;
+
+class QA_E006_LLMTimeout_Claude(QAError):
+    code = &quot;QA_E006&quot;
+    def default_message(self) -&gt; str:
+        return &quot;QA_E006: Claude/GLM API timeout. Degrading report to DeepSeek Pro (degraded_report: true).&quot;
+
+class QA_E007_TestInfraError(QAError):
+    code = &quot;QA_E007&quot;
+    def default_message(self) -&gt; str:
+        return &quot;QA_E007: Test infra error. Skipping Layer 2/3, marking confidence: low.&quot;
+
+class QA_E008_TimeBudgetExhausted(QAError):
+    code = &quot;QA_E008&quot;
+    def default_message(self) -&gt; str:
+        return &quot;QA_E008: Time budget exhausted mid-fix. Saving to state, no half-done commits.&quot;
+
+class QA_E009_DiskFull(QAError):
+    code = &quot;QA_E009&quot;
+    def default_message(self) -&gt; str:
+        return &quot;QA_E009: Disk full. Writing to /tmp fallback.&quot;
+
+class QA_E010_CircuitBreakerTripped(QAError):
+    code = &quot;QA_E010&quot;
+    def default_message(self) -&gt; str:
+        return f&quot;QA_E010: Circuit breaker — {self.ctx.get(&#x27;count&#x27;,&#x27;?&#x27;)} skills modified in 24h. Paused.&quot;
+
+class QA_E011_EmbeddingUnavailable(QAError):
+    code = &quot;QA_E011&quot;
+    def default_message(self) -&gt; str:
+        return &quot;QA_E011: Embedding model (fastembed) unavailable. Gap tracking degraded to state file fallback.&quot;
+
+class QA_E012_StateConflict(QAError):
+    code = &quot;QA_E012&quot;
+    def default_message(self) -&gt; str:
+        return (f&quot;QA_E012: Quest &#x27;{self.ctx.get(&#x27;quest_id&#x27;,&#x27;?&#x27;)}&#x27; &quot;
+                f&quot;already claimed by {self.ctx.get(&#x27;claimed_by&#x27;,&#x27;another agent&#x27;)}.&quot;)
+
+
+error_registry: dict[int, type[QAError]] = {
+    1: QA_E001_ProjectNotFound,  2: QA_E002_PRDNotFound,
+    3: QA_E003_MemoryCorrupted,  5: QA_E005_LLMTimeout_DeepSeek,
+    6: QA_E006_LLMTimeout_Claude, 7: QA_E007_TestInfraError,
+    8: QA_E008_TimeBudgetExhausted, 9: QA_E009_DiskFull,
+    10: QA_E010_CircuitBreakerTripped,
+    11: QA_E011_EmbeddingUnavailable, 12: QA_E012_StateConflict,
+}</code></pre>
+<ul>
+<li>[ ] <strong>Step 4: Run tests — verify they pass</strong></li>
+</ul>
+<pre><code>pytest tests/qa/test_errors.py -v</code></pre>
+<ul>
+<li>[ ] <strong>Step 5: Commit</strong></li>
+</ul>
+<pre><code>git add src/coworker/qa/__init__.py src/coworker/qa/errors.py tests/qa/test_errors.py
+git commit -m &quot;feat(qa): add error codes QA_E001-E012 &quot;</code></pre>
+<hr>
+<h4>Task 2: Knowledge Index — SQLite Exact-Match Only</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>src/coworker/qa/knowledge_index.py</code></li>
+<li>Create: <code>tests/qa/test_knowledge_index.py</code></li>
+</ul>
+<p><strong>Interfaces:</strong></p>
+<ul>
+<li>Consumes: nothing</li>
+<li>Produces:</li>
+<li><code>SCHEMA: str</code> — CREATE TABLE SQL (simplified: no FTS5)</li>
+<li><code>KnowledgeIndex(db_path)</code> — context manager</li>
+<li><code>.upsert(entry) -&gt; str</code> — insert/replace</li>
+<li><code>.query_exact(project, topic, problem) -&gt; list[dict]</code> — exact WHERE match</li>
+<li><code>.get_by_id(id) -&gt; dict | None</code></li>
+<li><code>.get_stale_sources(source_types) -&gt; list[dict]</code> — hash mismatch detection</li>
+<li><code>.mark_superseded(newer_id, older_id) -&gt; None</code></li>
+</ul>
+<p><strong>Change from v1:</strong> FTS5 removed — semantic search is vec0&#x27;s job. This table is ONLY for <code>WHERE project=? AND topic=? AND problem=?</code> queries.</p>
+<ul>
+<li>[ ] <strong>Step 1: Write failing tests</strong> (same as v1 Task 2, minus FTS5 tests)</li>
+</ul>
+<pre><code># tests/qa/test_knowledge_index.py
+import pytest
+from pathlib import Path
+from coworker.qa.knowledge_index import KnowledgeIndex
+
+SAMPLE = {
+    &quot;project&quot;: &quot;test-app&quot;, &quot;topic&quot;: &quot;auth&quot;,
+    &quot;problem&quot;: &quot;token-expiry-on-reload&quot;, &quot;type&quot;: &quot;decision&quot;,
+    &quot;source&quot;: &quot;git:abc123&quot;, &quot;source_type&quot;: &quot;git-commit&quot;,
+    &quot;source_hash&quot;: &quot;sha256:abc&quot;, &quot;timestamp&quot;: &quot;2026-07-20T14:30:00Z&quot;,
+    &quot;memory_ref&quot;: &quot;project/test-app/MEMORY.md#L89&quot;,
+}
+
+@pytest.fixture
+def index(tmp_path):
+    db = tmp_path / &quot;test.db&quot;
+    with KnowledgeIndex(db) as idx:
+        idx.initialize()
+        yield idx
+
+class TestKnowledgeIndex:
+    def test_upsert_and_query_exact(self, index):
+        index.upsert(SAMPLE)
+        results = index.query_exact(&quot;test-app&quot;, &quot;auth&quot;, &quot;token-expiry-on-reload&quot;)
+        assert len(results) == 1
+        assert results[0][&quot;topic&quot;] == &quot;auth&quot;
+
+    def test_idempotent_upsert(self, index):
+        id1 = index.upsert(SAMPLE)
+        id2 = index.upsert(SAMPLE)
+        assert id1 == id2
+
+    def test_timestamp_ordering(self, index):
+        index.upsert({**SAMPLE, &quot;timestamp&quot;: &quot;2026-07-01&quot;, &quot;source&quot;: &quot;old&quot;})
+        index.upsert({**SAMPLE, &quot;timestamp&quot;: &quot;2026-07-20&quot;, &quot;source&quot;: &quot;new&quot;})
+        results = index.query_exact(&quot;test-app&quot;, &quot;auth&quot;, &quot;token-expiry-on-reload&quot;)
+        assert results[0][&quot;source&quot;] == &quot;new&quot;
+
+    def test_topic_only_query(self, index):
+        index.upsert(SAMPLE)
+        index.upsert({**SAMPLE, &quot;problem&quot;: &quot;another-issue&quot;, &quot;source&quot;: &quot;git:def&quot;})
+        results = index.query_exact(&quot;test-app&quot;, &quot;auth&quot;, None)
+        assert len(results) == 2
+
+    def test_stale_source_detection(self, index):
+        index.upsert({**SAMPLE, &quot;source_type&quot;: &quot;prd&quot;, &quot;source_hash&quot;: &quot;old-hash&quot;})
+        stale = index.get_stale_sources([&quot;prd&quot;])
+        assert len(stale) &gt;= 1
+
+    def test_superseded_chain(self, index):
+        id1 = index.upsert(SAMPLE)
+        id2 = index.upsert({**SAMPLE, &quot;source&quot;: &quot;git:newer&quot;})
+        index.mark_superseded(id2, id1)
+        row = index.get_by_id(id1)
+        assert row[&quot;superseded_by&quot;] == id2</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Run tests — verify they fail</strong></li>
+</ul>
+<pre><code>pytest tests/qa/test_knowledge_index.py -v</code></pre>
+<ul>
+<li>[ ] <strong>Step 3: Create <code>knowledge_index.py</code></strong> (same as v1 Task 2, remove FTS5-related code, keep schema identical)</li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 4: Run tests — verify they pass</strong></li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 5: Commit</strong></li>
+</ul>
+<pre><code>git add src/coworker/qa/knowledge_index.py tests/qa/test_knowledge_index.py
+git commit -m &quot;feat(qa): add knowledge_index SQLite for exact (project,topic,problem) queries&quot;</code></pre>
+<hr>
+<h4>Task 3: Knowledge Extraction — SQLite + MEMORY.md + vec0</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>src/coworker/qa/knowledge_extract.py</code></li>
+<li>Create: <code>tests/qa/test_knowledge_extract.py</code></li>
+</ul>
+<p><strong>Interfaces:</strong></p>
+<ul>
+<li>Consumes: <code>KnowledgeIndex</code> (Task 2)</li>
+<li>Produces:</li>
+<li><code>ExtractionInput</code>, <code>ExtractionOutput</code> dataclasses</li>
+<li><code>TopicRegistry.get_existing_topics(index, project) -&gt; list[str]</code></li>
+<li><code>Standardizer.extract(raw_text, existing_topics) -&gt; ExtractionOutput</code> — two-step LLM</li>
+<li><code>ingest(sources, index) -&gt; dict</code> — writes to 3 places:</li>
+</ul>
+<ol>
+<li>SQLite <code>knowledge_index</code> (exact-match metadata)</li>
+<li>MEMORY.md (full content for LLM + human reading)</li>
+<li>sqlite-vec <code>fastembed.encode</code> (semantic search index)</li>
+</ol>
+<p><strong>Change from v1:</strong> Added vec0 ingestion as third write target. This means every ingested knowledge entry is searchable via Lore&#x27;s BM25+vector hybrid search.</p>
+<ul>
+<li>[ ] <strong>Step 1: Write <code>knowledge_extract.py</code></strong> (same core logic as v1 Task 3, add Lore write)</li>
+</ul>
+<pre><code># In ingest():
+# After SQLite upsert + MEMORY.md write, add:
+try:
+    _fastembed_encode(
+        kind=output.type,       # decision|knowledge|requirement|bug-fix
+        summary=output.summary,
+        topic=output.topic,
+        content=f&quot;§ {output.summary}\n&quot;
+                f&quot;  → key_points: {&#x27;, &#x27;.join(output.key_points)}\n&quot;
+                f&quot;  → evidence: {output.evidence}\n&quot;
+                f&quot;  → source: {src.source_path}\n&quot;
+                f&quot;  → timestamp: {src.timestamp}&quot;,
+    )
+except QA_E011_EmbeddingUnavailable:
+    pass  # Degrade gracefully — SQLite + MEMORY.md still work</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Write tests</strong> (same as v1 Task 3, mock <code>_fastembed_encode</code>)</li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 3: Run tests → pass → commit</strong></li>
+</ul>
+<pre><code>git add src/coworker/qa/knowledge_extract.py tests/qa/test_knowledge_extract.py
+git commit -m &quot;feat(qa): add knowledge extraction pipeline with vec0 integration&quot;</code></pre>
+<hr>
+<h4>Task 4: Knowledge Search — SQLite Exact + vec0 Semantic</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>src/coworker/qa/knowledge_search.py</code></li>
+<li>Create: <code>tests/qa/test_knowledge_search.py</code></li>
+</ul>
+<p><strong>Interfaces:</strong></p>
+<ul>
+<li>Consumes: <code>KnowledgeIndex</code> (Task 2)</li>
+<li>Produces: <code>search_knowledge(index, project, topic, problem, prd_item_description) -&gt; SearchResult</code></li>
+</ul>
+<p><strong>Change from v1:</strong> Layer 2 is vec0 instead of FTS5.</p>
+<pre><code>Query flow (v2):
+
+PRD item → extract topic + problem keywords
+    │
+    ▼
+Layer 1: SQLite exact match
+  SELECT * FROM knowledge_index
+  WHERE project=? AND topic=? AND problem LIKE ?
+  ORDER BY timestamp DESC
+    │
+    ├── exact match found? → return via memory_ref → done
+    │
+    ├── no exact match? → Layer 2: vec0
+    │   vec0 KNN lookup(query=&quot;{topic} {problem} {prd_description}&quot;)
+    │   → BM25 + vector hybrid search
+    │   → returns relevant lore entries with scores
+    │
+    └── LLM filter (minimal tokens):
+        &quot;Same thing? {relevant: bool, reason: one sentence}&quot;</code></pre>
+<ul>
+<li>[ ] <strong>Step 1: Write <code>knowledge_search.py</code></strong></li>
+</ul>
+<pre><code># src/coworker/qa/knowledge_search.py
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from coworker.qa.knowledge_index import KnowledgeIndex
+
+
+@dataclass
+class SearchResult:
+    exact_matches: list[dict] = field(default_factory=list)
+    related: list[dict] = field(default_factory=list)
+    conflicts: list[dict] = field(default_factory=list)
+    relevance: str = &quot;none&quot;  # &quot;exact&quot; | &quot;related&quot; | &quot;none&quot;
+
+
+def _vec0_knn_lookup(query: str, topic: str | None = None) -&gt; list[dict]:
+    &quot;&quot;&quot;Call sqlite-vec vec0 KNN lookup tool.
+
+    Returns list of lore entries with scores.
+    Falls back to empty list if sqlite-vec unavailable.
+    &quot;&quot;&quot;
+    # TODO: Wire to MCP tool: sqlite_vec.vec0 KNN lookup
+    return []
+
+
+def search_knowledge(
+    index: &quot;KnowledgeIndex&quot;,
+    project: str,
+    topic: str,
+    problem: str | None,
+    prd_item_description: str,
+) -&gt; SearchResult:
+    result = SearchResult()
+
+    # Layer 1: SQLite exact match
+    exact = index.query_exact(project, topic, problem)
+    if not exact and problem:
+        exact = index.query_exact(project, topic, None)
+
+    active = [r for r in exact if not r.get(&quot;superseded_by&quot;)]
+    superseded = [r for r in exact if r.get(&quot;superseded_by&quot;)]
+
+    result.exact_matches = active
+
+    # Build conflicts from superseded chain
+    for older in superseded:
+        newer_id = older[&quot;superseded_by&quot;]
+        newer = next((r for r in active if r[&quot;id&quot;] == newer_id), None)
+        if newer:
+            result.conflicts.append({
+                &quot;newer&quot;: newer_id, &quot;older&quot;: older[&quot;id&quot;],
+                &quot;reason&quot;: f&quot;v{newer[&#x27;timestamp&#x27;]} supersedes v{older[&#x27;timestamp&#x27;]}&quot;,
+            })
+
+    if active:
+        result.relevance = &quot;exact&quot;
+        return result
+
+    # Layer 2: vec0 semantic search
+    query = f&quot;{topic} {problem or &#x27;&#x27;} {prd_item_description}&quot;
+    knn_results = _vec0_knn_lookup(query, topic=topic)
+    result.related = knn_results
+    result.relevance = &quot;related&quot; if knn_results else &quot;none&quot;
+
+    return result</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Write tests</strong></li>
+</ul>
+<pre><code># tests/qa/test_knowledge_search.py
+import pytest
+from unittest.mock import Mock, patch
+from coworker.qa.knowledge_search import search_knowledge, SearchResult
+
+SAMPLE_ROW = {
+    &quot;id&quot;: &quot;id_abc&quot;, &quot;project&quot;: &quot;test-app&quot;, &quot;topic&quot;: &quot;auth&quot;,
+    &quot;problem&quot;: &quot;token-expiry-on-reload&quot;, &quot;type&quot;: &quot;decision&quot;,
+    &quot;timestamp&quot;: &quot;2026-07-20T14:30:00Z&quot;,
+    &quot;memory_ref&quot;: &quot;project/test-app/MEMORY.md#L89&quot;,
+    &quot;superseded_by&quot;: None,
+}
+
+class TestSearchKnowledge:
+    def test_exact_match_via_sqlite(self):
+        idx = Mock()
+        idx.query_exact = Mock(return_value=[SAMPLE_ROW])
+        result = search_knowledge(idx, &quot;test-app&quot;, &quot;auth&quot;, &quot;token-expiry-on-reload&quot;, &quot;token feature&quot;)
+        assert result.relevance == &quot;exact&quot;
+        assert len(result.exact_matches) == 1
+
+    def test_fallback_to_lore_when_no_sqlite_match(self):
+        idx = Mock()
+        idx.query_exact = Mock(return_value=[])
+        with patch(&quot;coworker.qa.knowledge_search._vec0_knn_lookup&quot;) as lore:
+            lore.return_value = [{&quot;summary&quot;: &quot;related token fix&quot;, &quot;score&quot;: 0.85}]
+            result = search_knowledge(idx, &quot;test-app&quot;, &quot;auth&quot;, &quot;unknown&quot;, &quot;token feature&quot;)
+            assert result.relevance == &quot;related&quot;
+            assert len(result.related) == 1
+
+    def test_conflicts_detected(self):
+        idx = Mock()
+        idx.query_exact = Mock(return_value=[
+            {**SAMPLE_ROW, &quot;id&quot;: &quot;id_old&quot;, &quot;superseded_by&quot;: &quot;id_new&quot;},
+            {**SAMPLE_ROW, &quot;id&quot;: &quot;id_new&quot;, &quot;superseded_by&quot;: None},
+        ])
+        result = search_knowledge(idx, &quot;test-app&quot;, &quot;auth&quot;, &quot;token-expiry-on-reload&quot;, &quot;token feature&quot;)
+        assert len(result.conflicts) == 1</code></pre>
+<ul>
+<li>[ ] <strong>Step 3: Run tests → pass → commit</strong></li>
+</ul>
+<pre><code>git add src/coworker/qa/knowledge_search.py tests/qa/test_knowledge_search.py
+git commit -m &quot;feat(qa): add two-layer search (SQLite exact + vec0 semantic)&quot;</code></pre>
+<hr>
+<h4>Task 5: Test Plan — Research → Discussion → Plan (unchanged)</h4>
+<p>Same as v1 Task 5. No sqlite-vec dependency — test plan logic is pure filesystem + LLM.</p>
+<ul>
+<li>[ ] <strong>Step 1-4: Same as v1 Task 5</strong></li>
+<li>[ ] <strong>Step 5: Commit</strong></li>
+</ul>
+<pre><code>git add src/coworker/qa/test_plan.py tests/qa/test_test_plan.py
+git commit -m &quot;feat(qa): add test plan research, coverage mapping, and scenario generation&quot;</code></pre>
+<hr>
+<h4>Task 6: Gap Check + state-driven gap tracking</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>src/coworker/qa/gap_check.py</code></li>
+<li>Create: <code>tests/qa/test_gap_check.py</code></li>
+</ul>
+<p><strong>Interfaces:</strong></p>
+<ul>
+<li>Consumes: <code>KnowledgeIndex</code> (Task 2), <code>search_knowledge</code> (Task 4)</li>
+<li>Produces:</li>
+<li><code>static_check(prd_item, project_dir) -&gt; LayerResult</code></li>
+<li><code>test_check(prd_item, test_dirs) -&gt; LayerResult</code></li>
+<li><code>dynamic_check(prd_item, project_dir) -&gt; LayerResult | None</code></li>
+<li><code>verify_item(prd_item, project_dir, test_dirs) -&gt; VerificationResult</code></li>
+<li><code>create_gap_quests(gaps: list[dict]) -&gt; list[str]</code> — <strong>NEW: create state file for each gap</strong></li>
+<li><code>generate_gap_report(items) -&gt; GapReport</code></li>
+</ul>
+<p><strong>Change from v1:</strong> After gaps are detected, each gap automatically becomes a Gap item with atomic claiming and dependency tracking.</p>
+<ul>
+<li>[ ] <strong>Step 1: Write gap_check.py core</strong> (same verification logic as v1 Task 6)</li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 2: Add Quest creation</strong></li>
+</ul>
+<pre><code># src/coworker/qa/gap_check.py (new function)
+
+def create_gap_quests(gaps: list[dict]) -&gt; list[str]:
+    &quot;&quot;&quot;Convert detected gaps into state file.
+
+    Each gap becomes a Quest with:
+    - title: PRD item description
+    - declarations: verifiable conditions (file exists, test passes, etc.)
+    - depends_on: P0 gaps first, then P1 gaps depend on P0 resolution
+    &quot;&quot;&quot;
+    quest_ids = []
+
+    # P0 gaps first (no dependencies)
+    p0_gaps = [g for g in gaps if g[&quot;severity&quot;] == &quot;P0&quot;]
+    for gap in p0_gaps:
+        quest_id = _state_file_append(
+            title=f&quot;[GAP-P0] {gap[&#x27;prd_item&#x27;]}&quot;,
+            declarations=_build_declarations(gap),
+        )
+        quest_ids.append(quest_id)
+
+    # P1 gaps depend on all P0 gaps
+    p1_gaps = [g for g in gaps if g[&quot;severity&quot;] != &quot;P0&quot;]
+    for gap in p1_gaps:
+        quest_id = _state_file_append(
+            title=f&quot;[GAP-P1] {gap[&#x27;prd_item&#x27;]}&quot;,
+            declarations=_build_declarations(gap),
+            depends_on=quest_ids[:len(p0_gaps)],  # wait for P0
+        )
+        quest_ids.append(quest_id)
+
+    return quest_ids
+
+
+def _build_declarations(gap: dict) -&gt; list[str]:
+    &quot;&quot;&quot;Build machine-verifiable declarations from a gap.&quot;&quot;&quot;
+    decls = []
+    verdict = gap.get(&quot;verdict&quot;, &quot;&quot;)
+    if verdict == &quot;not_implemented&quot;:
+        decls.append(f&quot;File implementing &#x27;{gap[&#x27;prd_item&#x27;]}&#x27; exists in source tree&quot;)
+    decls.append(f&quot;Test for &#x27;{gap[&#x27;prd_item&#x27;]}&#x27; exists and passes&quot;)
+    decls.append(f&quot;No regression in existing test suite&quot;)
+    return decls
+
+
+def _state_file_append(title: str, declarations: list[str],
+                        depends_on: list[str] | None = None) -&gt; str:
+    &quot;&quot;&quot;Call sqlite-vec MCP state_append tool. Falls back to state file if unavailable.&quot;&quot;&quot;
+    # TODO: Wire to MCP tool: sqlite_vec.state_append
+    # Returns quest_id
+    import uuid
+    return f&quot;quest-{uuid.uuid4().hex[:12]}&quot;</code></pre>
+<ul>
+<li>[ ] <strong>Step 3: Write tests</strong></li>
+</ul>
+<pre><code>class TestGapQuestCreation:
+    def test_creates_quest_for_each_gap(self):
+        gaps = [
+            {&quot;id&quot;: &quot;G-1&quot;, &quot;prd_item&quot;: &quot;token refresh&quot;, &quot;severity&quot;: &quot;P0&quot;,
+             &quot;verdict&quot;: &quot;not_implemented&quot;},
+            {&quot;id&quot;: &quot;G-2&quot;, &quot;prd_item&quot;: &quot;rate limiting&quot;, &quot;severity&quot;: &quot;P1&quot;,
+             &quot;verdict&quot;: &quot;missing_test&quot;},
+        ]
+        with patch(&quot;coworker.qa.gap_check._state_file_append&quot;) as mock_create:
+            mock_create.return_value = &quot;quest-abc123&quot;
+            ids = create_gap_quests(gaps)
+            assert len(ids) == 2
+
+    def test_p0_gaps_have_no_dependencies(self):
+        gaps = [
+            {&quot;id&quot;: &quot;G-1&quot;, &quot;prd_item&quot;: &quot;token refresh&quot;, &quot;severity&quot;: &quot;P0&quot;,
+             &quot;verdict&quot;: &quot;not_implemented&quot;},
+        ]
+        with patch(&quot;coworker.qa.gap_check._state_file_append&quot;) as mock_create:
+            mock_create.return_value = &quot;quest-abc123&quot;
+            create_gap_quests(gaps)
+            call_args = mock_create.call_args
+            assert call_args[1][&quot;depends_on&quot;] is None  # P0: no deps
+
+    def test_p1_gaps_depend_on_p0(self):
+        gaps = [
+            {&quot;id&quot;: &quot;G-1&quot;, &quot;prd_item&quot;: &quot;p0-gap&quot;, &quot;severity&quot;: &quot;P0&quot;,
+             &quot;verdict&quot;: &quot;not_implemented&quot;},
+            {&quot;id&quot;: &quot;G-2&quot;, &quot;prd_item&quot;: &quot;p1-gap&quot;, &quot;severity&quot;: &quot;P1&quot;,
+             &quot;verdict&quot;: &quot;missing_test&quot;},
+        ]
+        with patch(&quot;coworker.qa.gap_check._state_file_append&quot;) as mock_create:
+            mock_create.side_effect = [&quot;quest-p0&quot;, &quot;quest-p1&quot;]
+            create_gap_quests(gaps)
+            # Second call (P1) should depend on first quest
+            p1_call = mock_create.call_args_list[1]
+            assert &quot;quest-p0&quot; in p1_call[1][&quot;depends_on&quot;]</code></pre>
+<ul>
+<li>[ ] <strong>Step 4: Run tests → pass → commit</strong></li>
+</ul>
+<pre><code>git add src/coworker/qa/gap_check.py tests/qa/test_gap_check.py
+git commit -m &quot;feat(qa): add three-layer gap detection with Gap item creation&quot;</code></pre>
+<hr>
+<h4>Task 7: Fix, Discovery , Orchestrator, CLI</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>src/coworker/qa/fix.py</code></li>
+<li>Create: <code>src/coworker/qa/discovery.py</code></li>
+<li>Create: <code>src/coworker/qa/orchestrator.py</code></li>
+<li>Create: <code>src/coworker/qa/cli.py</code></li>
+<li>Create: <code>tests/qa/test_fix.py</code></li>
+<li>Create: <code>tests/qa/test_discovery.py</code></li>
+<li>Create: <code>tests/qa/test_orchestrator.py</code></li>
+<li>Create: <code>tests/qa/test_cli.py</code></li>
+<li>Modify: <a href="../../../../../src/coworker/cli.py"><code>src/coworker/cli.py</code></a></li>
+</ul>
+<h4>7a: fix.py — Quest-Driven Fix Execution</h4>
+<pre><code># src/coworker/qa/fix.py
+from dataclasses import dataclass
+
+@dataclass
+class FixResult:
+    id: str
+    status: str  # fixed | skipped | failed | blocked
+    quest_id: str | None = None
+    commit: str | None = None
+    reason: str = &quot;&quot;
+
+
+def execute_fix(gap: dict, project_dir: str) -&gt; FixResult:
+    &quot;&quot;&quot;Execute one fix. state-driven: claims quest first, verifies declarations after.
+
+    Flow (v2 with sqlite-vec):
+    1. Claim the Quest for this gap (atomic — prevents duplicate work)
+    2. Create mini test plan
+    3. Execute fix
+    4. Verify all Quest declarations pass
+    5. Mark Quest complete → auto-unlocks dependent Quests
+    &quot;&quot;&quot;
+    quest_id = gap.get(&quot;quest_id&quot;)
+    if not quest_id:
+        return FixResult(id=gap[&quot;id&quot;], status=&quot;skipped&quot;,
+                         reason=&quot;no quest_id — gap was not registered as Quest&quot;)
+
+    # Step 1: Claim Quest
+    if not _state_file_assign(quest_id):
+        return FixResult(id=gap[&quot;id&quot;], status=&quot;blocked&quot;,
+                         quest_id=quest_id,
+                         reason=f&quot;Quest {quest_id} already claimed by another agent&quot;)
+
+    # Step 2: Verify auto_fixable
+    if not gap.get(&quot;auto_fixable&quot;, True):
+        return FixResult(id=gap[&quot;id&quot;], status=&quot;skipped&quot;, quest_id=quest_id,
+                         reason=&quot;auto_fixable=false, needs manual review&quot;)
+
+    # Step 3: Fix (DeepSeek Flash) + verify
+    # TODO: Wire to actual LLM + git workflow
+
+    # Step 4: Verify declarations + complete Quest
+    # _state_file_mark_done(quest_id)  ← verifies all declarations pass
+
+    return FixResult(id=gap[&quot;id&quot;], status=&quot;fixed&quot;, quest_id=quest_id)
+
+
+def _state_file_assign(quest_id: str) -&gt; bool:
+    &quot;&quot;&quot;Atomically claim a Quest. Returns False if already claimed.&quot;&quot;&quot;
+    # TODO: Wire to MCP tool: sqlite_vec.state_assign
+    return True
+
+
+def _state_file_mark_done(quest_id: str) -&gt; bool:
+    &quot;&quot;&quot;Mark Quest complete. Only succeeds if all declarations verified.&quot;&quot;&quot;
+    # TODO: Wire to MCP tool: sqlite_vec.state_mark_done
+    return True</code></pre>
+<h4>7b: discovery.py — 7 Dimensions</h4>
+<pre><code># src/coworker/qa/discovery.py
+
+DISCOVERY_DIMENSIONS = [
+    &quot;external-reference&quot;, &quot;code-pattern&quot;, &quot;test-coverage&quot;,
+    &quot;dependency-debt&quot;, &quot;performance&quot;, &quot;security&quot;, &quot;error-handling&quot;,
+]
+
+@dataclass
+class DiscoveryFinding:
+    id: str
+    dimension: str
+    severity: str
+    title: str
+    current_state: str
+    reference: dict = field(default_factory=dict)
+    suggested_change: str = &quot;&quot;
+    evidence: str = &quot;&quot;
+    auto_fixable: bool = True
+    jam_bug_url: str | None = None  # NEW: link torecording
+
+
+def scan_dimension(dimension: str, context: dict) -&gt; list[DiscoveryFinding]:
+    &quot;&quot;&quot;Scan one dimension. error-handling dimension uses .&quot;&quot;&quot;
+    if dimension == &quot;error-handling&quot;:
+        return _scan_error_handling_with_jam(context)
+    # ... other dimensions same as before
+    return []
+
+
+def _scan_error_handling_with_jam(context: dict) -&gt; list[DiscoveryFinding]:
+    &quot;&quot;&quot;Pull bug context fromrecordings for richer discovery.&quot;&quot;&quot;
+    findings = []
+
+    # Check forbug URLs in project context
+    jam_urls = context.get(&quot;jam_bug_urls&quot;, [])
+    for url in jam_urls:
+        try:
+            # Pull structured context from 
+            console = _jam_get_console_logs(url)
+            network = _jam_get_network_logs(url)
+            transcript = _jam_get_video_transcript(url)
+
+            # Analyze for error patterns
+            if console_has_errors(console):
+                findings.append(DiscoveryFinding(
+                    id=f&quot;JAM-{_short_hash(url)}&quot;,
+                    dimension=&quot;error-handling&quot;,
+                    severity=&quot;high&quot;,
+                    title=f&quot;Bug recording found: {_summarize_transcript(transcript)}&quot;,
+                    current_state=f&quot;Console errors: {_count_errors(console)}, &quot;
+                                  f&quot;Network failures: {_count_network_errors(network)}&quot;,
+                    evidence=f&quot;Jam: {url}&quot;,
+                    jam_bug_url=url,
+                    auto_fixable=False,  # Needs human verification first
+                ))
+        except Exception:
+            continue
+
+    return findings
+
+
+def _jam_get_console_logs(url: str) -&gt; dict: ...
+def _jam_get_network_logs(url: str) -&gt; dict: ...
+def _jam_get_video_transcript(url: str) -&gt; str: ...</code></pre>
+<h4>7c: orchestrator.py — Quest-Driven Loop</h4>
+<pre><code># src/coworker/qa/orchestrator.py
+import time
+from dataclasses import dataclass, field
+from typing import Generator
+
+MAX_DEFAULT_HOURS = 12
+WRAP_UP_THRESHOLD = 600  # 10 min
+
+
+@dataclass
+class OrchestratorEvent:
+    event: str
+    data: dict = field(default_factory=dict)
+
+
+def run(task_name: str, max_hours: float = MAX_DEFAULT_HOURS,
+        project: str | None = None, dry_run: bool = False,
+        from_state: str | None = None,
+        ) -&gt; Generator[OrchestratorEvent, None, None]:
+    &quot;&quot;&quot;Main QA loop — state-driven (v2).
+
+    Key v2 changes:
+    - Gap tracking via state file (not state file lists)
+    - Session continuity via state file (read previous, write current)
+    - Oath enforcement at each phase transition
+    -  in discovery phase
+    &quot;&quot;&quot;
+    max_seconds = max_hours * 3600
+    start = time.time()
+
+    yield OrchestratorEvent(&quot;phase_start&quot;, {&quot;phase&quot;: &quot;init&quot;, &quot;max_hours&quot;: max_hours})
+
+    # Load Oaths before anything else
+    yield OrchestratorEvent(&quot;phase_start&quot;, {&quot;phase&quot;: &quot;load_oaths&quot;})
+    oaths = _code_qa_gate_check()  # [&quot;p0-gate&quot;, &quot;research-before-action&quot;, ...]
+    yield OrchestratorEvent(&quot;phase_done&quot;, {&quot;phase&quot;: &quot;load_oaths&quot;, &quot;oaths&quot;: oaths})
+
+    # Resume from prior Brief
+    if from_state:
+        prior = _state_file_read(task_name)
+    else:
+        prior = _state_file_read(task_name)  # Always try — returns None if first run
+    yield OrchestratorEvent(&quot;phase_done&quot;, {&quot;phase&quot;: &quot;load_context&quot;, &quot;has_prior_brief&quot;: prior is not None})
+
+    # Check Oath: research-before-action
+    if &quot;research-before-action&quot; in oaths:
+        yield OrchestratorEvent(&quot;phase_start&quot;, {&quot;phase&quot;: &quot;research&quot;})
+        # ... research phase ...
+        yield OrchestratorEvent(&quot;phase_done&quot;, {&quot;phase&quot;: &quot;research&quot;})
+
+    # Test plan gate
+    # ... same as v1 ...
+
+    # Gap check → create Quests
+    yield OrchestratorEvent(&quot;phase_start&quot;, {&quot;phase&quot;: &quot;gap_check&quot;})
+    gaps = []  # TODO: actual gap detection results
+    quest_ids = _state_file_append_batch(gaps)  # Task 6&#x27;s create_gap_quests()
+    yield OrchestratorEvent(&quot;phase_done&quot;, {
+        &quot;phase&quot;: &quot;gap_check&quot;,
+        &quot;gaps_found&quot;: len(gaps),
+        &quot;quest_ids&quot;: quest_ids,
+    })
+
+    # Check Oath: p0-gate
+    if &quot;p0-gate&quot; in oaths:
+        p0_quests = _state_file_list(status=&quot;pending&quot;, filter_p0=True)
+        if p0_quests:
+            yield OrchestratorEvent(&quot;blocked&quot;, {
+                &quot;reason&quot;: &quot;p0-gate Oath: P0 gaps must be fixed before proceeding&quot;,
+                &quot;pending_p0_quests&quot;: len(p0_quests),
+            })
+            # Loop won&#x27;t proceed past repair until P0 quests are complete
+
+    # Repair: claim Quest → fix → verify declarations → complete
+    yield OrchestratorEvent(&quot;phase_start&quot;, {&quot;phase&quot;: &quot;repair&quot;})
+    for quest_id in quest_ids:
+        if time.time() - start &gt; max_seconds - WRAP_UP_THRESHOLD:
+            break
+        # claim quest → fix → complete
+    yield OrchestratorEvent(&quot;phase_done&quot;, {&quot;phase&quot;: &quot;repair&quot;})
+
+    # Discovery loop
+    yield OrchestratorEvent(&quot;phase_start&quot;, {&quot;phase&quot;: &quot;discovery&quot;})
+    # ... scan dimensions, create optimization quests ...
+
+    # Time up → write Brief
+    elapsed = time.time() - start
+    _state_file_note(task_name, {
+        &quot;phase&quot;: &quot;done&quot;,
+        &quot;elapsed_seconds&quot;: elapsed,
+        &quot;time_remaining&quot;: max(0, max_seconds - elapsed),
+    })
+    yield OrchestratorEvent(&quot;done&quot;, {&quot;elapsed_seconds&quot;: elapsed})</code></pre>
+<h4>7d: cli.py (same as v1, minor updates)</h4>
+<pre><code># src/coworker/qa/cli.py — same as v1 Task 7</code></pre>
+<ul>
+<li>[ ] <strong>Step 1-7: Write all 4 files + tests</strong> (follow same TDD pattern as prior tasks)</li>
+<li>[ ] <strong>Step 8: Wire <code>qa_group</code> into <a href="../../../../../src/coworker/cli.py"><code>src/coworker/cli.py</code></a></strong></li>
+<li>[ ] <strong>Step 9: Run all tests</strong></li>
+</ul>
+<pre><code>pytest tests/qa/ -v</code></pre>
+<ul>
+<li>[ ] <strong>Step 10: Commit</strong></li>
+</ul>
+<pre><code>git add src/coworker/qa/fix.py src/coworker/qa/discovery.py \
+        src/coworker/qa/orchestrator.py src/coworker/qa/cli.py \
+        tests/qa/test_fix.py tests/qa/test_discovery.py \
+        tests/qa/test_orchestrator.py tests/qa/test_cli.py
+git commit -m &quot;feat(qa): add state-driven fix,  discovery, state-driven orchestrator, CLI&quot;</code></pre>
+<hr>
+<h4>Task 8: 7 SKILL.md Files</h4>
+<p>Same as v1 Task 8. Each skill&#x27;s description updated to mention sqlite-vec/fastembed where relevant.</p>
+<pre><code>---
+name: qa-orchestrator
+description: Run the QA autonomous agent pipeline using state file for gap tracking and Briefs for session continuity. Part of self-evolving-agent initiative.
+---</code></pre>
+<pre><code>---
+name: qa-continuous-discovery
+description: Scan for optimizations across 7 dimensions. Uses state file for bug reproduction context in error-handling dimension.
+---</code></pre>
+<ul>
+<li>[ ] <strong>Step 1: Create all 7 SKILL.md</strong></li>
+<li>[ ] <strong>Step 2: <code>coworker sync</code> to register</strong></li>
+<li>[ ] <strong>Step 3: Commit</strong></li>
+</ul>
+<hr>
+<h4>Task 9: Git Push Hook + Verification</h4>
+<p>Same as v1 Task 9.</p>
+<hr>
+<h3>v1 → v2 Changes Summary</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Component</th>
+<th>v1</th>
+<th>v2</th>
+</tr></thead><tbody>
+<tr>
+<td>Semantic search</td>
+<td>FTS5 only</td>
+<td>vec0 (BM25 + vector hybrid)</td>
+</tr>
+<tr>
+<td>Gap tracking</td>
+<td>State file markdown list</td>
+<td>state file (atomic claim + dependency cascading)</td>
+</tr>
+<tr>
+<td>Session continuity</td>
+<td>State file manual read/write</td>
+<td>state file (auto session handoff)</td>
+</tr>
+<tr>
+<td>Quality gates</td>
+<td>Agent &quot;remembers&quot; rules</td>
+<td>code-enforced QA gates (auto-loaded, enforced at phase transitions)</td>
+</tr>
+<tr>
+<td>Bug context in discovery</td>
+<td>None</td>
+<td>state file (console + network + transcript)</td>
+</tr>
+<tr>
+<td>knowledge_index.py</td>
+<td>200 lines (SQL + FTS5)</td>
+<td>~120 lines (SQL exact-match only)</td>
+</tr>
+<tr>
+<td>knowledge_search.py</td>
+<td>FTS5 query code</td>
+<td>vec0 MCP calls</td>
+</tr>
+<tr>
+<td>orchestrator.py</td>
+<td>Manual state list management</td>
+<td>Quest claim/complete + Brief read/write</td>
+</tr>
+<tr>
+<td>New dependencies</td>
+<td>None</td>
+<td>sqlite-vec (pip), fastembed</td>
+</tr>
+<tr>
+<td>Total new files</td>
+<td>~15</td>
+<td>~12 (removed FTS5 code, state management code)</td>
+</tr>
+</tbody></table></div>
+<h3>Plan Summary</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Task</th>
+<th>Files</th>
+<th>Description</th>
+<th>Est. Time</th>
+</tr></thead><tbody>
+<tr>
+<td>0</td>
+<td>2</td>
+<td>sqlite-vec + fastembed setup</td>
+<td>20 min</td>
+</tr>
+<tr>
+<td>1</td>
+<td>3</td>
+<td>Error codes (12 codes )</td>
+<td>20 min</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2</td>
+<td>SQLite exact-match only (no FTS5)</td>
+<td>25 min</td>
+</tr>
+<tr>
+<td>3</td>
+<td>2</td>
+<td>Extraction → SQLite + MEMORY.md + vec0</td>
+<td>30 min</td>
+</tr>
+<tr>
+<td>4</td>
+<td>2</td>
+<td>Search: SQLite exact + vec0 semantic</td>
+<td>25 min</td>
+</tr>
+<tr>
+<td>5</td>
+<td>2</td>
+<td>Test plan research + scenario generation</td>
+<td>30 min</td>
+</tr>
+<tr>
+<td>6</td>
+<td>2</td>
+<td>Gap check + Gap item creation</td>
+<td>35 min</td>
+</tr>
+<tr>
+<td>7</td>
+<td>9</td>
+<td>Fix (state-driven), discovery (+Jam), orchestrator, CLI</td>
+<td>50 min</td>
+</tr>
+<tr>
+<td>8</td>
+<td>7</td>
+<td>7 SKILL.md files</td>
+<td>20 min</td>
+</tr>
+<tr>
+<td>9</td>
+<td>1</td>
+<td>Git push hook</td>
+<td>10 min</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>32</strong></td>
+<td></td>
+<td><strong>~4.5 hours</strong></td>
+</tr>
+</tbody></table></div>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="dependency-and-sequencing-impl-plan.html"><span class="label">Previous</span>Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a><a class="next" href="../test-plan/self-evolving-agent-test-plan.html"><span class="label">Next</span>Self-Evolving Agent — Test Plan</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

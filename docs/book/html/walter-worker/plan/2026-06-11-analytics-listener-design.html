@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Analytics Listener — Design Document · plan · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/walter-worker-prd.html"><span class="tree-ord">1</span>walter-worker — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-core-prd.html">Core CLI &amp; Initiative System PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-dashboard-prd.html">Dashboard PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-knowledge-skill-prd.html">Knowledge Skill PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/ai-coworker-prd.html">walter-worker PRD</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../decision-history/walter-worker-decision-history.html"><span class="tree-ord">2</span>walter-worker — Decision History</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../decision-history/2025-04-10-integrate-loop-engineering-framework-by-running-lo-decision.html">Decision Record — 2025-04-10</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-03-30-feat-initial-commit--unified-ai-coworker-dev-env-decision.html">Decision Record — 2026-03-30</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.html">Decision Record — 2026-05-01</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-05-06-feat-add-skill-meta-import-skill--import-externa-decision.html">Decision Record — 2026-05-06</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.html">Decision Record — 2026-06-11</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-12-feat-add-opencode-context-injection-initiativema-decision.html">Decision Record — 2026-06-12</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.html">Decision Record — 2026-06-16</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-23-chore-remove-self-strain-decision.html">Decision Record — 2026-06-23</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-24-chore-review-fixes--broken-refs-tests-docs-ch-decision.html">Decision Record — 2026-06-24</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-30-fix-deploy-ai-coworker-skills-to-opencode-skill-d-decision.html">Decision Record — 2026-06-30</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.html">Decision Record — 2026-07-02</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.html">Decision Record — 2026-07-07</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.html">Decision Record — 2026-07-08</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.html">Decision Record — 2026-07-10</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-13-feat-add-emoji-and-color-coded-fields-to-tmux-sta-decision.html">Decision Record — 2026-07-13</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-17-docs-add-doc-organize--indexmd-refs-to-claudem-decision.html">Decision Record — 2026-07-17</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.html">Decision Record — 2026-07-24</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/unknown-remove-budget-related-features-from-prd-budget-fl-decision.html">Decision Record — unknown</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../design/walter-worker-design.html"><span class="tree-ord">3</span>walter-worker — Design</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../design/ai-coworker-design.html">walter-worker Design</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-11-analytics-dashboard-superpowers.html">Analytics Listener + Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-11-analytics-listener-design.html" aria-current="page">Analytics Listener — Design Document</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-11-core-architecture-design.html">Core Architecture Design</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-11-feature-tracker.html">Feature Tracker</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-11-planning-hub.html">Planning Hub</a></li><li class="tree-leaf"><a class="tree-link" href="2026-09-25-deletion-list.html">Deletion List — 2026-09-25</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/2026-06-12-initiative-project-level-design.html">Initiative — Global to Project-Level Design</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/ai-coworker-spec.html">walter-worker Technical Specification</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-26-decision-timeline.html">Decision Timeline — walter-worker</a></li><li class="tree-leaf"><a class="tree-link" href="../work-review/2026-06-11-analytics-dashboard/acceptance.html">Analytics Dashboard — Acceptance Review</a></li><li class="tree-leaf"><a class="tree-link" href="../work-review/2026-06-11-analytics-dashboard/report.html">Acceptance Report — Analytics Dashboard</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/walter-worker-impl-plan.html"><span class="tree-ord">4</span>walter-worker Implementation Plan</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/walter-worker-test-plan.html"><span class="tree-ord">5</span>walter-worker — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/ai-coworker-test-plan.html">walter-worker Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><span class="tree-link"><span class="tree-ord">10</span>sub-feature</span></summary><ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/analytics-dashboard/design/analytics-dashboard-design.html">analytics-dashboard</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/prd/analytics-dashboard-prd.html"><span class="tree-ord">1</span>Analytics Dashboard — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/decision-history/analytics-dashboard-decision-history.html"><span class="tree-ord">2</span>Analytics Dashboard — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/design/analytics-dashboard-design.html"><span class="tree-ord">3</span>Analytics Dashboard — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/impl-plan/analytics-dashboard-impl-plan.html"><span class="tree-ord">4</span>Analytics Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/test-plan/analytics-dashboard-test-plan.html"><span class="tree-ord">5</span>Analytics Dashboard — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/analytics-listener/design/analytics-listener-design.html">analytics-listener</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/prd/analytics-listener-prd.html"><span class="tree-ord">1</span>Analytics Listener — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/decision-history/analytics-listener-decision-history.html"><span class="tree-ord">2</span>Analytics Listener — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/design/analytics-listener-design.html"><span class="tree-ord">3</span>Analytics Listener — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/impl-plan/analytics-listener-impl-plan.html"><span class="tree-ord">4</span>Analytics Listener — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/test-plan/analytics-listener-test-plan.html"><span class="tree-ord">5</span>Analytics Listener — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/core-cli/design/core-cli-design.html">core-cli</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/prd/core-cli-prd.html"><span class="tree-ord">1</span>Core CLI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/decision-history/core-cli-decision-history.html"><span class="tree-ord">2</span>Core CLI — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/design/core-cli-design.html"><span class="tree-ord">3</span>Core CLI — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/impl-plan/core-cli-impl-plan.html"><span class="tree-ord">4</span>Core CLI — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/test-plan/core-cli-test-plan.html"><span class="tree-ord">5</span>Core CLI — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/feature-system/design/feature-system-design.html">feature-system</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/prd/feature-system-prd.html"><span class="tree-ord">1</span>Feature System — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/decision-history/feature-system-decision-history.html"><span class="tree-ord">2</span>Feature System — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/design/feature-system-design.html"><span class="tree-ord">3</span>Feature System — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/impl-plan/feature-system-impl-plan.html"><span class="tree-ord">4</span>Feature System — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/test-plan/feature-system-test-plan.html"><span class="tree-ord">5</span>Feature System — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/setup-deploy/design/setup-deploy-design.html">setup-deploy</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/prd/setup-deploy-prd.html"><span class="tree-ord">1</span>Setup and Deploy — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/decision-history/setup-deploy-decision-history.html"><span class="tree-ord">2</span>Setup and Deploy — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/design/setup-deploy-design.html"><span class="tree-ord">3</span>Setup and Deploy — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/impl-plan/setup-deploy-impl-plan.html"><span class="tree-ord">4</span>Setup and Deploy — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/test-plan/setup-deploy-test-plan.html"><span class="tree-ord">5</span>Setup and Deploy — Test Plan</a></li></ul></details></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>walter-worker</span> / <span>plan</span> / <span>Analytics Listener — Design Document</span></nav>
+    <article class="doc" data-doc="walter-worker/plan/2026-06-11-analytics-listener-design">
+      <header class="doc-head">
+        <p class="eyebrow">walter-worker</p>
+        <h1>Analytics Listener — Design Document</h1>
+        <p class="source">Canonical: docs/features/walter-worker/plan/2026-06-11-analytics-listener-design.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Analytics Listener — Design Document</h2>
+<blockquote class="callout" data-label="NOTE"><p>Unified chat history / tool call / skill call collector for Claude Code and OpenCode. Raw data stored locally as JSONL, later imported into database for analysis.</p></blockquote>
+<h3>1. Requirements Summary</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Dimension</th>
+<th>Decision</th>
+</tr></thead><tbody>
+<tr>
+<td>Purpose</td>
+<td>Usage analytics</td>
+</tr>
+<tr>
+<td>Scope</td>
+<td>Local, personal use</td>
+</tr>
+<tr>
+<td>Granularity</td>
+<td>Full content recording (chat messages, tool args/results)</td>
+</tr>
+<tr>
+<td>Strategy</td>
+<td>Claude Code + OpenCode each implement independently, unified storage format</td>
+</tr>
+<tr>
+<td>Time</td>
+<td>Local timezone</td>
+</tr>
+</tbody></table></div>
+<h3>2. Architecture Overview</h3>
+<pre><code>                    ~/.coworker/analytics/
+                      sessions/{session-id}/
+                        messages.jsonl
+                        tools.jsonl
+                        session.yaml
+                      index.jsonl
+                      hooks/              (Claude Code scripts)
+                        on-user-prompt.sh
+                        on-pre-tool.sh
+                        on-post-tool.sh
+                        on-stop.sh
+                   ↗                    ↖
+           Claude Code Hooks      OpenCode Plugin
+           (settings.json)        (.opencode/plugin)</code></pre>
+<ul>
+<li>Claude Code: Driven by <code>.claude/settings.json</code> hooks that invoke shell scripts for recording</li>
+<li>OpenCode: Driven by <code>@opencode-ai/plugin</code> SDK with TypeScript recording</li>
+<li>Both operate independently, writing to the same local directory</li>
+<li>Eventually imported into SQLite/PostgreSQL for analysis (future design)</li>
+</ul>
+<h3>3. Data Model</h3>
+<h4>3.1 session.yaml — Session Metadata</h4>
+<pre><code>session_id: &quot;2026-06-11-T143052-a1b2c3&quot;
+created: &quot;2026-06-11T14:30:52+08:00&quot;
+closed: &quot;2026-06-11T15:45:10+08:00&quot;
+ide: opencode
+project: walter-worker
+cwd: /home/cicidi/project/walter-worker
+initiative: auth-migration     # Read from CLAUDE.md, can be appended mid-session
+branch: feat/oauth2             # git branch --show-current</code></pre>
+<h4>3.2 messages.jsonl — Chat Messages</h4>
+<p>Each message is one line of JSON:</p>
+<pre><code>{&quot;ts&quot;:&quot;2026-06-11T14:30:52+08:00&quot;,&quot;type&quot;:&quot;user&quot;,&quot;seq&quot;:1,&quot;content&quot;:&quot;Help me write a listener&quot;}
+{&quot;ts&quot;:&quot;2026-06-11T14:31:05+08:00&quot;,&quot;type&quot;:&quot;assistant&quot;,&quot;seq&quot;:2,&quot;content&quot;:&quot;Ok, let me explore first...&quot;}</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Field</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td><code>ts</code></td>
+<td>Local time, ISO 8601 with timezone</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td><code>user</code> / <code>assistant</code></td>
+</tr>
+<tr>
+<td><code>seq</code></td>
+<td>Global auto-increment sequence number</td>
+</tr>
+<tr>
+<td><code>content</code></td>
+<td>Message text</td>
+</tr>
+</tbody></table></div>
+<h4>3.3 tools.jsonl — Tool Calls</h4>
+<p>Each is one tool call. Pre and post are written separately and independently:</p>
+<pre><code>{&quot;ts&quot;:&quot;2026-06-11T14:31:05+08:00&quot;,&quot;phase&quot;:&quot;before&quot;,&quot;tool&quot;:&quot;bash&quot;,&quot;tool_type&quot;:&quot;builtin&quot;,&quot;call_id&quot;:&quot;toolu_01&quot;,&quot;seq&quot;:3,&quot;args&quot;:{&quot;command&quot;:&quot;ls&quot;,&quot;description&quot;:&quot;List files&quot;}}
+{&quot;ts&quot;:&quot;2026-06-11T14:31:10+08:00&quot;,&quot;phase&quot;:&quot;after&quot;,&quot;tool&quot;:&quot;bash&quot;,&quot;tool_type&quot;:&quot;builtin&quot;,&quot;call_id&quot;:&quot;toolu_01&quot;,&quot;seq&quot;:4,&quot;result&quot;:&quot;README.md\nsrc/&quot;,&quot;duration_ms&quot;:5230}</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Field</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td><code>ts</code></td>
+<td>Local time, ISO 8601 with timezone</td>
+</tr>
+<tr>
+<td><code>phase</code></td>
+<td><code>before</code> / <code>after</code></td>
+</tr>
+<tr>
+<td><code>tool</code></td>
+<td>Tool name (Bash/Read/Write/Edit/Skill/Glob/Grep/TodoWrite/WebFetch...)</td>
+</tr>
+<tr>
+<td><code>tool_type</code></td>
+<td><code>builtin</code> / <code>mcp</code></td>
+</tr>
+<tr>
+<td><code>server_name</code></td>
+<td>MCP server name (mcp type only)</td>
+</tr>
+<tr>
+<td><code>call_id</code></td>
+<td>Tool call ID, links before and after</td>
+</tr>
+<tr>
+<td><code>seq</code></td>
+<td>Global auto-increment sequence number</td>
+</tr>
+<tr>
+<td><code>args</code></td>
+<td>Tool arguments (before only)</td>
+</tr>
+<tr>
+<td><code>result</code></td>
+<td>Tool result (after only)</td>
+</tr>
+<tr>
+<td><code>duration_ms</code></td>
+<td>Execution duration in ms (after only)</td>
+</tr>
+</tbody></table></div>
+<p>Design notes:</p>
+<ul>
+<li>Pre and post are recorded independently; whoever triggers writes, no inter-dependency</li>
+<li>Claude Code often drops pre or post hooks — this design preserves at least half the data</li>
+<li>Group by <code>call_id</code> to reconstruct the full call</li>
+</ul>
+<h4>3.4 index.jsonl — Session Index</h4>
+<p>One line appended when each session ends:</p>
+<pre><code>{&quot;session_id&quot;:&quot;a1b2c3&quot;,&quot;created&quot;:&quot;2026-06-11T14:30:52+08:00&quot;,&quot;ide&quot;:&quot;opencode&quot;,&quot;project&quot;:&quot;walter-worker&quot;,&quot;message_count&quot;:45,&quot;tool_count&quot;:12}</code></pre>
+<h3>4. Claude Code Implementation</h3>
+<h4>4.1 Hook Configuration</h4>
+<p>In <code>.claude/settings.json</code>:</p>
+<pre><code>{
+  &quot;hooks&quot;: {
+    &quot;UserPromptSubmit&quot;: [{ &quot;command&quot;: &quot;~/.coworker/analytics/hooks/on-user-prompt.sh&quot; }],
+    &quot;PreToolUse&quot;:       [{ &quot;command&quot;: &quot;~/.coworker/analytics/hooks/on-pre-tool.sh&quot; }],
+    &quot;PostToolUse&quot;:      [{ &quot;command&quot;: &quot;~/.coworker/analytics/hooks/on-post-tool.sh&quot; }],
+    &quot;Stop&quot;:             [{ &quot;command&quot;: &quot;~/.coworker/analytics/hooks/on-stop.sh&quot; }]
+  }
+}</code></pre>
+<h4>4.2 Hook Script Responsibilities</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Hook</th>
+<th>Script</th>
+<th>Writes</th>
+</tr></thead><tbody>
+<tr>
+<td><code>UserPromptSubmit</code></td>
+<td><code>on-user-prompt.sh</code></td>
+<td><code>messages.jsonl</code> (type: user) + creates session on first trigger</td>
+</tr>
+<tr>
+<td><code>PreToolUse</code></td>
+<td><code>on-pre-tool.sh</code></td>
+<td><code>tools.jsonl</code> (phase: before)</td>
+</tr>
+<tr>
+<td><code>PostToolUse</code></td>
+<td><code>on-post-tool.sh</code></td>
+<td><code>tools.jsonl</code> (phase: after)</td>
+</tr>
+<tr>
+<td><code>Stop</code></td>
+<td><code>on-stop.sh</code></td>
+<td>Updates <code>session.yaml</code> closed + appends <code>index.jsonl</code></td>
+</tr>
+</tbody></table></div>
+<h4>4.3 Session ID Generation</h4>
+<p>Generated on first <code>UserPromptSubmit</code>: <code>$(date +%Y-%m-%d-T%H%M%S)-$(openssl rand -hex 3)</code></p>
+<h3>5. OpenCode Implementation</h3>
+<h4>5.1 Plugin Structure</h4>
+<pre><code>.opencode/coworker-analytics/
+  index.ts          # Plugin entry point
+  recorder.ts       # Core write logic
+  session.ts        # Session lifecycle management</code></pre>
+<h4>5.2 Hook Mapping</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>OpenCode Hook</th>
+<th>Behavior</th>
+</tr></thead><tbody>
+<tr>
+<td><code>event</code></td>
+<td>Listen <code>session.created</code> → create session dir + <code>session.yaml</code>; <code>session.deleted</code> → update closed + write <code>index.jsonl</code></td>
+</tr>
+<tr>
+<td><code>chat.message</code></td>
+<td>Each message → <code>messages.jsonl</code></td>
+</tr>
+<tr>
+<td><code>tool.execute.before</code></td>
+<td>→ <code>tools.jsonl</code> (phase: before)</td>
+</tr>
+<tr>
+<td><code>tool.execute.after</code></td>
+<td>→ <code>tools.jsonl</code> (phase: after)</td>
+</tr>
+</tbody></table></div>
+<h4>5.3 Recorder Core</h4>
+<ul>
+<li><code>fs.appendFileSync</code> appends to JSONL</li>
+<li>In-memory auto-increment <code>seq</code> counter</li>
+<li>Auto-creates session directory</li>
+</ul>
+<h3>6. Listener Responsibility Boundary</h3>
+<p><strong>Listener only dumps raw data, does no processing:</strong></p>
+<ul>
+<li>Writes messages.jsonl, tools.jsonl, session.yaml</li>
+<li>Does not parse file paths, infer project, or merge pre/post</li>
+</ul>
+<p><strong>DB import script handles all data processing:</strong></p>
+<ul>
+<li>Merges pre+post tool calls</li>
+<li>Parses file operations (Read/Write/Edit/Glob → file_ops table)</li>
+<li>Infers project (matches path against project catalog)</li>
+<li>Infers file_type (from extension)</li>
+<li>Detects call chains (parent_call_id)</li>
+<li>Extracts initiative from CLAUDE.md</li>
+<li>Detects git branch and initiative switches</li>
+</ul>
+<h3>7. SQLite Database &amp; Import Script</h3>
+<blockquote class="callout" data-label="NOTE"><p>Import script handles merge / clean / parse, writes to SQLite.</p></blockquote>
+<h4>7.1 Table Schema</h4>
+<pre><code>CREATE TABLE sessions (
+    id            TEXT PRIMARY KEY,
+    ide           TEXT NOT NULL,
+    project       TEXT,
+    cwd           TEXT,
+    model         TEXT,
+    initiative    TEXT,
+    branch        TEXT,
+    created_at    TEXT NOT NULL,
+    closed_at     TEXT
+);
+
+CREATE TABLE messages (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id    TEXT NOT NULL REFERENCES sessions(id),
+    seq           INTEGER NOT NULL,
+    type          TEXT NOT NULL,
+    content       TEXT,
+    ts            TEXT NOT NULL
+);
+CREATE INDEX idx_msg_session_seq ON messages(session_id, seq);
+
+CREATE TABLE tool_calls (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id      TEXT NOT NULL REFERENCES sessions(id),
+    call_id         TEXT NOT NULL,
+    tool            TEXT NOT NULL,
+    tool_type       TEXT DEFAULT &#x27;builtin&#x27;,    -- builtin | mcp
+    server_name     TEXT,                      -- MCP server name
+    parent_call_id  TEXT,
+    parent_skill    TEXT,                      -- Skill name context
+    args            TEXT,
+    result          TEXT,
+    duration_ms     INTEGER,
+    seq_before      INTEGER,
+    seq_after       INTEGER,
+    ts              TEXT NOT NULL
+);
+CREATE INDEX idx_tc_session ON tool_calls(session_id);
+CREATE INDEX idx_tc_parent ON tool_calls(parent_call_id);
+CREATE INDEX idx_tc_tool ON tool_calls(tool);
+
+CREATE TABLE file_ops (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id  TEXT NOT NULL REFERENCES sessions(id),
+    call_id     TEXT NOT NULL,
+    op          TEXT NOT NULL,
+    path        TEXT NOT NULL,
+    file_type   TEXT,
+    project     TEXT,
+    skill_name  TEXT,                           -- Which skill triggered this file operation
+    seq         INTEGER NOT NULL,
+    ts          TEXT NOT NULL
+);
+CREATE INDEX idx_fo_session ON file_ops(session_id);
+CREATE INDEX idx_fo_type ON file_ops(file_type);
+CREATE INDEX idx_fo_project ON file_ops(project);
+
+CREATE TABLE session_stats (
+    session_id    TEXT PRIMARY KEY REFERENCES sessions(id),
+    message_count INTEGER DEFAULT 0,
+    tool_count    INTEGER DEFAULT 0,
+    skill_count   INTEGER DEFAULT 0,
+    read_count    INTEGER DEFAULT 0,
+    write_count   INTEGER DEFAULT 0,
+    bash_count    INTEGER DEFAULT 0,
+    duration_min  INTEGER,
+    updated_at    TEXT NOT NULL
+);
+
+-- Skill metadata (aggregated by import script from tool_calls)
+CREATE TABLE skills (
+    name           TEXT PRIMARY KEY,
+    total_calls    INTEGER DEFAULT 0,
+    last_invoked   TEXT,
+    first_invoked  TEXT
+);
+
+-- Knowledge cards (written by Knowledge Skill)
+CREATE TABLE knowledge (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    title           TEXT NOT NULL,
+    type            TEXT NOT NULL,              -- trap | best_practice | pattern | decision | constraint
+    session_id      TEXT REFERENCES sessions(id),
+    project         TEXT,
+    skills          TEXT,                       -- JSON array
+    summary         TEXT,
+    evidence        TEXT,                       -- JSON array
+    generated_at    TEXT NOT NULL,
+    merged_to_skill TEXT
+);
+CREATE INDEX idx_knowledge_project ON knowledge(project);
+CREATE INDEX idx_knowledge_session ON knowledge(session_id);
+
+-- Session summaries (written by Knowledge Skill)
+CREATE TABLE session_summaries (
+    session_id             TEXT PRIMARY KEY REFERENCES sessions(id),
+    sop_workflows          TEXT,                -- JSON array
+    context_to_remember    TEXT,
+    effective_operations   TEXT,                -- JSON array
+    pitfalls_and_fixes     TEXT,                -- JSON array
+    wasted_actions         TEXT,                -- JSON array
+    bottlenecks            TEXT,                -- JSON array
+    efficiency_tip         TEXT,
+    efficiency_score       REAL,
+    think_action_ratio     REAL,
+    edit_redundancy        REAL,
+    loop_count             INTEGER,
+    user_wait_minutes      REAL,
+    memory_keywords        TEXT,                -- Extracted keywords for Obsidian graph
+    generated_at           TEXT NOT NULL
+);</code></pre>
+<h4>7.2 Import Flow</h4>
+<pre><code>JSONL raw data
+      ↓
+  import.py
+      ├─ Merge pre+post tool call (by call_id)
+      ├─ Extract file_ops (Read/Write/Edit/Glob → path, type, project)
+      ├─ Infer parent_call_id + parent_skill (call chain)
+      ├─ Aggregate skills table
+      ├─ Extract initiative from CLAUDE.md
+      ├─ Compute session_stats
+      └─ Detect git branch and initiative switches
+      ↓
+  analytics.db</code></pre>
+<h4>7.3 Knowledge Skill (Session Summaries)</h4>
+<p>Standalone skill that calls OpenCode SDK in non-interactive mode, reads SQLite data, feeds to LLM for structured summarization.</p>
+<p><strong>Trigger methods:</strong></p>
+<ul>
+<li>Auto-run on session close (hook after import script completes)</li>
+<li>Manual trigger: <code>coworker knowledge summarize &lt;session_id&gt;</code></li>
+<li>Batch mode: <code>coworker knowledge analyze --since yesterday</code></li>
+</ul>
+<p><strong>Process:</strong></p>
+<pre><code>SQLite (session data) → Knowledge Skill (LLM) → SQLite (session_summaries, knowledge)</code></pre>
+<p><strong>Tables written:</strong></p>
+<ul>
+<li><code>session_summaries</code> — per-session structured summaries</li>
+<li><code>knowledge</code> — cross-session knowledge cards (patterns triggered ≥2 times)</li>
+<li><code>skills</code> — update skill metadata</li>
+</ul>
+<h4>7.4 Analytics Queries</h4>
+<pre><code>-- skill/tool call stats (by session/initiative/branch)
+SELECT s.initiative, s.branch, t.tool, COUNT(*) AS cnt
+FROM tool_calls t JOIN sessions s ON s.id = t.session_id
+WHERE t.tool = &#x27;Skill&#x27;
+GROUP BY s.initiative, s.branch;
+
+-- file read/write stats (by type/project)
+SELECT project, file_type, op, COUNT(*) AS cnt
+FROM file_ops GROUP BY project, file_type, op
+ORDER BY cnt DESC;
+
+-- session complete timeline
+SELECT seq, type, content, tool, args, result FROM messages m
+LEFT JOIN tool_calls t ON t.call_id = m.tool_call_id
+WHERE m.session_id = ?
+ORDER BY seq;</code></pre>
+<h3>8. Installation</h3>
+<p><a href="../../../../../setup/install.sh"><code>setup/install.sh</code></a> handles:</p>
+<ol>
+<li>Creates <code>~/.coworker/analytics/sessions/</code> directory</li>
+<li>Copies 4 hook scripts to <code>~/.coworker/analytics/hooks/</code></li>
+<li>Merges hook config into project <code>.claude/settings.json</code></li>
+<li>Creates SQLite database <code>~/.coworker/analytics/analytics.db</code> and executes DDL</li>
+</ol>
+<p>OpenCode side requires no install — plugin ships with <code>.opencode/</code> directory.</p>
+<h3>9. Error Handling</h3>
+<p>Core principle: listener errors must not affect normal AI operation.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Scenario</th>
+<th>Strategy</th>
+</tr></thead><tbody>
+<tr>
+<td>Disk full</td>
+<td>Silent failure, do not block AI</td>
+</tr>
+<tr>
+<td>Permission denied</td>
+<td>Write to <code>~/.coworker/analytics/.errors.log</code>, do not throw</td>
+</tr>
+<tr>
+<td>Data format error</td>
+<td>Write raw data to <code>.errors.log</code>, skip the entry</td>
+</tr>
+<tr>
+<td>Concurrent writes</td>
+<td>JSONL O_APPEND atomic operation is inherently safe</td>
+</tr>
+<tr>
+<td>Directory missing</td>
+<td>recorder auto-creates</td>
+</tr>
+</tbody></table></div>
+<p>All hook scripts and plugin entry points use try-catch + silent degradation.</p>
+<h3>10. Testing Strategy</h3>
+<p>Manual verification flow:</p>
+<ol>
+<li>Start an AI session (Claude Code or OpenCode)</li>
+<li>Perform several operations (send messages, call tools, use skills)</li>
+<li>End the session</li>
+<li>Check that correct files were generated under <code>~/.coworker/analytics/sessions/</code></li>
+<li>Verify each JSONL line is valid JSON, timestamps correct, seq increments without gaps</li>
+</ol>
+<h3>11. TODO / Dependencies</h3>
+<ul>
+<li><strong>Initiative tracking</strong>: Currently <code>initiative-create/activate</code> injects INITIATIVE block into CLAUDE.md. DB import script needs to parse CLAUDE.md to extract current initiative. The listener&#x27;s own session.yaml may not contain initiative (to be filled in by the import script).</li>
+<li><strong>Skill 5/6</strong> (session summaries + memory-search): Not in current scope, separate design to follow.</li>
+</ul>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="2026-06-11-analytics-dashboard-superpowers.html"><span class="label">Previous</span>Analytics Listener + Dashboard — Implementation Plan</a><a class="next" href="2026-06-11-core-architecture-design.html"><span class="label">Next</span>Core Architecture Design</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

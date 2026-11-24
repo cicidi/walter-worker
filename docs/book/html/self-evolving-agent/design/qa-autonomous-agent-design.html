@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QA Autonomous Agent — Design ⚠️ DEFERRED · design · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/dashboard-ui-prd.html">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-29-devil-advocate-reviews-summary.html">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="auto-worker-design.html">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="dashboard-design.html">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="qa-autonomous-agent-design.html" aria-current="page">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../INDEX.html">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/band-ai-docs.html">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-agent-README.html">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-ai-docs.html">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-README.html">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-docs.html">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-agent-README.html">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/pioneer-docs.html">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/memory-graph-spec.html">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/qa-autonomous-agent-spec.html">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/self-evolving-agent-spec.html">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-29-current-state.html">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-dashboard-data-not-verified.html">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../impl-plan/self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../impl-plan/dependency-and-sequencing-impl-plan.html">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/qa-autonomous-agent-impl-plan.html">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/self-evolving-agent-test-plan.html"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/2026-07-29-test-execution-report.html">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-graph-test-plan.html">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>design</span> / <span>QA Autonomous Agent — Design ⚠️ DEFERRED</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/design/qa-autonomous-agent-design">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>QA Autonomous Agent — Design ⚠️ DEFERRED</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/design/qa-autonomous-agent-design.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>QA Autonomous Agent — Design ⚠️ DEFERRED</h2>
+<blockquote class="callout" data-label="NOTE"><p><strong>Status: DEFERRED (2026-07-25)</strong>  This document has been renamed conceptually to <strong>auto-worker</strong> — a self-discovering, self-fixing agent that depends on the three-tier memory system. It will be rewritten after the memory platform (PRD v4) is built.  For now, focus is on the memory infrastructure: Session → Project State → Long-Term (see PRD §3).  This document is preserved as-is for reference. Do NOT implement from it until it is rewritten.</p></blockquote>
+<blockquote class="callout" data-label="NOTE"><p>Initiative: self-evolving-agent | Type: design | Status: <strong>DEFERRED</strong>  Builds on: <a href="../prd/self-evolving-agent-prd-zh.html">self-evolving-agent PRD v3</a> Backend (Path 1b, chosen 2026-07-24): MEMORY.md (content) + <strong>sqlite-vec + fastembed</strong> (semantic search, 384-dim, in-process) + slimmed SQLite <code>knowledge_index</code> (exact queries only). Task tracking + session continuity via state files. Self-contained — does <strong>not</strong> depend on the unbuilt self-evolution-engine modules. See the &quot;v2 Backend&quot; section below and <a href="../impl-plan/dependency-and-sequencing-impl-plan.html">dependency-and-sequencing-impl-plan.md</a>.</p></blockquote>
+<h3>Overview</h3>
+<p>A skill pipeline within self-evolving-agent that autonomously:</p>
+<ol>
+<li>Reads scattered PRD/goal/context docs</li>
+<li>Audits project state against those docs</li>
+<li>Finds unfinished work + optimization opportunities</li>
+<li>Searches prior knowledge/decisions — same project, same topic, same problem, time-ordered, newest wins</li>
+<li>Self-executes remaining work and optimizations</li>
+<li>Persists progress via the PRD&#x27;s State Engine (§4)</li>
+</ol>
+<p><strong>Relationship to PRD:</strong> This is a concrete application of the self-evolving-agent loop (§2). <strong>(v2 / Path 1b)</strong> It uses MEMORY.md + sqlite-vec + fastembed for knowledge retrieval and semantic search (see v2 Backend). Task tracking and session continuity use the existing state file pattern. It does <strong>not</strong> depend on the PRD&#x27;s FTS5 (§3), State Engine (§4), or self-evolution engine (§5), which are not yet built. This design focuses on the _QA-specific logic_ that the general PRD doesn&#x27;t cover: gap detection methodology, continuous discovery dimensions, test plan lifecycle, and weak-model compensation strategies.</p>
+<p><strong>v3 implicit evolution integration:</strong> In v3, evolution happens implicitly after every session — skills are created/refined from session context without an explicit &quot;evolve&quot; command (§5.4). The QA pipeline integrates with this in two modes: (1) <strong>SDK mode</strong> — QA runs via <code>coworker run --skill qa-orchestrator</code> for scheduled audits, producing session context that feeds implicit evolution; (2) <strong>Post-session trigger</strong> — QA is triggered automatically after a development session via the SessionStop hook, analyzing that session&#x27;s work for gaps and feeding findings back into the implicit evolution pipeline.</p>
+<p><strong>Target model constraint:</strong> Primary execution uses DeepSeek v4 Pro/Flash — not a frontier model. Architecture compensates via decomposition, structured schemas, multi-pass verification, and leveraging the vec0 index as a pre-filter (avoid asking the model to &quot;remember&quot; or &quot;understand&quot; raw documents in one shot).</p>
+<p><strong>Time constraint:</strong> Each run starts by asking the user for max duration (default 12 hours). When time expires, loop gracefully stops and saves state via the State Engine.</p>
+<hr>
+<h3>v2 Backend: sqlite-vec + fastembed (Path 1b)</h3>
+<blockquote class="callout" data-label="NOTE"><p><strong>Decision (2026-07-24):</strong> sqlite-vec (in-process SQLite extension) + fastembed (ONNX, <code>BAAI/bge-small-en-v1.5</code>, 384-dim) on the existing <code>analytics.db</code>. Zero new services, zero API keys, zero external binaries. Spike validated 6/6 semantic queries on real knowledge entries (2026-07-24). See <a href="../impl-plan/dependency-and-sequencing-impl-plan.html">dependency-and-sequencing-impl-plan.md</a>.</p></blockquote>
+<h4>What sqlite-vec replaces (v1 → v2)</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>v1 (self-built)</th>
+<th>v2 (sqlite-vec + fastembed)</th>
+</tr></thead><tbody>
+<tr>
+<td><code>knowledge_index.py</code> + FTS5 full-text search</td>
+<td><strong>sqlite-vec vec0</strong> — in-process KNN (L2) with SQL metadata filtering; <code>knowledge_index.py</code> handles exact queries only</td>
+</tr>
+<tr>
+<td>state file • gap list (manual markdown)</td>
+<td><strong>state file</strong> (unchanged) — pending / fixing / done status per gap and optimization item</td>
+</tr>
+<tr>
+<td>state file • progress snapshot</td>
+<td><strong>state file</strong> (unchanged) — section headers track current phase, progress, decisions made</td>
+</tr>
+<tr>
+<td>(no semantic search)</td>
+<td><strong>fastembed</strong> — ONNX, <code>BAAI/bge-small-en-v1.5</code>, 384-dim, no GPU, 100% offline</td>
+</tr>
+</tbody></table></div>
+<blockquote class="callout" data-label="NOTE"><p>Task tracking and session continuity are handled by the existing state file pattern (<code>docs/&lt;initiative&gt;/state/</code>) — no external task board or &quot;principles engine&quot; needed for a single-skill QA pipeline.</p></blockquote>
+<h4>Storage (same database, one file)</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Surface</th>
+<th>Holds</th>
+<th>Lifetime</th>
+</tr></thead><tbody>
+<tr>
+<td><code>MEMORY.md</code></td>
+<td>full decision content (reasoning, context, evidence)</td>
+<td>durable, human-readable</td>
+</tr>
+<tr>
+<td>SQLite <code>knowledge_index</code> (<code>analytics.db</code>)</td>
+<td>metadata for exact <code>WHERE project=? AND topic=? AND problem=?</code> queries (schema in §1.2)</td>
+<td>durable</td>
+</tr>
+<tr>
+<td><strong>SQLite <code>knowledge_vec</code></strong> (<code>analytics.db</code>, same DB)</td>
+<td>384-dim embeddings keyed to <code>knowledge_index.rowid</code> — KNN semantic search via vec0</td>
+<td>durable</td>
+</tr>
+</tbody></table></div>
+<blockquote class="callout" data-label="NOTE"><p>All three share <code>analytics.db</code> — <strong>one file, no new service.</strong> The existing analytics dashboard reads the same database unchanged.</p></blockquote>
+<h4>Data flow</h4>
+<pre><code>Ingestion:  source → standardizer → SQLite + MEMORY.md + fastembed.encode() → knowledge_vec
+Query:      PRD item → SQLite exact → (miss?) vec0 KNN → LLM semantic filter
+Gap tracking: state file (docs/self-evolving-agent/state/) — per-gap status: pending/fixing/done
+Run continuity: state file — reads prior run&#x27;s section → resume where left off
+Discovery:  7 dimensions (grep / coverage / deps / perf / security / error-handling)</code></pre>
+<h4>Module roles (<code>src/coworker/qa/</code>)</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>File</th>
+<th>Role</th>
+</tr></thead><tbody>
+<tr>
+<td><code>knowledge_extract.py</code></td>
+<td>source → standardizer → SQLite + MEMORY.md + fastembed → knowledge_vec</td>
+</tr>
+<tr>
+<td><code>knowledge_search.py</code></td>
+<td>Layer 1 SQLite exact → Layer 2 vec0 KNN → LLM filter</td>
+</tr>
+<tr>
+<td><code>gap_check.py</code></td>
+<td>PRD-vs-reality, three-layer verification</td>
+</tr>
+<tr>
+<td><code>fix.py</code></td>
+<td>fix with state file tracking + mini test plan</td>
+</tr>
+<tr>
+<td><code>discovery.py</code></td>
+<td>7-dimension discovery</td>
+</tr>
+<tr>
+<td><code>orchestrator.py</code></td>
+<td>state-driven phase management, time budget</td>
+</tr>
+</tbody></table></div>
+<h4>Dependencies</h4>
+<ul>
+<li><strong><code>sqlite-vec</code></strong> — Python package (<code>pip install sqlite-vec</code>), loads as SQLite extension in-process. No server, no config.</li>
+<li><strong><code>fastembed</code></strong> — ONNX runtime, <code>BAAI/bge-small-en-v1.5</code>, 384-dim. <code>pip install fastembed</code>. First run downloads ~50MB model. No API key, no GPU. Already validated in this environment.</li>
+<li><strong><code>onnxruntime</code></strong> — already installed.</li>
+</ul>
+<h4>Why not Guild OSS / Mem0</h4>
+<ul>
+<li><strong>Guild OSS</strong> — adds a Go binary, MCP server, and external state dir (<code>~/.guild/</code>). Its Quests/Briefs/Oaths primitives overlap with existing state files. Go binary ≠ Python-callable API (execution-model ambiguity). Overkill for single-skill, single-agent use.</li>
+<li><strong>Mem0</strong> — requires a vector DB backend (Qdrant/Chroma) plus an extraction LLM. Heavier than needed.</li>
+<li><strong>sqlite-vec</strong> — extends the existing <code>analytics.db</code>; zero new services; Python-native API (no MCP proxying); dashboard reads the same file unchanged.</li>
+</ul>
+<h4>Error handling (spec §5.2)</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Code</th>
+<th>Fault</th>
+<th>Behavior</th>
+</tr></thead><tbody>
+<tr>
+<td><code>QA_E011</code></td>
+<td>Embedding model unavailable (fastembed)</td>
+<td>Degrade: SQLite exact-match only, mark <code>confidence: low</code></td>
+</tr>
+<tr>
+<td><code>QA_E004</code></td>
+<td>vec0 index corrupted</td>
+<td>Rebuild from knowledge table + fastembed re-embed</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>Core Loop (extends PRD §2.2 — SDK mode)</h3>
+<blockquote class="callout" data-label="NOTE"><p><strong>Mode: SDK.</strong> This loop runs via <code>coworker run --skill qa-orchestrator</code> — the SDK mode execution path. In SDK mode, the agent operates without an interactive conversation context; all user interaction (time budget prompt, test plan confirmation) goes through the State Engine and skill hooks. The loop is also triggerable post-session via SessionStop hook, where it reads the just-completed session&#x27;s context and runs discovery/repair on that scope.</p></blockquote>
+<pre><code>Run:
+  0. Ask user: &quot;这次跑多久？&quot; (default: 12h)
+     → store in state.max_duration_seconds
+  1. Load context:
+     - PRD &amp; goal docs (filesystem)
+     - Knowledge snapshot (MEMORY.md via PRD §3.6)
+     - Prior state (State Engine §4)
+     - Search relevant decisions (vec0 KNN via sqlite-vec)
+  2. Check test plan → missing? → discuss with user → generate → write to docs/
+  3. Execute test plan → results → State Engine update
+  4. Gap check: PRD items × three-layer verification (static → test → dynamic)
+  5. Repair phase:
+     - Report gaps (Claude/GLM — PRD §6.6 model routing)
+     - Fix gaps (DeepSeek Flash)
+     - Each fix → mini test plan → verify → State Engine update
+  6. Discover optimizations (see Discovery Dimensions below)
+  7. Each optimization → mini test plan → execute → result → State Engine
+  8. If time remains → loop back to step 6 (continue discovering)
+  9. Time up → final state snapshot → session post-summary (PRD §5.4) → done</code></pre>
+<h4>Model Routing</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Task</th>
+<th>Model</th>
+<th>Why</th>
+</tr></thead><tbody>
+<tr>
+<td>Knowledge extraction from sources</td>
+<td>DeepSeek v4 Pro</td>
+<td>Structured schema, two-step prompting</td>
+</tr>
+<tr>
+<td>Gap detection (per-item comparison)</td>
+<td>DeepSeek v4 Pro</td>
+<td>Decomposed to yes/no per PRD item</td>
+</tr>
+<tr>
+<td>Report generation</td>
+<td>Claude / GLM</td>
+<td>Narrative quality matters</td>
+</tr>
+<tr>
+<td>Code fixes</td>
+<td>DeepSeek v4 Flash</td>
+<td>Cheap, mechanical — PRD §6.6</td>
+</tr>
+<tr>
+<td>Test generation</td>
+<td>DeepSeek v4 Flash</td>
+<td>&quot;Copy existing pattern, replace assertion&quot;</td>
+</tr>
+<tr>
+<td>Arbitration (conflicting decisions)</td>
+<td>Claude / GLM</td>
+<td>Needs best judgment</td>
+</tr>
+<tr>
+<td>External reference search</td>
+<td>WebSearch (no model)</td>
+<td>Retrieval, not reasoning</td>
+</tr>
+<tr>
+<td>Memory extraction / embedding (fastembed)</td>
+<td>DeepSeek Flash</td>
+<td>ingestion pipeline (§1.4)</td>
+</tr>
+<tr>
+<td>Hash / SQL / grep operations</td>
+<td>No model</td>
+<td>Deterministic</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>1. Knowledge Retrieval (extends PRD §3)</h3>
+<blockquote class="callout" data-label="NOTE"><p><strong>ℹ️ v2-aligned (Path 1b).</strong> §1.1 shows the storage model (MEMORY.md content + SQLite exact + knowledge_vec semantic). §1.2&#x27;s SQLite schema applies for exact queries only (<strong>FTS5 removed</strong>). §1.5&#x27;s query flow uses vec0 KNN for semantic search. See &quot;v2 Backend&quot; above.</p></blockquote>
+<blockquote class="callout" data-label="NOTE"><p><strong>Tools used (v2):</strong> <code>sqlite_vec</code> + <code>fastembed</code> — Python APIs. <code>fastembed.encode(text)</code> produces 384-dim embeddings. <code>vec0</code> virtual table provides KNN search (<code>ORDER BY embedding &lt;-&gt; query</code>). The QA orchestrator calls these directly in-process — no MCP proxying needed.</p></blockquote>
+<h4>1.1 Architecture: Content + Exact + Semantic (v2)</h4>
+<p>Three surfaces sharing <code>analytics.db</code> (see v2 Backend). Zero new services.</p>
+<pre><code>MEMORY.md              SQLite knowledge_index        knowledge_vec (analytics.db)
+─────────              ──────────────────────        ─────────────────────────────
+存: 完整决策内容       存: project, topic, problem,  存: 384-dim embedding vectors
+   reasoning, context,    type, source, timestamp,      (BAAI/bge-small-en-v1.5)
+   evidence               source_hash, memory_ref,   用途: KNN 语义检索 (L2)
+   (LLM 读这里)           superseded_by              索引: sqlite-vec vec0 in-process
+用途: LLM 阅读 + 人类   用途: 精确查询 + 去重 + 冲突
+                       索引: B-tree (project,topic,problem)
+
+                    ┌────────────────────┐
+                    │  vec0 KNN +        │
+                    │  LLM filter        │
+                    └─────────┬──────────┘
+                              │
+              ┌───────────────┼───────────────┐
+              ▼                               ▼
+         SQLite 精确过滤                vec0 KNN 语义检索
+         WHERE topic=&#x27;auth&#x27;            &#x27;token refresh&#x27; (384-dim)
+         AND problem=&#x27;token-*&#x27;
+              │                               │
+              └───────────────┬───────────────┘
+                              ▼
+                    合并 → memory_ref → 读 MEMORY.md 原文 → 给 LLM</code></pre>
+<p><strong>类比</strong>: SQLite = 图书馆目录（精确定位），knowledge_vec = 语义索引（按意思找），MEMORY.md = 书架上的书（内容）。三者同在 <code>analytics.db</code> 一个文件。</p>
+<h4>1.2 SQLite Metadata Schema</h4>
+<pre><code>-- 知识条目元数据表（只存导航信息，不存正文）
+CREATE TABLE knowledge_index (
+    id              TEXT PRIMARY KEY,  -- hash(project + topic + problem + source)
+    project         TEXT NOT NULL,
+    topic           TEXT NOT NULL,     -- normalized slug, e.g. &quot;auth&quot;
+    problem         TEXT NOT NULL,     -- normalized slug, e.g. &quot;token-expiry-on-reload&quot;
+    type            TEXT NOT NULL,     -- &#x27;decision&#x27; | &#x27;knowledge&#x27; | &#x27;requirement&#x27; | &#x27;bug-fix&#x27;
+    source          TEXT NOT NULL,     -- file path, URL, or git ref
+    source_type     TEXT NOT NULL,     -- see table below
+    source_hash     TEXT NOT NULL,     -- SHA-256 of source content at index time
+    timestamp       TEXT NOT NULL,     -- ISO 8601
+    memory_ref      TEXT NOT NULL,     -- pointer: &quot;project/mfangdai/MEMORY.md#L89&quot; or &quot;session:sess_789&quot;
+    superseded_by   TEXT,              -- ID of newer record that overrides this one
+    created_at      TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_exact_match ON knowledge_index(project, topic, problem);
+CREATE INDEX idx_timeline ON knowledge_index(project, topic, problem, timestamp);
+CREATE INDEX idx_hash_check ON knowledge_index(source_type, source_hash);</code></pre>
+<p><strong>MEMORY.md 中的对应条目</strong>（内容存这里，SQLite 只存指针）：</p>
+<pre><code>§ 修复 token 过期问题，改用 sessionStorage 并在过期前 5 分钟自动续期
+  → reasoning: localStorage 在 iOS Safari private mode 不可用
+  → decision: sessionStorage + 5min pre-expiry refresh
+  → evidence: git:abc123, 2026-07-20</code></pre>
+<h4>1.3 Source Types</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>source_type</th>
+<th>Mutable?</th>
+<th>What&#x27;s indexed</th>
+</tr></thead><tbody>
+<tr>
+<td><code>session</code></td>
+<td>No</td>
+<td>Session transcript / decision</td>
+</tr>
+<tr>
+<td><code>git-commit</code></td>
+<td>No</td>
+<td>Commit message</td>
+</tr>
+<tr>
+<td><code>git-pr</code></td>
+<td>No</td>
+<td>PR title + body</td>
+</tr>
+<tr>
+<td><code>issue</code></td>
+<td>No</td>
+<td>GitHub issue</td>
+</tr>
+<tr>
+<td><code>prd</code></td>
+<td><strong>Yes</strong></td>
+<td>docs/prd.md or equivalent</td>
+</tr>
+<tr>
+<td><code>claude-md</code></td>
+<td><strong>Yes</strong></td>
+<td>CLAUDE.md initiative blocks</td>
+</tr>
+<tr>
+<td><code>spec</code></td>
+<td><strong>Yes</strong></td>
+<td>Design spec documents</td>
+</tr>
+<tr>
+<td><code>state</code></td>
+<td><strong>Yes</strong></td>
+<td>State Engine §4 state files</td>
+</tr>
+</tbody></table></div>
+<p><strong>Mutable source handling:</strong> At start of each run, SELECT all <code>source_type IN (&#x27;prd&#x27;,&#x27;claude-md&#x27;,&#x27;spec&#x27;,&#x27;state&#x27;)</code> → compute current SHA-256 → compare with stored <code>source_hash</code> → different? → re-extract → update SQLite row + update MEMORY.md entry.</p>
+<p><strong>Immutable sources</strong> (session, git, issue): indexed once, source_hash never rechecked.</p>
+<h4>1.4 Ingestion Pipeline</h4>
+<pre><code>Source → Collector (extract raw_text) → Standardizer (LLM)
+                                            │
+                              ┌─────────────┼─────────────┐
+                              ▼                           ▼
+                      INSERT INTO                   UPSERT into
+                      knowledge_index               MEMORY.md
+                      (metadata only)               (full content + context)</code></pre>
+<p><strong>Two-step extraction for weak models:</strong></p>
+<pre><code>Step 1: Classify topic
+  &quot;This text discusses which functional domain?
+   Check existing topics: {SELECT DISTINCT topic FROM knowledge_index WHERE project=?}
+   Reuse an existing one if it matches. Output one word only.&quot;
+
+Step 2: Structured extraction (given topic from step 1)
+  &quot;Extract per schema:
+   { problem: stable-slug, type: decision|knowledge|requirement|bug-fix,
+     summary: 2-3 sentences, key_points: string[] }&quot;</code></pre>
+<h4>1.5 Query Flow</h4>
+<pre><code>PRD item → extract topic + problem keywords
+    │
+    ▼
+  ┌─ SQLite precise lookup ──────────────────────┐
+  │ SELECT * FROM knowledge_index                 │
+  │ WHERE project=? AND topic=? AND problem LIKE ?│
+  │ ORDER BY timestamp DESC                       │
+  └───────────────────────────────────────────────┘
+    │
+    ├── exact match found? → read MEMORY.md via memory_ref → done
+    │
+    ├── no exact match? → broaden to topic level
+    │   SELECT * WHERE project=? AND topic=?
+    │   → vec0 KNN (sqlite-vec)
+    │
+    └── LLM filter (minimal tokens):
+        &quot;Does this result discuss the same problem as the PRD item?&quot;
+        → {relevant: bool, reason: one sentence}</code></pre>
+<h4>1.6 Conflict Resolution</h4>
+<pre><code>Same (project, topic, problem), multiple rows:
+
+  v1 (2026-01): &quot;use Redux&quot;
+  v2 (2026-03): &quot;use Context&quot;
+  v3 (2026-06): &quot;use Zustand&quot;        ← auto-select newest
+
+  BUT: LLM checks if v3&#x27;s key_points contain different preconditions
+       than v2 → if yes, flag &quot;needs resolution&quot;
+       → escalate to Claude/GLM for arbitration
+
+  Old rows NOT deleted. Set superseded_by → v3.id.</code></pre>
+<hr>
+<h3>2. Gap Detection (new)</h3>
+<h4>2.0 Time Budget</h4>
+<pre><code>Ask user: &quot;这次任务最多跑多久？&quot; (default: 12h)
+Store in state.max_duration_seconds
+Start timer.
+Each loop iteration: check elapsed &lt; max → continue; else → graceful stop.</code></pre>
+<p>Extends PRD §2.2.2 termination condition #3 (time expired, default 12h).</p>
+<h4>2.1 Test Plan Gate</h4>
+<p>Before any gap detection or fixing, a test plan must exist. If missing, STOP and discuss:</p>
+<pre><code>1. Parse PRD → list modules
+2. For each module, propose test scenarios:
+   &quot;auth 模块至少需要: 正常登录, 错误密码, token过期, 并发登录...&quot;
+3. Ask user:
+   &quot;我识别出这些测试场景。这是完整的吗？哪些是 P0？验收标准是什么？&quot;
+4. User confirms → generate test-plan.md → write to docs/ → begin execution
+5. Store test plan path in state file (State Engine §4)</code></pre>
+<p>Agent does 80% of the work (scenario identification), user provides 20% (prioritization + acceptance criteria).</p>
+<h4>2.2 Three-Layer Verification</h4>
+<p>For each PRD item:</p>
+<pre><code>Layer 1 — Static Evidence (fast, cheap)
+  grep/code search for implementation
+  → verdict: found / not_found
+  → evidence: file:line or &quot;no matching code found&quot;
+
+Layer 2 — Test Evidence (slower, more reliable)
+  Run existing tests for this feature
+  → verdict: tested / not_tested / test_failed
+  → evidence: test file:line + pass/fail result
+
+Layer 3 — Dynamic Verification (slowest, most reliable)
+  No test exists? → generate minimal test following existing patterns
+  → run it
+  → verdict: verified / not_working
+  → evidence: generated test code + run result</code></pre>
+<p>Output per PRD item:</p>
+<pre><code>{
+  &quot;prd_item&quot;: &quot;token auto-refresh on expiry&quot;,
+  &quot;static&quot;: {&quot;verdict&quot;: &quot;found&quot;, &quot;evidence&quot;: &quot;src/auth/tokenRefresh.ts:42&quot;},
+  &quot;test&quot;: {&quot;verdict&quot;: &quot;tested&quot;, &quot;evidence&quot;: &quot;tests/auth/token.test.ts:89, pass&quot;},
+  &quot;dynamic&quot;: null,
+  &quot;gap&quot;: false,
+  &quot;confidence&quot;: &quot;high&quot;,
+  &quot;reasoning&quot;: &quot;Implementation exists + test covers it + test passes&quot;
+}</code></pre>
+<p><strong>Weak-model compensation:</strong> Each layer asks the model a single yes/no question with evidence already provided by grep/test runner. The model never &quot;remembers&quot; or &quot;understands&quot; the full codebase — it judges one piece of evidence at a time.</p>
+<h4>2.3 Repair</h4>
+<pre><code>Gaps collected → Claude/GLM narrative report → user reviews
+  → each confirmed gap → DeepSeek Flash fix → verification → State Engine update</code></pre>
+<hr>
+<h3>3. Continuous Discovery (new)</h3>
+<p>After gaps are fixed, the loop continues discovering optimization opportunities. This is the &quot;never truly done&quot; engine — the agent doesn&#x27;t stop at &quot;tests pass.&quot;</p>
+<h4>3.1 Discovery Dimensions</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Dimension</th>
+<th>Check</th>
+<th>Method</th>
+</tr></thead><tbody>
+<tr>
+<td>External Reference</td>
+<td>Official docs, best practices, sample projects vs current code</td>
+<td>WebSearch + diff analysis</td>
+</tr>
+<tr>
+<td>Code Pattern Consistency</td>
+<td>Same pattern implemented multiple ways?</td>
+<td>grep + pattern matching across codebase</td>
+</tr>
+<tr>
+<td>Test Coverage Gaps</td>
+<td>Which branches/edge cases are untested?</td>
+<td>Coverage tool + PRD boundary analysis</td>
+</tr>
+<tr>
+<td>Dependency Debt</td>
+<td>Outdated/vulnerable dependencies?</td>
+<td><code>npm outdated</code>, <code>npm audit</code> (or lang equivalent)</td>
+</tr>
+<tr>
+<td>Performance Signals</td>
+<td>Bundle size, slow queries, unoptimized assets?</td>
+<td>Lighthouse, bundler analyzer, query profiler</td>
+</tr>
+<tr>
+<td>Security Signals</td>
+<td>Hardcoded secrets, missing auth checks?</td>
+<td>Secret scanning, pattern grep</td>
+</tr>
+<tr>
+<td>Error Handling</td>
+<td>Missing error boundaries, uncaught promise chains?</td>
+<td>Static analysis</td>
+</tr>
+</tbody></table></div>
+<h4>3.2 Optimization Workflow</h4>
+<pre><code>Discovery → classify by dimension
+  → for each finding: mini test plan
+  → fix (DeepSeek Flash)
+  → run mini test plan
+  → result → State Engine update
+  → continue to next finding (while time remains)</code></pre>
+<h4>3.3 Mini Test Plan Format</h4>
+<pre><code>## Optimization: migrate API routes to Server Actions
+**ID:** O-2026-07-24-001
+**Priority:** medium
+**Dimension:** external-reference
+**Reference:** Next.js 14 docs recommend Server Actions over API routes
+
+### Test Plan
+- [ ] Before: existing API route tests still pass
+- [ ] After: migrated code passes same tests
+- [ ] Performance: response time not regressed (&gt; baseline)
+- [ ] Manual: form submission works end-to-end
+
+### Result
+- 2026-07-24: migrated 3 routes, all tests pass, perf unchanged</code></pre>
+<hr>
+<h3>4. State Integration (uses PRD §4)</h3>
+<blockquote class="callout" data-label="NOTE"><p><strong>ℹ️ v2 (Path 1b):</strong> gap tracking and progress snapshots use <strong>state files</strong> (see &quot;v2 Backend&quot; above). The markdown state file below is the primary artifact for run-to-run continuity and fallback.</p></blockquote>
+<blockquote class="callout" data-label="NOTE"><p><strong>Safety gate (PRD §5.6):</strong> All <code>qa-fix</code> outputs (code changes, config edits, generated files) must pass sandbox testing before being committed or applied. The sandbox runs the generated fix in an isolated environment and verifies: tests pass, no new security issues introduced, and no regression in existing functionality. Failed sandbox results are discarded and the orchestrator re-enters the repair phase with the failure context.</p></blockquote>
+<p>QA pipeline state writes through the PRD&#x27;s State Engine. State file location: <code>docs/self-evolving-agent/state/YYYY-MM-DD-qa-run-{task}.md</code></p>
+<pre><code># QA Run State: {task-name}
+
+**Started:** 2026-07-24 10:00
+**Status:** in_progress
+**Last Run:** 2026-07-24 16:30
+**Max Duration:** 12h (elapsed: 6h30m, remaining: 5h30m)
+
+## Current Phase
+discovery (step 6: finding optimizations)
+
+## Test Plan
+- [x] auth: normal login → pass
+- [x] auth: wrong password → pass
+- [ ] auth: token refresh → gap (fix in progress)
+
+## Gaps Found
+| ID | PRD Item | Verdict | Evidence | Status |
+|----|----------|---------|----------|--------|
+| G-1 | auto-refresh token | not implemented | no code found in src/auth/ | fixing |
+| G-2 | rate limiting | missing test | code exists, no test | todo |
+
+## Optimizations
+| ID | What | Dimension | Priority | Status | Result |
+|----|------|-----------|----------|--------|--------|
+| O-1 | migrate to Server Actions | external-ref | medium | todo | — |
+| O-2 | compress bundle PNGs | perf | low | done | -40% bundle |
+
+## Decisions Made This Run
+- 2026-07-24: token refresh → sessionStorage + 5min pre-expiry refresh
+  (source: MEMORY.md entry decision/auth-token-storage-2026-07-20)</code></pre>
+<p>State file is also ingested back into MEMORY.md as a <code>state</code> entry for future vec0 semantic search.</p>
+<hr>
+<h3>5. Skill Architecture</h3>
+<p>Skills to create. Each follows the PRD&#x27;s self-evolution patterns (§5):</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Skill</th>
+<th>Purpose</th>
+<th>Model</th>
+<th>PRD Integration</th>
+</tr></thead><tbody>
+<tr>
+<td><code>qa-knowledge-extract</code></td>
+<td>Extract structured (project, topic, problem) from all source types → MEMORY.md + SQLite + knowledge_vec</td>
+<td>DeepSeek Pro</td>
+<td>Ingestion (§1.4); writes all three surfaces</td>
+</tr>
+<tr>
+<td><code>qa-knowledge-search</code></td>
+<td>SQLite exact → vec0 KNN → LLM filter</td>
+<td>SQLite (no model) + DeepSeek Pro</td>
+<td>Query flow (§1.5)</td>
+</tr>
+<tr>
+<td><code>qa-gap-check</code></td>
+<td>PRD vs reality comparison, three-layer verification</td>
+<td>DeepSeek Pro (per-item) + Claude/GLM (report)</td>
+<td>New</td>
+</tr>
+<tr>
+<td><code>qa-test-plan</code></td>
+<td>Generate/validate test plans, discuss with user</td>
+<td>Claude/GLM (discussion) + DeepSeek Pro (generation)</td>
+<td>Uses §4 State Engine for persistence</td>
+</tr>
+<tr>
+<td><code>qa-continuous-discovery</code></td>
+<td>Scan for optimizations across all dimensions</td>
+<td>DeepSeek Pro (per-dimension) + Claude/GLM (external ref)</td>
+<td>New</td>
+</tr>
+<tr>
+<td><code>qa-fix</code></td>
+<td>Execute fixes for gaps and optimizations</td>
+<td>DeepSeek Flash</td>
+<td>PRD §6.6 cost model</td>
+</tr>
+<tr>
+<td><code>qa-orchestrator</code></td>
+<td>Main loop: coordinate phases, manage time, persist state</td>
+<td>DeepSeek Pro</td>
+<td>Implements §2.1 loop state machine</td>
+</tr>
+</tbody></table></div>
+<h4>Triggers</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Trigger</th>
+<th>Mechanism</th>
+</tr></thead><tbody>
+<tr>
+<td>Slash command</td>
+<td><code>/qa-run [task-name] [max-hours]</code></td>
+</tr>
+<tr>
+<td>Git push hook</td>
+<td>Auto-trigger incremental extraction + gap check</td>
+</tr>
+<tr>
+<td>PR merge hook</td>
+<td>Auto-trigger: extraction + verify related PRD items</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>6. Key Design Decisions</h3>
+<ol>
+<li><strong>sqlite-vec on analytics.db (v2).</strong> MEMORY.md stores full content (LLM reads this); SQLite <code>knowledge_index</code> stores metadata for exact <code>WHERE project/topic/problem</code> queries (<strong>FTS5 removed</strong>); <code>knowledge_vec</code> provides KNN semantic search via sqlite-vec + fastembed (384-dim). All three surfaces share one <code>analytics.db</code> file — no new service, no external binary. See v2 Backend.</li>
+</ol>
+<ol>
+<li><strong>Mutable source hash checking.</strong> PRD/CLAUDE.md changes auto-detected via SHA-256 at run start. Stale MEMORY.md entries re-extracted.</li>
+</ol>
+<ol>
+<li><strong>Two-step extraction for weak models.</strong> Classify topic first, then extract details. Reduces error rate vs single-pass.</li>
+</ol>
+<ol>
+<li><strong>Model tiering.</strong> Strong models (Claude/GLM) for reports, arbitration, user discussion. Cheap models (DeepSeek Flash) for mechanical code fixes. DeepSeek Pro for structured extraction.</li>
+</ol>
+<ol>
+<li><strong>Test plans are mandatory gates.</strong> No execution without one. Agent proposes, user confirms.</li>
+</ol>
+<ol>
+<li><strong>Continuous discovery.</strong> After gaps are fixed, the loop continues finding optimizations until time expires. Not &quot;done when tests pass&quot; — done when time runs out.</li>
+</ol>
+<ol>
+<li><strong>State continuity.</strong> Every run reads prior state, knows what was done, and continues. State feeds back into MEMORY.md for future retrieval.</li>
+</ol>
+<hr>
+<h3>7. Out of Scope (Phase 2+)</h3>
+<ul>
+<li>Adversarial multi-agent review</li>
+<li>Custom vector search implementation — sqlite-vec vec0 already provides in-process KNN on analytics.db; no external vector index or service needed.</li>
+<li>Automatic PR creation and merge (Phase 1 stops at commit)</li>
+<li>Cross-project knowledge transfer (single-project scope)</li>
+</ul>
+<hr>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Date</th>
+<th>Change</th>
+</tr></thead><tbody>
+<tr>
+<td>2026-07-24</td>
+<td>Initial creation</td>
+</tr>
+<tr>
+<td>2026-07-24</td>
+<td>Reconciled with self-evolving-agent PRD — aligned state with State Engine §4; referenced PRD loop, memory, and evolution infrastructure throughout</td>
+</tr>
+<tr>
+<td>2026-07-24</td>
+<td>Restored SQLite as two-tier architecture: SQLite = metadata catalog (project/topic/problem/type/hash/memory_ref), MEMORY.md = full content. FTS5 + SQLite B-tree serve complementary query paths — neither replaces the other.</td>
+</tr>
+<tr>
+<td>2026-07-24</td>
+<td>v3 alignment: updated PRD ref to v3, corrected termination condition #3 (budget exhaustion → time expired), added SDK mode preamble to core loop, documented v3 implicit evolution integration (SDK mode + SessionStop hook), referenced /memory-search and /memory-add skills in §1, added PRD §5.6 safety architecture gate to §4.</td>
+</tr>
+<tr>
+<td>2026-07-24</td>
+<td>Path 1b chosen: added &quot;v2 Backend: Guild OSS + Jam.dev MCP&quot; section (grounded in Appendix A v2 guidance + Guild README); marked §1 storage and §4 state as v1/partially-superseded with reconciliation notes; updated header to the Guild backend. QA skill is now self-contained — resolves the dependency conflict with the unbuilt engine.</td>
+</tr>
+<tr>
+<td>2026-07-24</td>
+<td>Aligned §1.1 (architecture diagram → three-surface) and §6 #1 (→ three-surface storage) to v2; swept remaining FTS5 references across Overview, Core Loop, Model Routing, §1 tools/query-flow, §4, §5 skill table, §7 — all semantic search now via Guild Lore. No residual two-tier/FTS5 wording (historical changelog rows excepted).</td>
+</tr>
+<tr>
+<td>2026-07-24</td>
+<td>Replaced Guild OSS with sqlite-vec + fastembed (Path 1b): rewrote &quot;v2 Backend&quot; section; updated header, overview, §1.1 diagram (knowledge_vec column), §1 notes, §1.5, §4, §5 skill table, §6 #1, §7. All surfaces share analytics.db — zero new services. Spike validated 6/6 semantic queries on real knowledge entries.</td>
+</tr>
+</tbody></table></div>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="memory-platform-design.html"><span class="label">Previous</span>Memory Platform — Design</a><a class="next" href="../INDEX.html"><span class="label">Next</span>self-evolving-agent — Document Index</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard — Evolution Page Design · design · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/dashboard-ui-prd.html">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-29-devil-advocate-reviews-summary.html">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="auto-worker-design.html">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="dashboard-design.html" aria-current="page">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="qa-autonomous-agent-design.html">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../INDEX.html">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/band-ai-docs.html">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-agent-README.html">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-ai-docs.html">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-README.html">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-docs.html">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-agent-README.html">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/pioneer-docs.html">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/memory-graph-spec.html">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/qa-autonomous-agent-spec.html">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/self-evolving-agent-spec.html">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-29-current-state.html">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-dashboard-data-not-verified.html">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../impl-plan/self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../impl-plan/dependency-and-sequencing-impl-plan.html">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/qa-autonomous-agent-impl-plan.html">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/self-evolving-agent-test-plan.html"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/2026-07-29-test-execution-report.html">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-graph-test-plan.html">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>design</span> / <span>Dashboard — Evolution Page Design</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/design/dashboard-design">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>Dashboard — Evolution Page Design</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/design/dashboard-design.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Dashboard — Evolution Page Design</h2>
+<blockquote class="callout" data-label="NOTE"><p>Initiative: self-evolving-agent | Type: design | Status: <strong>draft v1</strong>  Builds on: <a href="../prd/self-evolving-agent-prd.html">PRD v6</a> (requirements), <a href="../spec/self-evolving-agent-spec.html">Spec v1.1</a> (technical detail), <a href="memory-platform-design.html">Memory Platform Design</a>  Design for a new &quot;Evolution&quot; page in the existing Coworker Analytics Dashboard. The page shows auto-trained skills and experiences with their session traceability and reuse metrics — the primary surface for answering &quot;is this thing working?&quot;</p></blockquote>
+<hr>
+<h3>1. Page Layout</h3>
+<pre><code>┌──────────────────────────────────────────────────────────────┐
+│  ⧩ Coworker                      ┌──────────────────────────┐│
+│                                   │                          ││
+│  ── Analytics ──                  │  ◉ Evolution             ││
+│  ◉ Overview                       │                          ││
+│  ☰ Sessions                       │  ┌────────────────────┐  ││
+│  ◎ Knowledge                      │  │ Stat Cards          │  ││
+│  ◈ Initiatives                    │  │ Skills │ Exp │ Rate │  ││
+│                                   │  └────────────────────┘  ││
+│  ── Monitoring ──                 │                          ││
+│  ◉ Monitor                        │  ┌────────────────────┐  ││
+│  ◆ Skills                         │  │ Skills Table        │  ││
+│  ◉ Evolution    ← NEW             │  │ (auto-train flag,   │  ││
+│  ⚙ Tools                          │  │  sessions, reuses)  │  ││
+│  ◫ Files                          │  └────────────────────┘  ││
+│                                   │                          ││
+│                                   │  ┌────────────────────┐  ││
+│                                   │  │ Experiences Table   │  ││
+│                                   │  │ (auto-train flag,   │  ││
+│                                   │  │  source session,    │  ││
+│                                   │  │  reuses)            │  ││
+│                                   │  └────────────────────┘  ││
+└──────────────────────────────────────────────────────────────┘</code></pre>
+<p>New sidebar item: <code>◉ Evolution</code> under Monitoring section (between Skills and Tools).</p>
+<hr>
+<h3>2. Stat Cards (Top Row)</h3>
+<p>Four metrics at a glance:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Card</th>
+<th>Label</th>
+<th>Source</th>
+</tr></thead><tbody>
+<tr>
+<td>Auto-Trained Skills</td>
+<td>count</td>
+<td>mem0 skill store: <code>provenance=agent</code></td>
+</tr>
+<tr>
+<td>Experiences</td>
+<td>count</td>
+<td>mem0: <code>type=lesson, provenance=agent</code></td>
+</tr>
+<tr>
+<td>Skill Reuse Rate</td>
+<td>%</td>
+<td>sessions invoking auto-skill / total sessions</td>
+</tr>
+<tr>
+<td>Evolution Score</td>
+<td>%</td>
+<td>composite: rising reuse + falling corrections</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>3. Skills Table</h3>
+<p>Each row = one skill. Key columns:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Column</th>
+<th>Source</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>Name</strong></td>
+<td>skill store</td>
+<td>Clickable → skill detail</td>
+</tr>
+<tr>
+<td><strong>Auto-Train</strong></td>
+<td><code>provenance</code></td>
+<td>🟢 Auto-Train / 🔵 Bundled / ⚪ Hand-Written</td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td><code>state</code></td>
+<td>active / stale / archived</td>
+</tr>
+<tr>
+<td><strong>Created</strong></td>
+<td><code>created_at</code></td>
+<td>Date</td>
+</tr>
+<tr>
+<td><strong>Sessions Invoked</strong></td>
+<td>analytics.db</td>
+<td>Count of sessions that called this skill</td>
+</tr>
+<tr>
+<td><strong>Total Calls</strong></td>
+<td>analytics.db</td>
+<td>Total invocation count</td>
+</tr>
+<tr>
+<td><strong>Last Used</strong></td>
+<td>analytics.db</td>
+<td>Most recent session date</td>
+</tr>
+<tr>
+<td><strong>Reuse Rate</strong></td>
+<td>sessions_invoked / total_sessions</td>
+<td>% of sessions</td>
+</tr>
+</tbody></table></div>
+<p><strong>Default filter:</strong> <code>Auto-Train = true</code> — show auto-trained skills first.</p>
+<p><strong>Click behavior:</strong> Click skill name → expand row showing sessions that invoked it, with links to session detail.</p>
+<hr>
+<h3>4. Experiences Table</h3>
+<p>Each row = one experience/lesson. Key columns:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Column</th>
+<th>Source</th>
+<th>Notes</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>Summary</strong></td>
+<td>mem0 <code>memory</code> field</td>
+<td>Truncated to 120 chars</td>
+</tr>
+<tr>
+<td><strong>Auto-Train</strong></td>
+<td><code>provenance</code></td>
+<td>🟢 Auto-Train / ⚪ Hand-Written</td>
+</tr>
+<tr>
+<td><strong>Topic</strong></td>
+<td><code>metadata.topic</code></td>
+<td>Slug</td>
+</tr>
+<tr>
+<td><strong>Project</strong></td>
+<td><code>metadata.project</code></td>
+<td>Which project</td>
+</tr>
+<tr>
+<td><strong>Source Session</strong></td>
+<td><code>metadata.source_session</code></td>
+<td>Session that generated this</td>
+</tr>
+<tr>
+<td><strong>Times Retrieved</strong></td>
+<td><code>metadata.use_count</code></td>
+<td>How many times searched/used</td>
+</tr>
+<tr>
+<td><strong>Last Retrieved</strong></td>
+<td><code>metadata.last_used</code></td>
+<td>Most recent retrieval</td>
+</tr>
+<tr>
+<td><strong>Status</strong></td>
+<td><code>metadata.state</code></td>
+<td>active / stale / archived / pinned</td>
+</tr>
+</tbody></table></div>
+<p><strong>Default filter:</strong> <code>Auto-Train = true</code>.</p>
+<p><strong>Click behavior:</strong> Click summary → expand row showing full memory text + related sessions.</p>
+<hr>
+<h3>5. Filters &amp; Controls</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Filter</th>
+<th>Type</th>
+<th>Default</th>
+</tr></thead><tbody>
+<tr>
+<td>Auto-Train toggle</td>
+<td>switch (auto-train / all)</td>
+<td>auto-train only</td>
+</tr>
+<tr>
+<td>Project</td>
+<td>dropdown</td>
+<td>all projects</td>
+</tr>
+<tr>
+<td>Status</td>
+<td>multi-select (active/stale/archived/pinned)</td>
+<td>active only</td>
+</tr>
+<tr>
+<td>Topic</td>
+<td>search + autocomplete</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Date range</td>
+<td>from → to</td>
+<td>last 30 days</td>
+</tr>
+</tbody></table></div>
+<p><strong>Batch actions:</strong></p>
+<ul>
+<li>Approve all pending skills</li>
+<li>Reject all pending skills</li>
+<li>Export as CSV</li>
+</ul>
+<hr>
+<h3>6. API Endpoints</h3>
+<p>New endpoints to add to <code>app.py</code>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Endpoint</th>
+<th>Returns</th>
+</tr></thead><tbody>
+<tr>
+<td><code>GET /api/evolution/overview</code></td>
+<td>Stat card data (counts, rates)</td>
+</tr>
+<tr>
+<td><code>GET /api/evolution/skills?auto_train=true&amp;project=X&amp;status=active</code></td>
+<td>Skills list with columns above</td>
+</tr>
+<tr>
+<td><code>GET /api/evolution/skills/{id}</code></td>
+<td>Single skill detail + session trace</td>
+</tr>
+<tr>
+<td><code>GET /api/evolution/experiences?auto_train=true&amp;project=X&amp;status=active</code></td>
+<td>Experiences list</td>
+</tr>
+<tr>
+<td><code>GET /api/evolution/experiences/{id}</code></td>
+<td>Single experience detail</td>
+</tr>
+<tr>
+<td><code>GET /api/evolution/pending</code></td>
+<td>Pending queue items</td>
+</tr>
+<tr>
+<td><code>POST /api/evolution/approve/{id}</code></td>
+<td>Approve pending skill/experience</td>
+</tr>
+<tr>
+<td><code>POST /api/evolution/reject/{id}</code></td>
+<td>Reject pending skill/experience</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>7. Integration Points</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Data Source</th>
+<th>What the page reads</th>
+</tr></thead><tbody>
+<tr>
+<td>mem0 (Tier 3)</td>
+<td>Experiences, skill metadata, <code>provenance</code>, <code>state</code></td>
+</tr>
+<tr>
+<td>analytics.db</td>
+<td>Session trace: which session called which skill</td>
+</tr>
+<tr>
+<td>Skill store (<code>~/.coworker/skills/</code>)</td>
+<td>Skill names, <code>usage.json</code> sidecar</td>
+</tr>
+<tr>
+<td>Pending queue (<code>~/.coworker/pending/</code>)</td>
+<td>Staged items awaiting review</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>8. Visual Spec</h3>
+<ul>
+<li>Matches existing dashboard style: sidebar nav, stat-grid, panel + table</li>
+<li>Auto-train badge: green pill <code>🟢 Auto</code> vs grey pill <code>⚪ Manual</code></li>
+<li>Status badges: <code>● active</code> (green), <code>◉ stale</code> (yellow), <code>◎ archived</code> (grey)</li>
+<li>Row hover: highlight + expand arrow</li>
+<li>Default view: auto-train skills first, then auto-train experiences below</li>
+</ul>
+<hr>
+<h3>9. States</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>State</th>
+<th>What shows</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>Empty (no data)</strong></td>
+<td>&quot;No auto-trained skills yet. Complete a few sessions to start evolution.&quot; + link to docs</td>
+</tr>
+<tr>
+<td><strong>Loading</strong></td>
+<td>Skeleton cards + pulse animation</td>
+</tr>
+<tr>
+<td><strong>Error</strong></td>
+<td>Panel with error message + retry button</td>
+</tr>
+<tr>
+<td><strong>No auto-train items</strong></td>
+<td>&quot;All skills were created manually. Auto-train is enabled but hasn&#x27;t generated any skills yet.&quot;</td>
+</tr>
+<tr>
+<td><strong>All items archived</strong></td>
+<td>&quot;All auto-trained items are archived. Unarchive items or complete more sessions.&quot;</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Date</th>
+<th>Change</th>
+</tr></thead><tbody>
+<tr>
+<td>2026-07-25</td>
+<td>Initial creation</td>
+</tr>
+</tbody></table></div>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="auto-worker-design.html"><span class="label">Previous</span>Auto-Worker — Design</a><a class="next" href="memory-platform-design.html"><span class="label">Next</span>Memory Platform — Design</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

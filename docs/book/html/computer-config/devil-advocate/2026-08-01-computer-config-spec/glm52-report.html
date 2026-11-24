@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GLM-5.2 Independent Review Report — computer-config-spec.md · 2026-08-01-computer-config-spec · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../prd/computer-config-prd.html"><span class="tree-ord">1</span>computer-config — Product Requirements Document (PRD)</a></li><li class="tree-leaf"><a class="tree-link" href="discussion.html">Adversarial Review — computer-config-spec.md</a></li><li class="tree-leaf"><a class="tree-link" href="glm52-report.html" aria-current="page">GLM-5.2 Independent Review Report — computer-config-spec.md</a></li><li class="tree-leaf"><a class="tree-link" href="report.html">Adversarial Review Report — computer-config-spec.md</a></li><li class="tree-leaf"><a class="tree-link" href="../../spec/computer-config-spec.html">computer-config — Complete Technical Specification</a></li><li class="tree-leaf"><a class="tree-link" href="../../impl-plan/computer-config-impl-plan.html"><span class="tree-ord">4</span>computer-config — Implementation Plan (Impl Plan)</a></li><li class="tree-leaf"><a class="tree-link" href="../../test-plan/computer-config-test-plan.html"><span class="tree-ord">5</span>computer-config — Test Plan</a></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../../index.html">Docs</a> / <span>computer-config</span> / <span>devil-advocate</span> / <span>2026-08-01-computer-config-spec</span> / <span>GLM-5.2 Independent Review Report — computer-config-spec.md</span></nav>
+    <article class="doc" data-doc="computer-config/devil-advocate/2026-08-01-computer-config-spec/glm52-report">
+      <header class="doc-head">
+        <p class="eyebrow">computer-config</p>
+        <h1>GLM-5.2 Independent Review Report — computer-config-spec.md</h1>
+        <p class="source">Canonical: docs/features/computer-config/devil-advocate/2026-08-01-computer-config-spec/glm52-report.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>GLM-5.2 Independent Review Report — computer-config-spec.md</h2>
+<ul>
+<li><strong>Date</strong>: 2026-08-01</li>
+<li><strong>Reviewer model</strong>: GLM-5.2 (second opinion, after the DeepSeek devil-advocate review)</li>
+<li><strong>Method</strong>: 4 parallel dimension reviewers (factual / consistency / feasibility / contrarian) → synthesis</li>
+<li><strong>Overall verdict</strong>: <strong>needs-major-rework</strong></li>
+<li><strong>Prior DeepSeek findings</strong>: 7 resolved, 4 still-broken, 1 disagreement</li>
+</ul>
+<hr>
+<h3>Headline finding (critical) — reframed by the main agent</h3>
+<p>The live <code>settings.json</code> <code>model</code> field hex-decodes to <strong><code>Z.AI/glm-5.2</code></strong> (not the <code>deepseek-v4-flash</code> the spec hardcoded). Root cause: the <code>model</code> field is a <strong>moving target</strong> — it is rewritten every time the user switches models via <code>/model</code>. When first inspected it was flash; after switching to GLM-5.2 it became glm-5.2. The env vars (<code>ANTHROPIC_MODEL</code> = <code>deepseek-v4-pro</code>) are static.</p>
+<p><strong>Implication</strong>: documenting a specific decoded value is fragile; the &quot;reconcile model field to pro&quot; impl step is infeasible AND unnecessary (CCR routes by env vars; the field just tracks the last <code>/model</code> selection). Correct fix: remove the reconciliation step; document the mechanism, not a snapshot.</p>
+<h3>Critical new findings (GLM-5.2)</h3>
+<ol>
+<li><strong>Old walter-worker grey-theme users have no migration path</strong> — the detection</li>
+</ol>
+<p>   algorithm (marker / 6-hex / fresh) doesn&#x27;t recognize the <code># walter-worker status bar</code>    grey block; an existing walter-worker user would get Benjamin Blue appended ON TOP    of the grey theme → polluted <code>.tmux.conf</code>.</p>
+<ol>
+<li><strong>Cross-project manifest conflict is one-directional</strong> — claude-tmux-config</li>
+</ol>
+<p>   scopes its manifest, but walter-worker&#x27;s install.sh does <code>os.walk(~/.claude/)</code>    recursively and would claim <code>~/.claude/statusline/*</code> as its own; walter-worker    uninstall could then delete them.</p>
+<ol>
+<li><strong><code>_write_json_atomic</code> not vendorable into bash</strong> — the walter-worker version</li>
+</ol>
+<p>   calls <code>backup.snapshot()</code> (an internal Python module). A bash install.sh can&#x27;t    import it. Must use stdlib <code>shutil.copy2</code> for the <code>.bak</code>.</p>
+<ol>
+<li><strong>Model-field reconciliation impossible</strong> — installer has no way to obtain the</li>
+</ol>
+<p>   &quot;pro routing ID&quot; (CCR generates it at startup). → drop the step (see headline).</p>
+<ol>
+<li><strong>New-repo vs subdirectory decision has no decision record</strong> — (note: user</li>
+</ol>
+<p>   explicitly chose a new repo; record the rationale).</p>
+<h3>Major new findings</h3>
+<ul>
+<li>Manifest scope narrative says <code>~/.tmux/conf.d/ ONLY</code> but also deploys to <code>~/.tmux/scripts/</code> (self-contradiction).</li>
+<li>4 stale <code>0/1/2 menu</code> text refs: PRD FR-6, PRD §5 AC#2, spec §9 AC#2, test-plan §6 AC#1.</li>
+<li>Rich 90-line status_info.sh would be permanently deleted (spec said &quot;or fold in as optional&quot; — impl-plan just says &quot;delete&quot;).</li>
+<li>U4 (statusline when CCR down) still unaddressed.</li>
+<li>uninstall JSON-key removal mechanism unspecified.</li>
+<li>ccusage missing → silent <code>$0.00</code> cost, no warning.</li>
+<li>Runtime cache files (turn-counter-*.json, ccusage-cache.json) orphaned under manifest-driven deletion.</li>
+<li>NFR-3 (&lt;100ms) has zero test coverage.</li>
+<li>No <code>tmux source-file</code> reload step after install (fresh machines see no change).</li>
+<li><strong>GLM-5x pricing ($1.40/$4.40) possibly ~10x above public Zhipu rates (~$0.14/$0.55)</strong> — needs provider confirmation.</li>
+<li><strong>Effort threshold table wrong</strong>: spec says high=yellow; code says high=red (brick_red).</li>
+<li>Spec §6.3 incorrectly describes walter-worker manifest scope (omits ~/.claude/ walk).</li>
+</ul>
+<h3>Minor / nit</h3>
+<ul>
+<li>status_info.sh = 15 lines, spec says 13.</li>
+<li>Spec §2.2 model-field hex malformed (odd-length suffix, copy-paste).</li>
+<li>devil-advocate report not in INDEX.md.</li>
+<li>Test plan references <code>tests/run.sh</code> that no workstream creates.</li>
+<li>PRD US-4 &quot;one-click&quot; slightly overpromises (needs menu + y/N).</li>
+</ul>
+<h3>Disagreement with DeepSeek</h3>
+<ul>
+<li>U3 (&quot;remove tmux tracking = phantom task&quot;): GLM-5.2 says NOT phantom — walter-worker</li>
+</ul>
+<p>  manifest does walk ~/.claude/ and lists statusline files; Step B1 needs to specify   exactly what manifest logic is removed.</p>
+<hr>
+<p>*Full per-dimension JSON in workflow task output. This report supersedes nothing — it complements the DeepSeek report.md in the same folder.*</p>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="discussion.html"><span class="label">Previous</span>Adversarial Review — computer-config-spec.md</a><a class="next" href="report.html"><span class="label">Next</span>Adversarial Review Report — computer-config-spec.md</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../../assets/app.js"></script>
+</body>
+</html>

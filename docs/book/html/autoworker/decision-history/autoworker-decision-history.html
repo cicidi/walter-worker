@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auto-worker — Decision History · decision-history · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/autoworker-prd.html"><span class="tree-ord">1</span>Auto-worker — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="autoworker-decision-history.html" aria-current="page"><span class="tree-ord">2</span>Auto-worker — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/autoworker-design.html"><span class="tree-ord">3</span>Auto-worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/autoworker-impl-plan.html"><span class="tree-ord">4</span>Auto-worker — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/autoworker-test-plan.html"><span class="tree-ord">5</span>Auto-worker — Test Plan</a></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>autoworker</span> / <span>decision-history</span> / <span>Auto-worker — Decision History</span></nav>
+    <article class="doc" data-doc="autoworker/decision-history/autoworker-decision-history">
+      <header class="doc-head">
+        <p class="eyebrow">autoworker</p>
+        <h1>Auto-worker — Decision History</h1>
+        <p class="source">Canonical: docs/features/autoworker/decision-history/autoworker-decision-history.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Auto-worker — Decision History</h2>
+<p>Decisions about the auto-worker. Newest first. Each decision has an entry in the Evidence Appendix with its reason and the options it rejected.</p>
+<h3>Decision Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Date</th>
+<th>Decision</th>
+</tr></thead><tbody>
+<tr>
+<td><strong><a class="id-ref" href="#ARD-E">ARD-E</a></strong></td>
+<td>2026-11-24</td>
+<td>The review-fix pass for this backfill is applied as edits larger than the 10-line/200-character limit, authorized by the owner&#x27;s 2026-11-24 instruction to decide the approach (&quot;你自己看着弄&quot;).</td>
+</tr>
+<tr>
+<td><strong><a class="id-ref" href="#ARD-D">ARD-D</a></strong></td>
+<td>2026-11-24</td>
+<td>Where the code does not meet a requirement, the PRD keeps the requirement, the design states what the code does today, and the gap is a design Open Question for the owner to decide.</td>
+</tr>
+<tr>
+<td><strong><a class="id-ref" href="#ARD-A">ARD-A</a></strong></td>
+<td>2026-11-24</td>
+<td>The uncommitted 2026-11-04 drafts are rewritten whole in their first commit. Their IDs were never published, so no old-to-new table is kept.</td>
+</tr>
+<tr>
+<td><strong><a class="id-ref" href="#ARD-C">ARD-C</a></strong></td>
+<td>2026-09-25</td>
+<td>A missing <code>claude</code> command makes the round fail; there is no fallback that pretends to run without tools.</td>
+</tr>
+<tr>
+<td><strong><a class="id-ref" href="#ARD-B">ARD-B</a></strong></td>
+<td>2026-09-25</td>
+<td>Each round runs the agent as <code>claude -p &lt;prompt&gt; --output-format json</code>, with a per-round time limit.</td>
+</tr>
+</tbody></table></div>
+<h3>Evidence Appendix</h3>
+<h4 id="ARD-E"><a class="id-ref" href="#ARD-E">ARD-E</a></h4>
+<p>The 2026-11-24 spec review found six important and five worth-discussing problems across all five documents. Most fixes rewrite whole paragraphs of the design, which cannot be split into 10-line, 200-character edits that each read correctly on their own. The owner asked the agent to decide the approach. Rejected: many small sequential edits, which would leave the documents inconsistent between steps. Evidence: <code>../raw/review/2026-11-24-spec-review-autoworker-gaps.md</code>; the owner&#x27;s instruction of 2026-11-24.</p>
+<h4 id="ARD-D"><a class="id-ref" href="#ARD-D">ARD-D</a></h4>
+<p>The 2026-11-24 fact pass found six gaps (<a class="id-ref" href="../design/autoworker-design.html#QUES-A">QUES-A</a> to <a class="id-ref" href="../design/autoworker-design.html#QUES-F">QUES-F</a>), one of which lets a fully failed run exit 0. The spec standard&#x27;s conflict rule is to report and ask, never to pick a side silently. Rejected: lowering the requirements to match the code. Evidence: the design&#x27;s Open Questions, each citing the code at <code>a0f4ce0</code>.</p>
+<h4 id="ARD-A"><a class="id-ref" href="#ARD-A">ARD-A</a></h4>
+<p>The drafts described a <code>coworker autoworker</code> command, an <code>AutoWorkerEngine</code> class, gap detection and classification in code, and state under the project&#x27;s <code>docs/state/</code>; none of these exists. Rejected: correcting them in many small edits. Evidence: the drafts in the shared checkout at <code>docs/features/autoworker/</code>; <a href="../../../../../src/coworker/autoworker/engine.py"><code>src/coworker/autoworker/engine.py</code></a> at <code>a0f4ce0</code>.</p>
+<h4 id="ARD-C"><a class="id-ref" href="#ARD-C">ARD-C</a></h4>
+<p>Before this decision, the agent start could not work, and the fallback reported success anyway, so an unattended loop produced nothing while looking healthy. Rejected: a tool-less API fallback, because an audit that cannot read files or run tests has nothing real to report. Evidence: walter-worker commit <code>d6d6a8b</code>; <a href="../../../../../tests/python/test_autoworker_engine.py"><code>tests/python/test_autoworker_engine.py</code></a> <code>test_missing_cli_does_not_report_success</code>.</p>
+<h4 id="ARD-B"><a class="id-ref" href="#ARD-B">ARD-B</a></h4>
+<p>A headless session gives the agent the same tools as an interactive one and returns a structured result the supervisor can parse. The time limit bounds a hung session. Rejected: an interactive session, which cannot run unattended. Evidence: walter-worker commit <code>d6d6a8b</code>; <code>test_uses_the_headless_print_invocation</code>.</p>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Version</th>
+<th>Date</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td>0.1</td>
+<td>2026-11-24</td>
+<td>Created with <a class="id-ref" href="#ARD-A">ARD-A</a> to <a class="id-ref" href="#ARD-D">ARD-D</a></td>
+</tr>
+<tr>
+<td>0.2</td>
+<td>2026-11-24</td>
+<td>Review fixes: <a class="id-ref" href="#ARD-E">ARD-E</a> added for the size of the review-fix edits</td>
+</tr>
+</tbody></table></div>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../prd/autoworker-prd.html"><span class="label">Previous</span>Auto-worker — PRD</a><a class="next" href="../design/autoworker-design.html"><span class="label">Next</span>Auto-worker — Design</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

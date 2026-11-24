@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memory Query System — Test Execution Report · test-plan · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/dashboard-ui-prd.html">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-29-devil-advocate-reviews-summary.html">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/auto-worker-design.html">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/dashboard-design.html">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/qa-autonomous-agent-design.html">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../INDEX.html">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/band-ai-docs.html">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-agent-README.html">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-ai-docs.html">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-README.html">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-docs.html">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-agent-README.html">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/pioneer-docs.html">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/memory-graph-spec.html">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/qa-autonomous-agent-spec.html">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/self-evolving-agent-spec.html">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-29-current-state.html">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-dashboard-data-not-verified.html">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../impl-plan/self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../impl-plan/dependency-and-sequencing-impl-plan.html">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/qa-autonomous-agent-impl-plan.html">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="self-evolving-agent-test-plan.html"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="2026-07-29-test-execution-report.html" aria-current="page">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="memory-graph-test-plan.html">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>test-plan</span> / <span>Memory Query System — Test Execution Report</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/test-plan/2026-07-29-test-execution-report">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>Memory Query System — Test Execution Report</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/test-plan/2026-07-29-test-execution-report.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Memory Query System — Test Execution Report</h2>
+<p><strong>Date</strong>: 2026-07-29 <strong>Branch</strong>: feat/self-evolving-agent <strong>Total</strong>: 112 tests, 0 failures, 0 errors (15.40s)</p>
+<hr>
+<h3>Test Distribution</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Test File</th>
+<th>Count</th>
+<th>Type</th>
+<th>Status</th>
+</tr></thead><tbody>
+<tr>
+<td><code>test_query_quality.py</code></td>
+<td>28</td>
+<td>Unit (mock)</td>
+<td>✅ 28/28</td>
+</tr>
+<tr>
+<td><code>test_graph_core.py</code></td>
+<td>52</td>
+<td>Unit (data model)</td>
+<td>✅ 52/52</td>
+</tr>
+<tr>
+<td><code>test_memory_integration.py</code></td>
+<td>25</td>
+<td>Integration (real data)</td>
+<td>✅ 25/25</td>
+</tr>
+<tr>
+<td><code>test_subagent_memory.py</code></td>
+<td>7</td>
+<td>Integration (subagent)</td>
+<td>✅ 7/7</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>Test 1: Query &quot;how to update or change a skill&quot;</h3>
+<h4>1a. Real mem0 data queries</h4>
+<ul>
+<li><code>test_query_skill_update_finds_conventions</code> — ✅ Search returned skill-related memories</li>
+<li><code>test_query_skill_finds_specific_convention</code> — ✅ Results contain &quot;skill&quot;, &quot;SKILL.md&quot; convention patterns</li>
+<li><code>test_high_min_score_still_has_results</code> — ✅ At min_score=0.7, results still available</li>
+<li><code>test_min_score_filters_quality</code> — ✅ Higher min_score reduces count but improves quality</li>
+</ul>
+<h4>1b. min_score + budget combined</h4>
+<ul>
+<li><code>test_budget_and_min_score_from_query_api</code> — ✅ 500T budget + 0.5 min_score works correctly</li>
+<li><code>test_budget_and_min_score_together</code> — ✅ Budget cuts after min_score filtering</li>
+<li><code>test_budget_limits_real_results</code> — ✅ budget=200 returns fewer than budget=None</li>
+</ul>
+<h4>1c. CLI command end-to-end</h4>
+<ul>
+<li><code>test_cli_query_vector_only</code> — ✅ <code>coworker memory query &quot;skill&quot; --mode vector --min-score 0.7</code></li>
+<li><code>test_cli_query_both_mode</code> — ✅ both mode + budget + min_score combined</li>
+<li><code>test_cli_query_shows_stats_footer</code> — ✅ Output includes budget info</li>
+</ul>
+<h4>1d. Subagent skill retrieval</h4>
+<ul>
+<li><code>test_task_create_skill_finds_conventions</code> — ✅ Finds skill creation conventions</li>
+<li><code>test_task_update_skill_finds_process</code> — ✅ Finds skill update workflow</li>
+</ul>
+<hr>
+<h3>Test 2: Subagent Using Past Experience</h3>
+<h4>2a. Simulated subagent memory retrieval</h4>
+<ul>
+<li><code>test_task_create_skill_finds_conventions</code> — ✅ Found SKILL.md path, design spec conventions</li>
+<li><code>test_task_fix_bug_finds_patterns</code> — ✅ Found bug fix patterns</li>
+<li><code>test_task_update_skill_finds_process</code> — ✅ Found skill update workflow</li>
+<li><code>test_subagent_with_budget_gets_focused_results</code> — ✅ Budget-limited results still focused</li>
+</ul>
+<h4>2b. Anthropic SDK real subagent</h4>
+<ul>
+<li><code>test_subagent_uses_search_memory</code> — ✅ SDK agent called search_memory tool</li>
+<li><code>test_subagent_applies_convention</code> — ✅ Agent answers reference skill conventions</li>
+</ul>
+<hr>
+<h3>Test 3: Graph Query</h3>
+<h4>3a. Real graph.json data queries</h4>
+<ul>
+<li><code>test_graph_query_returns_results</code> — ✅ Graph mode returns nodes</li>
+<li><code>test_graph_results_tagged</code> — ✅ All graph results tagged source=&quot;graph&quot;</li>
+<li><code>test_graph_budget_cuts_results</code> — ✅ budget=200 returns fewer</li>
+</ul>
+<h4>3b. Both mode integration</h4>
+<ul>
+<li><code>test_both_mode_returns_both_sources</code> — ✅ Returns graph + vector results</li>
+<li><code>test_both_mode_stats_consistent</code> — ✅ Stats match actual counts</li>
+</ul>
+<hr>
+<h3>MCP Server Verification</h3>
+<p>All 10 MCP JSON-RPC tests pass:</p>
+<ul>
+<li>Initialize, tools/list, query_memory_graph, search_memory, memory_graph_stats</li>
+<li>Budget parameter present (default 2000), min_score parameter present (default 0.3)</li>
+<li>Ping, unknown method (-32601), notifications (None)</li>
+</ul>
+<hr>
+<h3>Code Changes Summary</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>File</th>
+<th>Change</th>
+<th>Impact</th>
+</tr></thead><tbody>
+<tr>
+<td><code>query.py</code></td>
+<td>+min_score/budget params, +decay suppression, -dead code, -score=1.0 bug</td>
+<td>Core API quality</td>
+</tr>
+<tr>
+<td><code>mem0_client.py</code></td>
+<td>+min_score param to search()</td>
+<td>Vector quality filtering</td>
+</tr>
+<tr>
+<td><code>cli_memory.py</code></td>
+<td>-SQL search, -local _cut_by_budget, delegate to query()</td>
+<td>Simplified</td>
+</tr>
+<tr>
+<td><code>mcp_server.py</code></td>
+<td>search_graph→graph_traverse bug fix, +budget/min_score</td>
+<td>MCP functional</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>Key Metrics</h3>
+<ul>
+<li><strong>Vector quality</strong>: min_score=0.7 still returns valid results for skill queries ✅</li>
+<li><strong>Budget control</strong>: budget=200 effectively reduces result count ✅</li>
+<li><strong>MCP availability</strong>: All tools functional (previously crashed) ✅</li>
+<li><strong>Subagent experience</strong>: SDK agent calls search_memory and uses results ✅</li>
+<li><strong>Zero regression</strong>: 80 original unit tests all pass ✅</li>
+</ul>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="self-evolving-agent-test-plan.html"><span class="label">Previous</span>Self-Evolving Agent — Test Plan</a><a class="next" href="memory-graph-test-plan.html"><span class="label">Next</span>Memory Graph — Test Plan</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

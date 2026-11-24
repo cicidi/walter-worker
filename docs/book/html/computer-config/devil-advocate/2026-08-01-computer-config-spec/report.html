@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adversarial Review Report — computer-config-spec.md · 2026-08-01-computer-config-spec · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../prd/computer-config-prd.html"><span class="tree-ord">1</span>computer-config — Product Requirements Document (PRD)</a></li><li class="tree-leaf"><a class="tree-link" href="discussion.html">Adversarial Review — computer-config-spec.md</a></li><li class="tree-leaf"><a class="tree-link" href="glm52-report.html">GLM-5.2 Independent Review Report — computer-config-spec.md</a></li><li class="tree-leaf"><a class="tree-link" href="report.html" aria-current="page">Adversarial Review Report — computer-config-spec.md</a></li><li class="tree-leaf"><a class="tree-link" href="../../spec/computer-config-spec.html">computer-config — Complete Technical Specification</a></li><li class="tree-leaf"><a class="tree-link" href="../../impl-plan/computer-config-impl-plan.html"><span class="tree-ord">4</span>computer-config — Implementation Plan (Impl Plan)</a></li><li class="tree-leaf"><a class="tree-link" href="../../test-plan/computer-config-test-plan.html"><span class="tree-ord">5</span>computer-config — Test Plan</a></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../../index.html">Docs</a> / <span>computer-config</span> / <span>devil-advocate</span> / <span>2026-08-01-computer-config-spec</span> / <span>Adversarial Review Report — computer-config-spec.md</span></nav>
+    <article class="doc" data-doc="computer-config/devil-advocate/2026-08-01-computer-config-spec/report">
+      <header class="doc-head">
+        <p class="eyebrow">computer-config</p>
+        <h1>Adversarial Review Report — computer-config-spec.md</h1>
+        <p class="source">Canonical: docs/features/computer-config/devil-advocate/2026-08-01-computer-config-spec/report.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Adversarial Review Report — computer-config-spec.md</h2>
+<ul>
+<li><strong>Date</strong>: 2026-08-01</li>
+<li><strong>Document under review</strong>: <code>docs/computer-config/spec/computer-config-spec.md</code></li>
+<li><strong>Review method</strong>: devil-advocate 3-agent debate (con/pro/judge), 1 round + manual verification</li>
+<li><strong>Result</strong>: 9 rulings — <strong>8 con-wins, 1 pro-wins, 0 deferred</strong></li>
+</ul>
+<hr>
+<h3>1. Consensus Findings</h3>
+<h4>🔴 Critical (must fix before implementation)</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>#</th>
+<th>Finding</th>
+<th>Evidence</th>
+<th>Status</th>
+</tr></thead><tbody>
+<tr>
+<td>C1</td>
+<td><strong>Model ID contradiction</strong>: settings.json <code>model</code> hex-decodes to <code>DeepSeek/deepseek-v4-flash</code>, but 3 env vars (<code>ANTHROPIC_MODEL</code> / <code>CCR_CLAUDE_CODE_MODEL</code> / <code>CODEXL_CLAUDE_CODE_MODEL</code>) all say <code>deepseek-v4-pro</code></td>
+<td><code>bytes.fromhex(&#x27;44656570...&#x27;)</code> → <code>DeepSeek/deepseek-v4-flash</code>; env vars say pro</td>
+<td>✅ <strong>INDEPENDENTLY VERIFIED</strong></td>
+</tr>
+<tr>
+<td>C2</td>
+<td>Cost-savings claim (~17x) may be wrong: if actual model is flash ($0.28/M output), savings are ~53x</td>
+<td>Spec section 3.5 uses dspro rate 0.87; model ID says flash</td>
+<td>Depends on C1</td>
+</tr>
+<tr>
+<td>C3</td>
+<td><strong>Atomic writes name-dropped</strong> (<code>_write_json_atomic</code> 3×) with zero mechanism defined; <code>json.dump()</code> is non-atomic</td>
+<td>Spec 6.3/6.4/8; impl-plan A3.3 says &quot;inline python merge&quot;</td>
+<td>Confirmed</td>
+</tr>
+<tr>
+<td>C4</td>
+<td><strong>Manifest format unspecified</strong> (word 8×, zero schema); cross-project conflict: walter-worker install.sh recursively walks <code>~/.claude/</code>, would claim claude-tmux-config files</td>
+<td>Spec 6.3/6.4; walter-worker install.sh Step 16-second walks <code>~/.claude/</code></td>
+<td>Confirmed</td>
+</tr>
+<tr>
+<td>C5</td>
+<td><strong>Inline Benjamin Blue detection algorithm undefined</strong> — &quot;detected&quot; is a wish, not a spec; 4 possible strategies produce different behavior</td>
+<td>Spec 6.2; test TI-4</td>
+<td>Confirmed</td>
+</tr>
+</tbody></table></div>
+<h4>🟡 Minor (factual errors — fix in spec)</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>#</th>
+<th>Finding</th>
+<th>Actual</th>
+<th>Spec says</th>
+</tr></thead><tbody>
+<tr>
+<td>C6</td>
+<td>.tmux.conf line count</td>
+<td>36</td>
+<td>34</td>
+</tr>
+<tr>
+<td>C7</td>
+<td>settings.json top-level keys</td>
+<td>10</td>
+<td>11</td>
+</tr>
+<tr>
+<td>C8</td>
+<td>enabledPlugins count</td>
+<td>13 (12 enabled + 1 disabled)</td>
+<td>12</td>
+</tr>
+</tbody></table></div>
+<h4>🟡 Design contradiction</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>#</th>
+<th>Finding</th>
+<th>Detail</th>
+</tr></thead><tbody>
+<tr>
+<td>C9</td>
+<td>0/1/2 single-choice menu contradicts PRD US-4 &quot;one-click install of full statusline+theme&quot;</td>
+<td>Installing both requires 2 runs of install.sh; fix: add option &quot;3) Both&quot; or multi-select</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>2. Pro-Wins (validated, no change needed)</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Claim</th>
+<th>Reason</th>
+</tr></thead><tbody>
+<tr>
+<td>DeepSeek 1M context window, 5x Claude&#x27;s 200k</td>
+<td>Math correct (5.24x); matches live statusline-command.sh context-detection code</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>3. Unresolved Items</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>#</th>
+<th>Item</th>
+<th>Impact if ignored</th>
+</tr></thead><tbody>
+<tr>
+<td>U1</td>
+<td>Which model actually routes through CCR — flash or pro?</td>
+<td>Cost/context/performance claims all unverifiable; statusline cost display wrong (flash @$0.28 vs pro @$0.87 in rate table)</td>
+</tr>
+<tr>
+<td>U2</td>
+<td>Cross-project manifest conflict</td>
+<td>walter-worker uninstall could delete claude-tmux-config deployed assets in <code>~/.claude/statusline/</code></td>
+</tr>
+<tr>
+<td>U3</td>
+<td>Impl-plan Step B1 &quot;remove tmux tracking from manifest&quot; — phantom task?</td>
+<td>Current manifest does not track tmux; may be describing intent not existing code</td>
+</tr>
+<tr>
+<td>U4</td>
+<td>Statusline behavior when CCR is down</td>
+<td>compute_real_cost depends on CCR classifying tokens during session</td>
+</tr>
+<tr>
+<td>U5</td>
+<td>Test gaps: rollback, missing deps at runtime, non-BB colors, concurrent installs</td>
+<td>Real failure modes untested</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>4. Recommendations</h3>
+<ol>
+<li><strong>Resolve C1/U1 first</strong>: determine the actual routing model (flash vs pro). Check CCR config, running session transcript, or <code>claude</code> CLI. If flash, update spec cost table + env vars to be consistent, and fix statusline <code>compute_real_cost</code> rate selection.</li>
+<li><strong>Define atomic write mechanism</strong>: specify temp-file + <code>fsync</code> + <code>os.rename</code> in the spec; reference walter-worker&#x27;s existing <code>_write_json_atomic</code> in <a href="../../../../../../src/coworker/adapters/claude.py"><code>src/coworker/adapters/claude.py</code></a> (it already implements this correctly — cite it).</li>
+<li><strong>Define manifest schema</strong>: fields (install_mode, files, owned_dirs, hook_commands), creation logic, corruption handling. Address cross-project coexistence: claude-tmux-config manifest must NOT recursively claim <code>~/.claude/</code>; scope to <code>~/.claude/statusline/</code> only.</li>
+<li><strong>Define inline-color detection algorithm</strong>: e.g., grep for marker comment <code># claude-tmux-config theme</code> added by install (reliable, idempotent), rather than hex-matching which false-positives.</li>
+<li><strong>Fix 0/1/2 menu</strong>: add option &quot;3) Both&quot; (or multi-select) to satisfy PRD US-4.</li>
+<li><strong>Fix factual errors</strong> (C6/C7/C8): correct line/key/plugin counts to match live state, or explicitly note &quot;describes target state after migration.&quot;</li>
+</ol>
+<hr>
+<h3>5. Top Risks (ranked)</h3>
+<ol>
+<li><strong>Model ambiguity (C1)</strong> — wrong model in spec cascades into wrong cost numbers and potentially wrong statusline pricing</li>
+<li><strong>Cross-project manifest conflict (C4/U2)</strong> — data-loss risk: walter-worker uninstall deletes claude-tmux-config files</li>
+<li><strong>Undefined atomic writes (C3)</strong> — settings.json corruption on interrupt (real on laptop suspend/battery)</li>
+<li><strong>Undefined inline-color detection (C5)</strong> — .tmux.conf pollution or skipped installs, the very thing the safety gate is for</li>
+<li><strong>Unspecified manifest (C4)</strong> — uninstall leaves orphans or deletes wrong files</li>
+</ol>
+<hr>
+<p>*Output directory: <code>docs/devil-advocate/2026-08-01-computer-config-spec/</code>*</p>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="glm52-report.html"><span class="label">Previous</span>GLM-5.2 Independent Review Report — computer-config-spec.md</a><a class="next" href="../../spec/computer-config-spec.html"><span class="label">Next</span>computer-config — Complete Technical Specification</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../../assets/app.js"></script>
+</body>
+</html>

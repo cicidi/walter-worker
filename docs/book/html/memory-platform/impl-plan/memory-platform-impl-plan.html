@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memory Platform — Implementation Plan · impl-plan · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/memory-platform-prd.html"><span class="tree-ord">1</span>Memory Platform — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/memory-platform-decision-history.html"><span class="tree-ord">2</span>Memory Platform — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/memory-platform-design.html"><span class="tree-ord">3</span>Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="memory-platform-impl-plan.html" aria-current="page"><span class="tree-ord">4</span>Memory Platform — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-platform-test-plan.html"><span class="tree-ord">5</span>Memory Platform — Test Plan</a></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>memory-platform</span> / <span>impl-plan</span> / <span>Memory Platform — Implementation Plan</span></nav>
+    <article class="doc" data-doc="memory-platform/impl-plan/memory-platform-impl-plan">
+      <header class="doc-head">
+        <p class="eyebrow">memory-platform</p>
+        <h1>Memory Platform — Implementation Plan</h1>
+        <p class="source">Canonical: docs/features/memory-platform/impl-plan/memory-platform-impl-plan.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Memory Platform — Implementation Plan</h2>
+<p>This plan was written after the code shipped. Each task records a unit of work that exists at commit <code>a0f4ce0</code>, what it depends on, what it blocks, and the test that proves it. Behavior is defined in the <a href="../design/memory-platform-design.html">design</a>.</p>
+<h3>Global Constraints</h3>
+<p>No memory step may stop a session: capture without a key returns quietly, and the curator on the hook path always exits 0. Capture and merge run as Stop hooks, which Claude Code fires after every turn, not once per session (design <a class="id-ref" href="../design/memory-platform-design.html#DSGN-A">DSGN-A</a>). Graph writes are atomic. Skill promotion needs human approval.</p>
+<h3>Acceptance Criteria</h3>
+<p>The feature is not done while the blocking open questions are open. They are <a class="id-ref" href="../design/memory-platform-design.html#QUES-A">QUES-A</a> (a bad dump blocks later merges), <a class="id-ref" href="../design/memory-platform-design.html#QUES-B">QUES-B</a> (concurrent merges lose updates), <a class="id-ref" href="../design/memory-platform-design.html#QUES-I">QUES-I</a> (capture and merge run every turn), and <a class="id-ref" href="../design/memory-platform-design.html#QUES-J">QUES-J</a> (folded nodes leave broken edges). Beyond that, it is done when the tasks below are done, their Verify lines pass, and every other open question is fixed or explicitly accepted by the owner.</p>
+<h3>Execution order</h3>
+<p><a class="id-ref" href="#IMPL-A">IMPL-A</a> and <a class="id-ref" href="#IMPL-B">IMPL-B</a> come first, because capture, merge, and queries build on the stores. <a class="id-ref" href="#IMPL-F">IMPL-F</a> depends on <a class="id-ref" href="#IMPL-A">IMPL-A</a> and comes next, because capture stages skills through its circuit breaker. <a class="id-ref" href="#IMPL-C">IMPL-C</a> depends on <a class="id-ref" href="#IMPL-A">IMPL-A</a>, <a class="id-ref" href="#IMPL-B">IMPL-B</a>, and <a class="id-ref" href="#IMPL-F">IMPL-F</a>. <a class="id-ref" href="#IMPL-D">IMPL-D</a> depends on <a class="id-ref" href="#IMPL-A">IMPL-A</a> and <a class="id-ref" href="#IMPL-B">IMPL-B</a>. <a class="id-ref" href="#IMPL-E">IMPL-E</a> depends on <a class="id-ref" href="#IMPL-A">IMPL-A</a>. <a class="id-ref" href="#IMPL-H">IMPL-H</a> depends on <a class="id-ref" href="#IMPL-B">IMPL-B</a>. <a class="id-ref" href="#IMPL-G">IMPL-G</a> depends on <a class="id-ref" href="#IMPL-A">IMPL-A</a> for its model client and reads the <a href="../../walter-worker/features/analytics-listener/impl-plan/analytics-listener-impl-plan.html">analytics listener</a>&#x27;s database.</p>
+<h3 id="IMPL-A"><a class="id-ref" href="#IMPL-A">IMPL-A</a> — Vector store and model client</h3>
+<p>mem0 over local Qdrant with local embeddings, and the DeepSeek-then-Gemini language-model client (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-B">ARD-B</a>). Depends on nothing. Blocks <a class="id-ref" href="#IMPL-C">IMPL-C</a>, <a class="id-ref" href="#IMPL-D">IMPL-D</a>, <a class="id-ref" href="#IMPL-E">IMPL-E</a>, <a class="id-ref" href="#IMPL-F">IMPL-F</a>, and <a class="id-ref" href="#IMPL-G">IMPL-G</a>.</p>
+<p>Verify: these tests, which need no key, pass: <a href="../../../../../tests/python/test_mem0_client.py"><code>tests/python/test_mem0_client.py</code></a> <code>test_missing_api_key_raises_config_error</code> (it needs mem0 installed), and <a href="../../../../../tests/python/test_llm.py"><code>tests/python/test_llm.py</code></a> <code>TestLLMClientInit</code>, <code>TestLLMClientFallback</code>, and <code>TestLLMClientBuildProviderList</code>. The other tests in both files call DeepSeek and are skipped without <code>DEEPSEEK_API_KEY</code>.</p>
+<h3 id="IMPL-B"><a class="id-ref" href="#IMPL-B">IMPL-B</a> — Graph core</h3>
+<p>The graph schema, atomic storage, node folding, edge weights, and decay (<a class="id-ref" href="../design/memory-platform-design.html#DSGN-B">DSGN-B</a>, <a class="id-ref" href="../design/memory-platform-design.html#DSGN-C">DSGN-C</a>). Depends on nothing. Blocks <a class="id-ref" href="#IMPL-C">IMPL-C</a>, <a class="id-ref" href="#IMPL-D">IMPL-D</a>, and <a class="id-ref" href="#IMPL-H">IMPL-H</a>.</p>
+<p>Verify: <a href="../../../../../tests/memory/test_graph_core.py"><code>tests/memory/test_graph_core.py</code></a> passes, including <code>TestPassiveDecay</code>, <code>TestNodeDedup</code>, <code>TestAtomicWrite</code>, and <code>TestSchemaVersion</code>.</p>
+<h3 id="IMPL-C"><a class="id-ref" href="#IMPL-C">IMPL-C</a> — Capture and merge</h3>
+<p>The capture hook and the <code>close</code> merge (<a class="id-ref" href="../design/memory-platform-design.html#DSGN-A">DSGN-A</a>, <a class="id-ref" href="../design/memory-platform-design.html#DSGN-B">DSGN-B</a>). Depends on <a class="id-ref" href="#IMPL-A">IMPL-A</a>, <a class="id-ref" href="#IMPL-B">IMPL-B</a>, and <a class="id-ref" href="#IMPL-F">IMPL-F</a>. Blocks nothing.</p>
+<p>Verify: <a href="../../../../../tests/python/test_capture.py"><code>tests/python/test_capture.py</code></a> <code>TestSkillThresholdIsConfigurable</code>, <code>TestMemoriesAreTaggedWithTheRealProject</code>, and <code>TestSessionEndHasRoomForItsOwnResponse</code> pass; <code>TestProcessTurnReal</code> calls DeepSeek and is skipped without a key. <a href="../../../../../tests/python/test_cli.py"><code>tests/python/test_cli.py</code></a> <code>test_unconfigured_mem0_skips_quietly</code>, <code>test_empty_stdin_is_an_error_not_a_silent_pass</code>, and <code>test_a_named_session_processes_only_that_dump</code> pass.</p>
+<h3 id="IMPL-D"><a class="id-ref" href="#IMPL-D">IMPL-D</a> — Queries</h3>
+<p><code>memory query</code> and <code>memory search</code> (<a class="id-ref" href="../design/memory-platform-design.html#DSGN-C">DSGN-C</a>). Depends on <a class="id-ref" href="#IMPL-B">IMPL-B</a> and, for the vector side, <a class="id-ref" href="#IMPL-A">IMPL-A</a>. Blocks nothing.</p>
+<p>Verify: <a href="../../../../../tests/memory/test_query_quality.py"><code>tests/memory/test_query_quality.py</code></a> <code>test_budget_zero_returns_nothing</code> and <code>TestMinScoreFiltering</code> pass, with mem0 replaced. <code>test_min_score_filters_quality</code> is not part of this line: it is in <a href="../../../../../tests/memory/test_memory_integration.py"><code>tests/memory/test_memory_integration.py</code></a>, is marked <code>integration</code>, uses the real mem0 store, and is skipped when mem0 is not configured.</p>
+<h3 id="IMPL-E"><a class="id-ref" href="#IMPL-E">IMPL-E</a> — Curator</h3>
+<p>The weekly curator and its steps (<a class="id-ref" href="../design/memory-platform-design.html#DSGN-D">DSGN-D</a>). Depends on <a class="id-ref" href="#IMPL-A">IMPL-A</a>. Blocks nothing.</p>
+<p>Verify: <a href="../../../../../tests/python/test_curator.py"><code>tests/python/test_curator.py</code></a> passes, including <code>TestDueCheck</code> and <code>test_an_imported_old_session_is_pruned</code>, and <a href="../../../../../tests/python/test_cli.py"><code>tests/python/test_cli.py</code></a> <code>test_curate_stays_quiet_on_the_hook_path</code> passes.</p>
+<h3 id="IMPL-F"><a class="id-ref" href="#IMPL-F">IMPL-F</a> — Snapshot, staging limit, and wrong-history</h3>
+<p><code>memory refresh</code>, the circuit breaker, and the wrong-history commands (<a class="id-ref" href="../design/memory-platform-design.html#DSGN-E">DSGN-E</a>, <a class="id-ref" href="../design/memory-platform-design.html#DSGN-F">DSGN-F</a>, <a class="id-ref" href="../design/memory-platform-design.html#DSGN-I">DSGN-I</a>). Depends on <a class="id-ref" href="#IMPL-A">IMPL-A</a>. Blocks <a class="id-ref" href="#IMPL-C">IMPL-C</a>, because capture stages skills through the circuit breaker.</p>
+<p>Verify: <a href="../../../../../tests/python/test_inject.py"><code>tests/python/test_inject.py</code></a> <code>test_different_project_markers</code>, <a href="../../../../../tests/python/test_safety.py"><code>tests/python/test_safety.py</code></a> <code>test_trips_after_limit</code> and <code>test_corrupt_state_file</code>, and <a href="../../../../../tests/python/test_wrong_history.py"><code>tests/python/test_wrong_history.py</code></a> pass.</p>
+<h3 id="IMPL-G"><a class="id-ref" href="#IMPL-G">IMPL-G</a> — Knowledge commands</h3>
+<p><code>knowledge summarize</code> and <code>knowledge analyze</code> (<a class="id-ref" href="../design/memory-platform-design.html#DSGN-G">DSGN-G</a>). Depends on <a class="id-ref" href="#IMPL-A">IMPL-A</a> for the model client and on the analytics database. Blocks nothing.</p>
+<p>Verify: <a href="../../../../../tests/python/test_knowledge.py"><code>tests/python/test_knowledge.py</code></a> <code>test_summarize_session_writes_the_summary</code> and <code>test_get_all_sessions_since_rejects_nonsense</code> pass.</p>
+<h3 id="IMPL-H"><a class="id-ref" href="#IMPL-H">IMPL-H</a> — Graph from Graphify</h3>
+<p><code>memory init</code> and <code>memory sync</code>, which build or extend the graph from Graphify&#x27;s output (<a class="id-ref" href="../design/memory-platform-design.html#DSGN-I">DSGN-I</a>, <a class="id-ref" href="../prd/memory-platform-prd.html#PRD-I">PRD-I</a>). Depends on <a class="id-ref" href="#IMPL-B">IMPL-B</a>. Blocks nothing.</p>
+<p>Verify: <a class="id-ref" href="../test-plan/memory-platform-test-plan.html#TST-I">TST-I</a> passes. That is <a href="../../../../../tests/python/test_cli.py"><code>tests/python/test_cli.py</code></a> <code>test_refuses_to_overwrite_a_populated_graph</code>, and <a href="../../../../../tests/memory/test_graph_core.py"><code>tests/memory/test_graph_core.py</code></a> <code>TestGraphifySync</code> and <code>TestGraphifyEdgeCases</code>.</p>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Version</th>
+<th>Date</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td>0.1</td>
+<td>2026-11-04</td>
+<td>Draft (never committed)</td>
+</tr>
+<tr>
+<td>0.2</td>
+<td>2026-11-24</td>
+<td>Rewritten as a record of shipped work with Verify lines; added Acceptance Criteria (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-A">ARD-A</a>)</td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>2026-11-24</td>
+<td>Review fixes: dependency edges corrected, <a class="id-ref" href="#IMPL-H">IMPL-H</a> added for init and sync, Verify lines name only tests that run without a key, <a class="id-ref" href="../design/memory-platform-design.html#QUES-I">QUES-I</a> and <a class="id-ref" href="../design/memory-platform-design.html#QUES-J">QUES-J</a> added to the done bar (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-D">ARD-D</a>, <a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-F">ARD-F</a>)</td>
+</tr>
+</tbody></table></div>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../design/memory-platform-design.html"><span class="label">Previous</span>Memory Platform — Design</a><a class="next" href="../test-plan/memory-platform-test-plan.html"><span class="label">Next</span>Memory Platform — Test Plan</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

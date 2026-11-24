@@ -26,7 +26,7 @@ Decisions about the configuration commands. Newest first. Each decision has an e
 
 ### ARD-F
 
-The spec standard limits each AI edit under `docs/` to 10 lines and 200 characters unless a human authorizes a larger change and the authorization is recorded as an ARD. The 2026-11-24 review found false sentences and missing behavior across the design, implementation plan, and test plan, and the owner told the agent to decide the approach. Rejected: applying the pass as a long series of edits within the limit. Evidence: the review report [`raw/review/2026-11-24-spec-review-core-cli-gaps.md`](../raw/review/2026-11-24-spec-review-core-cli-gaps.md) (local, not committed).
+The spec standard limits each AI edit under `docs/` to 10 lines and 200 characters unless a human authorizes a larger change and the authorization is recorded as an ARD. The 2026-11-24 review found false sentences and missing behavior across the design, implementation plan, and test plan, and the owner told the agent to decide the approach. Rejected: applying the pass as a long series of edits within the limit. Evidence: the review report `../raw/review/2026-11-24-spec-review-core-cli-gaps.md` (local, not committed).
 
 ### ARD-D
 

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Analytics Listener — Test Plan · test-plan · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../../../prd/walter-worker-prd.html"><span class="tree-ord">1</span>walter-worker — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../../prd/2026-06-11-core-prd.html">Core CLI &amp; Initiative System PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../../prd/2026-06-11-dashboard-prd.html">Dashboard PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../../prd/2026-06-11-knowledge-skill-prd.html">Knowledge Skill PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../../prd/ai-coworker-prd.html">walter-worker PRD</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../../decision-history/walter-worker-decision-history.html"><span class="tree-ord">2</span>walter-worker — Decision History</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2025-04-10-integrate-loop-engineering-framework-by-running-lo-decision.html">Decision Record — 2025-04-10</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-03-30-feat-initial-commit--unified-ai-coworker-dev-env-decision.html">Decision Record — 2026-03-30</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.html">Decision Record — 2026-05-01</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-05-06-feat-add-skill-meta-import-skill--import-externa-decision.html">Decision Record — 2026-05-06</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.html">Decision Record — 2026-06-11</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-12-feat-add-opencode-context-injection-initiativema-decision.html">Decision Record — 2026-06-12</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.html">Decision Record — 2026-06-16</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-23-chore-remove-self-strain-decision.html">Decision Record — 2026-06-23</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-24-chore-review-fixes--broken-refs-tests-docs-ch-decision.html">Decision Record — 2026-06-24</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-30-fix-deploy-ai-coworker-skills-to-opencode-skill-d-decision.html">Decision Record — 2026-06-30</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.html">Decision Record — 2026-07-02</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.html">Decision Record — 2026-07-07</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.html">Decision Record — 2026-07-08</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.html">Decision Record — 2026-07-10</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-13-feat-add-emoji-and-color-coded-fields-to-tmux-sta-decision.html">Decision Record — 2026-07-13</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-17-docs-add-doc-organize--indexmd-refs-to-claudem-decision.html">Decision Record — 2026-07-17</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.html">Decision Record — 2026-07-24</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/unknown-remove-budget-related-features-from-prd-budget-fl-decision.html">Decision Record — unknown</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../../design/walter-worker-design.html"><span class="tree-ord">3</span>walter-worker — Design</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../../design/ai-coworker-design.html">walter-worker Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-analytics-dashboard-superpowers.html">Analytics Listener + Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-analytics-listener-design.html">Analytics Listener — Design Document</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-core-architecture-design.html">Core Architecture Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-feature-tracker.html">Feature Tracker</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-planning-hub.html">Planning Hub</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-09-25-deletion-list.html">Deletion List — 2026-09-25</a></li><li class="tree-leaf"><a class="tree-link" href="../../../spec/2026-06-12-initiative-project-level-design.html">Initiative — Global to Project-Level Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../../spec/ai-coworker-spec.html">walter-worker Technical Specification</a></li><li class="tree-leaf"><a class="tree-link" href="../../../state/2026-07-26-decision-timeline.html">Decision Timeline — walter-worker</a></li><li class="tree-leaf"><a class="tree-link" href="../../../work-review/2026-06-11-analytics-dashboard/acceptance.html">Analytics Dashboard — Acceptance Review</a></li><li class="tree-leaf"><a class="tree-link" href="../../../work-review/2026-06-11-analytics-dashboard/report.html">Acceptance Report — Analytics Dashboard</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../../../impl-plan/walter-worker-impl-plan.html"><span class="tree-ord">4</span>walter-worker Implementation Plan</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../../test-plan/walter-worker-test-plan.html"><span class="tree-ord">5</span>walter-worker — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../../test-plan/ai-coworker-test-plan.html">walter-worker Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><span class="tree-link"><span class="tree-ord">10</span>sub-feature</span></summary><ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../../analytics-dashboard/design/analytics-dashboard-design.html">analytics-dashboard</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../analytics-dashboard/prd/analytics-dashboard-prd.html"><span class="tree-ord">1</span>Analytics Dashboard — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-dashboard/decision-history/analytics-dashboard-decision-history.html"><span class="tree-ord">2</span>Analytics Dashboard — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-dashboard/design/analytics-dashboard-design.html"><span class="tree-ord">3</span>Analytics Dashboard — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-dashboard/impl-plan/analytics-dashboard-impl-plan.html"><span class="tree-ord">4</span>Analytics Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-dashboard/test-plan/analytics-dashboard-test-plan.html"><span class="tree-ord">5</span>Analytics Dashboard — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../design/analytics-listener-design.html">analytics-listener</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/analytics-listener-prd.html"><span class="tree-ord">1</span>Analytics Listener — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/analytics-listener-decision-history.html"><span class="tree-ord">2</span>Analytics Listener — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/analytics-listener-design.html"><span class="tree-ord">3</span>Analytics Listener — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/analytics-listener-impl-plan.html"><span class="tree-ord">4</span>Analytics Listener — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="analytics-listener-test-plan.html" aria-current="page"><span class="tree-ord">5</span>Analytics Listener — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../core-cli/design/core-cli-design.html">core-cli</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../core-cli/prd/core-cli-prd.html"><span class="tree-ord">1</span>Core CLI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../core-cli/decision-history/core-cli-decision-history.html"><span class="tree-ord">2</span>Core CLI — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../../core-cli/design/core-cli-design.html"><span class="tree-ord">3</span>Core CLI — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../core-cli/impl-plan/core-cli-impl-plan.html"><span class="tree-ord">4</span>Core CLI — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../core-cli/test-plan/core-cli-test-plan.html"><span class="tree-ord">5</span>Core CLI — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../feature-system/design/feature-system-design.html">feature-system</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../feature-system/prd/feature-system-prd.html"><span class="tree-ord">1</span>Feature System — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../feature-system/decision-history/feature-system-decision-history.html"><span class="tree-ord">2</span>Feature System — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../../feature-system/design/feature-system-design.html"><span class="tree-ord">3</span>Feature System — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../feature-system/impl-plan/feature-system-impl-plan.html"><span class="tree-ord">4</span>Feature System — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../feature-system/test-plan/feature-system-test-plan.html"><span class="tree-ord">5</span>Feature System — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../setup-deploy/design/setup-deploy-design.html">setup-deploy</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../setup-deploy/prd/setup-deploy-prd.html"><span class="tree-ord">1</span>Setup and Deploy — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../setup-deploy/decision-history/setup-deploy-decision-history.html"><span class="tree-ord">2</span>Setup and Deploy — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../../setup-deploy/design/setup-deploy-design.html"><span class="tree-ord">3</span>Setup and Deploy — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../setup-deploy/impl-plan/setup-deploy-impl-plan.html"><span class="tree-ord">4</span>Setup and Deploy — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../setup-deploy/test-plan/setup-deploy-test-plan.html"><span class="tree-ord">5</span>Setup and Deploy — Test Plan</a></li></ul></details></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../../../index.html">Docs</a> / <span>walter-worker</span> / <span>features</span> / <span>analytics-listener</span> / <span>test-plan</span> / <span>Analytics Listener — Test Plan</span></nav>
+    <article class="doc" data-doc="walter-worker/features/analytics-listener/test-plan/analytics-listener-test-plan">
+      <header class="doc-head">
+        <p class="eyebrow">walter-worker</p>
+        <h1>Analytics Listener — Test Plan</h1>
+        <p class="source">Canonical: docs/features/walter-worker/features/analytics-listener/test-plan/analytics-listener-test-plan.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Analytics Listener — Test Plan</h2>
+<p>Each case names the requirement from the <a href="../prd/analytics-listener-prd.html">PRD</a> it covers and the test that implements it at commit <code>a0f4ce0</code>. Hook tests run the scripts with sample payloads against a temporary home directory; importer tests use temporary databases.</p>
+<h3>Test Cases</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Covers</th>
+<th>Case</th>
+<th>Test</th>
+</tr></thead><tbody>
+<tr>
+<td><strong id="TST-A"><a class="id-ref" href="#TST-A">TST-A</a></strong></td>
+<td><a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-A">PRD-A</a></td>
+<td>A submitted prompt is recorded, and content and working folders with quotes stay valid JSON and YAML</td>
+<td><a href="../../../../../../../tests/analytics/test_hooks.py"><code>tests/analytics/test_hooks.py</code></a> <code>test_user_prompt_is_recorded</code>, <code>test_prompt_content_is_json_escaped</code>, <code>test_session_yaml_is_valid_when_cwd_contains_a_quote</code></td>
+</tr>
+<tr>
+<td><strong id="TST-B"><a class="id-ref" href="#TST-B">TST-B</a></strong></td>
+<td><a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-B">PRD-B</a></td>
+<td>Each <code>on-*.sh</code> file contains the text <code>python3 -c</code> at most once, and the stop hook stays quiet with no message files. The text count ignores the second interpreter started by <code>common.sh</code>, and no test checks that a hook exits successfully when it cannot write</td>
+<td><a href="../../../../../../../tests/analytics/test_hooks.py"><code>tests/analytics/test_hooks.py</code></a> <code>test_each_hook_starts_at_most_one_interpreter</code>; <a href="../../../../../../../tests/hooks/on-stop.bats"><code>tests/hooks/on-stop.bats</code></a> &quot;stays quiet when the session has no message files&quot;</td>
+</tr>
+<tr>
+<td><strong id="TST-C"><a class="id-ref" href="#TST-C">TST-C</a></strong></td>
+<td><a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-C">PRD-C</a></td>
+<td><code>once</code> does not import directories whose names start with <code>_</code>. No test covers the hook-side quarantine or checks that <code>import</code> skips <code>_unattributed</code>, which it does not (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-L">QUES-L</a>)</td>
+<td><a href="../../../../../../../tests/python/test_auto_import.py"><code>tests/python/test_auto_import.py</code></a> <code>test_run_once_hooks_skips_dot_and_underscore_dirs</code></td>
+</tr>
+<tr>
+<td><strong id="TST-D"><a class="id-ref" href="#TST-D">TST-D</a></strong></td>
+<td><a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-D">PRD-D</a></td>
+<td>Hook sessions, Claude Code transcripts, and OpenCode metadata are imported, before and after tool records are paired, and creating the schema twice works. No test re-runs an import</td>
+<td><a href="../../../../../../../tests/python/test_import_data.py"><code>tests/python/test_import_data.py</code></a> <code>test_import_session_basic</code>, <code>test_import_session_pre_and_post_merge</code>; <a href="../../../../../../../tests/python/test_auto_import.py"><code>tests/python/test_auto_import.py</code></a> <code>test_import_claude_jsonl_basic</code>, <code>test_import_opencode_skips_existing</code>; <a href="../../../../../../../tests/analytics/test_e2e_setup.py"><code>tests/analytics/test_e2e_setup.py</code></a> <code>test_db_idempotent</code></td>
+</tr>
+<tr>
+<td><strong id="TST-E"><a class="id-ref" href="#TST-E">TST-E</a></strong></td>
+<td><a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-E">PRD-E</a></td>
+<td>A fresh database has the full schema, and migrations are repeatable</td>
+<td><a href="../../../../../../../tests/python/test_db_migration.py"><code>tests/python/test_db_migration.py</code></a> <code>test_fresh_database_has_token_columns</code>, <code>test_rename_migration_is_idempotent</code></td>
+</tr>
+<tr>
+<td><strong id="TST-F"><a class="id-ref" href="#TST-F">TST-F</a></strong></td>
+<td><a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-F">PRD-F</a></td>
+<td>A correction writes a draft trace</td>
+<td><code>tests/python/test_correction_detector.py::test_correction_detected</code>, marked expected-to-fail; the test file also runs a hook path that does not exist (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-G">QUES-G</a>)</td>
+</tr>
+<tr>
+<td><strong id="TST-G"><a class="id-ref" href="#TST-G">TST-G</a></strong></td>
+<td><a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-G">PRD-G</a></td>
+<td>Secrets are not stored in plain text</td>
+<td>No test; not implemented (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-A">QUES-A</a>)</td>
+</tr>
+<tr>
+<td><strong id="TST-H"><a class="id-ref" href="#TST-H">TST-H</a></strong></td>
+<td><a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-H">PRD-H</a></td>
+<td>A directory whose session id is in the database and that is older than 30 days is pruned; a recent one and one the database never saw are kept. No test checks that the directory itself was imported (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-K">QUES-K</a>)</td>
+<td><a href="../../../../../../../tests/python/test_curator.py"><code>tests/python/test_curator.py</code></a> <code>test_an_imported_old_session_is_pruned</code>, <code>test_an_imported_recent_session_is_kept</code>, <code>test_a_session_the_database_never_saw_is_kept</code></td>
+</tr>
+<tr>
+<td><strong id="TST-I"><a class="id-ref" href="#TST-I">TST-I</a></strong></td>
+<td><a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-D">PRD-D</a></td>
+<td>A transcript whose typed prompt is a plain string stores that prompt</td>
+<td>No test; not implemented (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-I">QUES-I</a>)</td>
+</tr>
+<tr>
+<td><strong id="TST-J"><a class="id-ref" href="#TST-J">TST-J</a></strong></td>
+<td><a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-A">PRD-A</a></td>
+<td>A newline in a payload field, a payload that is not JSON, and a null duration each still produce a valid JSON line</td>
+<td>No test; not implemented (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-J">QUES-J</a>)</td>
+</tr>
+</tbody></table></div>
+<p>The following behavior is not covered by any test today:</p>
+<ul>
+<li>The redaction that <a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-G">PRD-G</a> asks for (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-A">QUES-A</a>).</li>
+<li>The correction detector firing, because its tests run a file that does not exist (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-G">QUES-G</a>).</li>
+<li>Re-running an import (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-E">QUES-E</a>).</li>
+<li>Typed prompts stored as plain strings in transcripts (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-I">QUES-I</a>).</li>
+<li>Hook records with a newline in a field, an unparseable payload, or a null duration (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-J">QUES-J</a>).</li>
+<li>The hook-side quarantine, and <code>import</code> of <code>_unattributed</code> (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-L">QUES-L</a>).</li>
+<li>A hook whose write fails (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-B">QUES-B</a>).</li>
+</ul>
+<p>The open questions are in the <a href="../design/analytics-listener-design.html#open-questions">design</a>.</p>
+<h3>Test Execution Order</h3>
+<p>Run <code>test_db_migration.py</code> first, then the hook tests, then the importer tests, then <code>test_curator.py</code>, then <code>test_e2e_setup.py</code>, which runs the whole pipeline.</p>
+<h3>Expected Pass Threshold</h3>
+<p>Every case with a passing test must pass; the threshold is 100%. <a class="id-ref" href="#TST-F">TST-F</a>, <a class="id-ref" href="#TST-G">TST-G</a>, <a class="id-ref" href="#TST-I">TST-I</a>, and <a class="id-ref" href="#TST-J">TST-J</a> have no passing test, so <a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-F">PRD-F</a> and <a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-G">PRD-G</a> are not verified by automation, and <a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-A">PRD-A</a> and <a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-D">PRD-D</a> are verified only in part.</p>
+<h3>Traceability</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Requirement</th>
+<th>Test cases</th>
+</tr></thead><tbody>
+<tr>
+<td><a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-A">PRD-A</a></td>
+<td><a class="id-ref" href="#TST-A">TST-A</a>, <a class="id-ref" href="#TST-J">TST-J</a></td>
+</tr>
+<tr>
+<td><a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-B">PRD-B</a></td>
+<td><a class="id-ref" href="#TST-B">TST-B</a></td>
+</tr>
+<tr>
+<td><a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-C">PRD-C</a></td>
+<td><a class="id-ref" href="#TST-C">TST-C</a></td>
+</tr>
+<tr>
+<td><a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-D">PRD-D</a></td>
+<td><a class="id-ref" href="#TST-D">TST-D</a>, <a class="id-ref" href="#TST-I">TST-I</a></td>
+</tr>
+<tr>
+<td><a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-E">PRD-E</a></td>
+<td><a class="id-ref" href="#TST-E">TST-E</a></td>
+</tr>
+<tr>
+<td><a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-F">PRD-F</a></td>
+<td><a class="id-ref" href="#TST-F">TST-F</a></td>
+</tr>
+<tr>
+<td><a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-G">PRD-G</a></td>
+<td><a class="id-ref" href="#TST-G">TST-G</a></td>
+</tr>
+<tr>
+<td><a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-H">PRD-H</a></td>
+<td><a class="id-ref" href="#TST-H">TST-H</a></td>
+</tr>
+</tbody></table></div>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Version</th>
+<th>Date</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td>0.1</td>
+<td>2026-11-04</td>
+<td>Draft (never committed)</td>
+</tr>
+<tr>
+<td>0.2</td>
+<td>2026-11-24</td>
+<td>Rewritten with one case per requirement, mapped to tests, untested behavior listed (<a class="id-ref" href="../decision-history/analytics-listener-decision-history.html#ARD-A">ARD-A</a>)</td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>2026-11-24</td>
+<td>Review fixes: <a class="id-ref" href="#TST-B">TST-B</a>, <a class="id-ref" href="#TST-C">TST-C</a>, and <a class="id-ref" href="#TST-D">TST-D</a> state what their tests check; <a class="id-ref" href="#TST-H">TST-H</a> cites the curator tests; <a class="id-ref" href="#TST-I">TST-I</a> and <a class="id-ref" href="#TST-J">TST-J</a> added for <a class="id-ref" href="../design/analytics-listener-design.html#QUES-I">QUES-I</a> and <a class="id-ref" href="../design/analytics-listener-design.html#QUES-J">QUES-J</a> (<a class="id-ref" href="../decision-history/analytics-listener-decision-history.html#ARD-E">ARD-E</a>)</td>
+</tr>
+</tbody></table></div>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../impl-plan/analytics-listener-impl-plan.html"><span class="label">Previous</span>Analytics Listener — Implementation Plan</a><a class="next" href="../decision-history/analytics-listener-decision-history.html"><span class="label">Next</span>Analytics Listener — Decision History</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../../../assets/app.js"></script>
+</body>
+</html>

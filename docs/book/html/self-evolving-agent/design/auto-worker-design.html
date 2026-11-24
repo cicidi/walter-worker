@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auto-Worker — Design · design · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/dashboard-ui-prd.html">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-29-devil-advocate-reviews-summary.html">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="auto-worker-design.html" aria-current="page">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="dashboard-design.html">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="qa-autonomous-agent-design.html">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../INDEX.html">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/band-ai-docs.html">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-agent-README.html">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-ai-docs.html">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-README.html">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-docs.html">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-agent-README.html">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/pioneer-docs.html">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/memory-graph-spec.html">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/qa-autonomous-agent-spec.html">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/self-evolving-agent-spec.html">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-29-current-state.html">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-dashboard-data-not-verified.html">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../impl-plan/self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../impl-plan/dependency-and-sequencing-impl-plan.html">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/qa-autonomous-agent-impl-plan.html">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/self-evolving-agent-test-plan.html"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/2026-07-29-test-execution-report.html">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-graph-test-plan.html">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>design</span> / <span>Auto-Worker — Design</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/design/auto-worker-design">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>Auto-Worker — Design</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/design/auto-worker-design.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Auto-Worker — Design</h2>
+<blockquote class="callout" data-label="NOTE"><p>Initiative: self-evolving-agent | Type: design | Status: <strong>draft v1</strong>  Builds on: <a href="../prd/self-evolving-agent-prd.html">PRD v6</a> (requirements), <a href="../spec/self-evolving-agent-spec.html">Spec v1.1</a> (technical detail), <a href="memory-platform-design.html">Memory Platform Design</a> (infrastructure)  The auto-worker is a self-looping QA agent that reads PRD/spec/design docs, audits project state, finds gaps and inconsistencies, and self-executes improvements. It runs on the memory platform but has its own decision-making logic — what to check, how to judge, when to act, when to stop and ask.</p></blockquote>
+<hr>
+<h3>1. What the Auto-Worker Does</h3>
+<p>The auto-worker is NOT a test runner. It&#x27;s a <strong>QA reviewer that also fixes things</strong>. It reads the project&#x27;s declared intent (PRD, spec, design) and compares it to reality (code, data, runtime behavior). When it finds a gap, it doesn&#x27;t just report — it fixes. When it&#x27;s unsure, it asks. When no one answers, it moves on and comes back later.</p>
+<pre><code>┌──────────────────────────────────────────────────────────┐
+│                    AUTO-WORKER LOOP                        │
+│                                                            │
+│  1. Load Context                                           │
+│     ├─ PRD / Spec / Design docs                            │
+│     ├─ Prior run state (what was checked, what was fixed)  │
+│     ├─ Memory snapshot (past lessons, conventions)          │
+│     └─ Open Questions from prior runs                       │
+│                                                            │
+│  2. Gap Detection Loop                                      │
+│     ├─ Numerical sanity checks                              │
+│     ├─ Dead code / dead skill detection                     │
+│     ├─ PRD/spec requirement vs implementation audit         │
+│     └─ Discovery dimensions (perf, security, consistency)   │
+│                                                            │
+│  3. For each finding:                                       │
+│     ├─ Check Working Notes → already handled? → skip        │
+│     ├─ Investigate: why was it done this way?               │
+│     ├─ Classify: not-done / done-wrong / done-right         │
+│     ├─ Vision Check: does fixing this move us closer?       │
+│     ├─ Decide: fix / ask-user / skip / note-for-later       │
+│     └─ Act: research → advocate review → execute → note     │
+│                                                            │
+│  4. End of round:                                           │
+│     ├─ Update state file with findings + verdicts            │
+│     ├─ Surface unanswered Open Questions                     │
+│     └─ Loop again (or stop if nothing left to check)        │
+└──────────────────────────────────────────────────────────┘</code></pre>
+<hr>
+<h3>2. Core Rules</h3>
+<p>These rules govern every decision the auto-worker makes. They are binding — not guidelines.</p>
+<h4>Rule 1: Validate Against Raw Data</h4>
+<p>Trust nothing derived. Every number, every claim, every metric must be traceable to raw source data.</p>
+<pre><code>skill usage count → verify against raw session transcripts
+&quot;X was implemented&quot; → grep the code, don&#x27;t trust a state file
+&quot;test passes&quot; → run the test, don&#x27;t trust a previous run&#x27;s output</code></pre>
+<p><strong>Source of truth hierarchy:</strong></p>
+<ol>
+<li>Raw session transcripts (analytics.db raw data)</li>
+<li>Git history (commits, diffs)</li>
+<li>Live code (filesystem)</li>
+<li>Test output (run fresh)</li>
+<li>State files / derived data (read with skepticism)</li>
+<li>LLM summaries (read with more skepticism)</li>
+</ol>
+<h4>Rule 2: Dead Code Detection</h4>
+<p>Scan for things that exist but are never used:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Check</th>
+<th>Method</th>
+</tr></thead><tbody>
+<tr>
+<td>Skills never invoked</td>
+<td>Scan analytics.db: any session invoke this skill?</td>
+</tr>
+<tr>
+<td>Sessions with zero file reads</td>
+<td>Session used only chat, no tool calls touching code</td>
+</tr>
+<tr>
+<td>Config keys never referenced</td>
+<td>grep codebase for each config key name</td>
+</tr>
+<tr>
+<td>State files for completed initiatives</td>
+<td>Initiative is done → state file should be archived</td>
+</tr>
+<tr>
+<td>Imported but unused modules</td>
+<td>Static analysis</td>
+</tr>
+</tbody></table></div>
+<h4>Rule 3: Three-Layer Attribution</h4>
+<p>For every requirement (PRD item, spec section, design decision), determine:</p>
+<pre><code>Layer 1 — Exists?
+  grep/code search → found / not_found
+  → &quot;not_found&quot; → classification: NOT DONE
+
+Layer 2 — Works?
+  Run tests, check behavior → pass / fail
+  → &quot;found but fails&quot; → classification: DONE WRONG
+
+Layer 3 — Correct?
+  Compare implementation intent with requirement intent
+  → &quot;found and passes&quot; → classification: DONE RIGHT
+  → &quot;found, passes, but wrong approach&quot; → DONE WRONG (design-level)</code></pre>
+<h4>Rule 4: Working Notes — Don&#x27;t Repeat</h4>
+<p>Every check, every test, every fix → write a note. Before starting any work, read prior notes.</p>
+<pre><code>State file section:
+  ## Checked (this round)
+  | ID | What | Verdict | Date |
+  |----|------|---------|------|
+  | C-1 | PRD §3.2 R3 semantic search | DONE RIGHT | 2026-07-25 |
+  | C-2 | skill &quot;session-memory&quot; usage count | NEEDS FIX | 2026-07-25 |
+
+  ## Fixed (this round)
+  | ID | What | Action | Date |
+  |----|------|--------|------|
+
+  ## Skipped (this round)
+  | ID | What | Reason | Date |
+  |----|------|--------|------|</code></pre>
+<p><strong>Re-check policy:</strong></p>
+<ul>
+<li>Within same round: skip checked items while unchecked items remain</li>
+<li>New round (all items checked at least once): full re-check allowed</li>
+<li>Fixes applied: re-check the fixed area only</li>
+</ul>
+<h4>Rule 5: Vision Check</h4>
+<p>Before any change, answer:</p>
+<blockquote class="callout" data-label="NOTE"><p>&quot;Self-evolving agent 的愿景是让 agent 通过使用越来越聪明。这个改动是让 agent 更聪明，还是仅仅修了一个无关紧要的东西？&quot;</p></blockquote>
+<p><strong>Tie-breaker questions:</strong></p>
+<ul>
+<li>Does this change make future sessions smarter?</li>
+<li>Does this remove friction that blocks learning?</li>
+<li>Does this improve the quality of extracted lessons?</li>
+<li>Does this expose a pattern that should be captured as a skill?</li>
+</ul>
+<p>If the answer to ALL is &quot;no&quot; → deprioritize. The auto-worker has limited time and should focus on changes that compound.</p>
+<h4>Rule 6: Research → Advocate → Act</h4>
+<p>Before making any change:</p>
+<pre><code>1. Research
+   ├─ Search web: how do other projects solve this?
+   ├─ Search codebase: has this been attempted before?
+   ├─ Search memory: any past lessons about this?
+   └─ Read git history: what was the original intent?
+
+2. Adversarial Review
+   ├─ Run contrarian-review on the proposed change
+   ├─ Challenge: is there a better approach?
+   ├─ Challenge: what breaks if we do this?
+   └─ Output: confirmed / refuted / amended
+
+3. Act
+   └─ Only after both steps pass</code></pre>
+<p><strong>Exception:</strong> Trivial fixes (typo, obvious broken config) skip advocate review but still do step 1 research.</p>
+<h4>Rule 7: Context-Aware Input</h4>
+<p>Every run reads more than just the PRD. Gather all relevant discussion:</p>
+<ul>
+<li>PRD items, spec sections, design decisions</li>
+<li>Open Questions from the PRD (§8)</li>
+<li>Devil&#x27;s advocate review findings</li>
+<li>Dependency-and-sequencing decisions</li>
+<li>Prior state files for this initiative</li>
+<li>CLAUDE.local.md active initiative context</li>
+</ul>
+<p>Cross-reference them: does the spec contradict the PRD? Does the design say one thing but the impl-plan another?</p>
+<h4>Rule 8: Ask, Don&#x27;t Block</h4>
+<pre><code>Need human input?
+  ├─ Send question (Telegram / terminal notification)
+  ├─ Write to State File → Open Questions
+  ├─ Continue working on OTHER tasks (don&#x27;t block)
+  └─ Next loop: check Open Questions first
+       ├─ Answered → process
+       └─ Still unanswered → skip again</code></pre>
+<p><strong>Before asking:</strong> exhaust Rule 6 first (research + advocate). Only ask when:</p>
+<ul>
+<li>The original intent is genuinely unknowable (missing commit, undocumented decision)</li>
+<li>Two valid approaches are equally good and the choice is subjective</li>
+<li>The change is destructive (deleting code, changing API)</li>
+</ul>
+<hr>
+<h3>3. Decision Tree</h3>
+<p>The auto-worker&#x27;s decision logic for every finding:</p>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│                      FINDING DISCOVERED                          │
+│                             │                                    │
+│                             ▼                                    │
+│                   ┌─────────────────┐                            │
+│                   │ Check Notes:     │                            │
+│                   │ already handled? │──Yes──→ SKIP               │
+│                   └────────┬────────┘                            │
+│                            │No                                   │
+│                            ▼                                     │
+│                   ┌─────────────────┐                            │
+│                   │ Investigate:     │                            │
+│                   │ why was it done  │                            │
+│                   │ this way?        │                            │
+│                   │                  │                            │
+│                   │ Check: PRD, spec,│                            │
+│                   │ git commit,      │                            │
+│                   │ state files      │                            │
+│                   └────────┬────────┘                            │
+│                            │                                     │
+│              ┌─────────────┼─────────────┐                       │
+│              ▼             ▼             ▼                       │
+│         DELIBERATE    MISTAKE /      UNKNOWN                     │
+│         CHOICE        HISTORICAL     ORIGIN                      │
+│              │             │             │                       │
+│              ▼             ▼             ▼                       │
+│         ┌────────┐   ┌─────────┐   ┌─────────┐                  │
+│         │ ASK    │   │ Better  │   │ ASK     │                  │
+│         │ USER   │   │ approach│   │ USER    │                  │
+│         │ before │   │ exists? │   │         │                  │
+│         │ changing│  │         │   │         │                  │
+│         └────────┘   └────┬────┘   └─────────┘                  │
+│                           │                                      │
+│              ┌────────────┼────────────┐                         │
+│              ▼            ▼            ▼                         │
+│            YES          NO, BUT      NO                          │
+│            (better      IMPROVEMENT  (works,                     │
+│            approach)    POSSIBLE     no better                    │
+│              │            │          way)                         │
+│              ▼            ▼            ▼                         │
+│         ┌────────┐   ┌─────────┐   ┌──────┐                      │
+│         │ RESEARCH│  │ Note it │   │ NOTE │                      │
+│         │ → ADV.  │  │ + skip  │   │ +    │                      │
+│         │ → FIX   │  │ (not    │   │ SKIP │                      │
+│         │         │  │  worth  │   │      │                      │
+│         └────────┘  │  it)    │   └──────┘                      │
+│                     └─────────┘                                   │
+│                            │                                     │
+│              ┌─────────────┼─────────────┐                       │
+│              ▼                           ▼                       │
+│         User answered              User didn&#x27;t answer            │
+│         → follow answer            → write Open Question         │
+│                                    → continue loop               │
+└─────────────────────────────────────────────────────────────────┘</code></pre>
+<hr>
+<h3>4. Gap Detection Dimensions</h3>
+<h4>4.1 Numerical Sanity</h4>
+<p>Compare claimed numbers against raw data:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Check</th>
+<th>Method</th>
+</tr></thead><tbody>
+<tr>
+<td>Skill usage count</td>
+<td>Raw session transcripts vs <code>usage.json</code></td>
+</tr>
+<tr>
+<td>Session count</td>
+<td>analytics.db <code>sessions</code> table</td>
+</tr>
+<tr>
+<td>Tool call count</td>
+<td>analytics.db <code>tool_calls</code> table</td>
+</tr>
+<tr>
+<td>Cost estimates</td>
+<td>Actual API usage vs claimed cost per session</td>
+</tr>
+<tr>
+<td>Metrics (PRD §5.7)</td>
+<td>Calculated from raw data, not read from derived tables</td>
+</tr>
+</tbody></table></div>
+<h4>4.2 Requirement Audit</h4>
+<p>For every requirement in PRD §3–§5, every spec section, every design decision:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Requirement</th>
+<th>Implementation</th>
+<th>Verdict</th>
+</tr></thead><tbody>
+<tr>
+<td>R1 IDE-agnostic</td>
+<td>mem0 at <code>~/.coworker/memory/</code></td>
+<td>DONE RIGHT</td>
+</tr>
+<tr>
+<td>R2 Per-turn persistence</td>
+<td>PostToolUse hook → <code>coworker memory sync</code></td>
+<td>DONE RIGHT</td>
+</tr>
+<tr>
+<td>R3 Cross-session search</td>
+<td>mem0 hybrid retrieval</td>
+<td>NOT DONE (mem0 not yet integrated)</td>
+</tr>
+<tr>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+</tbody></table></div>
+<h4>4.3 Document Consistency</h4>
+<p>Cross-reference documents for contradictions:</p>
+<ul>
+<li>Spec says X, PRD says Y → flag</li>
+<li>Design decision differs from spec detail → flag</li>
+<li>Impl-plan references a module that doesn&#x27;t exist → flag</li>
+<li>Open Questions in PRD have no corresponding work item → flag</li>
+</ul>
+<h4>4.4 Discovery Dimensions (from deferred QA design)</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Dimension</th>
+<th>Check</th>
+<th>Method</th>
+</tr></thead><tbody>
+<tr>
+<td>Test Coverage</td>
+<td>Which branches/edge cases untested?</td>
+<td>pytest --cov</td>
+</tr>
+<tr>
+<td>Dependency Debt</td>
+<td>Outdated/vulnerable deps?</td>
+<td>pip list --outdated</td>
+</tr>
+<tr>
+<td>Error Handling</td>
+<td>Missing error handlers?</td>
+<td>Static analysis</td>
+</tr>
+<tr>
+<td>Code Pattern Consistency</td>
+<td>Same thing done different ways?</td>
+<td>grep + pattern matching</td>
+</tr>
+<tr>
+<td>Config Drift</td>
+<td>Config says X, code does Y?</td>
+<td>Cross-reference config keys with code</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>5. Loop Mechanics</h3>
+<h4>5.1 SDK Mode</h4>
+<p>The auto-worker runs via <code>coworker run --loop</code> (SDK mode — PRD §2.2). One cycle = one complete pass through the gap detection loop.</p>
+<h4>5.2 Termination</h4>
+<p>Default max time: 12 hours. The loop stops when ANY of:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Condition</th>
+<th>Detection</th>
+</tr></thead><tbody>
+<tr>
+<td>All checks passed</td>
+<td>Nothing left unchecked, no new findings</td>
+</tr>
+<tr>
+<td>Stagnation</td>
+<td>3 consecutive cycles produce no new findings AND no fixes applied</td>
+</tr>
+<tr>
+<td>Time expired</td>
+<td>12h elapsed → graceful stop, save state, write summary</td>
+</tr>
+<tr>
+<td>Human halt</td>
+<td>&quot;stop&quot; signal received</td>
+</tr>
+</tbody></table></div>
+<h4>5.3 State Continuity</h4>
+<pre><code>Run N                     Run N+1
+┌──────────────┐         ┌──────────────┐
+│ Read state   │         │ Read state   │
+│ Check A: done│         │ Check A: skip │
+│ Check B: todo│────────▶│ Check B: run  │
+│ Check C: todo│         │ Check C: skip │
+│ Fix 1: done  │         │ (fixed in N)  │
+│ Fix 2: todo  │         │ Fix 2: run    │
+└──────────────┘         └──────────────┘</code></pre>
+<p>State file is the continuity mechanism. Every run reads the previous run&#x27;s state before doing anything.</p>
+<hr>
+<h3>6. Integration with Memory Platform</h3>
+<p>The auto-worker is a consumer of the memory platform:</p>
+<pre><code>Memory Platform                    Auto-Worker
+──────────────                     ────────────
+analytics.db raw sessions ──────▶ training data for analysis
+mem0 search()            ──────▶ past lessons when investigating
+CLAUDE.local.md snapshot ──────▶ project conventions
+memory.add()             ◀────── new lessons discovered
+state files              ◀────── check results + working notes
+pending queue            ◀────── skills auto-created from patterns</code></pre>
+<h4>6.1 Training Pipeline (Phase 1 of Validation)</h4>
+<p>Before the auto-worker runs its loop, it needs initial knowledge. <strong>All</strong> historical sessions are used — no subset, no sampling:</p>
+<pre><code>ALL historical session data (analytics.db)
+         │
+         ▼
+┌─────────────────────────┐
+│ Batch extraction         │
+│ For EVERY past session:  │
+│   Read full transcript   │
+│   → DeepSeek Flash       │
+│   → Extract lessons      │
+│   → Identify patterns    │
+│   → Assess skill-worthiness │
+└──────────┬──────────────┘
+           │
+           ▼
+┌─────────────────────────┐
+│ Output:                  │
+│ • Top 10 Skills (SOPs)   │
+│ • Top 10 Experiences     │
+│ • Written to mem0        │
+│ • Skills staged to       │
+│   pending queue          │
+│ • Training report        │
+│   (total sessions,       │
+│    lessons extracted,    │
+│    skills identified)    │
+└──────────────────────────┘</code></pre>
+<hr>
+<h3>7. Validation Harness (Phase 2)</h3>
+<p>After training, validate that the knowledge is useful:</p>
+<h4>7.1 Task Design</h4>
+<p>The validation task is designed by the auto-worker based on available skills and experiences. Example approach:</p>
+<ol>
+<li>Scan the 10 auto-trained skills → pick one that involves code modification</li>
+<li>Scan the 10 auto-trained experiences → identify conventions the agent should follow</li>
+<li>Design a task that requires BOTH skill usage AND convention knowledge</li>
+</ol>
+<p>Example task: &quot;Add a <code>coworker stats</code> CLI command that prints session statistics&quot;</p>
+<p>Expected behavior WITH memory:</p>
+<ul>
+<li>Agent searches memory → finds conventions (ruff E501 ignored, Click CLI pattern)</li>
+<li>Agent searches memory → finds the analytics.db schema (no need to re-discover)</li>
+<li>Agent may invoke an auto-trained skill for &quot;add CLI command&quot;</li>
+</ul>
+<h4>7.2 Comparison Metrics</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Metric</th>
+<th>Without Memory</th>
+<th>With Memory</th>
+</tr></thead><tbody>
+<tr>
+<td>Tool calls to completion</td>
+<td>baseline</td>
+<td>expected lower</td>
+</tr>
+<tr>
+<td>Incorrect assumptions</td>
+<td>baseline</td>
+<td>expected lower</td>
+</tr>
+<tr>
+<td>Convention violations</td>
+<td>baseline</td>
+<td>expected zero</td>
+</tr>
+<tr>
+<td>Auto-train skill invoked</td>
+<td>0</td>
+<td>≥1</td>
+</tr>
+<tr>
+<td>Auto-train experience retrieved</td>
+<td>0</td>
+<td>≥1</td>
+</tr>
+</tbody></table></div>
+<h4>7.3 Claude SDK Integration</h4>
+<p>The validation harness uses Claude SDK to spawn two agents:</p>
+<ul>
+<li><strong>Agent A (no memory):</strong> Fresh Claude SDK session, no context injection</li>
+<li><strong>Agent B (with memory):</strong> Same task, but session starts with CLAUDE.local.md snapshot (injected memory + skill references)</li>
+</ul>
+<p>Both agents get the same task. Their transcripts are compared against the metrics above.</p>
+<hr>
+<h3>8. Model Routing</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Task</th>
+<th>Model</th>
+<th>Why</th>
+</tr></thead><tbody>
+<tr>
+<td>Gap detection (per-item comparison)</td>
+<td>DeepSeek Flash</td>
+<td>Decomposed to yes/no per item</td>
+</tr>
+<tr>
+<td>Numerical sanity validation</td>
+<td>No model (SQL queries)</td>
+<td>Deterministic</td>
+</tr>
+<tr>
+<td>Dead code detection</td>
+<td>No model (grep + analytics.db queries)</td>
+<td>Deterministic</td>
+</tr>
+<tr>
+<td>Investigation (why was it done this way)</td>
+<td>DeepSeek Pro</td>
+<td>Needs git history + multi-source synthesis</td>
+</tr>
+<tr>
+<td>Vision Check</td>
+<td>DeepSeek Pro</td>
+<td>Subjective, needs judgment</td>
+</tr>
+<tr>
+<td>Research (web search)</td>
+<td>WebSearch (no model)</td>
+<td>Retrieval only</td>
+</tr>
+<tr>
+<td>Advocate review</td>
+<td>Claude (stronger model)</td>
+<td>Safety-critical, needs adversarial thinking</td>
+</tr>
+<tr>
+<td>Code fixes</td>
+<td>DeepSeek Flash</td>
+<td>Mechanical, cheap</td>
+</tr>
+<tr>
+<td>Report generation</td>
+<td>DeepSeek Pro</td>
+<td>Narrative quality</td>
+</tr>
+<tr>
+<td>User communication</td>
+<td>Telegram / terminal</td>
+<td>Direct, no model needed</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>9. Error Handling</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Failure</th>
+<th>Behavior</th>
+</tr></thead><tbody>
+<tr>
+<td>LLM extraction fails</td>
+<td>Retry 3× with backoff → skip this check → log → continue</td>
+</tr>
+<tr>
+<td>analytics.db unreadable</td>
+<td>Degrade: work from filesystem + git only. Flag to user.</td>
+</tr>
+<tr>
+<td>mem0 search fails</td>
+<td>Degrade: grep-based search. Log.</td>
+</tr>
+<tr>
+<td>Git history unavailable</td>
+<td>Degrade: work from current state only. Note reduced confidence.</td>
+</tr>
+<tr>
+<td>Web search fails (Rule 6 research)</td>
+<td>Skip external research. Note &quot;no external reference available.&quot;</td>
+</tr>
+<tr>
+<td>Advocate review fails (LLM down)</td>
+<td>Skip advocate review. Flag &quot;skipped safety check.&quot;</td>
+</tr>
+<tr>
+<td>User unreachable (Rule 8)</td>
+<td>Write Open Question → continue. Never block.</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>10. Out of Scope (v1)</h3>
+<ul>
+<li>Adversarial multi-agent review within the auto-worker (delegated to contrarian-review skill)</li>
+<li>Cross-project gap detection (single-project scope)</li>
+<li>Automatic PR creation and merge</li>
+<li>GEPA/DSPy prompt evolution</li>
+</ul>
+<hr>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Date</th>
+<th>Change</th>
+</tr></thead><tbody>
+<tr>
+<td>2026-07-25</td>
+<td>Initial creation</td>
+</tr>
+</tbody></table></div>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../decision-history/2026-07-29-devil-advocate-reviews-summary.html"><span class="label">Previous</span>Devil&#x27;s Advocate Reviews — Consolidated Decision History</a><a class="next" href="dashboard-design.html"><span class="label">Next</span>Dashboard — Evolution Page Design</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

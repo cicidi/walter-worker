@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>computer-config — Test Plan · test-plan · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/computer-config-prd.html"><span class="tree-ord">1</span>computer-config — Product Requirements Document (PRD)</a></li><li class="tree-leaf"><a class="tree-link" href="../devil-advocate/2026-08-01-computer-config-spec/discussion.html">Adversarial Review — computer-config-spec.md</a></li><li class="tree-leaf"><a class="tree-link" href="../devil-advocate/2026-08-01-computer-config-spec/glm52-report.html">GLM-5.2 Independent Review Report — computer-config-spec.md</a></li><li class="tree-leaf"><a class="tree-link" href="../devil-advocate/2026-08-01-computer-config-spec/report.html">Adversarial Review Report — computer-config-spec.md</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/computer-config-spec.html">computer-config — Complete Technical Specification</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/computer-config-impl-plan.html"><span class="tree-ord">4</span>computer-config — Implementation Plan (Impl Plan)</a></li><li class="tree-leaf"><a class="tree-link" href="computer-config-test-plan.html" aria-current="page"><span class="tree-ord">5</span>computer-config — Test Plan</a></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>computer-config</span> / <span>test-plan</span> / <span>computer-config — Test Plan</span></nav>
+    <article class="doc" data-doc="computer-config/test-plan/computer-config-test-plan">
+      <header class="doc-head">
+        <p class="eyebrow">computer-config</p>
+        <h1>computer-config — Test Plan</h1>
+        <p class="source">Canonical: docs/features/computer-config/test-plan/computer-config-test-plan.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>computer-config — Test Plan</h2>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Date</th>
+<th>Version</th>
+<th>Change</th>
+</tr></thead><tbody>
+<tr>
+<td>2026-08-01</td>
+<td>0.1.0</td>
+<td>Initial draft</td>
+</tr>
+<tr>
+<td>2026-08-01</td>
+<td>0.2.0</td>
+<td>Post devil-advocate review: add TU-5 (model=pro), TI-4a (hex fallback), TI-7a (missing manifest), TI-9 (atomic write); update TI-3/4 to marker-based detection</td>
+</tr>
+<tr>
+<td>2026-08-01</td>
+<td>0.3.0</td>
+<td>Post GLM-5.2 review (scope-corrected): TU-5 → port-as-is (statusline unchanged, model field untouched); add TI-4b (legacy grey-theme migration), TR-6 (walter-worker manifest exclusion); TI-7 → rm -rf + statusLine pop; TR-2 → preserve rich version as optional; fix 0/1/2 → 0/1/2/3 in §6</td>
+</tr>
+<tr>
+<td>2026-08-01</td>
+<td>0.4.0</td>
+<td>Add §7 Verification: 4-layer verification (auto/smoke/rollback/coworker-regression), byte-diff for fixed input + human-reported feature checklist for live display, verify.sh modes, S1-S7 / T1-T6 feature checklist, success criteria</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>1. Test Strategy</h3>
+<p>Covers two workstreams: the claude-tmux-config project (A) and the walter-worker strip (B).</p>
+<p>Three test layers:</p>
+<ol>
+<li><strong>Unit tests</strong> — script logic, parameterization, idempotency logic</li>
+<li><strong>Integration tests</strong> — install.sh/uninstall.sh end-to-end (isolated with temp HOME)</li>
+<li><strong>Regression tests</strong> — walter-worker existing test suite stays green</li>
+</ol>
+<hr>
+<h3>2. Test Environment</h3>
+<ul>
+<li>Temp HOME (<code>mktemp -d</code>) isolation, avoiding real-environment pollution</li>
+<li>Mock skill-factory (local fake, no network)</li>
+<li>Assert file states of settings.json / .tmux.conf</li>
+</ul>
+<hr>
+<h3>3. Test Cases</h3>
+<h4>3.1 claude-tmux-config unit tests</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Case</th>
+<th>Expected</th>
+</tr></thead><tbody>
+<tr>
+<td>TU-1</td>
+<td>statusline-command.sh path parameterization</td>
+<td>3 hardcoded paths → <code>$HOME/.claude/statusline/</code></td>
+</tr>
+<tr>
+<td>TU-2</td>
+<td>statusline-command.sh dependency check</td>
+<td>warns (not crashes) when jq/bc/python3 missing</td>
+</tr>
+<tr>
+<td>TU-3</td>
+<td>status_info.sh simple version</td>
+<td>correctly outputs current folder path</td>
+</tr>
+<tr>
+<td>TU-4</td>
+<td>benjamin-blue.tmux extraction</td>
+<td>contains all 6 hexes: <code>#102D46</code>, <code>#EAE7DD</code>, <code>#F2C94C</code>, <code>#5F8D4E</code>, <code>#8EA2AF</code>, <code>#30506B</code></td>
+</tr>
+<tr>
+<td>TU-5</td>
+<td>statusline ported unchanged (port-as-is)</td>
+<td><code>assets/statusline-command.sh</code> matches the live <code>~/.claude/statusline-command.sh</code> except the 3 parameterized paths (§3.11); <code>settings.json</code> <code>model</code> field is NOT touched by install</td>
+</tr>
+</tbody></table></div>
+<h4>3.2 claude-tmux-config integration tests</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Case</th>
+<th>Expected</th>
+</tr></thead><tbody>
+<tr>
+<td>TI-1</td>
+<td>install component 1 (y)</td>
+<td><code>~/.claude/statusline/</code> two files in place; settings.json statusLine.command points to new path</td>
+</tr>
+<tr>
+<td>TI-2</td>
+<td>install component 1 (n)</td>
+<td>nothing deployed, settings.json unchanged</td>
+</tr>
+<tr>
+<td>TI-3</td>
+<td>install component 2 (y, no marker, no inline hex)</td>
+<td><code>~/.tmux/conf.d/benjamin-blue.tmux</code> in place; <code>.tmux.conf</code> has source line + marker <code># claude-tmux-config theme</code></td>
+</tr>
+<tr>
+<td>TI-4</td>
+<td>install component 2 (y, marker exists)</td>
+<td>only status_info.sh deployed, no duplicate source</td>
+</tr>
+<tr>
+<td>TI-4a</td>
+<td>install component 2 (y, no marker but inline hex present)</td>
+<td>only status_info.sh deployed, no duplicate source (hex fallback)</td>
+</tr>
+<tr>
+<td>TI-4b</td>
+<td>install component 2 (y, legacy <code># walter-worker status bar</code> present)</td>
+<td>prompts &quot;Replace grey theme? [y/N]&quot;; on <code>y</code> old block stripped + full BB theme deployed; on <code>n</code> only status_info.sh deployed</td>
+</tr>
+<tr>
+<td>TI-5</td>
+<td>install idempotent (repeated run)</td>
+<td>no duplicate appends, no side effects</td>
+</tr>
+<tr>
+<td>TI-6</td>
+<td>install component 2 backup</td>
+<td><code>.tmux.conf.bak</code> exists</td>
+</tr>
+<tr>
+<td>TI-7</td>
+<td>uninstall</td>
+<td>statusLine popped from settings.json (atomic write), <code>~/.claude/statusline/</code> rm -rf (incl. runtime cache files), source line stripped</td>
+</tr>
+<tr>
+<td>TI-7a</td>
+<td>uninstall with missing manifest</td>
+<td>refuses to run, logs warning, lists files to remove manually</td>
+</tr>
+<tr>
+<td>TI-8</td>
+<td>missing-dependency scenario</td>
+<td>component 1 <code>command -v</code> check warns before install</td>
+</tr>
+<tr>
+<td>TI-9</td>
+<td>settings.json write is atomic</td>
+<td>simulated mid-write crash leaves <code>.bak</code> intact, original not truncated</td>
+</tr>
+</tbody></table></div>
+<h4>3.3 walter-worker strip regression tests</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Case</th>
+<th>Expected</th>
+</tr></thead><tbody>
+<tr>
+<td>TR-1</td>
+<td>install.sh has no tmux reference</td>
+<td><code>grep tmux setup/install.sh</code> shows no deploy logic</td>
+</tr>
+<tr>
+<td>TR-2</td>
+<td>setup/status_info.sh removed from walter-worker</td>
+<td>file gone from walter-worker; rich version preserved as <code>claude-tmux-config/assets/status_info-rich.sh</code> (optional)</td>
+</tr>
+<tr>
+<td>TR-3</td>
+<td>core tests all green</td>
+<td>existing pytest + bats pass</td>
+</tr>
+<tr>
+<td>TR-4</td>
+<td>analytics hooks intact</td>
+<td>all 4 hook events still configured</td>
+</tr>
+<tr>
+<td>TR-5</td>
+<td>permissions/skills/MCP preserved</td>
+<td>settings.json still contains these after coworker sync</td>
+</tr>
+<tr>
+<td>TR-6</td>
+<td>walter-worker manifest excludes statusline</td>
+<td><code>~/.coworker/install-manifest.json</code> has NO entries under <code>~/.claude/statusline/</code> after coworker install</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>4. Test Commands</h3>
+<pre><code># claude-tmux-config (if a test framework exists)
+cd ~/project/claude-tmux-config &amp;&amp; bash tests/run.sh
+
+# walter-worker full suite
+cd ~/project/walter-worker &amp;&amp; python -m pytest
+# bats install tests
+cd ~/project/walter-worker &amp;&amp; bats tests/setup/*.bats</code></pre>
+<hr>
+<h3>5. Coverage Matrix</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Requirement</th>
+<th>Test</th>
+</tr></thead><tbody>
+<tr>
+<td>FR-1 repo creation</td>
+<td>prerequisite of TI-1</td>
+</tr>
+<tr>
+<td>FR-2/3 statusline adoption</td>
+<td>TU-1, TI-1</td>
+</tr>
+<tr>
+<td>FR-4 status_info adoption</td>
+<td>TU-3, TI-4</td>
+</tr>
+<tr>
+<td>FR-5 theme extraction</td>
+<td>TU-4</td>
+</tr>
+<tr>
+<td>FR-6 confirmation mechanism</td>
+<td>TI-2, TI-5</td>
+</tr>
+<tr>
+<td>FR-7 statusLine write</td>
+<td>TI-1</td>
+</tr>
+<tr>
+<td>FR-8 tmux deploy idempotent</td>
+<td>TI-3/4/4a/4b/5/6</td>
+</tr>
+<tr>
+<td>FR-9 uninstall</td>
+<td>TI-7, TI-7a</td>
+</tr>
+<tr>
+<td>FR-10/11 walter-worker strip</td>
+<td>TR-1/2/3/4/5</td>
+</tr>
+<tr>
+<td>FR-12 legacy grey-theme migration</td>
+<td>TI-4b</td>
+</tr>
+<tr>
+<td>FR-13 walter-worker manifest exclusion</td>
+<td>TR-6</td>
+</tr>
+<tr>
+<td>port-as-is (statusline unchanged; model field untouched)</td>
+<td>TU-5</td>
+</tr>
+<tr>
+<td>atomic settings.json write (review C3)</td>
+<td>TI-9</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>6. Acceptance</h3>
+<p>After all tests pass, manual acceptance:</p>
+<ol>
+<li>Run <code>install.sh</code> in the real environment, observe 0/1/2/3 menu + confirm prompts</li>
+<li>Open Claude Code, confirm the 4-line statusline renders</li>
+<li>Open tmux, run <code>tmux source-file ~/.tmux.conf</code>, confirm the Benjamin Blue theme</li>
+<li>Run <code>uninstall.sh</code>, confirm clean removal (statusLine gone, dirs removed)</li>
+<li>Confirm walter-worker install no longer touches tmux</li>
+<li>(Existing walter-worker user) confirm grey-theme → Benjamin Blue migration prompt appears</li>
+</ol>
+<hr>
+<h3>7. Verification — How to confirm it actually worked</h3>
+<blockquote class="callout" data-label="NOTE"><p>This section defines the <strong>verification deliverable</strong>: how to confirm the migration succeeded on a real machine, beyond the automated tests above. Core principle: <strong>fixed input → byte diff</strong> (deterministic, immune to live data changes); <strong>live display → human-reported feature checklist</strong> (the user pastes terminal text, the reviewer checks ANSI-encoded features).</p></blockquote>
+<h4>7.1 Four verification layers</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Layer</th>
+<th>Name</th>
+<th>Executor</th>
+<th>How it verifies</th>
+</tr></thead><tbody>
+<tr>
+<td>L1</td>
+<td>Automation</td>
+<td><code>verify.sh auto</code> (unattended)</td>
+<td>temp HOME + byte diff + idempotency + uninstall</td>
+</tr>
+<tr>
+<td>L2</td>
+<td>Real-machine smoke</td>
+<td>user pastes terminal text → reviewer checks</td>
+<td>feature checklist + ANSI inspection</td>
+</tr>
+<tr>
+<td>L3</td>
+<td>Rollback</td>
+<td><code>verify.sh rollback</code> (unattended)</td>
+<td>install → verify → uninstall → verify → reinstall → verify</td>
+</tr>
+<tr>
+<td>L4</td>
+<td>walter-worker regression</td>
+<td><code>pytest</code> + <code>bats</code></td>
+<td>full suite green</td>
+</tr>
+</tbody></table></div>
+<h4>7.2 Verification deliverables (in claude-tmux-config repo)</h4>
+<pre><code>claude-tmux-config/
+└── verify/
+    ├── fixtures/sample-status.json      # fixed stdin input → deterministic statusline output
+    ├── expected/statusline-golden.txt   # captured BEFORE install: script output for the fixture
+    ├── expected/tmux-status-golden.txt  # tmux status bar output
+    ├── expected/feature-checklist.md    # human-readable expected-feature table (shared with user)
+    └── verify.sh                        # modes: auto | smoke | rollback</code></pre>
+<h4>7.3 verify.sh modes</h4>
+<pre><code>verify.sh auto       # L1: temp HOME + byte diff + idempotent + uninstall
+verify.sh smoke      # L2: real-machine render → prints &quot;paste terminal text&quot; prompt → reviewer checks
+verify.sh rollback   # L3: install → verify → uninstall → verify → reinstall → verify</code></pre>
+<h4>7.4 Boundary (what goes in the repo vs. what&#x27;s collaborative)</h4>
+<p><strong>In the repo</strong> (executable/mechanical):</p>
+<ol>
+<li><code>fixtures/sample-status.json</code> — fixed input for deterministic rendering.</li>
+<li><code>verify.sh auto</code> — byte-diffs the deployed script&#x27;s output against the golden</li>
+</ol>
+<p>   (verifies script renders correctly, not just that files exist).</p>
+<ol>
+<li><code>expected/feature-checklist.md</code> — the shared expectation table (for BOTH the</li>
+</ol>
+<p>   user to read and the reviewer to check against pasted text).</p>
+<p><strong>NOT in the repo</strong> (human/model collaborative): the ANSI feature-checking on pasted live text. When the user pastes their Claude Code / tmux terminal text, the reviewer (Claude) inspects the ANSI escape sequences against the checklist. This is not automated code — it&#x27;s a live review step.</p>
+<h4>7.5 Judgment rules</h4>
+<pre><code>Fixed input  → byte diff      (stable; immune to cost/model/turns changing)
+Live display → user pastes text → reviewer runs feature checks on the ANSI
+   all pass → PASS ✅ (print per-feature detail)
+   any fail → report the specific feature + likely cause + fix command</code></pre>
+<h4>7.6 Feature checklist (what the reviewer checks on pasted text)</h4>
+<p><strong>Claude Code statusline</strong> (bottom 4 lines):</p>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Feature</th>
+<th>Check</th>
+</tr></thead><tbody>
+<tr>
+<td>S1</td>
+<td>4 lines present</td>
+<td>line count = 4</td>
+</tr>
+<tr>
+<td>S2</td>
+<td><code>project</code> label green</td>
+<td><code>\x1b[38;5;71m</code> in the 📁 label</td>
+</tr>
+<tr>
+<td>S3</td>
+<td>context bar blue blocks + pct</td>
+<td><code>ctx:</code> followed by block chars + <code>NN%</code></td>
+</tr>
+<tr>
+<td>S4</td>
+<td>cost color by threshold</td>
+<td>green &lt;$1 / yellow $1-3 / red &gt;$3</td>
+</tr>
+<tr>
+<td>S5</td>
+<td><code>branch</code> label green</td>
+<td><code>\x1b[38;5;71m</code> in the 🌿 label</td>
+</tr>
+<tr>
+<td>S6</td>
+<td>add/del red-green</td>
+<td><code>+N</code> green, <code>-M</code> red</td>
+</tr>
+<tr>
+<td>S7</td>
+<td>path line</td>
+<td>line 4 starts with 📂</td>
+</tr>
+</tbody></table></div>
+<p><strong>tmux status bar</strong>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Feature</th>
+<th>Check</th>
+</tr></thead><tbody>
+<tr>
+<td>T1</td>
+<td>deep-ocean bg</td>
+<td><code>status-style bg=#102D46</code> (from <code>tmux show</code>)</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>left = session name (yellow) + green dot</td>
+<td>status-left content</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>right = 📂 + folder path</td>
+<td>status-right references <code>status_info.sh</code></td>
+</tr>
+<tr>
+<td>T4</td>
+<td>current window yellow-bg</td>
+<td>window-status-current <code>fg=#102D46,bg=#F2C94C</code></td>
+</tr>
+<tr>
+<td>T5</td>
+<td>active pane border yellow</td>
+<td>pane-active-border <code>fg=#F2C94C</code></td>
+</tr>
+<tr>
+<td>T6</td>
+<td>claude-tmux binding</td>
+<td><code>bind C-c</code> exists</td>
+</tr>
+</tbody></table></div>
+<h4>7.7 Rollback verification (L3)</h4>
+<pre><code>verify.sh rollback
+  1. install → 2. run all feature checks → 3. uninstall
+  4. confirm files gone → 5. reinstall → 6. re-run feature checks
+  all pass → rollback is safe (can be re-applied cleanly)</code></pre>
+<h4>7.8 Success criteria (end-to-end)</h4>
+<ol>
+<li><code>verify.sh auto</code> → PASS on a temp HOME (L1).</li>
+<li>User runs <code>install.sh</code> on the real machine; pastes Claude Code + tmux terminal</li>
+</ol>
+<p>   text → reviewer runs the S1-S7 / T1-T6 checks → all PASS (L2).</p>
+<ol>
+<li><code>verify.sh rollback</code> → PASS (L3).</li>
+<li>walter-worker <code>pytest</code> + <code>bats</code> → green, and <code>install-manifest.json</code> contains no</li>
+</ol>
+<p>   <code>~/.claude/statusline/</code> entries (L4).</p>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../impl-plan/computer-config-impl-plan.html"><span class="label">Previous</span>computer-config — Implementation Plan (Impl Plan)</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

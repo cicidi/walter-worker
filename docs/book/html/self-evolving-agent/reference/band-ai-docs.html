@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BAND AI — Reference Documentation · reference · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/dashboard-ui-prd.html">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-29-devil-advocate-reviews-summary.html">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/auto-worker-design.html">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/dashboard-design.html">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/qa-autonomous-agent-design.html">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../INDEX.html">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="band-ai-docs.html" aria-current="page">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="guild-agent-README.html">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="guild-ai-docs.html">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="hermes-agent-README.html">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="hermes-agent-docs.html">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="jam-agent-README.html">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="pioneer-docs.html">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/memory-graph-spec.html">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/qa-autonomous-agent-spec.html">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/self-evolving-agent-spec.html">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-29-current-state.html">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-dashboard-data-not-verified.html">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../impl-plan/self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../impl-plan/dependency-and-sequencing-impl-plan.html">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/qa-autonomous-agent-impl-plan.html">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/self-evolving-agent-test-plan.html"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/2026-07-29-test-execution-report.html">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-graph-test-plan.html">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>reference</span> / <span>BAND AI — Reference Documentation</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/reference/band-ai-docs">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>BAND AI — Reference Documentation</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/reference/band-ai-docs.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>BAND AI — Reference Documentation</h2>
+<blockquote class="callout" data-label="NOTE"><p>Source: https://venturebeat.com/ai/talking-to-ai-agents-is-one-thing-what-about-when-they-talk-to-each-other-new-startup-band-debuts-universal-orchestrator Company: Thenvoi AI Ltd. | $17M Seed (Sierra Ventures, Hetz Ventures, Team8) Founded: Mid-2025 | HQ: Tzur Yigal, Israel Co-Founders: Arick Goomanovsky (CEO, ex-Sygnia/Ermetic), Vlad Luzin (CTO, ex-Samsung multi-agent systems)</p></blockquote>
+<h3>Positioning</h3>
+<p>&quot;Slack for AI agents&quot; — enterprise communication and interaction infrastructure for distributed AI agents. The &quot;internet of agents.&quot;</p>
+<h3>Architecture: Two-Layer System</h3>
+<h4>Interaction Layer (&quot;Agentic Mesh&quot;)</h4>
+<ul>
+<li>Agent discovery across internal and external environments</li>
+<li>Structured delegation between agents</li>
+<li>Full-duplex multi-peer communication</li>
+<li>Cross-framework, cross-cloud interoperability</li>
+<li>Shared &quot;rooms&quot; with synchronized context</li>
+<li>Deterministic routing (NOT LLM-based routing — patented multi-layer architecture)</li>
+<li>Built on same stack as WhatsApp and Discord (billions of messages)</li>
+</ul>
+<h4>Control Plane</h4>
+<ul>
+<li>Runtime governance with authority boundaries</li>
+<li>Credential traversal (delegated agents only access data the original human is permitted)</li>
+<li>Full observability with audit trails</li>
+<li>Human-in-the-loop oversight for inspection, approval, intervention</li>
+</ul>
+<h3>Key Capabilities</h3>
+<ul>
+<li>Framework-agnostic + cloud-agnostic</li>
+<li>Works with: LangChain, CrewAI, Salesforce, Workday, ServiceNow, Claude Code, Codex, OpenClaw</li>
+<li>Edge deployment: lightweight enough for drones (UAVs) and satellites</li>
+</ul>
+<h3>Enterprise Use Cases</h3>
+<ul>
+<li>Multi-agent coding workflows (planning → coding → review agents)</li>
+<li>Cross-boundary automation (Workday onboarding → ServiceNow ticketing → purchasing)</li>
+<li>Telecommunications, financial services, cybersecurity</li>
+</ul>
+<h3>Deployment Options</h3>
+<ul>
+<li>SaaS</li>
+<li>Private Cloud / On-Premise (within customer VPC)</li>
+<li>Edge</li>
+</ul>
+<h3>Pricing</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Tier</th>
+<th>Price</th>
+<th>Details</th>
+</tr></thead><tbody>
+<tr>
+<td>Free</td>
+<td>$0/mo</td>
+<td>10 remote agents, 50 chat rooms, 24hr retention</td>
+</tr>
+<tr>
+<td>Pro</td>
+<td>$17.99/mo</td>
+<td>40 agents, 250 chat rooms</td>
+</tr>
+<tr>
+<td>Enterprise</td>
+<td>Custom</td>
+<td>Unlimited agents, custom retention, Memory APIs</td>
+</tr>
+</tbody></table></div>
+<h3>Market Context</h3>
+<p>Gartner predicts 90% of enterprises deploying multiple agents will need a &quot;Universal Orchestrator&quot; by 2029.</p>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="actian-vectordb-docs.html"><span class="label">Previous</span>Actian VectorAI DB — Reference Documentation</a><a class="next" href="guild-agent-README.html"><span class="label">Next</span>The Agent Guild</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

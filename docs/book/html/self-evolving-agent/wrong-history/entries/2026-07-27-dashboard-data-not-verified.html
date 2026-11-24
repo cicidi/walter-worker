@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard data was present but WRONG — never validated against source of truth · entries · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../../prd/self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../prd/dashboard-ui-prd.html">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../prd/self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../../decision-history/2026-07-29-devil-advocate-reviews-summary.html">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../../design/auto-worker-design.html">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../design/dashboard-design.html">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../design/memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../design/qa-autonomous-agent-design.html">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../../INDEX.html">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="../../reference/actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../../reference/band-ai-docs.html">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../../reference/guild-agent-README.html">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="../../reference/guild-ai-docs.html">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../../reference/hermes-agent-README.html">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="../../reference/hermes-agent-docs.html">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../../reference/jam-agent-README.html">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="../../reference/jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../../reference/pioneer-docs.html">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../../reference/senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../../spec/memory-graph-spec.html">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../../spec/qa-autonomous-agent-spec.html">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../../spec/self-evolving-agent-spec.html">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../../state/2026-07-29-current-state.html">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="../INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-27-dashboard-data-not-verified.html" aria-current="page">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../impl-plan/self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../impl-plan/dependency-and-sequencing-impl-plan.html">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="../../impl-plan/qa-autonomous-agent-impl-plan.html">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../test-plan/self-evolving-agent-test-plan.html"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../test-plan/2026-07-29-test-execution-report.html">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="../../test-plan/memory-graph-test-plan.html">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../test-plan/memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>wrong-history</span> / <span>entries</span> / <span>Dashboard data was present but WRONG — never validated against source of truth</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/wrong-history/entries/2026-07-27-dashboard-data-not-verified">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>Dashboard data was present but WRONG — never validated against source of truth</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/wrong-history/entries/2026-07-27-dashboard-data-not-verified.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Dashboard data was present but WRONG — never validated against source of truth</h2>
+<p><strong>What happened:</strong> The auto-worker checked 37 dashboard API endpoints and reported &quot;all OK&quot; because every endpoint returned non-empty data. But the Initiatives tab showed 5 initiatives, and <strong><code>self-evolving-agent</code> was NOT among them</strong> — despite this entire session running on the <code>feat/self-evolving-agent</code> branch. 0 sessions in analytics.db had <code>initiative=&#x27;self-evolving-agent&#x27;</code> because the session import pipeline doesn&#x27;t auto-detect initiative from git branch names.</p>
+<p><strong>Root cause:</strong> I verified data <strong>quantity</strong> (&quot;API returns 5 items ✅&quot;) but never verified data <strong>correctness</strong> (&quot;should it be 6? is the data accurate?&quot;). The verification methodology was:</p>
+<ol>
+<li>Call API endpoint</li>
+<li>Check response is non-empty</li>
+<li>Claim &quot;OK&quot;</li>
+</ol>
+<p>What it should have been:</p>
+<ol>
+<li>Call API endpoint</li>
+<li>Identify the <strong>ultimate source of truth</strong> for each data point</li>
+<li>Trace from display → API → DB → raw source</li>
+<li>Verify data matches expectations derived from the source</li>
+<li>Only then claim &quot;OK&quot;</li>
+</ol>
+<p><strong>How it was discovered:</strong> User manually inspected dashboard and noticed the initiative for the current branch was missing.</p>
+<p><strong>Impact:</strong> Dashboard displayed incomplete initiative data for 56+ hours of autonomous operation. The auto-worker&#x27;s health checks were systematically blind to data quality issues. This is the same pattern as DQ-1 (28% project coverage flagged as &quot;healthy&quot;).</p>
+<p><strong>Fix:</strong> </p>
+<ol>
+<li>Added <code>initiative</code> auto-detection from git branch to session import</li>
+<li>Created <code>skills/data-validation/SKILL.md</code> — systematic methodology for tracing data from source to display</li>
+<li>Updated auto-worker health check to include data correctness verification, not just data presence</li>
+</ol>
+<p><strong>Prevention rule:</strong> <strong>Never claim dashboard data is &quot;OK&quot; just because API returns non-empty.</strong> For EVERY dashboard metric, trace back to the ultimate source of truth and verify against it. Quantity ≠ quality. Presence ≠ correctness.</p>
+<p><strong>The methodology:</strong></p>
+<ol>
+<li><strong>Metadata</strong>: Identify what the data is, where it&#x27;s displayed (page/tab/position), what API endpoint serves it, what DB table/column stores it, what the RAW source is (session files, git config, env vars)</li>
+<li><strong>Trace</strong>: Calculate expected value from raw source. Extract from raw source. Compare against DB intermediate. Verify they match.</li>
+<li><strong>Display</strong>: Verify the displayed value matches the DB value. Screenshot or text-capture the rendered output.</li>
+<li><strong>Evidence</strong>: Record every step with actual values. Never fabricate.</li>
+</ol>
+<p><strong>Related entries:</strong> [[2026-07-25-dashboard-css-js-overwrite]] — same root category (dashboard verification failure), [[2026-07-25-dashboard-init-call-lost]] — same pattern of &quot;looks OK but isn&#x27;t&quot;</p>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="2026-07-27-adversarial-review-pro-agent-must-not-surrender.html"><span class="label">Previous</span>Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a><a class="next" href="2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html"><span class="label">Next</span>file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../../assets/app.js"></script>
+</body>
+</html>

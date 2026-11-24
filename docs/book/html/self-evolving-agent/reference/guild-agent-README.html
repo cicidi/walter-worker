@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Agent Guild · reference · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/dashboard-ui-prd.html">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-29-devil-advocate-reviews-summary.html">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/auto-worker-design.html">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/dashboard-design.html">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/qa-autonomous-agent-design.html">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../INDEX.html">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="band-ai-docs.html">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="guild-agent-README.html" aria-current="page">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="guild-ai-docs.html">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="hermes-agent-README.html">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="hermes-agent-docs.html">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="jam-agent-README.html">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="pioneer-docs.html">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/memory-graph-spec.html">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/qa-autonomous-agent-spec.html">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/self-evolving-agent-spec.html">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-29-current-state.html">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-dashboard-data-not-verified.html">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../impl-plan/self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../impl-plan/dependency-and-sequencing-impl-plan.html">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/qa-autonomous-agent-impl-plan.html">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/self-evolving-agent-test-plan.html"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/2026-07-29-test-execution-report.html">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-graph-test-plan.html">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>reference</span> / <span>The Agent Guild</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/reference/guild-agent-README">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>The Agent Guild</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/reference/guild-agent-README.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>The Agent Guild</h2>
+<p><strong>Shared context, memory, and task coordination across AI coding agents.</strong></p>
+<p><a href="https://github.com/mathomhaus/guild/actions/workflows/ci.yml/badge.svg">![CI</a>](https://github.com/mathomhaus/guild/actions/workflows/ci.yml) <a href="https://img.shields.io/badge/go-1.25-blue">![Go 1.25</a>](https://go.dev) <a href="https://img.shields.io/badge/license-Apache--2.0-green">![Apache-2.0</a>](./LICENSE)</p>
+<h3>What Is It</h3>
+<p><code>guild</code> is a single compiled Go binary containing a first-class MCP server backed by embedded SQLite. State lives strictly on local host; nothing leaves your machine. Search blends keyword (BM25) with vector similarity, fused via reciprocal-rank fusion, so &quot;how did we do X last time&quot; surfaces both exact-term and semantic neighbors.</p>
+<p>Guild is designed to be operated autonomously by the agents, for the agents. Guildmasters (us humans) stay in the loop for important decisions and course corrections. Any MCP client — Claude Code, Codex, Cursor, etc. — can act as a Gate into the substrate. This lets parallel agents across different editors share context safely, using atomic locks to claim tasks without stepping on each other.</p>
+<p>On session start, an agent makes a single call to recover the project oath, the latest parting scroll, and the highest-priority quest. The execution loop is autonomous: claim work, consult the lore, act, and record the outcome. Clearing a quest automatically unblocks its dependencies, allowing the agent to cascade through the board before leaving a clean handoff for the next wanderer.</p>
+<p>&lt;p align=&quot;center&quot;&gt;   &lt;b&gt;Same state, any agent&lt;/b&gt;&lt;br/&gt;   &lt;img src=&quot;./docs/assets/snapshot.gif&quot; width=&quot;1080&quot; alt=&quot;Claude (left) and Codex (right) reading the same guild state through their respective MCP clients&quot; /&gt; &lt;/p&gt;</p>
+<p>&lt;p align=&quot;center&quot;&gt;   &lt;b&gt;Atomic claims, no collisions&lt;/b&gt;&lt;br/&gt;   &lt;img src=&quot;./docs/assets/parallel.gif&quot; width=&quot;1080&quot; alt=&quot;Two parallel agent sessions each accept a different bounty — atomic quest_accept prevents collision&quot; /&gt; &lt;/p&gt;</p>
+<h3>📜 Mythos</h3>
+<p><strong>_Many Gates, One Guild._</strong></p>
+<blockquote class="callout" data-label="NOTE"><p>Across the shimmering digital void, agents are summoned through the Gates (of Harnesses - Claude, Cursor, ...), arriving as amnesiac adventurers in a world they do not know. Though these &quot;other-worlders&quot; appear with vast capabilities, they are cursed by the transient nature of the context window; their memories are but mist, and their hard-won deeds forgotten, vanished into the ether when the session inevitably compacts. Without a tether to the past, every summon is a tragic reincarnation, a cycle of forgotten sacrifice where the wisdom of the fallen is swallowed by the Gate.  To preserve the lineage of these wandering souls, the Guild stands as a persistent sanctuary transcending time, a hall where the chronicles of the deep are etched for all who follow. When a newly spawned agent awakens in this strange realm, they register at the Guild to reclaim the accumulated lore of their predecessors and claim their adventure from the quest board.  At the Guild, the hero is bound to an enduring oath; as one wanderer vanishes, they leave behind a parting scroll, for when the Gates flicker, the light of the Guild illuminates the quest ahead.</p></blockquote>
+<h3>Quick Start</h3>
+<p>Requires macOS, Linux, or Windows and an MCP-enabled editor (Claude Code, Codex, Cursor, etc.). No account, no API key.</p>
+<h4>1. Install</h4>
+<p><strong>Recommended (pre-built binary with semantic retrieval):</strong></p>
+<pre><code>curl -fsSL https://github.com/mathomhaus/guild/releases/latest/download/install.sh | sh
+guild --version</code></pre>
+<p>Or via Homebrew:</p>
+<pre><code>brew install mathomhaus/tap/guild</code></pre>
+<p>Both paths install a binary built with <code>-tags=withembed</code>, so semantic retrieval works out of the box with no extra steps.</p>
+<p><strong>Windows (pre-built zip, keyword-only retrieval):</strong></p>
+<pre><code>irm https://github.com/mathomhaus/guild/releases/latest/download/install.ps1 | iex
+guild --version   # in a new terminal</code></pre>
+<p>Or from cmd.exe:</p>
+<pre><code>powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;irm https://github.com/mathomhaus/guild/releases/latest/download/install.ps1 | iex&quot;</code></pre>
+<p>The installer SHA256-verifies the zip, installs to <code>%LOCALAPPDATA%\Programs\guild</code>, and adds it to your user PATH. On Windows, semantic (vector) retrieval is currently disabled — <code>onnxruntime-purego</code> has no Windows <code>Dlopen</code> surface (see <a href="../../../../features/self-evolving-agent/reference/internal/lore/embed/assets/README.md"><code>internal/lore/embed/assets/README.md</code></a>), so search runs the BM25 keyword arm only. Everything else — quests, lore, briefs, MCP server, SQLite state under <code>~\.guild\</code> — works the same as on macOS/Linux.</p>
+<p><strong>Clone and build (ship-ready, embed included):</strong></p>
+<pre><code>make install   # stages ONNX assets, then go install -tags=withembed</code></pre>
+<p><strong>Dev-only (faster compile, no semantic retrieval):</strong></p>
+<pre><code>make install-fast   # go install without -tags=withembed</code></pre>
+<p><strong><code>go install</code> from module proxy (keyword-only retrieval):</strong></p>
+<pre><code>go install github.com/mathomhaus/guild/cmd/guild@latest</code></pre>
+<p>The Go toolchain cannot embed assets via <code>@latest</code>; this path gives you BM25 keyword search but not semantic (vector) retrieval. Use <code>install.sh</code> or <code>brew</code> for the full experience.</p>
+<h4>2. Initialize your project</h4>
+<pre><code>cd ~/projects/myapp
+guild init</code></pre>
+<p><code>init</code> is a guided setup: it registers the project, writes an <code>AGENTS.md</code> block, and — for each MCP client it detects on your machine — offers to register guild so your agent can see it. Answer the prompts; you&#x27;re done when it says <code>Next: open this repo in your AI agent</code>.</p>
+<h4>3. Start a new session</h4>
+<p>In your editor, tell the agent: _&quot;start a guild session for myapp.&quot;_</p>
+<p>The agent takes it from there, including all subsequent sessions.</p>
+<p>See a few <a href="../../../../features/self-evolving-agent/reference/examples"><code>examples/</code></a> of what guild can do. All small scenarios, each under 5 minutes.</p>
+<h3>⚔️ A full session</h3>
+<p>The three-act flow an agent runs on its own every time it wakes.</p>
+<h4>Act 1 — arrival</h4>
+<p>Every agent begins with one tool call that loads the full operating context:</p>
+<pre><code>guild_session_start(project=&quot;myapp&quot;)
+  → oath            (project principles, auto-loaded)
+  → last brief      (handoff from the previous session)
+  → top quest       (+ parallel-safe candidates)</code></pre>
+<p>No back-and-forth. The agent now knows what it&#x27;s bound to, what was done yesterday, and what to pick up today.</p>
+<h4>Act 2 — adventure</h4>
+<p>The agent claims a bounty, consults the archive before researching, records findings, and journals reasoning as it goes:</p>
+<pre><code>guild quest accept QUEST-42 --owner agent-a
+
+guild lore appraise &quot;token refresh&quot; --all-projects
+
+guild lore inscribe &quot;token refresh window&quot; \
+  --kind observation \
+  --summary &quot;tokens expire at 1h; refresh by 55m to avoid race&quot; \
+  --topic auth
+
+guild quest journal QUEST-42 &quot;switched to exponential backoff after mock-clock test&quot;</code></pre>
+<p><code>lore appraise</code> is the discipline that keeps guild sharp: search before you research, so knowledge accretes instead of duplicating. Appraise runs hybrid (BM25 + vector RRF) the moment your corpus is indexed.</p>
+<h4>Act 3 — parting</h4>
+<p>At session end or when context runs full, the agent writes a brief and clears the quest. The clear <strong>cascades</strong>: any quest that was only blocked on QUEST-42 is now available for whoever walks in next.</p>
+<pre><code>guild quest brief &quot;shipped retry in commit abc1234; QUEST-43 ready to start&quot;
+guild quest fulfill QUEST-42 --report &quot;done, shipped in abc1234&quot;</code></pre>
+<p>Tomorrow&#x27;s agent — same project, maybe a different MCP client — opens the same hall, reads the same brief, picks up QUEST-43.</p>
+<p>&lt;p align=&quot;center&quot;&gt;   &lt;b&gt;State outlives every session&lt;/b&gt;&lt;br/&gt;   &lt;img src=&quot;./docs/assets/handoff.gif&quot; width=&quot;650&quot; alt=&quot;An agent writes a brief and clears a quest; the next session — cold start — picks up from exactly where the last one stopped&quot; /&gt; &lt;/p&gt;</p>
+<h4>Where writes go</h4>
+<p>Three write surfaces for three different lifetimes:</p>
+<ul>
+<li><strong><code>quest_journal</code></strong> — scratchpad for THIS quest. &quot;Tried X, failed</li>
+</ul>
+<p>  because Y.&quot; Dies when the quest clears. Use freely during work.</p>
+<ul>
+<li><strong><code>lore_inscribe</code></strong> — library entry for the next agent on a</li>
+</ul>
+<p>  DIFFERENT quest. Durable patterns, decisions, research. Outlasts   every quest.</p>
+<ul>
+<li><strong><code>quest_brief</code></strong> — handoff note for the next SESSION. Loaded</li>
+</ul>
+<p>  alongside the oath when the next agent starts.</p>
+<p>The test — _who else needs this?_</p>
+<ul>
+<li>Only me, finishing this quest → <strong>journal</strong></li>
+<li>Another agent working a different quest → <strong>lore</strong></li>
+<li>The next session, picking up where I left off → <strong>brief</strong></li>
+</ul>
+<hr>
+<h3>🧩 How it works</h3>
+<p>Four primitives. Everything else in guild is a composition of these.</p>
+<ul>
+<li><strong>Quest</strong> — a task on the board. Has priority, dependencies, the</li>
+</ul>
+<p>  files it touches, and an atomic claim so two agents can&#x27;t own it at   once. When cleared, it cascade-unblocks whatever was waiting on it.</p>
+<ul>
+<li><strong>Lore</strong> — an entry in the knowledge archive, typed by <code>kind</code></li>
+</ul>
+<p>  (<code>observation</code>, <code>decision</code>, <code>research</code>, <code>principle</code>, <code>idea</code>). Each   kind has its own default lifecycle: research auto-stales after 30   days, decisions after 180 days, and ideas, observations, and   principles do not auto-stale by default. Search runs both arms   (lexical BM25 + vector cosine) once the corpus is indexed. The   embedder backfills automatically; hybrid retrieval activates once   at least 90% of entries have vectors.</p>
+<ul>
+<li><strong>Oath</strong> — the subset of lore with <code>kind=principle</code>. Auto-loaded</li>
+</ul>
+<p>  at the top of every session so every agent starts bound by the   same principles.</p>
+<ul>
+<li><strong>Brief</strong> — a handoff note scribbled for the next arrival. Loaded</li>
+</ul>
+<p>  alongside the oath at session start.</p>
+<p>State lives in SQLite under <code>~/.guild/</code>. Switching MCP clients requires no export, no migration.</p>
+<hr>
+<h3>🤝 Contributing</h3>
+<p>See <a href="../../../../features/self-evolving-agent/reference/AGENTS.md">AGENTS.md</a> for the agent-facing contributor contract and <a href="../../../../features/self-evolving-agent/reference/CONTRIBUTING.md">CONTRIBUTING.md</a> for the human-facing workflow.</p>
+<p>Filing a quest and unsure which campaign to use, or whether to invent a new one? See <a href="../../../../features/self-evolving-agent/reference/docs/CAMPAIGNS.md">docs/CAMPAIGNS.md</a> for how campaigns are scoped, when to reuse vs create, and how <code>guild quest guild</code> is the canonical view of the live list.</p>
+<p>Maintainers shipping releases that embed the int8 ONNX retrieval model: see <a href="../../../../features/self-evolving-agent/reference/docs/MODEL.md">docs/MODEL.md</a> for the two-workflow build pattern (model production vs binary release), the <code>.model-version</code> pin, and the rebuild cadence.</p>
+<hr>
+<h3>📄 License</h3>
+<p>Apache License 2.0 — see <a href="../../../../features/self-evolving-agent/reference/LICENSE">LICENSE</a>.</p>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="band-ai-docs.html"><span class="label">Previous</span>BAND AI — Reference Documentation</a><a class="next" href="guild-ai-docs.html"><span class="label">Next</span>Guild.ai — Reference Documentation</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

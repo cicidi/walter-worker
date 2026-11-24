@@ -25,7 +25,7 @@ Decisions about the auto-worker. Newest first. Each decision has an entry in the
 
 ### ARD-E
 
-The 2026-11-24 spec review found six important and five worth-discussing problems across all five documents. Most fixes rewrite whole paragraphs of the design, which cannot be split into 10-line, 200-character edits that each read correctly on their own. The owner asked the agent to decide the approach. Rejected: many small sequential edits, which would leave the documents inconsistent between steps. Evidence: [`raw/review/2026-11-24-spec-review-autoworker-gaps.md`](../raw/review/2026-11-24-spec-review-autoworker-gaps.md); the owner's instruction of 2026-11-24.
+The 2026-11-24 spec review found six important and five worth-discussing problems across all five documents. Most fixes rewrite whole paragraphs of the design, which cannot be split into 10-line, 200-character edits that each read correctly on their own. The owner asked the agent to decide the approach. Rejected: many small sequential edits, which would leave the documents inconsistent between steps. Evidence: `../raw/review/2026-11-24-spec-review-autoworker-gaps.md`; the owner's instruction of 2026-11-24.
 
 ### ARD-D
 

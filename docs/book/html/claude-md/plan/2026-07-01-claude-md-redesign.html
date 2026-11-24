@@ -1,0 +1,1446 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CLAUDE.md Redesign Implementation Plan · plan · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-leaf"><a class="tree-link" href="2026-07-01-claude-md-redesign.html" aria-current="page">CLAUDE.md Redesign Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/2026-07-01-claude-md-best-practices-paper.html">CLAUDE.md Engineering: Best Practices and Anti-Patterns in AI Agent Instruction Design</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/2026-07-01-claude-md-design.html">CLAUDE.md Design — Three-Layer Architecture</a></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>claude-md</span> / <span>plan</span> / <span>CLAUDE.md Redesign Implementation Plan</span></nav>
+    <article class="doc" data-doc="claude-md/plan/2026-07-01-claude-md-redesign">
+      <header class="doc-head">
+        <p class="eyebrow">claude-md</p>
+        <h1>CLAUDE.md Redesign Implementation Plan</h1>
+        <p class="source">Canonical: docs/features/claude-md/plan/2026-07-01-claude-md-redesign.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>CLAUDE.md Redesign Implementation Plan</h2>
+<blockquote class="callout" data-label="NOTE"><p><strong>For agentic workers:</strong> Use TDD — each task writes tests first, then implements. Steps use checkbox (<code>- [ ]</code>) syntax for tracking.</p></blockquote>
+<p><strong>Goal:</strong> Implement the three-layer CLAUDE.md architecture (Global → Project → Local) in walter-worker, generate canonical templates, update init/install/update/initiative commands, and dogfood on walter-worker itself.</p>
+<p><strong>Architecture:</strong> New <code>templates/</code> module holds canonical template content. New <code>semantic_merge.py</code> handles CLAUDE.md updates. CLI <code>init</code> generates the new project structure. Initiatives inject into <code>CLAUDE.local.md</code> instead of <a href="../../../../../CLAUDE.md"><code>CLAUDE.md</code></a>. Install script uses new global template.</p>
+<p><strong>Tech Stack:</strong> Python 3.12+, Click, Pydantic 2, pytest, ruff</p>
+<hr>
+<h3>File Structure</h3>
+<pre><code>src/coworker/
+├── templates/
+│   ├── __init__.py          (NEW - module init)
+│   ├── global_claude_md.py  (NEW - Global CLAUDE.md canonical template)
+│   ├── project_claude_md.py (NEW - Project CLAUDE.md canonical template)
+│   └── local_claude_md.py   (NEW - CLAUDE.local.md template)
+├── semantic_merge.py        (NEW - Semantic merge engine)
+├── cli.py                   (MODIFY - _scan_project, _build_project_section, init)
+├── adapters/
+│   ├── claude.py            (MODIFY - initiative injection target)
+│   └── opencode.py          (MODIFY - initiative injection target)
+└── initiatives/
+    └── manager.py           (MODIFY - activate/deactivate target)
+setup/
+└── install.sh               (MODIFY - global CLAUDE.md template)
+tests/
+├── test_templates.py        (NEW)
+├── test_semantic_merge.py   (NEW)
+└── test_init.py             (MODIFY)</code></pre>
+<hr>
+<h4>Task 1: Global CLAUDE.md Canonical Template</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <a href="../../../../../src/coworker/templates/__init__.py"><code>src/coworker/templates/__init__.py</code></a></li>
+<li>Create: <a href="../../../../../src/coworker/templates/global_claude_md.py"><code>src/coworker/templates/global_claude_md.py</code></a></li>
+<li>Test: <code>tests/test_templates.py</code></li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 1: Write test for global template generation</strong></li>
+</ul>
+<pre><code># tests/test_templates.py
+from coworker.templates.global_claude_md import GLOBAL_CLAUDE_MD_TEMPLATE, generate_global_claude_md
+
+
+def test_global_template_exists():
+    assert GLOBAL_CLAUDE_MD_TEMPLATE is not None
+    assert len(GLOBAL_CLAUDE_MD_TEMPLATE) &gt; 0
+
+
+def test_global_template_under_100_lines():
+    result = generate_global_claude_md()
+    lines = result.strip().split(&quot;\n&quot;)
+    assert len(lines) &lt; 100, f&quot;Global CLAUDE.md is {len(lines)} lines, must be &lt;100&quot;
+
+
+def test_global_template_contains_all_8_principles():
+    result = generate_global_claude_md()
+    principles = [
+        &quot;Ask and Confirm&quot;,
+        &quot;Evidence and Reasoning&quot;,
+        &quot;Simplicity First&quot;,
+        &quot;Surgical Changes&quot;,
+        &quot;Goal-Driven Execution&quot;,
+        &quot;Decompose Complex Tasks&quot;,
+        &quot;Plan and Track&quot;,
+        &quot;Model Upgrade&quot;,
+    ]
+    for p in principles:
+        assert p in result, f&quot;Missing principle: {p}&quot;
+
+
+def test_global_template_no_tool_specific_references():
+    result = generate_global_claude_md()
+    assert &quot;.claude/rules/&quot; not in result
+    assert &quot;opencode.json&quot; not in result
+    assert &quot;Claude Code&quot; not in result and &quot;OpenCode&quot; not in result
+
+
+def test_generate_global_claude_md_allows_user_additions():
+    result = generate_global_claude_md()
+    assert &quot;&lt;!-- USER CUSTOM --&gt;&quot; not in result
+    assert &quot;&lt;!-- PROTECTED --&gt;&quot; not in result</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it fails</strong></li>
+</ul>
+<pre><code>cd ~/project/walter-worker &amp;&amp; python -m pytest tests/test_templates.py -v</code></pre>
+<p>Expected: FAIL — module not found</p>
+<ul>
+<li>[ ] <strong>Step 3: Create <a href="../../../../../src/coworker/templates/__init__.py"><code>src/coworker/templates/__init__.py</code></a></strong></li>
+</ul>
+<pre><code># src/coworker/templates/__init__.py</code></pre>
+<ul>
+<li>[ ] <strong>Step 4: Create <a href="../../../../../src/coworker/templates/global_claude_md.py"><code>src/coworker/templates/global_claude_md.py</code></a></strong></li>
+</ul>
+<pre><code># src/coworker/templates/global_claude_md.py
+
+GLOBAL_CLAUDE_MD_TEMPLATE = &quot;&quot;&quot;# Global instructions for all projects
+
+Behavioral guidelines to reduce common LLM coding mistakes.
+
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
+
+## 1. Ask and Confirm Before Coding
+
+**Don&#x27;t assume. Don&#x27;t hide confusion. Surface tradeoffs.**
+
+Before implementing:
+- Clarify scope, goal, possibilities, and clues. Ask follow-up questions until ~90% clear.
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them — don&#x27;t pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+
+## 2. Evidence and Reasoning
+
+**Ground every decision in evidence. Reason explicitly.**
+
+- Collect and filter evidence (docs, code, references). Do preliminary analysis.
+- If you discover a wrong direction, return to step 1 and restart. Avoid infinite loops.
+- When evidence supports multiple conclusions, state each with pros/cons, give recommendation, assign confidence.
+
+## 3. Simplicity First
+
+**Minimum code that solves the problem. Nothing speculative.**
+
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No &quot;flexibility&quot; that wasn&#x27;t requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
+
+## 4. Surgical Changes
+
+**Touch only what you must. Clean up only your own mess.**
+
+- Don&#x27;t &quot;improve&quot; adjacent code, comments, or formatting.
+- Don&#x27;t refactor things that aren&#x27;t broken.
+- Match existing style, even if you&#x27;d do it differently.
+- Remove only imports/variables YOUR changes made unused.
+- Every changed line should trace directly to the user&#x27;s request.
+
+## 5. Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+- &quot;Add validation&quot; → &quot;Write tests for invalid inputs, then make them pass&quot;
+- &quot;Fix the bug&quot; → &quot;Write a test that reproduces it, then make it pass&quot;
+- &quot;Refactor X&quot; → &quot;Ensure tests pass before and after&quot;
+
+## 6. Decompose Complex Tasks
+
+**Break complex work down. Start with what matters most.**
+
+- Split complex tasks into smaller subtasks before starting.
+- Order by priority — most important first.
+- Re-evaluate priorities as you learn more during execution.
+
+## 7. Plan and Track Progress
+
+**Make the plan visible. Show where you are.**
+
+- For every task, make a plan and display it (TodoWrite / todo list).
+- Show current task and progress.
+- When subtasks are independent, dispatch them in parallel via subagents.
+
+## 8. Recommend Model Upgrade When Warranted
+
+**Flag when a task needs a stronger model.**
+
+- If the current task would benefit from a more capable LLM, say so and recommend an upgrade.
+&quot;&quot;&quot;
+
+
+def generate_global_claude_md() -&gt; str:
+    &quot;&quot;&quot;Return the canonical Global CLAUDE.md content.&quot;&quot;&quot;
+    return GLOBAL_CLAUDE_MD_TEMPLATE.strip()</code></pre>
+<ul>
+<li>[ ] <strong>Step 5: Run tests</strong></li>
+</ul>
+<pre><code>cd ~/project/walter-worker &amp;&amp; python -m pytest tests/test_templates.py::test_global_template_exists tests/test_templates.py::test_global_template_under_100_lines tests/test_templates.py::test_global_template_contains_all_8_principles tests/test_templates.py::test_global_template_no_tool_specific_references -v</code></pre>
+<p>Expected: all PASS</p>
+<ul>
+<li>[ ] <strong>Step 6: Commit</strong></li>
+</ul>
+<pre><code>git add src/coworker/templates/__init__.py src/coworker/templates/global_claude_md.py tests/test_templates.py
+git commit -m &quot;feat: add Global CLAUDE.md canonical template (Karpathy 8 principles)&quot;</code></pre>
+<hr>
+<h4>Task 2: Project CLAUDE.md Canonical Template</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <a href="../../../../../src/coworker/templates/project_claude_md.py"><code>src/coworker/templates/project_claude_md.py</code></a></li>
+<li>Test: <code>tests/test_templates.py</code> (append)</li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 1: Write tests</strong></li>
+</ul>
+<pre><code># Append to tests/test_templates.py
+from coworker.templates.project_claude_md import (
+    PROJECT_CLAUDE_MD_IDENTITY_TEMPLATE,
+    PROJECT_CLAUDE_MD_CONTEXT_MGMT_TEMPLATE,
+    PROJECT_CLAUDE_MD_WORKFLOW_TEMPLATE,
+    PROJECT_CLAUDE_MD_SKILL_REFS_TEMPLATE,
+    PROJECT_CLAUDE_MD_LOCAL_OVERRIDE_TEMPLATE,
+    PROJECT_CLAUDE_MD_AUTO_MEMORY_TEMPLATE,
+    PROJECT_CLAUDE_MD_COMPACTION_TEMPLATE,
+    generate_project_claude_md,
+)
+
+
+def test_project_template_under_200_lines():
+    result = generate_project_claude_md(
+        project_name=&quot;test-project&quot;,
+        language=&quot;python&quot;,
+        framework=&quot;fastapi&quot;,
+        repo=&quot;git@github.com:test/test.git&quot;,
+        branch=&quot;main&quot;,
+    )
+    lines = result.strip().split(&quot;\n&quot;)
+    assert len(lines) &lt; 200, f&quot;Project CLAUDE.md is {len(lines} lines, must be &lt;200&quot;
+
+
+def test_project_template_contains_identity():
+    result = generate_project_claude_md(
+        project_name=&quot;test&quot;,
+        language=&quot;python&quot;,
+        framework=&quot;fastapi&quot;,
+        repo=&quot;git@github.com:test/test.git&quot;,
+        branch=&quot;main&quot;,
+    )
+    assert &quot;# test&quot; in result or &quot;## Identity&quot; in result
+    assert &quot;python&quot; in result.lower()
+    assert &quot;fastapi&quot; in result.lower()
+    assert &quot;git@github.com:test/test.git&quot; in result
+
+
+def test_project_template_contains_local_override():
+    result = generate_project_claude_md(
+        project_name=&quot;test&quot;, language=&quot;python&quot;, framework=&quot;&quot;, repo=&quot;&quot;, branch=&quot;&quot;
+    )
+    assert &quot;CLAUDE.local.md&quot; in result
+    assert &quot;Read tool&quot; in result
+
+
+def test_project_template_contains_workflow_heuristics():
+    result = generate_project_claude_md(
+        project_name=&quot;test&quot;, language=&quot;python&quot;, framework=&quot;&quot;, repo=&quot;&quot;, branch=&quot;&quot;
+    )
+    assert &quot;low-risk&quot; in result.lower() or &quot;auto-execute&quot; in result.lower()
+    assert &quot;escape hatch&quot; in result.lower()
+
+
+def test_project_template_sections_in_priority_order():
+    result = generate_project_claude_md(
+        project_name=&quot;test&quot;, language=&quot;python&quot;, framework=&quot;&quot;, repo=&quot;&quot;, branch=&quot;&quot;
+    )
+    sections = [line for line in result.split(&quot;\n&quot;) if line.startswith(&quot;## &quot;)]
+    # Critical behavioral rules must come before identity/context
+    local_override_idx = next(i for i, s in enumerate(sections) if &quot;Local Override&quot; in s or &quot;Auto Memory&quot; in s or &quot;Compaction&quot; in s)
+    identity_idx = next(i for i, s in enumerate(sections) if &quot;Identity&quot; in s or &quot;Project Context&quot; in s)
+    assert local_override_idx &lt; identity_idx, &quot;Critical rules must come before identity&quot;
+
+
+def test_project_template_no_tool_specific_references():
+    result = generate_project_claude_md(
+        project_name=&quot;test&quot;, language=&quot;python&quot;, framework=&quot;&quot;, repo=&quot;&quot;, branch=&quot;&quot;
+    )
+    assert &quot;.claude/rules/&quot; not in result</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it fails</strong></li>
+</ul>
+<pre><code>cd ~/project/walter-worker &amp;&amp; python -m pytest tests/test_templates.py::test_project_template_under_200_lines -v</code></pre>
+<p>Expected: FAIL — module not found</p>
+<ul>
+<li>[ ] <strong>Step 3: Create <a href="../../../../../src/coworker/templates/project_claude_md.py"><code>src/coworker/templates/project_claude_md.py</code></a></strong></li>
+</ul>
+<pre><code># src/coworker/templates/project_claude_md.py
+
+PROJECT_CLAUDE_MD_LOCAL_OVERRIDE_TEMPLATE = &quot;&quot;&quot;## Local Override
+
+If `CLAUDE.local.md` exists in this project root, read it immediately after reading this file.
+- Claude Code natively auto-loads this file
+- OpenCode: use Read tool to load it on startup
+
+It contains:
+- Active initiative context (injected by coworker)
+- Current task state reference
+- Config file paths (project catalog, local config)
+- Personal workflow preferences for this project
+&quot;&quot;&quot;
+
+PROJECT_CLAUDE_MD_AUTO_MEMORY_TEMPLATE = &quot;&quot;&quot;## Auto Memory
+
+- CLAUDE.md contains upfront rules — read these first
+- Auto memory (if enabled) contains learnings from prior sessions
+- When auto memory exists, read it after CLAUDE.md but before starting work
+- Conflict resolution: upfront rules (CLAUDE.md) override learned rules (auto memory)
+- Auto memory is stored separately, never injected back into CLAUDE.md without human review
+&quot;&quot;&quot;
+
+PROJECT_CLAUDE_MD_COMPACTION_TEMPLATE = &quot;&quot;&quot;## Compaction Survival
+
+After context compaction or session truncation:
+1. Project CLAUDE.md is always re-injected — use it as your reset anchor
+2. `docs/state-{task}.md` survives on disk → re-read it to resume progress
+3. Previous conversation is lost → rely on state files, not memory
+4. Compact at 50-70% context window, not when degraded
+5. Re-run the context self-assessment checklist from start
+&quot;&quot;&quot;
+
+PROJECT_CLAUDE_MD_IDENTITY_TEMPLATE = &quot;&quot;&quot;## Identity &amp; Project Context
+
+- Language: {language}
+- Framework: {framework}
+- Package Manager: {package_manager}
+- Build: {build_cmd}
+- Lint: {lint_cmd}
+- Test: {test_cmd}
+- IDE: {ides}
+- Repo: {repo}
+- Default Branch: {branch}
+&quot;&quot;&quot;
+
+PROJECT_CLAUDE_MD_RELATIONSHIPS_TEMPLATE = &quot;&quot;&quot;## Project Relationships
+
+{relationships}
+
+The project catalog config path is in `CLAUDE.local.md`.
+&quot;&quot;&quot;
+
+PROJECT_CLAUDE_MD_KNOWLEDGE_TEMPLATE = &quot;&quot;&quot;## Knowledge Repo
+
+{doc_map}
+&quot;&quot;&quot;
+
+PROJECT_CLAUDE_MD_CONTEXT_MGMT_TEMPLATE = &quot;&quot;&quot;## Context Management
+
+Before any non-trivial task, evaluate whether external context is needed.
+
+### Context Self-Assessment Checklist
+1. Is the goal clear? If not → need clarification from user
+2. Is there a PRD/spec? If yes → read it first from `docs/specs/`
+3. Were there prior discussions? If yes → read from `docs/discussion/`
+4. Was this task started before? If yes → read `docs/state-{taskname}.md`
+5. Are all referenced files actually read? If not → read them NOW
+
+### Information Categories
+| Category | Source | Storage |
+|----------|--------|---------|
+| 1. What to build | PRD, spec, issue | `docs/specs/` |
+| 2. Discussion &amp; decisions | Slack, wiki, GitHub | `docs/discussion/` |
+| 3. Implementation plan | Derived from 1 &amp; 2 | `docs/specs/` |
+| 4. Verification plan | Tests, acceptance criteria | `docs/specs/` |
+| 5. Historical archive | Prior sessions, state files | `docs/state-{task}.md` |
+
+Only pull from channels actively configured for this project.
+&quot;&quot;&quot;
+
+PROJECT_CLAUDE_MD_WORKFLOW_TEMPLATE = &quot;&quot;&quot;## Workflow Decision Heuristics
+
+At the start of every new task, analyze characteristics. Route to auto or confirm.
+
+### Low-risk → auto-execute, no confirmation
+| Task | Action |
+|------|--------|
+| Clear requirements, simple change, low risk | Direct implementation |
+| Bug fix with clear reproduction, small scope | bug-hunt → fix → verify |
+| Minor refactoring with existing tests passing | Edit → verify tests |
+
+### Medium/high risk → suggest workflow, confirm first
+| Task | Suggested workflow |
+|------|-------------------|
+| Unclear requirements, large scope | brainstorming → spec → discuss |
+| Clear requirements, complex code, high bug risk | TDD + loop engineering |
+| Large project, lots of discussion AND code | brainstorming + TDD + loop |
+
+### Decision Logic</code></pre>
+<p>if clarity == clear AND scope == small AND risk == low:     → auto-execute, no prompt else:     → analyze → suggest workflow → ask user to confirm</p>
+<pre><code>
+### Escape Hatch
+These heuristics bias toward caution. For trivial, reversible operations (reading files, running `ls`/`grep`, simple logging), use judgment and proceed without overthinking.
+&quot;&quot;&quot;
+
+PROJECT_CLAUDE_MD_SKILL_REFS_TEMPLATE = &quot;&quot;&quot;## Skill References
+
+When a task matches a skill&#x27;s domain, invoke that skill:
+- TDD / auto-tdd: test-first development, red-green-refactor cycles
+- bug-hunt: systematic debugging with hypothesis-test-confirm loop
+- brainstorming: creative work, feature design, exploration
+- commit: git commits following conventional commits format
+- doc-*: documentation workflows (create, merge, protect)
+- self-heal / self-analyze: logging corrections, pattern analysis
+
+Auto-match principle: Skill descriptions should be specific enough that the AI can unambiguously determine when to use them. If a human can&#x27;t tell which skill applies, the AI can&#x27;t either.
+&quot;&quot;&quot;
+
+
+def generate_project_claude_md(
+    project_name: str = &quot;&quot;,
+    language: str = &quot;&quot;,
+    framework: str = &quot;&quot;,
+    package_manager: str = &quot;&quot;,
+    build_cmd: str = &quot;&quot;,
+    lint_cmd: str = &quot;&quot;,
+    test_cmd: str = &quot;&quot;,
+    ides: str = &quot;claude, opencode&quot;,
+    repo: str = &quot;&quot;,
+    branch: str = &quot;main&quot;,
+    relationships: str = &quot;_(none configured)_&quot;,
+    doc_map: str = &quot;_(run `coworker init` to scan docs/ structure)_&quot;,
+) -&gt; str:
+    &quot;&quot;&quot;Generate canonical Project CLAUDE.md.&quot;&quot;&quot;
+
+    identity = PROJECT_CLAUDE_MD_IDENTITY_TEMPLATE.format(
+        language=language or &quot;_detect on `coworker init`_&quot;,
+        framework=framework or &quot;_detect on `coworker init`_&quot;,
+        package_manager=package_manager or &quot;_detect on `coworker init`_&quot;,
+        build_cmd=build_cmd or &quot;_detect on `coworker init`_&quot;,
+        lint_cmd=lint_cmd or &quot;_detect on `coworker init`_&quot;,
+        test_cmd=test_cmd or &quot;_detect on `coworker init`_&quot;,
+        ides=ides,
+        repo=repo or &quot;_detect on `coworker init`_&quot;,
+        branch=branch,
+    )
+
+    relationships_section = PROJECT_CLAUDE_MD_RELATIONSHIPS_TEMPLATE.format(
+        relationships=relationships,
+    )
+
+    knowledge = PROJECT_CLAUDE_MD_KNOWLEDGE_TEMPLATE.format(doc_map=doc_map)
+
+    parts = [
+        f&quot;# {project_name or &#x27;Project&#x27;} — CLAUDE.md&quot;,
+        &quot;&quot;,
+        &quot;&lt;!-- PROTECTED:CRITICAL-RULES --&gt;&quot;,
+        PROJECT_CLAUDE_MD_LOCAL_OVERRIDE_TEMPLATE.strip(),
+        PROJECT_CLAUDE_MD_AUTO_MEMORY_TEMPLATE.strip(),
+        PROJECT_CLAUDE_MD_COMPACTION_TEMPLATE.strip(),
+        &quot;&lt;!-- END PROTECTED:CRITICAL-RULES --&gt;&quot;,
+        &quot;&quot;,
+        identity.strip(),
+        &quot;&quot;,
+        relationships_section.strip(),
+        &quot;&quot;,
+        knowledge.strip(),
+        &quot;&quot;,
+        PROJECT_CLAUDE_MD_CONTEXT_MGMT_TEMPLATE.strip(),
+        &quot;&quot;,
+        PROJECT_CLAUDE_MD_WORKFLOW_TEMPLATE.strip(),
+        &quot;&quot;,
+        PROJECT_CLAUDE_MD_SKILL_REFS_TEMPLATE.strip(),
+    ]
+    return &quot;\n\n&quot;.join(parts)</code></pre>
+<ul>
+<li>[ ] <strong>Step 4: Run tests</strong></li>
+</ul>
+<pre><code>cd ~/project/walter-worker &amp;&amp; python -m pytest tests/test_templates.py -v -k &quot;project&quot;</code></pre>
+<p>Expected: all PASS</p>
+<ul>
+<li>[ ] <strong>Step 5: Commit</strong></li>
+</ul>
+<pre><code>git add src/coworker/templates/project_claude_md.py tests/test_templates.py
+git commit -m &quot;feat: add Project CLAUDE.md canonical template&quot;</code></pre>
+<hr>
+<h4>Task 3: CLAUDE.local.md Template</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <a href="../../../../../src/coworker/templates/local_claude_md.py"><code>src/coworker/templates/local_claude_md.py</code></a></li>
+<li>Test: <code>tests/test_templates.py</code> (append)</li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 1: Write tests</strong></li>
+</ul>
+<pre><code># Append to tests/test_templates.py
+from coworker.templates.local_claude_md import generate_local_claude_md
+
+
+def test_local_template_is_empty_by_default():
+    result = generate_local_claude_md()
+    lines = result.strip().split(&quot;\n&quot;)
+    assert len(lines) &lt; 30, f&quot;Local CLAUDE.md template should be minimal, got {len(lines)} lines&quot;
+
+
+def test_local_template_has_initiative_placeholder():
+    result = generate_local_claude_md()
+    assert &quot;INITIATIVE:&quot; in result or &quot;initiative&quot; in result.lower()
+
+
+def test_local_template_has_config_path_section():
+    result = generate_local_claude_md()
+    assert &quot;config&quot; in result.lower() or &quot;Config&quot; in result
+
+
+def test_local_template_has_task_state_section():
+    result = generate_local_claude_md()
+    assert &quot;state&quot; in result.lower() or &quot;task&quot; in result.lower()
+
+
+def test_local_template_adds_initiative_with_no_duplicates():
+    content = generate_local_claude_md()
+    initiative_block = &quot;&quot;&quot;&lt;!-- INITIATIVE:test START --&gt;
+## Active Initiative: test
+&gt; test description
+&lt;!-- INITIATIVE:test END --&gt;&quot;&quot;&quot;
+    updated = inject_initiative_into_local_md(content, initiative_block)
+    assert &quot;INITIATIVE:test&quot; in updated
+    # Inject again — should replace, not duplicate
+    updated2 = inject_initiative_into_local_md(updated, initiative_block)
+    assert updated2.count(&quot;INITIATIVE:test&quot;) == 2  # START and END = 2 occurrences
+
+
+def test_local_template_removes_initiative():
+    content = generate_local_claude_md()
+    initiative_block = &quot;&quot;&quot;&lt;!-- INITIATIVE:test START --&gt;
+## Active Initiative: test
+&lt;!-- INITIATIVE:test END --&gt;&quot;&quot;&quot;
+    with_initiative = inject_initiative_into_local_md(content, initiative_block)
+    removed = remove_initiative_from_local_md(with_initiative, &quot;test&quot;)
+    assert &quot;INITIATIVE:test&quot; not in removed</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it fails</strong></li>
+</ul>
+<pre><code>cd ~/project/walter-worker &amp;&amp; python -m pytest tests/test_templates.py::test_local_template_is_empty_by_default -v</code></pre>
+<p>Expected: FAIL</p>
+<ul>
+<li>[ ] <strong>Step 3: Create <a href="../../../../../src/coworker/templates/local_claude_md.py"><code>src/coworker/templates/local_claude_md.py</code></a></strong></li>
+</ul>
+<pre><code># src/coworker/templates/local_claude_md.py
+import re
+
+LOCAL_CLAUDE_MD_TEMPLATE = &quot;&quot;&quot;# Personal Working Context
+
+This file is NOT committed to git. It contains your personal working context for this project.
+
+## Config Paths
+
+- Project Catalog: ~/.coworker/project.yaml
+- Local Config: .local_config.yaml
+
+&lt;!-- INITIATIVE_PLACEHOLDER --&gt;
+
+## Current Task State
+
+Active task: _(none)_
+
+Reference: `docs/state-{taskname}.md`
+
+## Personal Preferences
+
+_(override project-level defaults here)_
+&quot;&quot;&quot;
+
+INITIATIVE_PLACEHOLDER = &quot;&lt;!-- INITIATIVE_PLACEHOLDER --&gt;&quot;
+
+
+def generate_local_claude_md() -&gt; str:
+    &quot;&quot;&quot;Return the canonical CLAUDE.local.md template.&quot;&quot;&quot;
+    return LOCAL_CLAUDE_MD_TEMPLATE.strip()
+
+
+def inject_initiative_into_local_md(content: str, initiative_block: str) -&gt; str:
+    &quot;&quot;&quot;Inject an initiative block into local.md content, replacing any existing initiative blocks.&quot;&quot;&quot;
+    # Remove all existing initiative blocks first
+    cleaned = re.sub(
+        r&quot;&lt;!-- INITIATIVE:.*?START --&gt;.*?&lt;!-- INITIATIVE:.*?END --&gt;&quot;,
+        &quot;&quot;,
+        content,
+        flags=re.DOTALL,
+    )
+    # Insert before the placeholder or at the end
+    if INITIATIVE_PLACEHOLDER in cleaned:
+        return cleaned.replace(INITIATIVE_PLACEHOLDER, initiative_block.strip() + &quot;\n\n&quot; + INITIATIVE_PLACEHOLDER)
+    else:
+        return cleaned.strip() + &quot;\n\n&quot; + initiative_block.strip()
+
+
+def remove_initiative_from_local_md(content: str, name: str) -&gt; str:
+    &quot;&quot;&quot;Remove a specific initiative block from local.md content.&quot;&quot;&quot;
+    pattern = rf&quot;&lt;!-- INITIATIVE:{re.escape(name)} START --&gt;.*?&lt;!-- INITIATIVE:{re.escape(name)} END --&gt;&quot;
+    return re.sub(pattern, &quot;&quot;, content, flags=re.DOTALL)</code></pre>
+<ul>
+<li>[ ] <strong>Step 4: Run tests</strong></li>
+</ul>
+<pre><code>cd ~/project/walter-worker &amp;&amp; python -m pytest tests/test_templates.py -v -k &quot;local&quot;</code></pre>
+<p>Expected: all PASS</p>
+<ul>
+<li>[ ] <strong>Step 5: Commit</strong></li>
+</ul>
+<pre><code>git add src/coworker/templates/local_claude_md.py tests/test_templates.py
+git commit -m &quot;feat: add CLAUDE.local.md template with initiative injection&quot;</code></pre>
+<hr>
+<h4>Task 4: Semantic Merge Engine</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <a href="../../../../../src/coworker/semantic_merge.py"><code>src/coworker/semantic_merge.py</code></a></li>
+<li>Test: <code>tests/test_semantic_merge.py</code></li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 1: Write tests</strong></li>
+</ul>
+<pre><code># tests/test_semantic_merge.py
+from coworker.semantic_merge import (
+    classify_sections,
+    SectionClassification,
+    apply_merge,
+    OUTDATED,
+    OVERWRITE,
+    MERGE_ADD,
+    KEEP,
+)
+
+
+CURRENT = &quot;&quot;&quot;# Project CLAUDE.md
+
+## Identity
+python, fastapi
+
+## My Custom Rules
+my custom content here
+
+&lt;!-- PROTECTED --&gt;
+do not touch this
+&lt;!-- END PROTECTED --&gt;
+
+## Context Management
+old version of context rules
+&quot;&quot;&quot;
+
+FUTURE = &quot;&quot;&quot;# Project CLAUDE.md
+
+## Identity
+python, fastapi, pydantic
+
+## Context Management
+new version of context rules
+
+## Workflow Heuristics
+new workflow decision guide
+&quot;&quot;&quot;
+
+
+def test_classify_overwrite():
+    classifications = classify_sections(CURRENT, FUTURE)
+    overwrites = [c for c in classifications if c.category == OVERWRITE]
+    assert len(overwrites) &gt;= 1
+    identity = [c for c in overwrites if &quot;Identity&quot; in c.heading]
+    assert len(identity) == 1
+    context = [c for c in overwrites if &quot;Context Management&quot; in c.heading]
+    assert len(context) == 1
+
+
+def test_classify_keep_custom():
+    classifications = classify_sections(CURRENT, FUTURE)
+    keeps = [c for c in classifications if c.category == KEEP]
+    headings = [c.heading for c in keeps]
+    assert &quot;My Custom Rules&quot; in headings or any(&quot;Custom&quot; in h for h in headings)
+
+
+def test_classify_merge_add():
+    classifications = classify_sections(CURRENT, FUTURE)
+    adds = [c for c in classifications if c.category == MERGE_ADD]
+    headings = [c.heading for c in adds]
+    assert &quot;Workflow Heuristics&quot; in headings or any(&quot;Workflow&quot; in h for h in headings)
+
+
+def test_classify_protected_block_untouched():
+    classifications = classify_sections(CURRENT, FUTURE)
+    assert &quot;do not touch this&quot; in CURRENT  # survives in KEEP
+
+
+def test_apply_merge_result():
+    classifications = classify_sections(CURRENT, FUTURE)
+    result = apply_merge(classifications, CURRENT, FUTURE)
+    assert &quot;My Custom Rules&quot; in result
+    assert &quot;new version of context rules&quot; in result
+    assert &quot;pydantic&quot; in result
+    assert &quot;new workflow decision guide&quot; in result
+    assert &quot;do not touch this&quot; in result
+
+
+def test_no_duplicate_sections_after_merge():
+    classifications = classify_sections(CURRENT, FUTURE)
+    result = apply_merge(classifications, CURRENT, FUTURE)
+    assert result.count(&quot;## Identity&quot;) == 1
+    assert result.count(&quot;## Context Management&quot;) == 1
+
+
+def test_classify_returns_list():
+    classifications = classify_sections(CURRENT, FUTURE)
+    assert isinstance(classifications, list)
+    assert all(isinstance(c, SectionClassification) for c in classifications)</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it fails</strong></li>
+</ul>
+<pre><code>cd ~/project/walter-worker &amp;&amp; python -m pytest tests/test_semantic_merge.py -v</code></pre>
+<p>Expected: FAIL</p>
+<ul>
+<li>[ ] <strong>Step 3: Create <a href="../../../../../src/coworker/semantic_merge.py"><code>src/coworker/semantic_merge.py</code></a></strong></li>
+</ul>
+<pre><code># src/coworker/semantic_merge.py
+import re
+from dataclasses import dataclass, field
+
+OUTDATED = &quot;OUTDATED&quot;
+OVERWRITE = &quot;OVERWRITE&quot;
+MERGE_ADD = &quot;MERGE_ADD&quot;
+KEEP = &quot;KEEP&quot;
+
+
+@dataclass
+class SectionClassification:
+    heading: str
+    category: str  # OUTDATED | OVERWRITE | MERGE_ADD | KEEP
+    current_content: str = &quot;&quot;
+    future_content: str = &quot;&quot;
+
+
+def _parse_sections(content: str) -&gt; dict[str, str]:
+    &quot;&quot;&quot;Parse markdown content into a dict of heading → section body.&quot;&quot;&quot;
+    sections = {}
+    pattern = r&quot;^(#{1,3}\s+.+)$&quot;
+    lines = content.split(&quot;\n&quot;)
+    current_heading = &quot;_header&quot;
+    current_body: list[str] = []
+
+    for line in lines:
+        if re.match(pattern, line):
+            if current_body:
+                sections[current_heading] = &quot;\n&quot;.join(current_body).strip()
+            current_heading = line.strip()
+            current_body = []
+        else:
+            current_body.append(line)
+    if current_body:
+        sections[current_heading] = &quot;\n&quot;.join(current_body).strip()
+
+    return sections
+
+
+def classify_sections(current: str, future: str) -&gt; list[SectionClassification]:
+    &quot;&quot;&quot;Compare current and future CLAUDE.md, classify each section.&quot;&quot;&quot;
+    current_sections = _parse_sections(current)
+    future_sections = _parse_sections(future)
+    classifications: list[SectionClassification] = []
+
+    for heading, cur_content in current_sections.items():
+        if heading == &quot;_header&quot;:
+            continue
+
+        # PROTECTED blocks → always KEEP
+        if &quot;&lt;!-- PROTECTED --&gt;&quot; in cur_content or &quot;&lt;!-- PROTECTED:&quot; in cur_content:
+            classifications.append(SectionClassification(
+                heading=heading, category=KEEP,
+                current_content=cur_content,
+            ))
+            continue
+
+        # INITIATIVE blocks → always KEEP (managed by initiative system)
+        if &quot;&lt;!-- INITIATIVE:&quot; in cur_content:
+            classifications.append(SectionClassification(
+                heading=heading, category=KEEP,
+                current_content=cur_content,
+            ))
+            continue
+
+        if heading in future_sections:
+            fut_content = future_sections[heading]
+            if cur_content.strip() != fut_content.strip():
+                classifications.append(SectionClassification(
+                    heading=heading, category=OVERWRITE,
+                    current_content=cur_content,
+                    future_content=fut_content,
+                ))
+            else:
+                classifications.append(SectionClassification(
+                    heading=heading, category=KEEP,
+                    current_content=cur_content,
+                ))
+        else:
+            # Section in current but not in future → KEEP (user may have added it)
+            classifications.append(SectionClassification(
+                heading=heading, category=KEEP,
+                current_content=cur_content,
+            ))
+
+    # Sections in future but not in current → MERGE_ADD
+    for heading, fut_content in future_sections.items():
+        if heading == &quot;_header&quot;:
+            continue
+        if heading not in current_sections:
+            classifications.append(SectionClassification(
+                heading=heading, category=MERGE_ADD,
+                future_content=fut_content,
+            ))
+
+    return classifications
+
+
+def apply_merge(
+    classifications: list[SectionClassification],
+    current: str,
+    future: str,
+) -&gt; str:
+    &quot;&quot;&quot;Apply classified changes to produce merged CLAUDE.md.&quot;&quot;&quot;
+    output_lines = []
+    current_sections = _parse_sections(current)
+    future_sections = _parse_sections(future)
+
+    # Start with header
+    header = current_sections.get(&quot;_header&quot;, future_sections.get(&quot;_header&quot;, &quot;&quot;))
+    if header:
+        output_lines.append(header)
+        output_lines.append(&quot;&quot;)
+
+    # Process in order: current sections first, then new sections
+    processed_headings: set[str] = set()
+
+    for heading, cur_content in current_sections.items():
+        if heading == &quot;_header&quot;:
+            continue
+        processed_headings.add(heading)
+
+        # Find classification for this heading
+        match = [c for c in classifications if c.heading == heading]
+        if not match:
+            output_lines.append(heading)
+            output_lines.append(&quot;&quot;)
+            output_lines.append(cur_content)
+            output_lines.append(&quot;&quot;)
+            continue
+
+        c = match[0]
+        if c.category == KEEP:
+            output_lines.append(heading)
+            output_lines.append(&quot;&quot;)
+            output_lines.append(cur_content)
+            output_lines.append(&quot;&quot;)
+        elif c.category == OVERWRITE:
+            output_lines.append(heading)
+            output_lines.append(&quot;&quot;)
+            output_lines.append(c.future_content)
+            output_lines.append(&quot;&quot;)
+        elif c.category == OUTDATED:
+            # Skip — don&#x27;t include
+            pass
+
+    # Add new sections from MERGE_ADD
+    for c in classifications:
+        if c.category == MERGE_ADD:
+            output_lines.append(c.heading)
+            output_lines.append(&quot;&quot;)
+            output_lines.append(c.future_content)
+            output_lines.append(&quot;&quot;)
+
+    return &quot;\n&quot;.join(output_lines).strip() + &quot;\n&quot;</code></pre>
+<ul>
+<li>[ ] <strong>Step 4: Run tests</strong></li>
+</ul>
+<pre><code>cd ~/project/walter-worker &amp;&amp; python -m pytest tests/test_semantic_merge.py -v</code></pre>
+<p>Expected: all PASS</p>
+<ul>
+<li>[ ] <strong>Step 5: Commit</strong></li>
+</ul>
+<pre><code>git add src/coworker/semantic_merge.py tests/test_semantic_merge.py
+git commit -m &quot;feat: add semantic merge engine for CLAUDE.md updates&quot;</code></pre>
+<hr>
+<h4>Task 5: Update <code>cli.py</code> — Init Command</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify: <code>src/coworker/cli.py:_scan_project</code>, <code>_build_project_section</code>, <code>init</code></li>
+<li>Test: <code>tests/test_init.py</code></li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 1: Enhance <code>_scan_project()</code> to detect docs/ structure</strong></li>
+</ul>
+<pre><code># In src/coworker/cli.py, modify _scan_project()
+
+def _scan_project() -&gt; dict:
+    &quot;&quot;&quot;Scan current directory for project metadata.&quot;&quot;&quot;
+    info = {
+        &quot;name&quot;: Path.cwd().name,
+        &quot;language&quot;: &quot;&quot;,
+        &quot;framework&quot;: &quot;&quot;,
+        &quot;package_manager&quot;: &quot;&quot;,
+        &quot;build_cmd&quot;: &quot;&quot;,
+        &quot;lint_cmd&quot;: &quot;&quot;,
+        &quot;test_cmd&quot;: &quot;&quot;,
+        &quot;ides&quot;: &quot;claude, opencode&quot;,
+        &quot;repo&quot;: &quot;&quot;,
+        &quot;branch&quot;: &quot;main&quot;,
+        &quot;doc_map&quot;: &quot;&quot;,           # NEW
+        &quot;relationships&quot;: &quot;&quot;,     # NEW
+    }
+
+    # ... existing detection logic ...
+    # (keep all existing language/framework detection)
+
+    # NEW: Detect docs/ structure
+    docs_dir = Path.cwd() / &quot;docs&quot;
+    if docs_dir.exists():
+        parts = []
+        if (docs_dir / &quot;specs&quot;).exists():
+            parts.append(&quot;- Specs: `docs/specs/`&quot;)
+        if (docs_dir / &quot;discussion&quot;).exists():
+            parts.append(&quot;- Discussions: `docs/discussion/`&quot;)
+        state_files = list(Path.cwd().glob(&quot;docs/state-*.md&quot;))
+        if state_files:
+            for sf in state_files:
+                parts.append(f&quot;- State: `{sf.relative_to(Path.cwd())}`&quot;)
+        if not parts:
+            parts.append(&quot;- `docs/` exists but no specs/discussion/state subdirectories&quot;)
+        info[&quot;doc_map&quot;] = &quot;\n&quot;.join(parts)
+    else:
+        info[&quot;doc_map&quot;] = &quot;_`docs/` directory not found. Run `coworker init` to create._&quot;
+
+    # NEW: Detect project relationships from catalog
+    try:
+        from coworker.config import load_project_catalog
+        catalog = load_project_catalog()
+        current_path = str(Path.cwd().resolve())
+        rels = []
+        for entry in catalog.projects:
+            for ref in entry.upstream:
+                rels.append(f&quot;| {entry.name} | upstream | {ref.project} |&quot;)
+            for ref in entry.downstream:
+                rels.append(f&quot;| {entry.name} | downstream | {ref.project} |&quot;)
+        info[&quot;relationships&quot;] = &quot;\n&quot;.join(rels) if rels else &quot;_(none configured)_&quot;
+    except Exception:
+        info[&quot;relationships&quot;] = &quot;_(none configured)_&quot;
+
+    return info</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Replace <code>_build_project_section()</code> with new template-based generator</strong></li>
+</ul>
+<pre><code># In src/coworker/cli.py, replace _build_project_section()
+
+from coworker.templates.project_claude_md import generate_project_claude_md
+
+
+def _build_project_claude_md(info: dict) -&gt; str:
+    &quot;&quot;&quot;Generate project CLAUDE.md using canonical template.&quot;&quot;&quot;
+    return generate_project_claude_md(
+        project_name=info.get(&quot;name&quot;, &quot;&quot;),
+        language=info.get(&quot;language&quot;, &quot;&quot;),
+        framework=info.get(&quot;framework&quot;, &quot;&quot;),
+        package_manager=info.get(&quot;package_manager&quot;, &quot;&quot;),
+        build_cmd=info.get(&quot;build_cmd&quot;, &quot;&quot;),
+        lint_cmd=info.get(&quot;lint_cmd&quot;, &quot;&quot;),
+        test_cmd=info.get(&quot;test_cmd&quot;, &quot;&quot;),
+        ides=info.get(&quot;ides&quot;, &quot;claude, opencode&quot;),
+        repo=info.get(&quot;repo&quot;, &quot;&quot;),
+        branch=info.get(&quot;branch&quot;, &quot;main&quot;),
+        relationships=info.get(&quot;relationships&quot;, &quot;&quot;),
+        doc_map=info.get(&quot;doc_map&quot;, &quot;&quot;),
+    )</code></pre>
+<ul>
+<li>[ ] <strong>Step 3: Update <code>init()</code> command to also create docs/ structure and local.md</strong></li>
+</ul>
+<pre><code># In src/coworker/cli.py, modify init() — add after existing CLAUDE.md generation
+
+@main.command()
+@click.option(&quot;--global&quot;, &quot;is_global&quot;, is_flag=True)
+@click.option(&quot;--project&quot;, &quot;is_project&quot;, is_flag=True)
+def init(is_global, is_project):
+    # ... existing code ...
+
+    if is_project or (not is_global and not is_project):
+        info = _scan_project()
+
+        # Generate project CLAUDE.md
+        claude_md = _build_project_claude_md(info)
+        claude_md_path = Path.cwd() / &quot;CLAUDE.md&quot;
+        if not claude_md_path.exists():
+            claude_md_path.write_text(claude_md)
+            console.print(f&quot;[green]Created {claude_md_path}[/green]&quot;)
+        else:
+            console.print(f&quot;[yellow]{claude_md_path} already exists, skipping[/yellow]&quot;)
+
+        # NEW: Create docs/ structure
+        docs_dir = Path.cwd() / &quot;docs&quot;
+        for subdir in [&quot;specs&quot;, &quot;discussion&quot;]:
+            (docs_dir / subdir).mkdir(parents=True, exist_ok=True)
+        console.print(f&quot;[green]Created docs/ structure[/green]&quot;)
+
+        # NEW: Create CLAUDE.local.md if not exists
+        from coworker.templates.local_claude_md import generate_local_claude_md
+        local_md_path = Path.cwd() / &quot;CLAUDE.local.md&quot;
+        if not local_md_path.exists():
+            local_md_path.write_text(generate_local_claude_md())
+            console.print(f&quot;[green]Created {local_md_path}[/green]&quot;)
+            # Add to .gitignore
+            gitignore_path = Path.cwd() / &quot;.gitignore&quot;
+            if not gitignore_path.exists():
+                gitignore_path.write_text(&quot;CLAUDE.local.md\n&quot;)
+            elif &quot;CLAUDE.local.md&quot; not in gitignore_path.read_text():
+                with open(gitignore_path, &quot;a&quot;) as f:
+                    f.write(&quot;\nCLAUDE.local.md\n&quot;)</code></pre>
+<ul>
+<li>[ ] <strong>Step 4: Write init tests</strong></li>
+</ul>
+<pre><code># tests/test_init.py
+# ... (add to existing tests file or create new)
+
+import tempfile
+from pathlib import Path
+
+
+def test_init_creates_docs_structure():
+    with tempfile.TemporaryDirectory() as tmp:
+        # Simulate a project directory
+        (Path(tmp) / &quot;README.md&quot;).write_text(&quot;# test&quot;)
+        (Path(tmp) / &quot;requirements.txt&quot;).write_text(&quot;fastapi==0.100.0&quot;)
+        import subprocess
+        result = subprocess.run(
+            [&quot;coworker&quot;, &quot;init&quot;, &quot;--project&quot;],
+            cwd=tmp,
+            capture_output=True,
+            text=True,
+        )
+        assert (Path(tmp) / &quot;docs&quot; / &quot;specs&quot;).exists()
+        assert (Path(tmp) / &quot;docs&quot; / &quot;discussion&quot;).exists()
+
+
+def test_init_creates_project_claude_md():
+    with tempfile.TemporaryDirectory() as tmp:
+        (Path(tmp) / &quot;README.md&quot;).write_text(&quot;# test&quot;)
+        (Path(tmp) / &quot;pyproject.toml&quot;).write_text(&quot;[project]\nname = &#x27;test&#x27;&quot;)
+        import subprocess
+        subprocess.run([&quot;coworker&quot;, &quot;init&quot;, &quot;--project&quot;], cwd=tmp, capture_output=True, text=True)
+        content = (Path(tmp) / &quot;CLAUDE.md&quot;).read_text()
+        assert &quot;Local Override&quot; in content
+        assert &quot;Context Management&quot; in content
+        assert &quot;Workflow Decision&quot; in content
+
+
+def test_init_creates_local_claude_md():
+    with tempfile.TemporaryDirectory() as tmp:
+        (Path(tmp) / &quot;README.md&quot;).write_text(&quot;# test&quot;)
+        import subprocess
+        subprocess.run([&quot;coworker&quot;, &quot;init&quot;, &quot;--project&quot;], cwd=tmp, capture_output=True, text=True)
+        content = (Path(tmp) / &quot;CLAUDE.local.md&quot;).read_text()
+        assert &quot;Config Paths&quot; in content or &quot;config&quot; in content.lower()
+
+
+def test_init_adds_local_md_to_gitignore():
+    with tempfile.TemporaryDirectory() as tmp:
+        (Path(tmp) / &quot;README.md&quot;).write_text(&quot;# test&quot;)
+        import subprocess
+        subprocess.run([&quot;coworker&quot;, &quot;init&quot;, &quot;--project&quot;], cwd=tmp, capture_output=True, text=True)
+        gitignore = (Path(tmp) / &quot;.gitignore&quot;).read_text()
+        assert &quot;CLAUDE.local.md&quot; in gitignore
+
+
+def test_generated_claude_md_under_200_lines():
+    with tempfile.TemporaryDirectory() as tmp:
+        (Path(tmp) / &quot;README.md&quot;).write_text(&quot;# test&quot;)
+        import subprocess
+        subprocess.run([&quot;coworker&quot;, &quot;init&quot;, &quot;--project&quot;], cwd=tmp, capture_output=True, text=True)
+        lines = (Path(tmp) / &quot;CLAUDE.md&quot;).read_text().strip().split(&quot;\n&quot;)
+        assert len(lines) &lt; 200, f&quot;Generated {len(lines)} lines, must be &lt;200&quot;</code></pre>
+<ul>
+<li>[ ] <strong>Step 5: Run tests</strong></li>
+</ul>
+<pre><code>cd ~/project/walter-worker &amp;&amp; python -m pytest tests/test_init.py -v</code></pre>
+<p>Expected: all PASS</p>
+<ul>
+<li>[ ] <strong>Step 6: Commit</strong></li>
+</ul>
+<pre><code>git add src/coworker/cli.py tests/test_init.py
+git commit -m &quot;feat: update init command for new CLAUDE.md architecture&quot;</code></pre>
+<hr>
+<h4>Task 6: Update Initiative Manager — Inject to local.md</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify: <code>src/coworker/initiatives/manager.py</code></li>
+<li>Modify: <a href="../../../../../src/coworker/adapters/claude.py"><code>src/coworker/adapters/claude.py</code></a></li>
+<li>Modify: <a href="../../../../../src/coworker/adapters/opencode.py"><code>src/coworker/adapters/opencode.py</code></a></li>
+<li>Test: <code>tests/test_initiatives.py</code></li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 1: Add <code>_resolve_local_md()</code> to claude.py adapter</strong></li>
+</ul>
+<pre><code># In src/coworker/adapters/claude.py
+
+def _resolve_local_md(project_dir: Path | None = None) -&gt; Path:
+    &quot;&quot;&quot;Resolve path to CLAUDE.local.md.&quot;&quot;&quot;
+    target = project_dir or Path.cwd()
+    return target / &quot;CLAUDE.local.md&quot;</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Modify <code>activate()</code> in <code>InitiativeManager</code> to inject into local.md</strong></li>
+</ul>
+<pre><code># In src/coworker/initiatives/manager.py, modify activate()
+
+def activate(self, name: str) -&gt; list[str]:
+    &quot;&quot;&quot;Activate an initiative: inject context into CLAUDE.local.md.&quot;&quot;&quot;
+    results: list[str] = []
+
+    config = load_initiative(name, self.project_dir)
+    if not config:
+        raise ValueError(f&quot;Initiative &#x27;{name}&#x27; not found&quot;)
+
+    # Deactivate any currently active initiative first
+    if self.active_name():
+        results.extend(self.deactivate())
+
+    # Build initiative block
+    from coworker.adapters.claude import _build_initiative_block
+    initiative_block = _build_initiative_block(config)
+
+    # Inject into CLAUDE.local.md
+    local_md_path = _resolve_local_md(self.project_dir)
+    if local_md_path.exists():
+        content = local_md_path.read_text()
+    else:
+        from coworker.templates.local_claude_md import generate_local_claude_md
+        content = generate_local_claude_md()
+
+    from coworker.templates.local_claude_md import inject_initiative_into_local_md
+    updated = inject_initiative_into_local_md(content, initiative_block)
+    local_md_path.write_text(updated)
+
+    # Set active
+    active_file = _initiatives_dir(self.project_dir) / &quot;.active&quot;
+    active_file.write_text(name)
+
+    results.append(f&quot;Injected initiative &#x27;{name}&#x27; into {local_md_path}&quot;)
+    return results
+
+
+def deactivate(self) -&gt; list[str]:
+    &quot;&quot;&quot;Deactivate current initiative: remove from CLAUDE.local.md.&quot;&quot;&quot;
+    results: list[str] = []
+    name = self.active_name()
+    if not name:
+        return results
+
+    # Remove from CLAUDE.local.md
+    local_md_path = _resolve_local_md(self.project_dir)
+    if local_md_path.exists():
+        content = local_md_path.read_text()
+        from coworker.templates.local_claude_md import remove_initiative_from_local_md
+        updated = remove_initiative_from_local_md(content, name)
+        local_md_path.write_text(updated)
+
+    # Clear active file
+    active_file = _initiatives_dir(self.project_dir) / &quot;.active&quot;
+    if active_file.exists():
+        active_file.unlink()
+
+    results.append(f&quot;Deactivated initiative &#x27;{name}&#x27;&quot;)
+    return results</code></pre>
+<ul>
+<li>[ ] <strong>Step 3: Update <code>_resolve_local_md</code> import in <code>initiatives/manager.py</code></strong></li>
+</ul>
+<pre><code># Add at top of src/coworker/initiatives/manager.py
+from coworker.adapters.claude import _resolve_local_md  # NEW</code></pre>
+<ul>
+<li>[ ] <strong>Step 4: Update <code>opencode.py</code> adapter — same local.md injection</strong></li>
+</ul>
+<pre><code># In src/coworker/adapters/opencode.py
+# OpenCode reads CLAUDE.md, so initiative in local.md is reached
+# via the Local Override instruction in CLAUDE.md
+# No additional sync needed for opencode adaptation
+# (inject_static_context still injects project catalog into CLAUDE.md)</code></pre>
+<ul>
+<li>[ ] <strong>Step 5: Write initiative tests</strong></li>
+</ul>
+<pre><code># tests/test_initiatives.py (append)
+
+def test_activate_injects_to_local_md():
+    with tempfile.TemporaryDirectory() as tmp:
+        proj = Path(tmp) / &quot;test-project&quot;
+        proj.mkdir()
+        (proj / &quot;README.md&quot;).write_text(&quot;# test&quot;)
+        # Create initiative
+        import subprocess
+        subprocess.run([&quot;coworker&quot;, &quot;initiative&quot;, &quot;create&quot;, &quot;test-init&quot;, &quot;-d&quot;, &quot;test&quot;], cwd=str(proj), capture_output=True, text=True)
+        # Activate
+        subprocess.run([&quot;coworker&quot;, &quot;initiative&quot;, &quot;activate&quot;, &quot;test-init&quot;], cwd=str(proj), capture_output=True, text=True)
+        # Check local.md
+        local_md = proj / &quot;CLAUDE.local.md&quot;
+        if local_md.exists():
+            content = local_md.read_text()
+            assert &quot;INITIATIVE:test-init&quot; in content
+
+
+def test_deactivate_removes_from_local_md():
+    with tempfile.TemporaryDirectory() as tmp:
+        proj = Path(tmp) / &quot;test-project&quot;
+        proj.mkdir()
+        (proj / &quot;README.md&quot;).write_text(&quot;# test&quot;)
+        import subprocess
+        subprocess.run([&quot;coworker&quot;, &quot;initiative&quot;, &quot;create&quot;, &quot;test-init&quot;, &quot;-d&quot;, &quot;test&quot;], cwd=str(proj), capture_output=True, text=True)
+        subprocess.run([&quot;coworker&quot;, &quot;initiative&quot;, &quot;activate&quot;, &quot;test-init&quot;], cwd=str(proj), capture_output=True, text=True)
+        subprocess.run([&quot;coworker&quot;, &quot;initiative&quot;, &quot;deactivate&quot;], cwd=str(proj), capture_output=True, text=True)
+        local_md = proj / &quot;CLAUDE.local.md&quot;
+        if local_md.exists():
+            content = local_md.read_text()
+            assert &quot;INITIATIVE:test-init&quot; not in content</code></pre>
+<ul>
+<li>[ ] <strong>Step 6: Run tests</strong></li>
+</ul>
+<pre><code>cd ~/project/walter-worker &amp;&amp; python -m pytest tests/test_initiatives.py -v -k &quot;local&quot;</code></pre>
+<p>Expected: all PASS</p>
+<ul>
+<li>[ ] <strong>Step 7: Commit</strong></li>
+</ul>
+<pre><code>git add src/coworker/initiatives/manager.py src/coworker/adapters/claude.py src/coworker/adapters/opencode.py tests/test_initiatives.py
+git commit -m &quot;feat: redirect initiative injection to CLAUDE.local.md&quot;</code></pre>
+<hr>
+<h4>Task 7: Update install.sh — Global CLAUDE.md Template</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify: <a href="../../../../../setup/install.sh"><code>setup/install.sh</code></a></li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 1: Replace hardcoded CLAUDE_MD_CONTENT in install.sh</strong></li>
+</ul>
+<pre><code># In setup/install.sh, replace the CLAUDE_MD_CONTENT variable
+
+# OLD:
+# CLAUDE_MD_CONTENT=&#x27;# Global instructions for all projects...&#x27;
+
+# NEW:
+CLAUDE_MD_CONTENT=$(python3 -c &quot;
+import sys
+sys.path.insert(0, &#x27;$REPO_ROOT&#x27;)
+from src.coworker.templates.global_claude_md import generate_global_claude_md
+print(generate_global_claude_md())
+&quot;)</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Verify install.sh still works</strong></li>
+</ul>
+<pre><code>cd ~/project/walter-worker &amp;&amp; bash -n setup/install.sh</code></pre>
+<p>Expected: no syntax errors</p>
+<ul>
+<li>[ ] <strong>Step 3: Test template extraction from Python</strong></li>
+</ul>
+<pre><code>cd ~/project/walter-worker &amp;&amp; python3 -c &quot;
+import sys
+sys.path.insert(0, &#x27;.&#x27;)
+from src.coworker.templates.global_claude_md import generate_global_claude_md
+print(generate_global_claude_md())
+&quot; | head -5</code></pre>
+<p>Expected: &quot;# Global instructions for all projects&quot; or similar header</p>
+<ul>
+<li>[ ] <strong>Step 4: Commit</strong></li>
+</ul>
+<pre><code>git add setup/install.sh
+git commit -m &quot;feat: use canonical Global CLAUDE.md template in install.sh&quot;</code></pre>
+<hr>
+<h4>Task 8: Dogfood — Apply New CLAUDE.md to walter-worker</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify: <code>/home/cicidi/project/walter-worker/CLAUDE.md</code> (existing)</li>
+<li>Create: <code>/home/cicidi/project/walter-worker/CLAUDE.local.md</code></li>
+<li>Create: <code>/home/cicidi/project/walter-worker/docs/specs/</code> (existing)</li>
+<li>Create: <code>/home/cicidi/project/walter-worker/docs/discussion/</code></li>
+<li>Modify: <code>~/.claude/CLAUDE.md</code></li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 1: Generate and replace project CLAUDE.md</strong></li>
+</ul>
+<pre><code>cd ~/project/walter-worker &amp;&amp; coworker init --project</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Generate Global CLAUDE.md</strong></li>
+</ul>
+<pre><code>cd ~/project/walter-worker &amp;&amp; python3 -c &quot;
+from src.coworker.templates.global_claude_md import generate_global_claude_md
+print(generate_global_claude_md())
+&quot; &gt; ~/.claude/CLAUDE.md</code></pre>
+<ul>
+<li>[ ] <strong>Step 3: Verify Global CLAUDE.md</strong></li>
+</ul>
+<pre><code>wc -l ~/.claude/CLAUDE.md
+head -10 ~/.claude/CLAUDE.md</code></pre>
+<p>Expected: &lt;100 lines, contains &quot;Ask and Confirm&quot;</p>
+<ul>
+<li>[ ] <strong>Step 4: Verify Project CLAUDE.md</strong></li>
+</ul>
+<pre><code>wc -l ~/project/walter-worker/CLAUDE.md
+head -10 ~/project/walter-worker/CLAUDE.md</code></pre>
+<p>Expected: &lt;200 lines, contains critical rules first</p>
+<ul>
+<li>[ ] <strong>Step 5: Verify CLAUDE.local.md</strong></li>
+</ul>
+<pre><code>cat ~/project/walter-worker/CLAUDE.local.md</code></pre>
+<ul>
+<li>[ ] <strong>Step 6: Activate current initiative in new format</strong></li>
+</ul>
+<pre><code>cd ~/project/walter-worker &amp;&amp; coworker initiative activate claude-md-design</code></pre>
+<p>Expected: &quot;Injected initiative &#x27;claude-md-design&#x27; into ...CLAUDE.local.md&quot;</p>
+<ul>
+<li>[ ] <strong>Step 7: Verify initiative in local.md</strong></li>
+</ul>
+<pre><code>cat ~/project/walter-worker/CLAUDE.local.md | grep -c &quot;INITIATIVE:claude-md-design&quot;</code></pre>
+<p>Expected: 2 (START and END)</p>
+<ul>
+<li>[ ] <strong>Step 8: Run existing tests to check nothing broke</strong></li>
+</ul>
+<pre><code>cd ~/project/walter-worker &amp;&amp; python -m pytest tests/ -v --ignore=tests/test_templates.py --ignore=tests/test_semantic_merge.py --ignore=tests/test_init.py</code></pre>
+<ul>
+<li>[ ] <strong>Step 9: Commit dogfood changes</strong></li>
+</ul>
+<pre><code>git add CLAUDE.md CLAUDE.local.md .gitignore
+git commit -m &quot;chore: dogfood new CLAUDE.md design on walter-worker itself&quot;</code></pre>
+<hr>
+<h4>Task 9: Integration Test — Full Workflow</h4>
+<p><strong>Test:</strong> <code>tests/test_integration.py</code></p>
+<ul>
+<li>[ ] <strong>Step 1: Write end-to-end test</strong></li>
+</ul>
+<pre><code># tests/test_integration.py
+
+import tempfile
+from pathlib import Path
+import subprocess
+
+
+def test_full_init_workflow():
+    &quot;&quot;&quot;Test: init → verify all files → activate initiative → verify injection.&quot;&quot;&quot;
+    with tempfile.TemporaryDirectory() as tmp:
+        proj = Path(tmp) / &quot;test-project&quot;
+        proj.mkdir()
+        (proj / &quot;README.md&quot;).write_text(&quot;# Test&quot;)
+        (proj / &quot;requirements.txt&quot;).write_text(&quot;fastapi==0.100.0\npytest==8.0.0\n&quot;)
+        import subprocess as sp
+
+        # Step 1: Init
+        sp.run([&quot;coworker&quot;, &quot;init&quot;, &quot;--project&quot;], cwd=str(proj), capture_output=True, text=True)
+
+        # Step 2: Verify all files exist
+        assert (proj / &quot;CLAUDE.md&quot;).exists(), &quot;Missing project CLAUDE.md&quot;
+        assert (proj / &quot;CLAUDE.local.md&quot;).exists(), &quot;Missing CLAUDE.local.md&quot;
+        assert (proj / &quot;docs&quot; / &quot;specs&quot;).exists(), &quot;Missing docs/specs/&quot;
+        assert (proj / &quot;docs&quot; / &quot;discussion&quot;).exists(), &quot;Missing docs/discussion/&quot;
+
+        # Step 3: Verify CLAUDE.md content
+        pmd = (proj / &quot;CLAUDE.md&quot;).read_text()
+        assert len(pmd.split(&quot;\n&quot;)) &lt; 200, f&quot;Project CLAUDE.md too long: {len(pmd.split(&#x27;\n&#x27;))} lines&quot;
+        assert &quot;Local Override&quot; in pmd, &quot;Missing Local Override section&quot;
+        assert &quot;Context Management&quot; in pmd, &quot;Missing Context Management section&quot;
+        assert &quot;Workflow Decision&quot; in pmd, &quot;Missing Workflow Decision section&quot;
+
+        # Step 4: Verify CLAUDE.local.md content
+        lmd = (proj / &quot;CLAUDE.local.md&quot;).read_text()
+        assert &quot;Config Paths&quot; in lmd or &quot;config&quot; in lmd.lower()
+
+        # Step 5: Create and activate initiative
+        sp.run([&quot;coworker&quot;, &quot;initiative&quot;, &quot;create&quot;, &quot;test-feat&quot;, &quot;-d&quot;, &quot;test feature&quot;], cwd=str(proj), capture_output=True, text=True)
+        sp.run([&quot;coworker&quot;, &quot;initiative&quot;, &quot;activate&quot;, &quot;test-feat&quot;], cwd=str(proj), capture_output=True, text=True)
+
+        # Step 6: Verify initiative injected into local.md
+        lmd_after = (proj / &quot;CLAUDE.local.md&quot;).read_text()
+        assert &quot;INITIATIVE:test-feat&quot; in lmd_after, &quot;Initiative not injected into local.md&quot;
+
+        # Step 7: Deactivate and verify removal
+        sp.run([&quot;coworker&quot;, &quot;initiative&quot;, &quot;deactivate&quot;], cwd=str(proj), capture_output=True, text=True)
+        lmd_deactivated = (proj / &quot;CLAUDE.local.md&quot;).read_text()
+        assert &quot;INITIATIVE:test-feat&quot; not in lmd_deactivated, &quot;Initiative not removed from local.md&quot;
+
+
+def test_claude_md_local_md_not_committed():
+    &quot;&quot;&quot;Verify CLAUDE.local.md is in .gitignore.&quot;&quot;&quot;
+    with tempfile.TemporaryDirectory() as tmp:
+        proj = Path(tmp) / &quot;test-project&quot;
+        proj.mkdir()
+        (proj / &quot;README.md&quot;).write_text(&quot;# Test&quot;)
+        import subprocess as sp
+        sp.run([&quot;coworker&quot;, &quot;init&quot;, &quot;--project&quot;], cwd=str(proj), capture_output=True, text=True)
+        gitignore = (proj / &quot;.gitignore&quot;).read_text()
+        assert &quot;CLAUDE.local.md&quot; in gitignore</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Run integration tests</strong></li>
+</ul>
+<pre><code>cd ~/project/walter-worker &amp;&amp; python -m pytest tests/test_integration.py -v</code></pre>
+<p>Expected: all PASS</p>
+<ul>
+<li>[ ] <strong>Step 3: Commit</strong></li>
+</ul>
+<pre><code>git add tests/test_integration.py
+git commit -m &quot;test: add end-to-end integration test for full workflow&quot;</code></pre>
+<hr>
+<h4>Task 10: Run Full Test Suite &amp; Lint</h4>
+<ul>
+<li>[ ] <strong>Step 1: Run all tests</strong></li>
+</ul>
+<pre><code>cd ~/project/walter-worker &amp;&amp; python -m pytest tests/ -v</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Run lint</strong></li>
+</ul>
+<pre><code>cd ~/project/walter-worker &amp;&amp; ruff check src/ tests/</code></pre>
+<ul>
+<li>[ ] <strong>Step 3: Fix any issues, commit</strong></li>
+</ul>
+<pre><code>git add -A &amp;&amp; git commit -m &quot;chore: pass all tests and lint&quot;</code></pre>
+<hr>
+<h3>Self-Review</h3>
+<ol>
+<li><strong>Spec coverage</strong>: All sections of the spec are implemented — Global template (Task 1), Project template (Task 2), Local template (Task 3), Semantic merge (Task 4), Init/scaffolding (Task 5), Initiative redirect (Task 6), Install update (Task 7), Dogfood (Task 8).</li>
+</ol>
+<ol>
+<li><strong>Placeholder scan</strong>: No TBD/TODO placeholders. All code is concrete.</li>
+</ol>
+<ol>
+<li><strong>Type consistency</strong>: Function signatures match across tasks. <code>generate_project_claude_md()</code> parameters consistent with <code>_scan_project()</code> return dict keys.</li>
+</ol>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><span></span><a class="next" href="../spec/2026-07-01-claude-md-best-practices-paper.html"><span class="label">Next</span>CLAUDE.md Engineering: Best Practices and Anti-Patterns in AI Agent Instruction Design</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auto-worker — Test Plan · test-plan · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/autoworker-prd.html"><span class="tree-ord">1</span>Auto-worker — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/autoworker-decision-history.html"><span class="tree-ord">2</span>Auto-worker — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/autoworker-design.html"><span class="tree-ord">3</span>Auto-worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/autoworker-impl-plan.html"><span class="tree-ord">4</span>Auto-worker — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="autoworker-test-plan.html" aria-current="page"><span class="tree-ord">5</span>Auto-worker — Test Plan</a></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>autoworker</span> / <span>test-plan</span> / <span>Auto-worker — Test Plan</span></nav>
+    <article class="doc" data-doc="autoworker/test-plan/autoworker-test-plan">
+      <header class="doc-head">
+        <p class="eyebrow">autoworker</p>
+        <h1>Auto-worker — Test Plan</h1>
+        <p class="source">Canonical: docs/features/autoworker/test-plan/autoworker-test-plan.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Auto-worker — Test Plan</h2>
+<p>Each case names the requirement from the <a href="../prd/autoworker-prd.html">PRD</a> it covers and the pytest test that implements it at commit <code>a0f4ce0</code>. Agent starts are tested with the subprocess replaced, so no real Claude Code session runs.</p>
+<h3>Test Cases</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Covers</th>
+<th>Case</th>
+<th>Pytest test</th>
+</tr></thead><tbody>
+<tr>
+<td><strong id="TST-A"><a class="id-ref" href="#TST-A">TST-A</a></strong></td>
+<td><a class="id-ref" href="../prd/autoworker-prd.html#PRD-A">PRD-A</a></td>
+<td><code>run</code> without <code>--loop</code> does nothing</td>
+<td>No test yet</td>
+</tr>
+<tr>
+<td><strong id="TST-B"><a class="id-ref" href="#TST-B">TST-B</a></strong></td>
+<td><a class="id-ref" href="../prd/autoworker-prd.html#PRD-B">PRD-B</a></td>
+<td>The loop stops on its time budget and round cap</td>
+<td>No test yet</td>
+</tr>
+<tr>
+<td><strong id="TST-C"><a class="id-ref" href="#TST-C">TST-C</a></strong></td>
+<td><a class="id-ref" href="../prd/autoworker-prd.html#PRD-C">PRD-C</a> (partial)</td>
+<td>The agent is started headless, in the given folder, with the time limit</td>
+<td><a href="../../../../../tests/python/test_autoworker_engine.py"><code>tests/python/test_autoworker_engine.py</code></a> <code>test_uses_the_headless_print_invocation</code></td>
+</tr>
+<tr>
+<td><strong id="TST-D"><a class="id-ref" href="#TST-D">TST-D</a></strong></td>
+<td><a class="id-ref" href="../prd/autoworker-prd.html#PRD-D">PRD-D</a> (partial)</td>
+<td>A missing <code>claude</code> command makes the agent start report failure, and its reason names the command</td>
+<td><a href="../../../../../tests/python/test_autoworker_engine.py"><code>tests/python/test_autoworker_engine.py</code></a> <code>test_missing_cli_does_not_report_success</code>, <code>test_the_reason_names_the_missing_cli</code></td>
+</tr>
+<tr>
+<td><strong id="TST-E"><a class="id-ref" href="#TST-E">TST-E</a></strong></td>
+<td><a class="id-ref" href="../prd/autoworker-prd.html#PRD-E">PRD-E</a></td>
+<td>An unknown phase is an error, failing tests exit non-zero, a clean run exits zero, a different project reads its own documents, and an unknown project is reported as having no PRD files instead of another project being read</td>
+<td><a href="../../../../../tests/python/test_cli.py"><code>tests/python/test_cli.py</code></a> <code>test_unknown_phases_are_an_error</code>, <code>test_failing_tests_exit_non_zero</code>, <code>test_a_clean_run_exits_zero</code>, <code>test_a_different_project_reads_its_own_docs</code>, <code>test_an_unknown_project_says_so_rather_than_reading_another</code></td>
+</tr>
+<tr>
+<td><strong id="TST-F"><a class="id-ref" href="#TST-F">TST-F</a></strong></td>
+<td><a class="id-ref" href="../prd/autoworker-prd.html#PRD-F">PRD-F</a></td>
+<td>Critical wrong-history entries reach the agent before the first round</td>
+<td>No test yet</td>
+</tr>
+</tbody></table></div>
+<p><a class="id-ref" href="#TST-C">TST-C</a> and <a class="id-ref" href="#TST-D">TST-D</a> are partial. <a class="id-ref" href="#TST-C">TST-C</a> checks only the command line, the working folder, and the time limit. It does not test that the specifications and the prior state reach the agent as context, or that the report is appended to the state file. <a class="id-ref" href="#TST-D">TST-D</a> checks only that <code>_spawn_agent</code>, the function that starts the agent, returns failure. It does not test that the failed round is recorded, or that a run whose rounds all failed exits non-zero. Those two <a class="id-ref" href="../prd/autoworker-prd.html#PRD-D">PRD-D</a> clauses are unmet today (<a class="id-ref" href="../design/autoworker-design.html#QUES-A">QUES-A</a>), and the context clause of <a class="id-ref" href="../prd/autoworker-prd.html#PRD-C">PRD-C</a> is met only partly (<a class="id-ref" href="../design/autoworker-design.html#QUES-C">QUES-C</a>).</p>
+<p>Not covered today: the loop and the <code>run</code> command as a whole, an empty <code>--phases</code> value (<a class="id-ref" href="../design/autoworker-design.html#QUES-J">QUES-J</a>), the exit status of a fully failed run (<a class="id-ref" href="../design/autoworker-design.html#QUES-A">QUES-A</a>), and the <code>find-issues</code> timeout (<a class="id-ref" href="../design/autoworker-design.html#QUES-B">QUES-B</a>). <a href="../../../../../tests/python/test_autoworker_rules.py"><code>tests/python/test_autoworker_rules.py</code></a> and <code>test_autoworker_state.py</code> test code no command calls (<a class="id-ref" href="../design/autoworker-design.html#QUES-F">QUES-F</a>). The open questions are in the <a href="../design/autoworker-design.html#open-questions">design</a>.</p>
+<h3>Test Execution Order</h3>
+<p>Run <code>test_autoworker_engine.py</code> first, then the <code>find-issues</code> classes in <code>test_cli.py</code>. The order does not matter for correctness; each test is independent.</p>
+<h3>Expected Pass Threshold</h3>
+<p>Every case with a test must pass; the threshold is 100%. <a class="id-ref" href="#TST-A">TST-A</a>, <a class="id-ref" href="#TST-B">TST-B</a>, and <a class="id-ref" href="#TST-F">TST-F</a> have no test, and <a class="id-ref" href="#TST-C">TST-C</a> and <a class="id-ref" href="#TST-D">TST-D</a> are partial. So <a class="id-ref" href="../prd/autoworker-prd.html#PRD-A">PRD-A</a>, <a class="id-ref" href="../prd/autoworker-prd.html#PRD-B">PRD-B</a>, <a class="id-ref" href="../prd/autoworker-prd.html#PRD-C">PRD-C</a>, <a class="id-ref" href="../prd/autoworker-prd.html#PRD-D">PRD-D</a>, and <a class="id-ref" href="../prd/autoworker-prd.html#PRD-F">PRD-F</a> are not verified by automation. A 100% pass today does not mean <a class="id-ref" href="../prd/autoworker-prd.html#PRD-D">PRD-D</a> holds.</p>
+<h3>Traceability</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Requirement</th>
+<th>Test cases</th>
+</tr></thead><tbody>
+<tr>
+<td><a class="id-ref" href="../prd/autoworker-prd.html#PRD-A">PRD-A</a></td>
+<td><a class="id-ref" href="#TST-A">TST-A</a> (no test yet)</td>
+</tr>
+<tr>
+<td><a class="id-ref" href="../prd/autoworker-prd.html#PRD-B">PRD-B</a></td>
+<td><a class="id-ref" href="#TST-B">TST-B</a> (no test yet)</td>
+</tr>
+<tr>
+<td><a class="id-ref" href="../prd/autoworker-prd.html#PRD-C">PRD-C</a></td>
+<td><a class="id-ref" href="#TST-C">TST-C</a> (partial)</td>
+</tr>
+<tr>
+<td><a class="id-ref" href="../prd/autoworker-prd.html#PRD-D">PRD-D</a></td>
+<td><a class="id-ref" href="#TST-D">TST-D</a> (partial)</td>
+</tr>
+<tr>
+<td><a class="id-ref" href="../prd/autoworker-prd.html#PRD-E">PRD-E</a></td>
+<td><a class="id-ref" href="#TST-E">TST-E</a></td>
+</tr>
+<tr>
+<td><a class="id-ref" href="../prd/autoworker-prd.html#PRD-F">PRD-F</a></td>
+<td><a class="id-ref" href="#TST-F">TST-F</a> (no test yet)</td>
+</tr>
+</tbody></table></div>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Version</th>
+<th>Date</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td>0.1</td>
+<td>2026-11-04</td>
+<td>Draft (never committed)</td>
+</tr>
+<tr>
+<td>0.2</td>
+<td>2026-11-24</td>
+<td>Rewritten with one case per requirement, mapped to pytest tests, untested behavior listed (<a class="id-ref" href="../decision-history/autoworker-decision-history.html#ARD-A">ARD-A</a>)</td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>2026-11-24</td>
+<td>Review fixes: <a class="id-ref" href="#TST-C">TST-C</a> and <a class="id-ref" href="#TST-D">TST-D</a> marked partial with their untested clauses named; <a class="id-ref" href="../prd/autoworker-prd.html#PRD-C">PRD-C</a> and <a class="id-ref" href="../prd/autoworker-prd.html#PRD-D">PRD-D</a> listed as not verified by automation; Traceability shows coverage status (<a class="id-ref" href="../decision-history/autoworker-decision-history.html#ARD-E">ARD-E</a>)</td>
+</tr>
+</tbody></table></div>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../impl-plan/autoworker-impl-plan.html"><span class="label">Previous</span>Auto-worker — Implementation Plan</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

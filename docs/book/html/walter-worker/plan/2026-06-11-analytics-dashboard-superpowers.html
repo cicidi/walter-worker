@@ -1,0 +1,2085 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Analytics Listener + Dashboard — Implementation Plan · plan · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/walter-worker-prd.html"><span class="tree-ord">1</span>walter-worker — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-core-prd.html">Core CLI &amp; Initiative System PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-dashboard-prd.html">Dashboard PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-knowledge-skill-prd.html">Knowledge Skill PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/ai-coworker-prd.html">walter-worker PRD</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../decision-history/walter-worker-decision-history.html"><span class="tree-ord">2</span>walter-worker — Decision History</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../decision-history/2025-04-10-integrate-loop-engineering-framework-by-running-lo-decision.html">Decision Record — 2025-04-10</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-03-30-feat-initial-commit--unified-ai-coworker-dev-env-decision.html">Decision Record — 2026-03-30</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.html">Decision Record — 2026-05-01</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-05-06-feat-add-skill-meta-import-skill--import-externa-decision.html">Decision Record — 2026-05-06</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.html">Decision Record — 2026-06-11</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-12-feat-add-opencode-context-injection-initiativema-decision.html">Decision Record — 2026-06-12</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.html">Decision Record — 2026-06-16</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-23-chore-remove-self-strain-decision.html">Decision Record — 2026-06-23</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-24-chore-review-fixes--broken-refs-tests-docs-ch-decision.html">Decision Record — 2026-06-24</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-30-fix-deploy-ai-coworker-skills-to-opencode-skill-d-decision.html">Decision Record — 2026-06-30</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.html">Decision Record — 2026-07-02</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.html">Decision Record — 2026-07-07</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.html">Decision Record — 2026-07-08</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.html">Decision Record — 2026-07-10</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-13-feat-add-emoji-and-color-coded-fields-to-tmux-sta-decision.html">Decision Record — 2026-07-13</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-17-docs-add-doc-organize--indexmd-refs-to-claudem-decision.html">Decision Record — 2026-07-17</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.html">Decision Record — 2026-07-24</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/unknown-remove-budget-related-features-from-prd-budget-fl-decision.html">Decision Record — unknown</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../design/walter-worker-design.html"><span class="tree-ord">3</span>walter-worker — Design</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../design/ai-coworker-design.html">walter-worker Design</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-11-analytics-dashboard-superpowers.html" aria-current="page">Analytics Listener + Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-11-analytics-listener-design.html">Analytics Listener — Design Document</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-11-core-architecture-design.html">Core Architecture Design</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-11-feature-tracker.html">Feature Tracker</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-11-planning-hub.html">Planning Hub</a></li><li class="tree-leaf"><a class="tree-link" href="2026-09-25-deletion-list.html">Deletion List — 2026-09-25</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/2026-06-12-initiative-project-level-design.html">Initiative — Global to Project-Level Design</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/ai-coworker-spec.html">walter-worker Technical Specification</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-26-decision-timeline.html">Decision Timeline — walter-worker</a></li><li class="tree-leaf"><a class="tree-link" href="../work-review/2026-06-11-analytics-dashboard/acceptance.html">Analytics Dashboard — Acceptance Review</a></li><li class="tree-leaf"><a class="tree-link" href="../work-review/2026-06-11-analytics-dashboard/report.html">Acceptance Report — Analytics Dashboard</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/walter-worker-impl-plan.html"><span class="tree-ord">4</span>walter-worker Implementation Plan</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/walter-worker-test-plan.html"><span class="tree-ord">5</span>walter-worker — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/ai-coworker-test-plan.html">walter-worker Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><span class="tree-link"><span class="tree-ord">10</span>sub-feature</span></summary><ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/analytics-dashboard/design/analytics-dashboard-design.html">analytics-dashboard</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/prd/analytics-dashboard-prd.html"><span class="tree-ord">1</span>Analytics Dashboard — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/decision-history/analytics-dashboard-decision-history.html"><span class="tree-ord">2</span>Analytics Dashboard — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/design/analytics-dashboard-design.html"><span class="tree-ord">3</span>Analytics Dashboard — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/impl-plan/analytics-dashboard-impl-plan.html"><span class="tree-ord">4</span>Analytics Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/test-plan/analytics-dashboard-test-plan.html"><span class="tree-ord">5</span>Analytics Dashboard — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/analytics-listener/design/analytics-listener-design.html">analytics-listener</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/prd/analytics-listener-prd.html"><span class="tree-ord">1</span>Analytics Listener — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/decision-history/analytics-listener-decision-history.html"><span class="tree-ord">2</span>Analytics Listener — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/design/analytics-listener-design.html"><span class="tree-ord">3</span>Analytics Listener — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/impl-plan/analytics-listener-impl-plan.html"><span class="tree-ord">4</span>Analytics Listener — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/test-plan/analytics-listener-test-plan.html"><span class="tree-ord">5</span>Analytics Listener — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/core-cli/design/core-cli-design.html">core-cli</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/prd/core-cli-prd.html"><span class="tree-ord">1</span>Core CLI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/decision-history/core-cli-decision-history.html"><span class="tree-ord">2</span>Core CLI — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/design/core-cli-design.html"><span class="tree-ord">3</span>Core CLI — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/impl-plan/core-cli-impl-plan.html"><span class="tree-ord">4</span>Core CLI — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/test-plan/core-cli-test-plan.html"><span class="tree-ord">5</span>Core CLI — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/feature-system/design/feature-system-design.html">feature-system</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/prd/feature-system-prd.html"><span class="tree-ord">1</span>Feature System — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/decision-history/feature-system-decision-history.html"><span class="tree-ord">2</span>Feature System — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/design/feature-system-design.html"><span class="tree-ord">3</span>Feature System — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/impl-plan/feature-system-impl-plan.html"><span class="tree-ord">4</span>Feature System — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/test-plan/feature-system-test-plan.html"><span class="tree-ord">5</span>Feature System — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/setup-deploy/design/setup-deploy-design.html">setup-deploy</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/prd/setup-deploy-prd.html"><span class="tree-ord">1</span>Setup and Deploy — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/decision-history/setup-deploy-decision-history.html"><span class="tree-ord">2</span>Setup and Deploy — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/design/setup-deploy-design.html"><span class="tree-ord">3</span>Setup and Deploy — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/impl-plan/setup-deploy-impl-plan.html"><span class="tree-ord">4</span>Setup and Deploy — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/test-plan/setup-deploy-test-plan.html"><span class="tree-ord">5</span>Setup and Deploy — Test Plan</a></li></ul></details></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>walter-worker</span> / <span>plan</span> / <span>Analytics Listener + Dashboard — Implementation Plan</span></nav>
+    <article class="doc" data-doc="walter-worker/plan/2026-06-11-analytics-dashboard-superpowers">
+      <header class="doc-head">
+        <p class="eyebrow">walter-worker</p>
+        <h1>Analytics Listener + Dashboard — Implementation Plan</h1>
+        <p class="source">Canonical: docs/features/walter-worker/plan/2026-06-11-analytics-dashboard-superpowers.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Analytics Listener + Dashboard — Implementation Plan</h2>
+<blockquote class="callout" data-label="NOTE"><p><strong>For agentic workers:</strong> REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan task-by-task. Steps use checkbox (<code>- [ ]</code>) syntax for tracking.</p></blockquote>
+<p><strong>Goal:</strong> Build a complete analytics pipeline: listener captures Claude Code + OpenCode sessions → import script processes raw data into SQLite → Knowledge Skill summarizes sessions → Dashboard displays everything.</p>
+<p><strong>Architecture:</strong> Three-layer pipeline. Listener (shell scripts for Claude Code, TypeScript plugin for OpenCode) writes raw JSONL → import.py merges/cleans/parses into SQLite → FastAPI + vanilla JS dashboard reads and displays. Knowledge Skill runs offline via OpenCode SDK to generate session summaries and knowledge cards.</p>
+<p><strong>Tech Stack:</strong> Shell (hooks), TypeScript (OpenCode plugin), Python (import script, FastAPI dashboard), SQLite, vanilla HTML/CSS/JS (frontend), Playwright (E2E tests)</p>
+<hr>
+<h3>Wave 1: Data Pipeline (Listener → DB → Knowledge Skill)</h3>
+<hr>
+<h4>Task 1: DB Schema &amp; Connection Module</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <a href="../../../../../src/coworker/analytics/__init__.py"><code>src/coworker/analytics/__init__.py</code></a></li>
+<li>Create: <a href="../../../../../src/coworker/analytics/db.py"><code>src/coworker/analytics/db.py</code></a></li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 1: Create analytics package</strong></li>
+</ul>
+<pre><code>mkdir -p src/coworker/analytics
+touch src/coworker/analytics/__init__.py</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Create DB schema file <a href="../../../../../src/coworker/analytics/db.py"><code>src/coworker/analytics/db.py</code></a></strong></li>
+</ul>
+<pre><code>import sqlite3
+import os
+from pathlib import Path
+
+DB_PATH = Path.home() / &quot;.coworker&quot; / &quot;analytics&quot; / &quot;analytics.db&quot;
+
+SCHEMA = &quot;&quot;&quot;
+CREATE TABLE IF NOT EXISTS sessions (
+    id            TEXT PRIMARY KEY,
+    ide           TEXT NOT NULL,
+    project       TEXT,
+    cwd           TEXT,
+    model         TEXT,
+    initiative    TEXT,
+    branch        TEXT,
+    created_at    TEXT NOT NULL,
+    closed_at     TEXT
+);
+
+CREATE TABLE IF NOT EXISTS messages (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id    TEXT NOT NULL REFERENCES sessions(id),
+    seq           INTEGER NOT NULL,
+    type          TEXT NOT NULL,
+    content       TEXT,
+    ts            TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_msg_session_seq ON messages(session_id, seq);
+
+CREATE TABLE IF NOT EXISTS tool_calls (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id      TEXT NOT NULL REFERENCES sessions(id),
+    call_id         TEXT NOT NULL,
+    tool            TEXT NOT NULL,
+    tool_type       TEXT DEFAULT &#x27;builtin&#x27;,
+    server_name     TEXT,
+    parent_call_id  TEXT,
+    parent_skill    TEXT,
+    args            TEXT,
+    result          TEXT,
+    duration_ms     INTEGER,
+    seq_before      INTEGER,
+    seq_after       INTEGER,
+    ts              TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_tc_session ON tool_calls(session_id);
+CREATE INDEX IF NOT EXISTS idx_tc_parent ON tool_calls(parent_call_id);
+CREATE INDEX IF NOT EXISTS idx_tc_tool ON tool_calls(tool);
+
+CREATE TABLE IF NOT EXISTS file_ops (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id  TEXT NOT NULL REFERENCES sessions(id),
+    call_id     TEXT NOT NULL,
+    op          TEXT NOT NULL,
+    path        TEXT NOT NULL,
+    file_type   TEXT,
+    project     TEXT,
+    skill_name  TEXT,
+    seq         INTEGER NOT NULL,
+    ts          TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_fo_session ON file_ops(session_id);
+CREATE INDEX IF NOT EXISTS idx_fo_type ON file_ops(file_type);
+CREATE INDEX IF NOT EXISTS idx_fo_project ON file_ops(project);
+
+CREATE TABLE IF NOT EXISTS session_stats (
+    session_id    TEXT PRIMARY KEY REFERENCES sessions(id),
+    message_count INTEGER DEFAULT 0,
+    tool_count    INTEGER DEFAULT 0,
+    skill_count   INTEGER DEFAULT 0,
+    read_count    INTEGER DEFAULT 0,
+    write_count   INTEGER DEFAULT 0,
+    bash_count    INTEGER DEFAULT 0,
+    duration_min  INTEGER,
+    updated_at    TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS skills (
+    name           TEXT PRIMARY KEY,
+    total_calls    INTEGER DEFAULT 0,
+    last_invoked   TEXT,
+    first_invoked  TEXT
+);
+
+CREATE TABLE IF NOT EXISTS knowledge (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    title           TEXT NOT NULL,
+    type            TEXT NOT NULL,
+    session_id      TEXT REFERENCES sessions(id),
+    project         TEXT,
+    skills          TEXT,
+    summary         TEXT,
+    evidence        TEXT,
+    generated_at    TEXT NOT NULL,
+    merged_to_skill TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_knowledge_project ON knowledge(project);
+CREATE INDEX IF NOT EXISTS idx_knowledge_session ON knowledge(session_id);
+
+CREATE TABLE IF NOT EXISTS session_summaries (
+    session_id             TEXT PRIMARY KEY REFERENCES sessions(id),
+    sop_workflows          TEXT,
+    context_to_remember    TEXT,
+    effective_operations   TEXT,
+    pitfalls_and_fixes     TEXT,
+    wasted_actions         TEXT,
+    bottlenecks            TEXT,
+    efficiency_tip         TEXT,
+    efficiency_score       REAL,
+    think_action_ratio     REAL,
+    edit_redundancy        REAL,
+    loop_count             INTEGER,
+    user_wait_minutes      REAL,
+    memory_keywords        TEXT,
+    generated_at           TEXT NOT NULL
+);
+&quot;&quot;&quot;
+
+def get_db(db_path: str | Path | None = None) -&gt; sqlite3.Connection:
+    path = Path(db_path) if db_path else DB_PATH
+    path.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(path))
+    conn.row_factory = sqlite3.Row
+    conn.execute(&quot;PRAGMA journal_mode=WAL&quot;)
+    conn.execute(&quot;PRAGMA foreign_keys=ON&quot;)
+    return conn
+
+def init_db(db_path: str | Path | None = None) -&gt; sqlite3.Connection:
+    conn = get_db(db_path)
+    conn.executescript(SCHEMA)
+    conn.commit()
+    return conn</code></pre>
+<ul>
+<li>[ ] <strong>Step 3: Add CLI command for db init</strong></li>
+</ul>
+<p>Add to <a href="../../../../../src/coworker/cli.py"><code>src/coworker/cli.py</code></a>:</p>
+<pre><code>@app.command()
+def analytics_db_init():
+    &quot;&quot;&quot;Initialize analytics database.&quot;&quot;&quot;
+    from .analytics.db import init_db
+    init_db()
+    console.print(f&quot;[green]Created analytics.db[/green]&quot;)</code></pre>
+<ul>
+<li>[ ] <strong>Step 4: Test DB init</strong></li>
+</ul>
+<pre><code>python -c &quot;from src.coworker.analytics.db import init_db; conn = init_db(&#x27;/tmp/test_analytics.db&#x27;); print(&#x27;OK&#x27;)&quot;</code></pre>
+<ul>
+<li>[ ] <strong>Step 5: Commit</strong></li>
+</ul>
+<pre><code>git add src/coworker/analytics/__init__.py src/coworker/analytics/db.py src/coworker/cli.py
+git commit -m &quot;feat: add analytics DB schema and init command&quot;</code></pre>
+<hr>
+<h4>Task 2: OpenCode Analytics Plugin</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>.opencode/coworker-analytics/index.ts</code></li>
+<li>Create: <code>.opencode/coworker-analytics/recorder.ts</code></li>
+<li>Create: <code>.opencode/coworker-analytics/session.ts</code></li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 1: Create <code>recorder.ts</code></strong></li>
+</ul>
+<pre><code>import { appendFileSync, mkdirSync, existsSync } from &quot;fs&quot;;
+import { join } from &quot;path&quot;;
+import { homedir } from &quot;os&quot;;
+
+const BASE_DIR = join(homedir(), &quot;.coworker&quot;, &quot;analytics&quot;, &quot;sessions&quot;);
+
+export class Recorder {
+  private seq: number = 0;
+  private sessionDir: string;
+
+  constructor(sessionId: string) {
+    this.sessionDir = join(BASE_DIR, sessionId);
+    if (!existsSync(this.sessionDir)) {
+      mkdirSync(this.sessionDir, { recursive: true });
+    }
+  }
+
+  nextSeq(): number {
+    return ++this.seq;
+  }
+
+  writeJSONL(file: string, data: Record&lt;string, unknown&gt;): void {
+    try {
+      const path = join(this.sessionDir, file);
+      const line = JSON.stringify(data, null, 0) + &quot;\n&quot;;
+      appendFileSync(path, line);
+    } catch {
+      // silent fail
+    }
+  }
+
+  writeSessionYaml(data: Record&lt;string, string&gt;): void {
+    try {
+      const path = join(this.sessionDir, &quot;session.yaml&quot;);
+      let content = &quot;&quot;;
+      for (const [k, v] of Object.entries(data)) {
+        content += `${k}: &quot;${v}&quot;\n`;
+      }
+      // writeFileSync instead of append for yaml
+      const { writeFileSync } = require(&quot;fs&quot;);
+      writeFileSync(path, content);
+    } catch {
+      // silent fail
+    }
+  }
+}</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Create <code>session.ts</code></strong></li>
+</ul>
+<pre><code>import { Recorder } from &quot;./recorder&quot;;
+
+function generateSessionId(): string {
+  const now = new Date();
+  const date = now.toISOString().slice(0, 10);
+  const time = now.toTimeString().slice(0, 8).replace(/:/g, &quot;&quot;);
+  const hex = Math.random().toString(36).slice(2, 8);
+  return `${date}-T${time}-${hex}`;
+}
+
+export function createSession(cwd: string, ide: string): { id: string; recorder: Recorder } {
+  const id = generateSessionId();
+  const recorder = new Recorder(id);
+  recorder.writeSessionYaml({
+    session_id: id,
+    created: new Date().toISOString(),
+    ide: ide,
+    cwd: cwd || &quot;&quot;,
+    project: &quot;&quot;,
+    initiative: &quot;&quot;,
+    branch: &quot;&quot;,
+  });
+  return { id, recorder };
+}</code></pre>
+<ul>
+<li>[ ] <strong>Step 3: Create plugin entry <code>index.ts</code></strong></li>
+</ul>
+<pre><code>import type { Plugin } from &quot;@opencode-ai/plugin&quot;;
+import { createSession } from &quot;./session&quot;;
+import { Recorder } from &quot;./recorder&quot;;
+import { join } from &quot;path&quot;;
+import { homedir } from &quot;os&quot;;
+
+const BASE_DIR = join(homedir(), &quot;.coworker&quot;, &quot;analytics&quot;);
+
+let currentRecorder: Recorder | null = null;
+let currentSessionId: string | null = null;
+
+export const CoworkerAnalyticsPlugin: Plugin = {
+  async event({ event }) {
+    try {
+      if (event.type === &quot;session.created&quot;) {
+        const { id, recorder } = createSession(process.cwd(), &quot;opencode&quot;);
+        currentSessionId = id;
+        currentRecorder = recorder;
+      }
+      if (event.type === &quot;session.deleted&quot; &amp;&amp; currentRecorder) {
+        currentRecorder.writeSessionYaml({
+          session_id: currentSessionId!,
+          closed: new Date().toISOString(),
+        });
+      }
+    } catch {}
+  },
+
+  &quot;chat.message&quot;(input, output) {
+    if (!currentRecorder) return;
+    try {
+      const msg = output.message;
+      const type = msg.role === &quot;user&quot; ? &quot;user&quot; : &quot;assistant&quot;;
+      const content = msg.parts?.map((p: any) =&gt; p.text || &quot;&quot;).join(&quot;&quot;) || &quot;&quot;;
+      currentRecorder.writeJSONL(&quot;messages.jsonl&quot;, {
+        ts: new Date().toISOString(),
+        type,
+        seq: currentRecorder.nextSeq(),
+        content,
+      });
+    } catch {}
+  },
+
+  &quot;tool.execute.before&quot;(input, output) {
+    if (!currentRecorder) return;
+    try {
+      currentRecorder.writeJSONL(&quot;tools.jsonl&quot;, {
+        ts: new Date().toISOString(),
+        phase: &quot;before&quot;,
+        tool: input.tool,
+        tool_type: &quot;builtin&quot;,
+        call_id: input.callID,
+        seq: currentRecorder.nextSeq(),
+        args: output.args,
+      });
+    } catch {}
+  },
+
+  &quot;tool.execute.after&quot;(input, output) {
+    if (!currentRecorder) return;
+    try {
+      currentRecorder.writeJSONL(&quot;tools.jsonl&quot;, {
+        ts: new Date().toISOString(),
+        phase: &quot;after&quot;,
+        tool: input.tool,
+        tool_type: &quot;builtin&quot;,
+        call_id: input.callID,
+        seq: currentRecorder.nextSeq(),
+        result: output.output || &quot;&quot;,
+        duration_ms: output.metadata?.duration || 0,
+      });
+    } catch {}
+  },
+
+  async dispose() {
+    currentRecorder = null;
+    currentSessionId = null;
+  },
+};</code></pre>
+<ul>
+<li>[ ] <strong>Step 4: Commit</strong></li>
+</ul>
+<pre><code>git add .opencode/coworker-analytics/
+git commit -m &quot;feat: add OpenCode analytics plugin&quot;</code></pre>
+<hr>
+<h4>Task 3: Claude Code Hook Scripts</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>~/.coworker/analytics/hooks/common.sh</code> (shared helpers)</li>
+<li>Create: <code>~/.coworker/analytics/hooks/on-user-prompt.sh</code></li>
+<li>Create: <code>~/.coworker/analytics/hooks/on-pre-tool.sh</code></li>
+<li>Create: <code>~/.coworker/analytics/hooks/on-post-tool.sh</code></li>
+<li>Create: <code>~/.coworker/analytics/hooks/on-stop.sh</code></li>
+</ul>
+<p>Store canonical copies in <code>src/coworker/analytics/hooks/</code>, copied to <code>~/.coworker/analytics/hooks/</code> on install.</p>
+<ul>
+<li>[ ] <strong>Step 1: Create <a href="../../../../../src/coworker/analytics/hooks/common.sh"><code>src/coworker/analytics/hooks/common.sh</code></a></strong></li>
+</ul>
+<pre><code>#!/usr/bin/env bash
+BASE=&quot;$HOME/.coworker/analytics&quot;
+SESSIONS=&quot;$BASE/sessions&quot;
+SEQ_FILE=&quot;&quot;
+SESSION_ID=&quot;&quot;
+
+generate_session_id() {
+  echo &quot;$(date +%Y-%m-%d-T%H%M%S)-$(openssl rand -hex 3)&quot;
+}
+
+ensure_session() {
+  if [ -z &quot;$SESSION_ID&quot; ] || [ ! -d &quot;$SESSIONS/$SESSION_ID&quot; ]; then
+    SESSION_ID=$(ls &quot;$SESSIONS&quot; 2&gt;/dev/null | tail -1)
+    if [ -z &quot;$SESSION_ID&quot; ]; then
+      SESSION_ID=$(generate_session_id)
+      mkdir -p &quot;$SESSIONS/$SESSION_ID&quot;
+      cat &gt; &quot;$SESSIONS/$SESSION_ID/session.yaml&quot; &lt;&lt;YAML
+session_id: &quot;$SESSION_ID&quot;
+created: &quot;$(date &#x27;+%Y-%m-%dT%H:%M:%S%z&#x27;)&quot;
+ide: &quot;claude-code&quot;
+cwd: &quot;$(pwd)&quot;
+project: &quot;&quot;
+initiative: &quot;&quot;
+branch: &quot;&quot;
+YAML
+    fi
+  fi
+  SEQ_FILE=&quot;$SESSIONS/$SESSION_ID/.seq&quot;
+}
+
+next_seq() {
+  local seq=0
+  if [ -f &quot;$SEQ_FILE&quot; ]; then
+    seq=$(cat &quot;$SEQ_FILE&quot;)
+  fi
+  seq=$((seq + 1))
+  echo &quot;$seq&quot; &gt; &quot;$SEQ_FILE&quot;
+  echo &quot;$seq&quot;
+}
+
+append_jsonl() {
+  local file=&quot;$1&quot;
+  local json=&quot;$2&quot;
+  echo &quot;$json&quot; &gt;&gt; &quot;$SESSIONS/$SESSION_ID/$file&quot; 2&gt;/dev/null || true
+}</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Create <code>on-user-prompt.sh</code></strong></li>
+</ul>
+<pre><code>#!/usr/bin/env bash
+source &quot;$HOME/.coworker/analytics/hooks/common.sh&quot;
+ensure_session
+
+content=$(cat)
+seq=$(next_seq)
+ts=$(date &#x27;+%Y-%m-%dT%H:%M:%S%z&#x27;)
+
+json=$(printf &#x27;{&quot;ts&quot;:&quot;%s&quot;,&quot;type&quot;:&quot;user&quot;,&quot;seq&quot;:%s,&quot;content&quot;:&quot;%s&quot;}&#x27; \
+  &quot;$ts&quot; &quot;$seq&quot; &quot;$(echo &quot;$content&quot; | sed &#x27;s/&quot;/\\&quot;/g&#x27; | tr -d &#x27;\n&#x27;)&quot;)
+append_jsonl &quot;messages.jsonl&quot; &quot;$json&quot;</code></pre>
+<ul>
+<li>[ ] <strong>Step 3: Create <code>on-pre-tool.sh</code></strong></li>
+</ul>
+<pre><code>#!/usr/bin/env bash
+source &quot;$HOME/.coworker/analytics/hooks/common.sh&quot;
+ensure_session
+
+input=$(cat)
+tool=$(echo &quot;$input&quot; | jq -r &#x27;.tool_name // empty&#x27;)
+call_id=$(echo &quot;$input&quot; | jq -r &#x27;.tool_use_id // empty&#x27;)
+args=$(echo &quot;$input&quot; | jq -c &#x27;.tool_input // empty&#x27;)
+seq=$(next_seq)
+ts=$(date &#x27;+%Y-%m-%dT%H:%M:%S%z&#x27;)
+
+json=$(printf &#x27;{&quot;ts&quot;:&quot;%s&quot;,&quot;phase&quot;:&quot;before&quot;,&quot;tool&quot;:&quot;%s&quot;,&quot;tool_type&quot;:&quot;builtin&quot;,&quot;call_id&quot;:&quot;%s&quot;,&quot;seq&quot;:%s,&quot;args&quot;:%s}&#x27; \
+  &quot;$ts&quot; &quot;$tool&quot; &quot;$call_id&quot; &quot;$seq&quot; &quot;$args&quot;)
+append_jsonl &quot;tools.jsonl&quot; &quot;$json&quot;</code></pre>
+<ul>
+<li>[ ] <strong>Step 4: Create <code>on-post-tool.sh</code></strong></li>
+</ul>
+<pre><code>#!/usr/bin/env bash
+source &quot;$HOME/.coworker/analytics/hooks/common.sh&quot;
+ensure_session
+
+input=$(cat)
+tool=$(echo &quot;$input&quot; | jq -r &#x27;.tool_name // empty&#x27;)
+call_id=$(echo &quot;$input&quot; | jq -r &#x27;.tool_use_id // empty&#x27;)
+result=$(echo &quot;$input&quot; | jq -c &#x27;.tool_output // empty&#x27;)
+duration=$(echo &quot;$input&quot; | jq -r &#x27;.duration_ms // 0&#x27;)
+seq=$(next_seq)
+ts=$(date &#x27;+%Y-%m-%dT%H:%M:%S%z&#x27;)
+
+json=$(printf &#x27;{&quot;ts&quot;:&quot;%s&quot;,&quot;phase&quot;:&quot;after&quot;,&quot;tool&quot;:&quot;%s&quot;,&quot;tool_type&quot;:&quot;builtin&quot;,&quot;call_id&quot;:&quot;%s&quot;,&quot;seq&quot;:%s,&quot;result&quot;:%s,&quot;duration_ms&quot;:%s}&#x27; \
+  &quot;$ts&quot; &quot;$tool&quot; &quot;$call_id&quot; &quot;$seq&quot; &quot;$result&quot; &quot;$duration&quot;)
+append_jsonl &quot;tools.jsonl&quot; &quot;$json&quot;</code></pre>
+<ul>
+<li>[ ] <strong>Step 5: Create <code>on-stop.sh</code></strong></li>
+</ul>
+<pre><code>#!/usr/bin/env bash
+source &quot;$HOME/.coworker/analytics/hooks/common.sh&quot;
+ensure_session
+
+ts=$(date &#x27;+%Y-%m-%dT%H:%M:%S%z&#x27;)
+
+# Update session.yaml with closed time
+sed -i &quot;/^closed:/d&quot; &quot;$SESSIONS/$SESSION_ID/session.yaml&quot;
+echo &quot;closed: \&quot;$ts\&quot;&quot; &gt;&gt; &quot;$SESSIONS/$SESSION_ID/session.yaml&quot;
+
+# Count stats for index
+msg_count=$(wc -l &lt; &quot;$SESSIONS/$SESSION_ID/messages.jsonl&quot; 2&gt;/dev/null || echo 0)
+tool_count=$(wc -l &lt; &quot;$SESSIONS/$SESSION_ID/tools.jsonl&quot; 2&gt;/dev/null || echo 0)
+created=$(grep &quot;created:&quot; &quot;$SESSIONS/$SESSION_ID/session.yaml&quot; | cut -d&#x27;&quot;&#x27; -f2)
+
+# Append to index
+json=$(printf &#x27;{&quot;session_id&quot;:&quot;%s&quot;,&quot;created&quot;:&quot;%s&quot;,&quot;ide&quot;:&quot;claude-code&quot;,&quot;message_count&quot;:%s,&quot;tool_count&quot;:%s}&#x27; \
+  &quot;$SESSION_ID&quot; &quot;$created&quot; &quot;$msg_count&quot; &quot;$tool_count&quot;)
+echo &quot;$json&quot; &gt;&gt; &quot;$BASE/index.jsonl&quot;</code></pre>
+<ul>
+<li>[ ] <strong>Step 6: Commit</strong></li>
+</ul>
+<pre><code>mkdir -p src/coworker/analytics/hooks
+git add src/coworker/analytics/hooks/
+git commit -m &quot;feat: add Claude Code analytics hook scripts&quot;</code></pre>
+<hr>
+<h4>Task 4: Import Script (JSONL → SQLite)</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <a href="../../../../../src/coworker/analytics/import_data.py"><code>src/coworker/analytics/import_data.py</code></a></li>
+<li>Create: <code>tests/analytics/__init__.py</code></li>
+<li>Create: <code>tests/analytics/test_import.py</code></li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 1: Write failing test <code>tests/analytics/test_import.py</code></strong></li>
+</ul>
+<pre><code>import json
+import tempfile
+from pathlib import Path
+from src.coworker.analytics.db import init_db, get_db
+from src.coworker.analytics.import_data import import_session
+
+def test_import_basic_session():
+    tmp = Path(tempfile.mkdtemp())
+    session_dir = tmp / &quot;sessions&quot; / &quot;test-session&quot;
+    session_dir.mkdir(parents=True)
+
+    # Write raw data
+    (session_dir / &quot;session.yaml&quot;).write_text(
+        &#x27;session_id: &quot;test-session&quot;\n&#x27;
+        &#x27;created: &quot;2026-06-11T14:30:52+08:00&quot;\n&#x27;
+        &#x27;ide: &quot;opencode&quot;\n&#x27;
+        &#x27;cwd: &quot;/home/test/project&quot;\n&#x27;
+        &#x27;project: &quot;test-project&quot;\n&#x27;
+        &#x27;initiative: &quot;test-init&quot;\n&#x27;
+        &#x27;branch: &quot;feat/test&quot;\n&#x27;
+    )
+    (session_dir / &quot;messages.jsonl&quot;).write_text(
+        &#x27;{&quot;ts&quot;:&quot;2026-06-11T14:30:52+08:00&quot;,&quot;type&quot;:&quot;user&quot;,&quot;seq&quot;:1,&quot;content&quot;:&quot;hello&quot;}\n&#x27;
+        &#x27;{&quot;ts&quot;:&quot;2026-06-11T14:31:05+08:00&quot;,&quot;type&quot;:&quot;assistant&quot;,&quot;seq&quot;:2,&quot;content&quot;:&quot;hi&quot;}\n&#x27;
+    )
+    (session_dir / &quot;tools.jsonl&quot;).write_text(
+        &#x27;{&quot;ts&quot;:&quot;2026-06-11T14:31:05+08:00&quot;,&quot;phase&quot;:&quot;before&quot;,&quot;tool&quot;:&quot;bash&quot;,&quot;tool_type&quot;:&quot;builtin&quot;,&quot;call_id&quot;:&quot;c1&quot;,&quot;seq&quot;:3,&quot;args&quot;:{&quot;command&quot;:&quot;ls&quot;}}\n&#x27;
+        &#x27;{&quot;ts&quot;:&quot;2026-06-11T14:31:10+08:00&quot;,&quot;phase&quot;:&quot;after&quot;,&quot;tool&quot;:&quot;bash&quot;,&quot;tool_type&quot;:&quot;builtin&quot;,&quot;call_id&quot;:&quot;c1&quot;,&quot;seq&quot;:4,&quot;result&quot;:&quot;file.py&quot;,&quot;duration_ms&quot;:5000}\n&#x27;
+    )
+
+    db_path = tmp / &quot;analytics.db&quot;
+    conn = init_db(db_path)
+
+    import_session(session_dir, conn)
+
+    # Verify session
+    rows = conn.execute(&quot;SELECT id, ide, project, initiative, branch FROM sessions&quot;).fetchall()
+    assert len(rows) == 1
+    assert rows[0][&quot;id&quot;] == &quot;test-session&quot;
+    assert rows[0][&quot;initiative&quot;] == &quot;test-init&quot;
+
+    # Verify messages
+    msgs = conn.execute(&quot;SELECT type, content FROM messages ORDER BY seq&quot;).fetchall()
+    assert len(msgs) == 2
+    assert msgs[0][&quot;type&quot;] == &quot;user&quot;
+    assert msgs[1][&quot;type&quot;] == &quot;assistant&quot;
+
+    # Verify tool calls merged
+    tcs = conn.execute(&quot;SELECT tool, call_id, args, result, duration_ms FROM tool_calls&quot;).fetchall()
+    assert len(tcs) == 1
+    assert tcs[0][&quot;tool&quot;] == &quot;bash&quot;
+    assert json.loads(tcs[0][&quot;args&quot;])[&quot;command&quot;] == &quot;ls&quot;
+    assert tcs[0][&quot;result&quot;] == &quot;file.py&quot;
+    assert tcs[0][&quot;duration_ms&quot;] == 5000
+
+    conn.close()</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Run test to verify it fails</strong></li>
+</ul>
+<pre><code>python -m pytest tests/analytics/test_import.py::test_import_basic_session -v</code></pre>
+<p>Expected: FAIL — <code>ModuleNotFoundError: No module named &#x27;src.coworker.analytics.import_data&#x27;</code></p>
+<ul>
+<li>[ ] <strong>Step 3: Write <a href="../../../../../src/coworker/analytics/import_data.py"><code>src/coworker/analytics/import_data.py</code></a></strong></li>
+</ul>
+<pre><code>import json
+import sys
+from pathlib import Path
+from collections import defaultdict
+from src.coworker.analytics.db import get_db
+
+HOME = Path.home()
+BASE = HOME / &quot;.coworker&quot; / &quot;analytics&quot;
+SESSIONS = BASE / &quot;sessions&quot;
+
+def parse_session_yaml(session_dir: Path) -&gt; dict:
+    yaml_file = session_dir / &quot;session.yaml&quot;
+    if not yaml_file.exists():
+        return {}
+    data = {}
+    for line in yaml_file.read_text().strip().split(&quot;\n&quot;):
+        if &quot;:&quot; in line:
+            key, _, val = line.partition(&quot;:&quot;)
+            val = val.strip().strip(&#x27;&quot;&#x27;)
+            data[key.strip()] = val
+    return data
+
+def import_session(session_dir: Path, conn_or_path=None):
+    conn = conn_or_path if hasattr(conn_or_path, &#x27;execute&#x27;) else get_db(conn_or_path)
+
+    info = parse_session_yaml(session_dir)
+    session_id = info.get(&quot;session_id&quot;, session_dir.name)
+
+    conn.execute(
+        &quot;&quot;&quot;INSERT OR REPLACE INTO sessions (id, ide, project, cwd, model, initiative, branch, created_at, closed_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)&quot;&quot;&quot;,
+        (session_id, info.get(&quot;ide&quot;, &quot;&quot;), info.get(&quot;project&quot;, &quot;&quot;), info.get(&quot;cwd&quot;, &quot;&quot;),
+         info.get(&quot;model&quot;, &quot;&quot;), info.get(&quot;initiative&quot;, &quot;&quot;), info.get(&quot;branch&quot;, &quot;&quot;),
+         info.get(&quot;created&quot;, &quot;&quot;), info.get(&quot;closed&quot;, &quot;&quot;)),
+    )
+
+    # Messages
+    msgs_file = session_dir / &quot;messages.jsonl&quot;
+    if msgs_file.exists():
+        for line in msgs_file.read_text().strip().split(&quot;\n&quot;):
+            if not line.strip():
+                continue
+            m = json.loads(line)
+            conn.execute(
+                &quot;INSERT OR IGNORE INTO messages (session_id, seq, type, content, ts) VALUES (?, ?, ?, ?, ?)&quot;,
+                (session_id, m.get(&quot;seq&quot;, 0), m.get(&quot;type&quot;, &quot;&quot;), m.get(&quot;content&quot;, &quot;&quot;), m.get(&quot;ts&quot;, &quot;&quot;)),
+            )
+
+    # Tool calls — merge pre+post
+    pre_calls = {}  # call_id -&gt; pre_data
+    post_calls = {}  # call_id -&gt; post_data
+    tools_file = session_dir / &quot;tools.jsonl&quot;
+    if tools_file.exists():
+        for line in tools_file.read_text().strip().split(&quot;\n&quot;):
+            if not line.strip():
+                continue
+            t = json.loads(line)
+            cid = t.get(&quot;call_id&quot;, &quot;&quot;)
+            if t.get(&quot;phase&quot;) == &quot;before&quot;:
+                pre_calls[cid] = t
+            elif t.get(&quot;phase&quot;) == &quot;after&quot;:
+                post_calls[cid] = t
+
+        all_call_ids = set(pre_calls.keys()) | set(post_calls.keys())
+        for cid in all_call_ids:
+            pre = pre_calls.get(cid, {})
+            post = post_calls.get(cid, {})
+
+            tool = pre.get(&quot;tool&quot;) or post.get(&quot;tool&quot;, &quot;&quot;)
+            tool_type = pre.get(&quot;tool_type&quot;) or post.get(&quot;tool_type&quot;, &quot;builtin&quot;)
+            server_name = pre.get(&quot;server_name&quot;) or post.get(&quot;server_name&quot;, &quot;&quot;)
+            args_json = json.dumps(pre.get(&quot;args&quot;, {})) if pre.get(&quot;args&quot;) else None
+            result = post.get(&quot;result&quot;) or &quot;&quot;
+            duration = post.get(&quot;duration_ms&quot;) or 0
+            seq_before = pre.get(&quot;seq&quot;)
+            seq_after = post.get(&quot;seq&quot;)
+            ts = pre.get(&quot;ts&quot;) or post.get(&quot;ts&quot;, &quot;&quot;)
+
+            conn.execute(
+                &quot;&quot;&quot;INSERT OR IGNORE INTO tool_calls
+                   (session_id, call_id, tool, tool_type, server_name, args, result, duration_ms, seq_before, seq_after, ts)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)&quot;&quot;&quot;,
+                (session_id, cid, tool, tool_type, server_name or None, args_json, result, duration, seq_before, seq_after, ts),
+            )
+
+            # Detect file operations
+            if tool in (&quot;Read&quot;, &quot;Write&quot;, &quot;Edit&quot;, &quot;Glob&quot;) and args_json:
+                args = json.loads(args_json)
+                file_path = args.get(&quot;filePath&quot;) or args.get(&quot;path&quot;) or &quot;&quot;
+                if file_path:
+                    op_map = {&quot;Read&quot;: &quot;read&quot;, &quot;Write&quot;: &quot;write&quot;, &quot;Edit&quot;: &quot;edit&quot;, &quot;Glob&quot;: &quot;glob&quot;}
+                    op = op_map.get(tool, tool.lower())
+                    file_type = Path(file_path).suffix.lstrip(&quot;.&quot;) or None
+                    project = info.get(&quot;project&quot;, &quot;&quot;)
+                    conn.execute(
+                        &quot;&quot;&quot;INSERT OR IGNORE INTO file_ops (session_id, call_id, op, path, file_type, project, seq, ts)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?)&quot;&quot;&quot;,
+                        (session_id, cid, op, file_path, file_type, project, tool.get(&quot;seq&quot;, 0) if isinstance(tool, dict) else 0, ts),
+                    )
+
+    # Skills aggregation
+    skill_names = set()
+    for cid, pre in pre_calls.items():
+        if pre.get(&quot;tool&quot;) == &quot;Skill&quot;:
+            args = pre.get(&quot;args&quot;, {})
+            if isinstance(args, dict):
+                name = args.get(&quot;name&quot;, &quot;&quot;)
+            elif isinstance(args, str):
+                try:
+                    name = json.loads(args).get(&quot;name&quot;, &quot;&quot;)
+                except:
+                    name = &quot;&quot;
+            if name:
+                skill_names.add(name)
+
+    for name in skill_names:
+        conn.execute(&quot;&quot;&quot;INSERT OR IGNORE INTO skills (name) VALUES (?)&quot;&quot;&quot;, (name,))
+        conn.execute(
+            &quot;&quot;&quot;UPDATE skills SET
+               total_calls = total_calls + 1,
+               last_invoked = MAX(COALESCE(last_invoked, &#x27;&#x27;), ?),
+               first_invoked = CASE WHEN first_invoked IS NULL THEN ? ELSE first_invoked END
+               WHERE name = ?&quot;&quot;&quot;,
+            (info.get(&quot;created&quot;, &quot;&quot;), info.get(&quot;created&quot;, &quot;&quot;), name),
+        )
+
+    # Session stats
+    msg_count = conn.execute(&quot;SELECT COUNT(*) FROM messages WHERE session_id = ?&quot;, (session_id,)).fetchone()[0]
+    tool_count = conn.execute(&quot;SELECT COUNT(*) FROM tool_calls WHERE session_id = ?&quot;, (session_id,)).fetchone()[0]
+    skill_count = conn.execute(&quot;SELECT COUNT(*) FROM tool_calls WHERE session_id = ? AND tool = &#x27;Skill&#x27;&quot;, (session_id,)).fetchone()[0]
+    read_count = conn.execute(&quot;SELECT COUNT(*) FROM file_ops WHERE session_id = ? AND op = &#x27;read&#x27;&quot;, (session_id,)).fetchone()[0]
+    write_count = conn.execute(&quot;SELECT COUNT(*) FROM file_ops WHERE session_id = ? AND op IN (&#x27;write&#x27;, &#x27;edit&#x27;)&quot;, (session_id,)).fetchone()[0]
+    bash_count = conn.execute(&quot;SELECT COUNT(*) FROM tool_calls WHERE session_id = ? AND tool = &#x27;Bash&#x27;&quot;, (session_id,)).fetchone()[0]
+
+    # Duration
+    created = info.get(&quot;created&quot;, &quot;&quot;)
+    closed = info.get(&quot;closed&quot;, &quot;&quot;)
+    duration_min = None
+    if created and closed:
+        try:
+            from datetime import datetime
+            c1 = datetime.fromisoformat(created)
+            c2 = datetime.fromisoformat(closed)
+            duration_min = int((c2 - c1).total_seconds() / 60)
+        except:
+            pass
+
+    from datetime import datetime as dt
+    conn.execute(
+        &quot;&quot;&quot;INSERT OR REPLACE INTO session_stats
+           (session_id, message_count, tool_count, skill_count, read_count, write_count, bash_count, duration_min, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)&quot;&quot;&quot;,
+        (session_id, msg_count, tool_count, skill_count, read_count, write_count, bash_count, duration_min, dt.now().isoformat()),
+    )
+
+    conn.commit()
+
+def import_all():
+    conn = get_db()
+    if not SESSIONS.exists():
+        print(&quot;No sessions directory found&quot;)
+        return
+    for session_dir in sorted(SESSIONS.iterdir()):
+        if session_dir.is_dir():
+            print(f&quot;Importing {session_dir.name}...&quot;)
+            import_session(session_dir, conn)
+    conn.close()
+    print(&quot;Done.&quot;)
+
+if __name__ == &quot;__main__&quot;:
+    import_all()</code></pre>
+<ul>
+<li>[ ] <strong>Step 4: Run test to verify it passes</strong></li>
+</ul>
+<pre><code>python -m pytest tests/analytics/test_import.py::test_import_basic_session -v</code></pre>
+<p>Expected: PASS</p>
+<ul>
+<li>[ ] <strong>Step 5: Add CLI command <code>coworker analytics import</code></strong></li>
+</ul>
+<p>In <a href="../../../../../src/coworker/cli.py"><code>src/coworker/cli.py</code></a>:</p>
+<pre><code>@app.command()
+def analytics_import():
+    &quot;&quot;&quot;Import raw JSONL sessions into SQLite.&quot;&quot;&quot;
+    from .analytics.import_data import import_all
+    import_all()</code></pre>
+<ul>
+<li>[ ] <strong>Step 6: Commit</strong></li>
+</ul>
+<pre><code>git add src/coworker/analytics/import_data.py tests/analytics/ src/coworker/cli.py
+git commit -m &quot;feat: add analytics import script with tests&quot;</code></pre>
+<hr>
+<h4>Task 5: Installer Integration (Out-of-Box)</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Modify: <a href="../../../../../setup/install.sh"><code>setup/install.sh</code></a></li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 1: Add analytics setup to install.sh</strong></li>
+</ul>
+<p>Add this section after Step 12 (gitignore) and before Step 13 (MCP sync), renaming subsequent steps:</p>
+<pre><code># =============================================================================
+# Step 13 — Analytics Listener Setup
+# =============================================================================
+echo &quot;&quot;
+log &quot;Setting up analytics listener...&quot;
+
+ANALYTICS_DIR=&quot;$HOME/.coworker/analytics&quot;
+mkdir -p &quot;$ANALYTICS_DIR/sessions&quot;
+mkdir -p &quot;$ANALYTICS_DIR/hooks&quot;
+
+# Copy Claude Code hook scripts
+HOOKS_SRC=&quot;$REPO_ROOT/src/coworker/analytics/hooks&quot;
+if [[ -d &quot;$HOOKS_SRC&quot; ]]; then
+  cp &quot;$HOOKS_SRC/&quot;*.sh &quot;$ANALYTICS_DIR/hooks/&quot;
+  chmod +x &quot;$ANALYTICS_DIR/hooks/&quot;*.sh
+  ok &quot;Claude Code hook scripts installed to $ANALYTICS_DIR/hooks/&quot;
+else
+  warn &quot;Hook scripts not found at $HOOKS_SRC — skipping&quot;
+fi
+
+# Configure Claude Code hooks in settings.json
+CLAUDE_SETTINGS=&quot;$HOME/.claude/settings.json&quot;
+if [[ ! -f &quot;$CLAUDE_SETTINGS&quot; ]]; then
+  echo &#x27;{}&#x27; &gt; &quot;$CLAUDE_SETTINGS&quot;
+fi
+python3 -c &quot;
+import json
+p = &#x27;$CLAUDE_SETTINGS&#x27;
+with open(p) as f:
+    cfg = json.load(f)
+cfg.setdefault(&#x27;hooks&#x27;, {})
+cfg[&#x27;hooks&#x27;][&#x27;UserPromptSubmit&#x27;] = [{&#x27;command&#x27;: &#x27;$HOME/.coworker/analytics/hooks/on-user-prompt.sh&#x27;}]
+cfg[&#x27;hooks&#x27;][&#x27;PreToolUse&#x27;] = [{&#x27;command&#x27;: &#x27;$HOME/.coworker/analytics/hooks/on-pre-tool.sh&#x27;}]
+cfg[&#x27;hooks&#x27;][&#x27;PostToolUse&#x27;] = [{&#x27;command&#x27;: &#x27;$HOME/.coworker/analytics/hooks/on-post-tool.sh&#x27;}]
+cfg[&#x27;hooks&#x27;][&#x27;Stop&#x27;] = [{&#x27;command&#x27;: &#x27;$HOME/.coworker/analytics/hooks/on-stop.sh&#x27;}]
+with open(p, &#x27;w&#x27;) as f:
+    json.dump(cfg, f, indent=2)
+print(&#x27;Claude Code hooks configured&#x27;)
+&quot; 2&gt;/dev/null &amp;&amp; ok &quot;Claude Code hooks configured in $CLAUDE_SETTINGS&quot; || \
+    warn &quot;Failed to configure Claude Code hooks&quot;
+
+# Initialize DB
+python3 -c &quot;
+import sys
+sys.path.insert(0, &#x27;$REPO_ROOT&#x27;)
+from src.coworker.analytics.db import init_db
+init_db()
+&quot; 2&gt;/dev/null &amp;&amp; ok &quot;SQLite analytics database initialized&quot; || \
+    warn &quot;Analytics DB init skipped (run: coworker analytics-db-init)&quot;
+
+echo &quot;Analytics listener setup complete.&quot;</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Renumber subsequent steps in install.sh</strong></li>
+</ul>
+<p>After inserting the analytics setup, renumber:</p>
+<ul>
+<li>Step 13 → Step 14 (MCP config sync)</li>
+<li>Done section continues unchanged</li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 3: Test installer end-to-end</strong></li>
+</ul>
+<pre><code># Run in a clean temp directory with a fresh coworker copy
+./setup/install.sh --global</code></pre>
+<p>Verify:</p>
+<ul>
+<li><code>~/.coworker/analytics/hooks/</code> contains 4 .sh files</li>
+<li><code>~/.coworker/analytics/analytics.db</code> exists with all tables</li>
+<li><code>~/.claude/settings.json</code> contains hooks config</li>
+<li><code>~/.coworker/analytics/sessions/</code> directory exists</li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 4: Commit</strong></li>
+</ul>
+<pre><code>git add setup/install.sh
+git commit -m &quot;feat: add out-of-box analytics listener setup to installer&quot;</code></pre>
+<hr>
+<h4>Task 6: Knowledge Skill (Session Summarizer)</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>skills/knowledge-skill/SKILL.md</code></li>
+<li>Create: <a href="../../../../../src/coworker/analytics/knowledge.py"><code>src/coworker/analytics/knowledge.py</code></a></li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 1: Create skill definition <code>skills/knowledge-skill/SKILL.md</code></strong></li>
+</ul>
+<pre><code>---
+name: knowledge-skill
+description: |
+  Reads session data from SQLite, feeds to LLM for structured analysis,
+  writes session summaries and knowledge cards back to SQLite.
+license: MIT
+compatibility: claude-code,opencode
+metadata:
+  triggers:
+    - analyze this session
+    - summarize what I did
+    - generate knowledge cards
+    - summarize session
+    - analyze today sessions
+    - run knowledge skill
+  when_to_use: |
+    After completing a session to extract insights.
+    Periodic batch analysis of recent sessions.
+---
+
+# knowledge-skill
+
+Reads session data from analytics.db, sends to LLM for structured analysis,
+writes back session_summaries and knowledge cards.
+
+## Process
+
+### Step 1: Load session data
+
+Run `coworker knowledge summarize &lt;session_id&gt;` which:
+1. Reads messages + tool_calls from analytics.db
+2. Formats as structured prompt
+3. Sends to LLM (uses current model)
+4. Writes result to session_summaries + knowledge tables
+
+### Step 2: Generate session summary
+
+Prompt template instructs LLM to produce:
+- SOP workflows discovered
+- Context to remember for next session
+- Effective operations that worked well
+- Pitfalls and fixes (what failed, what solved it)
+- Wasted actions (loops, dead ends)
+- Bottlenecks (longest think times, repetitive calls)
+- One efficiency tip
+- Memory keywords for Obsidian graph
+
+### Step 3: Generate knowledge cards
+
+For patterns recurring across ≥2 sessions, generate knowledge cards:
+- Type: trap, best_practice, pattern, decision, constraint
+- Title, summary, evidence, related skills
+- Write to knowledge table
+
+### Step 4: Batch mode
+
+`coworker knowledge analyze --since yesterday`
+`coworker knowledge analyze --all`</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Create <a href="../../../../../src/coworker/analytics/knowledge.py"><code>src/coworker/analytics/knowledge.py</code></a></strong></li>
+</ul>
+<pre><code>import json
+from datetime import datetime, timedelta
+from src.coworker.analytics.db import get_db
+
+
+def get_session_data(session_id: str):
+    &quot;&quot;&quot;Read all data for a session, formatted for LLM prompt.&quot;&quot;&quot;
+    conn = get_db()
+    session = conn.execute(&quot;SELECT * FROM sessions WHERE id = ?&quot;, (session_id,)).fetchone()
+    if not session:
+        conn.close()
+        return None
+
+    msgs = conn.execute(
+        &quot;SELECT seq, type, content FROM messages WHERE session_id = ? ORDER BY seq&quot;,
+        (session_id,)
+    ).fetchall()
+
+    tools = conn.execute(
+        &quot;SELECT call_id, tool, args, result, duration_ms, seq_before, seq_after &quot;
+        &quot;FROM tool_calls WHERE session_id = ? ORDER BY COALESCE(seq_before, seq_after)&quot;,
+        (session_id,)
+    ).fetchall()
+
+    conn.close()
+
+    return {
+        &quot;session_id&quot;: session_id,
+        &quot;ide&quot;: session[&quot;ide&quot;],
+        &quot;project&quot;: session[&quot;project&quot;],
+        &quot;initiative&quot;: session[&quot;initiative&quot;],
+        &quot;branch&quot;: session[&quot;branch&quot;],
+        &quot;started&quot;: session[&quot;created_at&quot;],
+        &quot;ended&quot;: session[&quot;closed_at&quot;],
+        &quot;messages&quot;: [dict(m) for m in msgs],
+        &quot;tool_calls&quot;: [dict(t) for t in tools],
+    }
+
+
+def build_summary_prompt(data: dict) -&gt; str:
+    return f&quot;&quot;&quot;Analyze this AI coding session data and produce a structured summary.
+
+Session: {data[&#x27;session_id&#x27;]}
+IDE: {data[&#x27;ide&#x27;]}
+Project: {data[&#x27;project&#x27;]}
+Initiative: {data[&#x27;initiative&#x27;]}
+Branch: {data[&#x27;branch&#x27;]}
+Duration: {data[&#x27;started&#x27;]} to {data[&#x27;ended&#x27;]}
+
+Messages:
+{json.dumps(data[&#x27;messages&#x27;], indent=2)}
+
+Tool calls:
+{json.dumps(data[&#x27;tool_calls&#x27;], indent=2)}
+
+Output a JSON object with these fields:
+{{
+  &quot;sop_workflows&quot;: [&quot;reusable step sequences discovered&quot;],
+  &quot;context_to_remember&quot;: &quot;project state, branch status, unfinished work&quot;,
+  &quot;effective_operations&quot;: [&quot;specific tool invocations that worked well&quot;],
+  &quot;pitfalls_and_fixes&quot;: [{{&quot;problem&quot;: &quot;...&quot;, &quot;attempts&quot;: [&quot;...&quot;], &quot;solution&quot;: &quot;...&quot;}}],
+  &quot;wasted_actions&quot;: [&quot;loops, unnecessary reads, dead-end explorations&quot;],
+  &quot;bottlenecks&quot;: [&quot;longest think times, most repetitive tool calls&quot;],
+  &quot;efficiency_tip&quot;: &quot;one actionable suggestion&quot;,
+  &quot;efficiency_score&quot;: 0.0-1.0,
+  &quot;memory_keywords&quot;: [&quot;keyword1&quot;, &quot;keyword2&quot;]
+}}
+
+Return ONLY the JSON, no markdown code blocks.&quot;&quot;&quot;
+
+
+def build_knowledge_prompt(sessions_data: list[dict]) -&gt; str:
+    sessions_json = json.dumps([{
+        &quot;session_id&quot;: s[&quot;session_id&quot;],
+        &quot;project&quot;: s[&quot;project&quot;],
+        &quot;initiative&quot;: s[&quot;initiative&quot;],
+        &quot;messages&quot;: s[&quot;messages&quot;],
+        &quot;tool_calls&quot;: s[&quot;tool_calls&quot;],
+    } for s in sessions_data], indent=2)
+
+    return f&quot;&quot;&quot;Analyze these {len(sessions_data)} AI coding sessions and extract cross-session knowledge cards.
+
+Sessions:
+{sessions_json}
+
+Output a JSON array of knowledge cards:
+[
+  {{
+    &quot;title&quot;: &quot;short title&quot;,
+    &quot;type&quot;: &quot;trap|best_practice|pattern|decision|constraint&quot;,
+    &quot;session_id&quot;: &quot;source session id&quot;,
+    &quot;project&quot;: &quot;project name&quot;,
+    &quot;skills&quot;: [&quot;related&quot;, &quot;skills&quot;],
+    &quot;summary&quot;: &quot;one sentence&quot;,
+    &quot;evidence&quot;: [&quot;evidence item 1&quot;, &quot;evidence item 2&quot;]
+  }}
+]
+
+Only include patterns that appear in ≥2 sessions. Return ONLY the JSON array.&quot;&quot;&quot;
+
+
+def write_summary(session_id: str, result: dict):
+    conn = get_db()
+    conn.execute(
+        &quot;&quot;&quot;INSERT OR REPLACE INTO session_summaries
+           (session_id, sop_workflows, context_to_remember, effective_operations,
+            pitfalls_and_fixes, wasted_actions, bottlenecks, efficiency_tip,
+            efficiency_score, memory_keywords, generated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)&quot;&quot;&quot;,
+        (
+            session_id,
+            json.dumps(result.get(&quot;sop_workflows&quot;, [])),
+            result.get(&quot;context_to_remember&quot;, &quot;&quot;),
+            json.dumps(result.get(&quot;effective_operations&quot;, [])),
+            json.dumps(result.get(&quot;pitfalls_and_fixes&quot;, [])),
+            json.dumps(result.get(&quot;wasted_actions&quot;, [])),
+            json.dumps(result.get(&quot;bottlenecks&quot;, [])),
+            result.get(&quot;efficiency_tip&quot;, &quot;&quot;),
+            result.get(&quot;efficiency_score&quot;),
+            json.dumps(result.get(&quot;memory_keywords&quot;, [])),
+            datetime.now().isoformat(),
+        )
+    )
+    conn.commit()
+    conn.close()
+
+
+def write_knowledge(cards: list[dict]):
+    conn = get_db()
+    for card in cards:
+        conn.execute(
+            &quot;&quot;&quot;INSERT INTO knowledge (title, type, session_id, project, skills, summary, evidence, generated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)&quot;&quot;&quot;,
+            (
+                card[&quot;title&quot;], card[&quot;type&quot;], card.get(&quot;session_id&quot;, &quot;&quot;),
+                card.get(&quot;project&quot;, &quot;&quot;), json.dumps(card.get(&quot;skills&quot;, [])),
+                card.get(&quot;summary&quot;, &quot;&quot;), json.dumps(card.get(&quot;evidence&quot;, [])),
+                datetime.now().isoformat(),
+            ),
+        )
+    conn.commit()
+    conn.close()</code></pre>
+<ul>
+<li>[ ] <strong>Step 3: Add CLI commands for knowledge skill</strong></li>
+</ul>
+<p>In <a href="../../../../../src/coworker/cli.py"><code>src/coworker/cli.py</code></a>:</p>
+<pre><code>@app.command()
+def knowledge_summarize(session_id: str):
+    &quot;&quot;&quot;Generate session summary for a given session.&quot;&quot;&quot;
+    from .analytics.knowledge import get_session_data, build_summary_prompt
+    data = get_session_data(session_id)
+    if not data:
+        console.print(f&quot;[red]Session {session_id} not found[/red]&quot;)
+        return
+    prompt = build_summary_prompt(data)
+    console.print(&quot;[green]Prompt ready. Run through LLM:[/green]&quot;)
+    console.print(prompt[:500] + &quot;...&quot;)
+
+@app.command()
+def knowledge_analyze(
+    since: str = &quot;yesterday&quot;,
+    all_sessions: bool = False,
+):
+    &quot;&quot;&quot;Generate knowledge cards from sessions.&quot;&quot;&quot;
+    from .analytics.knowledge import get_session_data, build_knowledge_prompt
+    from .analytics.db import get_db
+
+    conn = get_db()
+    if all_sessions:
+        rows = conn.execute(&quot;SELECT id FROM sessions ORDER BY created_at&quot;).fetchall()
+    else:
+        date = (datetime.now() - timedelta(days=1)).strftime(&quot;%Y-%m-%d&quot;)
+        rows = conn.execute(&quot;SELECT id FROM sessions WHERE created_at &gt;= ?&quot;, (date,)).fetchall()
+    conn.close()
+
+    if not rows:
+        console.print(&quot;[dim]No sessions found[/dim]&quot;)
+        return
+
+    sessions_data = []
+    for row in rows:
+        data = get_session_data(row[&quot;id&quot;])
+        if data:
+            sessions_data.append(data)
+
+    prompt = build_knowledge_prompt(sessions_data)
+    console.print(&quot;[green]Prompt ready for {len(sessions_data)} sessions. Run through LLM:[/green]&quot;)
+    console.print(prompt[:500] + &quot;...&quot;)</code></pre>
+<ul>
+<li>[ ] <strong>Step 4: Commit</strong></li>
+</ul>
+<pre><code>git add skills/knowledge-skill/ src/coworker/analytics/knowledge.py src/coworker/cli.py
+git commit -m &quot;feat: add knowledge skill for session summarization&quot;</code></pre>
+<hr>
+<h3>Wave 2: Dashboard + Tests</h3>
+<hr>
+<h4>Task 7: Dashboard Backend (FastAPI)</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <a href="../../../../../src/coworker/dashboard/__init__.py"><code>src/coworker/dashboard/__init__.py</code></a></li>
+<li>Create: <a href="../../../../../src/coworker/dashboard/app.py"><code>src/coworker/dashboard/app.py</code></a></li>
+<li>Create: <a href="../../../../../src/coworker/dashboard/queries.py"><code>src/coworker/dashboard/queries.py</code></a></li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 1: Create queries module <a href="../../../../../src/coworker/dashboard/queries.py"><code>src/coworker/dashboard/queries.py</code></a></strong></li>
+</ul>
+<pre><code>from src.coworker.analytics.db import get_db
+
+def query_sessions(limit=50):
+    conn = get_db()
+    rows = conn.execute(
+        &quot;&quot;&quot;SELECT s.*, ss.message_count, ss.tool_count, ss.skill_count, ss.duration_min
+           FROM sessions s LEFT JOIN session_stats ss ON s.id = ss.session_id
+           ORDER BY s.created_at DESC LIMIT ?&quot;&quot;&quot;,
+        (limit,)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def query_session_detail(session_id: str):
+    conn = get_db()
+    session = conn.execute(&quot;SELECT * FROM sessions WHERE id = ?&quot;, (session_id,)).fetchone()
+    msgs = conn.execute(&quot;SELECT * FROM messages WHERE session_id = ? ORDER BY seq&quot;, (session_id,)).fetchall()
+    tools = conn.execute(&quot;SELECT * FROM tool_calls WHERE session_id = ? ORDER BY COALESCE(seq_before, seq_after)&quot;, (session_id,)).fetchall()
+    files = conn.execute(&quot;SELECT * FROM file_ops WHERE session_id = ? ORDER BY seq&quot;, (session_id,)).fetchall()
+    summary = conn.execute(&quot;SELECT * FROM session_summaries WHERE session_id = ?&quot;, (session_id,)).fetchone()
+    conn.close()
+    return {
+        &quot;session&quot;: dict(session) if session else None,
+        &quot;messages&quot;: [dict(m) for m in msgs],
+        &quot;tool_calls&quot;: [dict(t) for t in tools],
+        &quot;file_ops&quot;: [dict(f) for f in files],
+        &quot;summary&quot;: dict(summary) if summary else None,
+    }
+
+def query_skills():
+    conn = get_db()
+    skills = conn.execute(&quot;SELECT * FROM skills ORDER BY total_calls DESC&quot;).fetchall()
+    conn.close()
+    return [dict(s) for s in skills]
+
+def query_tools():
+    conn = get_db()
+    tools = conn.execute(
+        &quot;&quot;&quot;SELECT tool, tool_type, server_name, COUNT(*) as calls,
+                  AVG(duration_ms) as avg_ms, MAX(duration_ms) as max_ms
+           FROM tool_calls GROUP BY tool, tool_type&quot;&quot;&quot;
+    ).fetchall()
+    conn.close()
+    return [dict(t) for t in tools]
+
+def query_files(project=None, file_type=None):
+    conn = get_db()
+    params = []
+    sql = &quot;&quot;&quot;SELECT f.*, COUNT(*) OVER (PARTITION BY f.path) as total_ops
+             FROM file_ops f WHERE 1=1&quot;&quot;&quot;
+    if project:
+        sql += &quot; AND f.project = ?&quot;
+        params.append(project)
+    if file_type:
+        sql += &quot; AND f.file_type = ?&quot;
+        params.append(file_type)
+    sql += &quot; ORDER BY f.ts DESC LIMIT 500&quot;
+    rows = conn.execute(sql, params).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def query_knowledge():
+    conn = get_db()
+    rows = conn.execute(&quot;SELECT * FROM knowledge ORDER BY generated_at DESC&quot;).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def query_initiatives():
+    conn = get_db()
+    rows = conn.execute(
+        &quot;&quot;&quot;SELECT s.initiative, s.project,
+                  COUNT(DISTINCT s.id) as session_count,
+                  COUNT(DISTINCT t.call_id) as tool_count
+           FROM sessions s LEFT JOIN tool_calls t ON s.id = t.session_id
+           WHERE s.initiative IS NOT NULL AND s.initiative != &#x27;&#x27;
+           GROUP BY s.initiative&quot;&quot;&quot;
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Create FastAPI app <a href="../../../../../src/coworker/dashboard/app.py"><code>src/coworker/dashboard/app.py</code></a></strong></li>
+</ul>
+<pre><code>from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import HTMLResponse
+import json
+from src.coworker.dashboard import queries
+from src.coworker.analytics.db import get_db, DB_PATH
+
+app = FastAPI(title=&quot;Coworker Dashboard&quot;)
+
+STATIC_DIR = str(DB_PATH.parent.parent.parent / &quot;static&quot;)
+
+
+@app.get(&quot;/api/sessions&quot;)
+def api_sessions(limit: int = 50):
+    return queries.query_sessions(limit)
+
+@app.get(&quot;/api/sessions/{session_id}&quot;)
+def api_session_detail(session_id: str):
+    return queries.query_session_detail(session_id)
+
+@app.get(&quot;/api/skills&quot;)
+def api_skills():
+    return queries.query_skills()
+
+@app.get(&quot;/api/tools&quot;)
+def api_tools():
+    return queries.query_tools()
+
+@app.get(&quot;/api/files&quot;)
+def api_files(project: str = None, file_type: str = None):
+    return queries.query_files(project, file_type)
+
+@app.get(&quot;/api/knowledge&quot;)
+def api_knowledge():
+    return queries.query_knowledge()
+
+@app.get(&quot;/api/initiatives&quot;)
+def api_initiatives():
+    return queries.query_initiatives()
+
+
+@app.websocket(&quot;/ws&quot;)
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            data = await websocket.receive_text()
+            await websocket.send_text(json.dumps({&quot;status&quot;: &quot;ok&quot;}))
+    except WebSocketDisconnect:
+        pass
+
+# Serve static files
+import os
+static_path = os.path.join(os.path.dirname(__file__), &quot;..&quot;, &quot;..&quot;, &quot;..&quot;, &quot;static&quot;)
+if os.path.exists(static_path):
+    app.mount(&quot;/&quot;, StaticFiles(directory=static_path, html=True), name=&quot;static&quot;)</code></pre>
+<ul>
+<li>[ ] <strong>Step 3: Add CLI command</strong></li>
+</ul>
+<p>In <a href="../../../../../src/coworker/cli.py"><code>src/coworker/cli.py</code></a>:</p>
+<pre><code>@app.command()
+def dashboard(port: int = 8080):
+    &quot;&quot;&quot;Start the analytics dashboard.&quot;&quot;&quot;
+    import uvicorn
+    from .dashboard.app import app
+    console.print(f&quot;[green]Dashboard starting at http://localhost:{port}[/green]&quot;)
+    uvicorn.run(app, host=&quot;127.0.0.1&quot;, port=port, log_level=&quot;info&quot;)</code></pre>
+<ul>
+<li>[ ] <strong>Step 4: Commit</strong></li>
+</ul>
+<pre><code>git add src/coworker/dashboard/ src/coworker/cli.py
+git commit -m &quot;feat: add dashboard FastAPI backend&quot;</code></pre>
+<hr>
+<h4>Task 8: Dashboard Frontend</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>static/index.html</code></li>
+<li>Create: <code>static/dashboard.css</code></li>
+<li>Create: <code>static/dashboard.js</code></li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 1: Create <code>static/index.html</code></strong></li>
+</ul>
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+&lt;title&gt;Coworker Dashboard&lt;/title&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;dashboard.css&quot;&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;app&quot;&gt;
+  &lt;nav class=&quot;sidebar&quot; id=&quot;sidebar&quot;&gt;&lt;/nav&gt;
+  &lt;main class=&quot;main&quot; id=&quot;main&quot;&gt;&lt;/main&gt;
+&lt;/div&gt;
+&lt;script src=&quot;dashboard.js&quot;&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Create <code>static/dashboard.css</code></strong></li>
+</ul>
+<pre><code>*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,monospace;background:#0d1117;color:#c9d1d9;height:100vh;overflow:hidden}
+#app{display:flex;height:100vh}
+.sidebar{width:200px;min-width:200px;background:#161b22;border-right:1px solid #30363d;padding:16px 0;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:12px;color:#8b949e;cursor:pointer;border-left:2px solid transparent}
+.nav-item:hover{color:#e6edf3;background:#1c2129}
+.nav-item.active{color:#58a6ff;border-left-color:#58a6ff;background:#1c2129}
+.main{flex:1;overflow-y:auto;padding:24px}
+h2{font-size:18px;margin-bottom:8px}
+.card{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;margin-bottom:12px}
+.card-title{font-size:13px;font-weight:bold;margin-bottom:10px;color:#e6edf3}
+.tag{display:inline-block;font-size:10px;padding:3px 10px;border-radius:12px;margin:3px}
+.tag-skill{color:#f85149;border:1px solid #f85149}
+.tag-tool{color:#58a6ff;border:1px solid #58a6ff}
+.tag-file{color:#3fb950;border:1px solid #3fb950}
+.tag-knowledge{color:#bc8cff;border:1px solid #bc8cff}
+.tag-session{color:#d29922;border:1px solid #d29922}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.stat{font-size:24px;font-weight:bold}
+.stat-label{font-size:11px;color:#8b949e}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:8px 12px;border-bottom:1px solid #30363d;color:#8b949e;font-size:10px;text-transform:uppercase}
+td{padding:8px 12px;border-bottom:1px solid #21262d}
+tr:hover{background:#1c2129}
+.clickable{cursor:pointer;color:#58a6ff}
+.clickable:hover{text-decoration:underline}
+.bar{height:4px;background:#30363d;border-radius:2px;margin-top:4px}
+.bar-fill{height:100%;border-radius:2px}
+.bar-skill{background:#f85149}
+.bar-tool{background:#58a6ff}
+.bar-file{background:#3fb950}
+.loading{text-align:center;padding:40px;color:#8b949e}
+.error{color:#f85149;padding:8px}</code></pre>
+<ul>
+<li>[ ] <strong>Step 3: Create <code>static/dashboard.js</code></strong></li>
+</ul>
+<pre><code>const API = &#x27;/api&#x27;;
+let currentView = &#x27;overview&#x27;;
+
+async function fetchJSON(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
+function renderSidebar() {
+  const items = [
+    { id: &#x27;overview&#x27;, label: &#x27;Overview&#x27; },
+    { id: &#x27;sessions&#x27;, label: &#x27;Sessions&#x27; },
+    { id: &#x27;skills&#x27;, label: &#x27;Skills&#x27; },
+    { id: &#x27;tools&#x27;, label: &#x27;Tools&#x27; },
+    { id: &#x27;files&#x27;, label: &#x27;Files&#x27; },
+    { id: &#x27;knowledge&#x27;, label: &#x27;Knowledge&#x27; },
+    { id: &#x27;initiatives&#x27;, label: &#x27;Initiatives&#x27; },
+  ];
+  document.getElementById(&#x27;sidebar&#x27;).innerHTML = items.map(i =&gt;
+    `&lt;div class=&quot;nav-item${i.id === currentView ? &#x27; active&#x27; : &#x27;&#x27;}&quot; onclick=&quot;navigate(&#x27;${i.id}&#x27;)&quot;&gt;${i.label}&lt;/div&gt;`
+  ).join(&#x27;&#x27;);
+}
+
+function navigate(view) {
+  currentView = view;
+  renderSidebar();
+  const main = document.getElementById(&#x27;main&#x27;);
+  main.innerHTML = &#x27;&lt;div class=&quot;loading&quot;&gt;Loading...&lt;/div&gt;&#x27;;
+  const loaders = {
+    overview: loadOverview, sessions: loadSessions,
+    skills: loadSkills, tools: loadTools,
+    files: loadFiles, knowledge: loadKnowledge,
+    initiatives: loadInitiatives
+  };
+  (loaders[view] || loadOverview)();
+}
+
+async function loadOverview() {
+  const [sessions, skills, tools, knowledge] = await Promise.all([
+    fetchJSON(`${API}/sessions?limit=10`),
+    fetchJSON(`${API}/skills`),
+    fetchJSON(`${API}/tools`),
+    fetchJSON(`${API}/knowledge`),
+  ]);
+
+  const activeCount = sessions.filter(s =&gt; !s.closed_at).length;
+  document.getElementById(&#x27;main&#x27;).innerHTML = `
+    &lt;h2&gt;Dashboard Overview&lt;/h2&gt;
+    &lt;div class=&quot;grid3&quot; style=&quot;margin-bottom:24px&quot;&gt;
+      &lt;div class=&quot;card&quot;&gt;
+        &lt;div class=&quot;stat&quot;&gt;${sessions.length}&lt;/div&gt;
+        &lt;div class=&quot;stat-label&quot;&gt;Total Sessions&lt;/div&gt;
+        &lt;div class=&quot;stat&quot; style=&quot;font-size:16px;margin-top:8px;color:#3fb950&quot;&gt;${activeCount}&lt;/div&gt;
+        &lt;div class=&quot;stat-label&quot;&gt;Active Now&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;card&quot;&gt;
+        &lt;div class=&quot;stat&quot;&gt;${skills.length}&lt;/div&gt;
+        &lt;div class=&quot;stat-label&quot;&gt;Skills Used&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;card&quot;&gt;
+        &lt;div class=&quot;stat&quot;&gt;${knowledge.length}&lt;/div&gt;
+        &lt;div class=&quot;stat-label&quot;&gt;Knowledge Cards&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;card&quot;&gt;
+      &lt;div class=&quot;card-title&quot;&gt;Recent Sessions&lt;/div&gt;
+      &lt;table&gt;
+        &lt;tr&gt;&lt;th&gt;Session&lt;/th&gt;&lt;th&gt;IDE&lt;/th&gt;&lt;th&gt;Branch&lt;/th&gt;&lt;th&gt;Project&lt;/th&gt;&lt;th&gt;Tools&lt;/th&gt;&lt;th&gt;Duration&lt;/th&gt;&lt;/tr&gt;
+        ${sessions.map(s =&gt; `
+          &lt;tr&gt;
+            &lt;td&gt;&lt;span class=&quot;clickable&quot; onclick=&quot;viewSession(&#x27;${s.id}&#x27;)&quot;&gt;${s.id.slice(0, 20)}...&lt;/span&gt;&lt;/td&gt;
+            &lt;td&gt;${s.ide}&lt;/td&gt;
+            &lt;td&gt;${s.branch || &#x27;-&#x27;}&lt;/td&gt;
+            &lt;td&gt;${s.project || &#x27;-&#x27;}&lt;/td&gt;
+            &lt;td&gt;${s.tool_count || 0}&lt;/td&gt;
+            &lt;td&gt;${s.duration_min ? s.duration_min + &#x27;m&#x27; : &#x27;-&#x27;}&lt;/td&gt;
+          &lt;/tr&gt;`).join(&#x27;&#x27;)}
+      &lt;/table&gt;
+    &lt;/div&gt;`;
+}
+
+async function loadSessions() {
+  const sessions = await fetchJSON(`${API}/sessions?limit=50`);
+  document.getElementById(&#x27;main&#x27;).innerHTML = `
+    &lt;h2&gt;Sessions&lt;/h2&gt;
+    &lt;table&gt;
+      &lt;tr&gt;&lt;th&gt;Session ID&lt;/th&gt;&lt;th&gt;IDE&lt;/th&gt;&lt;th&gt;Project&lt;/th&gt;&lt;th&gt;Branch&lt;/th&gt;&lt;th&gt;Initiative&lt;/th&gt;&lt;th&gt;Started&lt;/th&gt;&lt;th&gt;Messages&lt;/th&gt;&lt;th&gt;Tools&lt;/th&gt;&lt;/tr&gt;
+      ${sessions.map(s =&gt; `
+        &lt;tr&gt;
+          &lt;td&gt;&lt;span class=&quot;clickable&quot; onclick=&quot;viewSession(&#x27;${s.id}&#x27;)&quot;&gt;${s.id}&lt;/span&gt;&lt;/td&gt;
+          &lt;td&gt;${s.ide}&lt;/td&gt;
+          &lt;td&gt;${s.project || &#x27;-&#x27;}&lt;/td&gt;
+          &lt;td&gt;${s.branch || &#x27;-&#x27;}&lt;/td&gt;
+          &lt;td&gt;${s.initiative || &#x27;-&#x27;}&lt;/td&gt;
+          &lt;td&gt;${(s.created_at || &#x27;&#x27;).slice(0, 16)}&lt;/td&gt;
+          &lt;td&gt;${s.message_count || 0}&lt;/td&gt;
+          &lt;td&gt;${s.tool_count || 0}&lt;/td&gt;
+        &lt;/tr&gt;`).join(&#x27;&#x27;)}
+    &lt;/table&gt;`;
+}
+
+async function loadSkills() {
+  const skills = await fetchJSON(`${API}/skills`);
+  document.getElementById(&#x27;main&#x27;).innerHTML = `
+    &lt;h2&gt;Skills&lt;/h2&gt;
+    ${skills.map(s =&gt; `
+      &lt;div class=&quot;card&quot;&gt;
+        &lt;div class=&quot;card-title&quot;&gt;${s.name}&lt;/div&gt;
+        &lt;div&gt;Calls: ${s.total_calls} | Last: ${(s.last_invoked || &#x27;&#x27;).slice(0, 16)} | First: ${(s.first_invoked || &#x27;&#x27;).slice(0, 16)}&lt;/div&gt;
+        &lt;div class=&quot;bar&quot; style=&quot;margin-top:8px&quot;&gt;&lt;div class=&quot;bar-fill bar-skill&quot; style=&quot;width:${Math.min(s.total_calls * 5, 100)}%&quot;&gt;&lt;/div&gt;&lt;/div&gt;
+      &lt;/div&gt;`).join(&#x27;&#x27;)}`;
+}
+
+async function loadTools() {
+  const tools = await fetchJSON(`${API}/tools`);
+  document.getElementById(&#x27;main&#x27;).innerHTML = `
+    &lt;h2&gt;Tools&lt;/h2&gt;
+    &lt;table&gt;
+      &lt;tr&gt;&lt;th&gt;Tool&lt;/th&gt;&lt;th&gt;Type&lt;/th&gt;&lt;th&gt;Calls&lt;/th&gt;&lt;th&gt;Avg (ms)&lt;/th&gt;&lt;th&gt;Max (ms)&lt;/th&gt;&lt;/tr&gt;
+      ${tools.map(t =&gt; `
+        &lt;tr&gt;
+          &lt;td&gt;${t.tool}&lt;/td&gt;
+          &lt;td&gt;${t.tool_type}${t.server_name ? &#x27; (&#x27; + t.server_name + &#x27;)&#x27; : &#x27;&#x27;}&lt;/td&gt;
+          &lt;td&gt;${t.calls}&lt;/td&gt;
+          &lt;td&gt;${Math.round(t.avg_ms || 0)}&lt;/td&gt;
+          &lt;td&gt;${Math.round(t.max_ms || 0)}&lt;/td&gt;
+        &lt;/tr&gt;`).join(&#x27;&#x27;)}
+    &lt;/table&gt;`;
+}
+
+async function loadFiles() {
+  const files = await fetchJSON(`${API}/files`);
+  document.getElementById(&#x27;main&#x27;).innerHTML = `
+    &lt;h2&gt;Files&lt;/h2&gt;
+    &lt;table&gt;
+      &lt;tr&gt;&lt;th&gt;Path&lt;/th&gt;&lt;th&gt;Op&lt;/th&gt;&lt;th&gt;Project&lt;/th&gt;&lt;th&gt;Type&lt;/th&gt;&lt;th&gt;Skill&lt;/th&gt;&lt;/tr&gt;
+      ${files.map(f =&gt; `
+        &lt;tr&gt;
+          &lt;td&gt;${f.path}&lt;/td&gt;
+          &lt;td&gt;${f.op}&lt;/td&gt;
+          &lt;td&gt;${f.project || &#x27;-&#x27;}&lt;/td&gt;
+          &lt;td&gt;${f.file_type || &#x27;-&#x27;}&lt;/td&gt;
+          &lt;td&gt;${f.skill_name || &#x27;-&#x27;}&lt;/td&gt;
+        &lt;/tr&gt;`).join(&#x27;&#x27;)}
+    &lt;/table&gt;`;
+}
+
+async function loadKnowledge() {
+  const cards = await fetchJSON(`${API}/knowledge`);
+  document.getElementById(&#x27;main&#x27;).innerHTML = `
+    &lt;h2&gt;Knowledge Cards&lt;/h2&gt;
+    ${cards.map(k =&gt; `
+      &lt;div class=&quot;card&quot;&gt;
+        &lt;div class=&quot;card-title&quot;&gt;${k.type}: ${k.title}&lt;/div&gt;
+        &lt;div style=&quot;margin-bottom:8px&quot;&gt;${k.summary || &#x27;&#x27;}&lt;/div&gt;
+        &lt;div style=&quot;font-size:10px;color:#8b949e&quot;&gt;Project: ${k.project || &#x27;-&#x27;} | Session: ${(k.session_id || &#x27;&#x27;).slice(0, 20)}&lt;/div&gt;
+      &lt;/div&gt;`).join(&#x27;&#x27;)}`;
+}
+
+async function loadInitiatives() {
+  const items = await fetchJSON(`${API}/initiatives`);
+  document.getElementById(&#x27;main&#x27;).innerHTML = `
+    &lt;h2&gt;Initiatives&lt;/h2&gt;
+    &lt;table&gt;
+      &lt;tr&gt;&lt;th&gt;Initiative&lt;/th&gt;&lt;th&gt;Project&lt;/th&gt;&lt;th&gt;Sessions&lt;/th&gt;&lt;th&gt;Tool Calls&lt;/th&gt;&lt;/tr&gt;
+      ${items.map(i =&gt; `
+        &lt;tr&gt;
+          &lt;td&gt;${i.initiative}&lt;/td&gt;
+          &lt;td&gt;${i.project}&lt;/td&gt;
+          &lt;td&gt;${i.session_count}&lt;/td&gt;
+          &lt;td&gt;${i.tool_count}&lt;/td&gt;
+        &lt;/tr&gt;`).join(&#x27;&#x27;)}
+    &lt;/table&gt;`;
+}
+
+async function viewSession(id) {
+  const data = await fetchJSON(`${API}/sessions/${id}`);
+  const s = data.session;
+  document.getElementById(&#x27;main&#x27;).innerHTML = `
+    &lt;h2&gt;Session: ${s.id}&lt;/h2&gt;
+    &lt;div class=&quot;grid2&quot; style=&quot;margin-bottom:16px&quot;&gt;
+      &lt;div class=&quot;card&quot;&gt;
+        &lt;div class=&quot;card-title&quot;&gt;Info&lt;/div&gt;
+        &lt;div&gt;IDE: ${s.ide} | Project: ${s.project || &#x27;-&#x27;} | Branch: ${s.branch || &#x27;-&#x27;}&lt;/div&gt;
+        &lt;div&gt;Initiative: ${s.initiative || &#x27;-&#x27;} | Started: ${(s.created_at || &#x27;&#x27;).slice(0, 16)}&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;card&quot;&gt;
+        &lt;div class=&quot;card-title&quot;&gt;Stats&lt;/div&gt;
+        &lt;div&gt;Messages: ${data.messages.length} | Tool Calls: ${data.tool_calls.length} | Files: ${data.file_ops.length}&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    ${data.summary ? `
+    &lt;div class=&quot;card&quot;&gt;
+      &lt;div class=&quot;card-title&quot;&gt;Session Summary&lt;/div&gt;
+      &lt;div style=&quot;font-size:12px;line-height:1.6&quot;&gt;
+        &lt;p&gt;&lt;b&gt;Context to remember:&lt;/b&gt; ${data.summary.context_to_remember || &#x27;-&#x27;}&lt;/p&gt;
+        &lt;p&gt;&lt;b&gt;Efficiency tip:&lt;/b&gt; ${data.summary.efficiency_tip || &#x27;-&#x27;}&lt;/p&gt;
+        &lt;p&gt;&lt;b&gt;Score:&lt;/b&gt; ${data.summary.efficiency_score || &#x27;-&#x27;}&lt;/p&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;` : &#x27;&#x27;}
+    &lt;div class=&quot;card&quot;&gt;
+      &lt;div class=&quot;card-title&quot;&gt;Messages&lt;/div&gt;
+      ${data.messages.map(m =&gt; `&lt;div style=&quot;font-size:12px;padding:4px 0;border-bottom:1px solid #21262d&quot;&gt;[${m.type}] ${(m.content || &#x27;&#x27;).slice(0, 200)}&lt;/div&gt;`).join(&#x27;&#x27;)}
+    &lt;/div&gt;
+    &lt;div class=&quot;card&quot;&gt;
+      &lt;div class=&quot;card-title&quot;&gt;Tool Calls&lt;/div&gt;
+      &lt;table&gt;
+        &lt;tr&gt;&lt;th&gt;Tool&lt;/th&gt;&lt;th&gt;Args&lt;/th&gt;&lt;th&gt;Duration&lt;/th&gt;&lt;/tr&gt;
+        ${data.tool_calls.map(t =&gt; `
+          &lt;tr&gt;
+            &lt;td&gt;${t.tool}&lt;/td&gt;
+            &lt;td style=&quot;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap&quot;&gt;${(t.args || &#x27;&#x27;).slice(0, 80)}&lt;/td&gt;
+            &lt;td&gt;${t.duration_ms || &#x27;-&#x27;}ms&lt;/td&gt;
+          &lt;/tr&gt;`).join(&#x27;&#x27;)}
+      &lt;/table&gt;
+    &lt;/div&gt;
+    &lt;div style=&quot;margin-top:16px&quot;&gt;&lt;span class=&quot;clickable&quot; onclick=&quot;navigate(&#x27;sessions&#x27;)&quot;&gt;Back to Sessions&lt;/span&gt;&lt;/div&gt;`;
+}
+
+// Init
+renderSidebar();
+navigate(&#x27;overview&#x27;);</code></pre>
+<ul>
+<li>[ ] <strong>Step 4: Add FastAPI dependencies to pyproject.toml</strong></li>
+</ul>
+<pre><code>dependencies = [
+    &quot;fastapi&quot;,
+    &quot;uvicorn&quot;,
+]</code></pre>
+<ul>
+<li>[ ] <strong>Step 5: Commit</strong></li>
+</ul>
+<pre><code>git add static/ src/coworker/dashboard/ pyproject.toml
+git commit -m &quot;feat: add dashboard frontend with overview, sessions, skills, tools, files, knowledge views&quot;</code></pre>
+<hr>
+<h4>Task 9: Test Data Generator</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <a href="../../../../../tests/analytics/test_data.py"><code>tests/analytics/test_data.py</code></a></li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 1: Write test data generator <a href="../../../../../tests/analytics/test_data.py"><code>tests/analytics/test_data.py</code></a></strong></li>
+</ul>
+<pre><code>import json
+import random
+import tempfile
+from pathlib import Path
+from datetime import datetime, timedelta
+from src.coworker.analytics.db import init_db
+from src.coworker.analytics.import_data import import_session
+
+PROJECTS = [&quot;walter-worker&quot;, &quot;skill-factory&quot;, &quot;dotfiles&quot;]
+TOOLS = [&quot;Bash&quot;, &quot;Read&quot;, &quot;Write&quot;, &quot;Edit&quot;, &quot;Skill&quot;, &quot;TodoWrite&quot;, &quot;Glob&quot;, &quot;Grep&quot;, &quot;Task&quot;, &quot;Question&quot;]
+SKILLS = [&quot;brainstorming&quot;, &quot;writing-plans&quot;, &quot;systematic-debugging&quot;, &quot;executing-plans&quot;, &quot;subagent-driven-dev&quot;]
+FILES = [
+    &quot;CLAUDE.md&quot;, &quot;src/coworker/models.py&quot;, &quot;src/coworker/cli.py&quot;,
+    &quot;src/coworker/config.py&quot;, &quot;docs/prd/PRD.md&quot;, &quot;docs/design/DESIGN.md&quot;,
+    &quot;coworker-blueprint.md&quot;, &quot;pyproject.toml&quot;, &quot;setup/install.sh&quot;,
+]
+BRANCHES = [&quot;feat/dashboard&quot;, &quot;feat/listener&quot;, &quot;fix/config&quot;, &quot;main&quot;]
+INITIATIVES = [&quot;dashboard-v1&quot;, &quot;listener-v1&quot;, None]
+
+
+def generate_test_session(session_id: str, project: str, branch: str, initiative: str | None,
+                          start: datetime, duration_min: int = 30):
+    session_dir = Path(tempfile.mkdtemp()) / &quot;sessions&quot; / session_id
+    session_dir.mkdir(parents=True)
+
+    created = start.strftime(&quot;%Y-%m-%dT%H:%M:%S%z&quot;)
+    closed = (start + timedelta(minutes=duration_min)).strftime(&quot;%Y-%m-%dT%H:%M:%S%z&quot;)
+
+    # session.yaml
+    (session_dir / &quot;session.yaml&quot;).write_text(
+        f&#x27;session_id: &quot;{session_id}&quot;\n&#x27;
+        f&#x27;created: &quot;{created}&quot;\n&#x27;
+        f&#x27;closed: &quot;{closed}&quot;\n&#x27;
+        f&#x27;ide: &quot;opencode&quot;\n&#x27;
+        f&#x27;cwd: &quot;/home/cicidi/project/{project}&quot;\n&#x27;
+        f&#x27;project: &quot;{project}&quot;\n&#x27;
+        f&#x27;initiative: &quot;{initiative or &quot;&quot;}&quot;\n&#x27;
+        f&#x27;branch: &quot;{branch}&quot;\n&#x27;
+    )
+
+    seq = 0
+    messages = []
+    tools = []
+
+    # Generate user messages + assistant responses
+    user_msgs = [
+        &quot;help me build a dashboard&quot;,
+        &quot;analyze the codebase first&quot;,
+        &quot;what skills should I use?&quot;,
+        &quot;now write the implementation&quot;,
+        &quot;run the tests&quot;,
+    ]
+    assistant_msgs = [
+        &quot;I&#x27;ll start by exploring the project structure.&quot;,
+        &quot;Found 3 projects in the catalog. The codebase uses Python with FastAPI.&quot;,
+        &quot;I recommend using brainstorming first, then writing-plans.&quot;,
+        &quot;Let me write the dashboard backend with FastAPI.&quot;,
+        &quot;Tests pass. Ready for review.&quot;,
+    ]
+
+    for i in range(min(len(user_msgs), random.randint(3, 5))):
+        seq += 1
+        ts = (start + timedelta(seconds=seq * 30)).strftime(&quot;%Y-%m-%dT%H:%M:%S%z&quot;)
+        messages.append(
+            json.dumps({&quot;ts&quot;: ts, &quot;type&quot;: &quot;user&quot;, &quot;seq&quot;: seq, &quot;content&quot;: user_msgs[i]}) + &quot;\n&quot;
+        )
+        seq += 1
+        ts = (start + timedelta(seconds=seq * 30)).strftime(&quot;%Y-%m-%dT%H:%M:%S%z&quot;)
+        messages.append(
+            json.dumps({&quot;ts&quot;: ts, &quot;type&quot;: &quot;assistant&quot;, &quot;seq&quot;: seq, &quot;content&quot;: assistant_msgs[i]}) + &quot;\n&quot;
+        )
+
+    # Generate tool calls
+    num_tools = random.randint(5, 15)
+    for i in range(num_tools):
+        tool = random.choice(TOOLS)
+        cid = f&quot;call_{session_id}_{i}&quot;
+        seq += 1
+        ts = (start + timedelta(seconds=seq * 30)).strftime(&quot;%Y-%m-%dT%H:%M:%S%z&quot;)
+
+        if tool == &quot;Skill&quot;:
+            args = {&quot;name&quot;: random.choice(SKILLS)}
+        elif tool in (&quot;Read&quot;, &quot;Write&quot;, &quot;Edit&quot;):
+            args = {&quot;filePath&quot;: f&quot;/home/cicidi/project/{project}/{random.choice(FILES)}&quot;}
+        elif tool == &quot;Bash&quot;:
+            args = {&quot;command&quot;: random.choice([&quot;ls&quot;, &quot;pytest&quot;, &quot;git status&quot;, &quot;npm run build&quot;])}
+        else:
+            args = {&quot;description&quot;: f&quot;doing {tool}&quot;}
+
+        tools.append(json.dumps({
+            &quot;ts&quot;: ts, &quot;phase&quot;: &quot;before&quot;, &quot;tool&quot;: tool, &quot;tool_type&quot;: &quot;builtin&quot;,
+            &quot;call_id&quot;: cid, &quot;seq&quot;: seq, &quot;args&quot;: args,
+        }) + &quot;\n&quot;)
+
+        seq += 1
+        ts = (start + timedelta(seconds=seq * 30)).strftime(&quot;%Y-%m-%dT%H:%M:%S%z&quot;)
+        duration = random.randint(100, 50000)
+        result = f&quot;result of {tool} call {cid}&quot;
+        tools.append(json.dumps({
+            &quot;ts&quot;: ts, &quot;phase&quot;: &quot;after&quot;, &quot;tool&quot;: tool, &quot;tool_type&quot;: &quot;builtin&quot;,
+            &quot;call_id&quot;: cid, &quot;seq&quot;: seq, &quot;result&quot;: result, &quot;duration_ms&quot;: duration,
+        }) + &quot;\n&quot;)
+
+    (session_dir / &quot;messages.jsonl&quot;).write_text(&quot;&quot;.join(messages))
+    (session_dir / &quot;tools.jsonl&quot;).write_text(&quot;&quot;.join(tools))
+
+    return session_dir
+
+
+def generate_test_dataset(db_path: str, num_sessions: int = 10):
+    conn = init_db(db_path)
+    sessions_dirs = []
+
+    base_time = datetime(2026, 6, 1, 9, 0, 0)
+    for i in range(num_sessions):
+        sid = f&quot;test-session-{i:03d}-{random.randint(1000, 9999)}&quot;
+        project = random.choice(PROJECTS)
+        branch = random.choice(BRANCHES)
+        initiative = random.choice(INITIATIVES)
+        start = base_time + timedelta(hours=i * 4)
+        session_dir = generate_test_session(sid, project, branch, initiative, start, random.randint(15, 120))
+        import_session(session_dir, conn)
+
+    conn.close()
+    print(f&quot;Generated {num_sessions} test sessions in {db_path}&quot;)
+
+
+if __name__ == &quot;__main__&quot;:
+    import sys
+    path = sys.argv[1] if len(sys.argv) &gt; 1 else &quot;/tmp/analytics_test.db&quot;
+    count = int(sys.argv[2]) if len(sys.argv) &gt; 2 else 10
+    generate_test_dataset(path, count)</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Run test data generation to verify</strong></li>
+</ul>
+<pre><code>python tests/analytics/test_data.py /tmp/analytics_test.db 10</code></pre>
+<p>Expected: &quot;Generated 10 test sessions in /tmp/analytics_test.db&quot;</p>
+<ul>
+<li>[ ] <strong>Step 3: Verify DB contents</strong></li>
+</ul>
+<pre><code>python -c &quot;
+from src.coworker.analytics.db import get_db
+conn = get_db(&#x27;/tmp/analytics_test.db&#x27;)
+for t in [&#x27;sessions&#x27;,&#x27;messages&#x27;,&#x27;tool_calls&#x27;,&#x27;file_ops&#x27;,&#x27;skills&#x27;,&#x27;session_stats&#x27;]:
+    print(f&#x27;{t}: {conn.execute(f\&quot;SELECT COUNT(*) FROM {t}\&quot;).fetchone()[0]}&#x27;)
+conn.close()
+&quot;</code></pre>
+<p>Expected: Each table has &gt;0 rows</p>
+<ul>
+<li>[ ] <strong>Step 4: Commit</strong></li>
+</ul>
+<pre><code>git add tests/analytics/test_data.py
+git commit -m &quot;feat: add test data generator for analytics&quot;</code></pre>
+<hr>
+<h4>Task 10: E2E Tests</h4>
+<p><strong>Files:</strong></p>
+<ul>
+<li>Create: <code>tests/dashboard/__init__.py</code></li>
+<li>Create: <code>tests/dashboard/test_api.py</code></li>
+<li>Create: <code>tests/dashboard/test_e2e.py</code></li>
+</ul>
+<ul>
+<li>[ ] <strong>Step 1: Write API tests <code>tests/dashboard/test_api.py</code></strong></li>
+</ul>
+<pre><code>from fastapi.testclient import TestClient
+from src.coworker.dashboard.app import app
+
+client = TestClient(app)
+
+def test_sessions_endpoint():
+    r = client.get(&quot;/api/sessions?limit=5&quot;)
+    assert r.status_code == 200
+    data = r.json()
+    assert isinstance(data, list)
+
+def test_skills_endpoint():
+    r = client.get(&quot;/api/skills&quot;)
+    assert r.status_code == 200
+    data = r.json()
+    assert isinstance(data, list)
+
+def test_tools_endpoint():
+    r = client.get(&quot;/api/tools&quot;)
+    assert r.status_code == 200
+    data = r.json()
+    assert isinstance(data, list)
+
+def test_files_endpoint():
+    r = client.get(&quot;/api/files&quot;)
+    assert r.status_code == 200
+    data = r.json()
+    assert isinstance(data, list)
+
+def test_knowledge_endpoint():
+    r = client.get(&quot;/api/knowledge&quot;)
+    assert r.status_code == 200
+    data = r.json()
+    assert isinstance(data, list)
+
+def test_initiatives_endpoint():
+    r = client.get(&quot;/api/initiatives&quot;)
+    assert r.status_code == 200
+    data = r.json()
+    assert isinstance(data, list)</code></pre>
+<ul>
+<li>[ ] <strong>Step 2: Run API tests</strong></li>
+</ul>
+<pre><code>python -m pytest tests/dashboard/test_api.py -v</code></pre>
+<p>Expected: All PASS</p>
+<ul>
+<li>[ ] <strong>Step 3: Write E2E Playwright test <code>tests/dashboard/test_e2e.py</code></strong></li>
+</ul>
+<pre><code>import subprocess
+import time
+import pytest
+
+@pytest.fixture
+def dashboard_url():
+    proc = subprocess.Popen(
+        [&quot;python&quot;, &quot;-m&quot;, &quot;uvicorn&quot;, &quot;src.coworker.dashboard.app:app&quot;,
+         &quot;--host&quot;, &quot;127.0.0.1&quot;, &quot;--port&quot;, &quot;18080&quot;],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    )
+    time.sleep(2)
+    yield &quot;http://127.0.0.1:18080&quot;
+    proc.terminate()
+    proc.wait()
+
+def test_dashboard_loads(page, dashboard_url):
+    &quot;&quot;&quot;Test that the dashboard page loads and renders.&quot;&quot;&quot;
+    page.goto(dashboard_url)
+    page.wait_for_selector(&quot;#sidebar&quot;)
+    page.wait_for_selector(&quot;#main&quot;)
+
+    assert page.title() == &quot;Coworker Dashboard&quot;
+
+def test_dashboard_overview(page, dashboard_url):
+    &quot;&quot;&quot;Test overview shows session data.&quot;&quot;&quot;
+    page.goto(dashboard_url)
+    page.wait_for_selector(&quot;.stat&quot;)
+
+    stats = page.query_selector_all(&quot;.stat&quot;)
+    assert len(stats) &gt;= 3
+
+def test_dashboard_navigate_sessions(page, dashboard_url):
+    &quot;&quot;&quot;Test clicking sessions nav item loads sessions table.&quot;&quot;&quot;
+    page.goto(dashboard_url)
+    page.click(&quot;text=Sessions&quot;)
+    page.wait_for_selector(&quot;table&quot;)
+    assert page.query_selector(&quot;table&quot;)
+
+def test_dashboard_navigate_skills(page, dashboard_url):
+    &quot;&quot;&quot;Test skills view loads.&quot;&quot;&quot;
+    page.goto(dashboard_url)
+    page.click(&quot;text=Skills&quot;)
+    page.wait_for_selector(&quot;.card&quot;)
+    assert page.query_selector(&quot;.card&quot;)
+
+def test_dashboard_navigate_tools(page, dashboard_url):
+    &quot;&quot;&quot;Test tools view loads.&quot;&quot;&quot;
+    page.goto(dashboard_url)
+    page.click(&quot;text=Tools&quot;)
+    page.wait_for_selector(&quot;table&quot;)
+    assert page.query_selector(&quot;table&quot;)
+
+def test_dashboard_navigate_files(page, dashboard_url):
+    &quot;&quot;&quot;Test files view loads.&quot;&quot;&quot;
+    page.goto(dashboard_url)
+    page.click(&quot;text=Files&quot;)
+    page.wait_for_selector(&quot;table&quot;)
+    assert page.query_selector(&quot;table&quot;)
+
+def test_dashboard_navigate_knowledge(page, dashboard_url):
+    &quot;&quot;&quot;Test knowledge view loads.&quot;&quot;&quot;
+    page.goto(dashboard_url)
+    page.click(&quot;text=Knowledge&quot;)
+    assert page.query_selector(&quot;.card&quot;) or page.query_selector(&quot;table&quot;)</code></pre>
+<ul>
+<li>[ ] <strong>Step 4: Write full E2E setup test</strong></li>
+</ul>
+<p>Create <a href="../../../../../tests/analytics/test_e2e_setup.py"><code>tests/analytics/test_e2e_setup.py</code></a>:</p>
+<pre><code>&quot;&quot;&quot;Full E2E test: setup → generate data → import → dashboard → query.
+
+This test validates the entire pipeline works out-of-box:
+1. DB schema initialized correctly
+2. Test data generated
+3. Import script processes raw data
+4. All tables populated correctly
+5. Dashboard API returns data
+6. Dashboard UI loads
+&quot;&quot;&quot;
+import json
+import subprocess
+import tempfile
+import time
+from pathlib import Path
+import pytest
+from fastapi.testclient import TestClient
+
+
+def test_full_pipeline():
+    &quot;&quot;&quot;End-to-end: raw data → SQLite → API queries.&quot;&quot;&quot;
+    tmp = Path(tempfile.mkdtemp())
+    db_path = tmp / &quot;analytics.db&quot;
+
+    # 1. Init DB
+    from src.coworker.analytics.db import init_db
+    conn = init_db(db_path)
+
+    # 2. Generate test data
+    from tests.analytics.test_data import generate_test_dataset
+    os.makedirs(tmp / &quot;raw_sessions&quot;, exist_ok=True)
+    generate_test_dataset(str(db_path), num_sessions=5)
+
+    # 3. Verify tables populated
+    tables = [&quot;sessions&quot;, &quot;messages&quot;, &quot;tool_calls&quot;, &quot;file_ops&quot;, &quot;skills&quot;, &quot;session_stats&quot;]
+    for table in tables:
+        count = conn.execute(f&quot;SELECT COUNT(*) FROM {table}&quot;).fetchone()[0]
+        assert count &gt; 0, f&quot;Table {table} is empty&quot;
+
+    # 4. Verify session count
+    session_count = conn.execute(&quot;SELECT COUNT(*) FROM sessions&quot;).fetchone()[0]
+    assert session_count == 5
+
+    # 5. Verify messages per session
+    msg_counts = conn.execute(
+        &quot;SELECT session_id, COUNT(*) FROM messages GROUP BY session_id&quot;
+    ).fetchall()
+    for row in msg_counts:
+        assert row[1] &gt;= 4  # each session has at least 4 messages (2 user + 2 assistant)
+
+    # 6. Verify tool calls have before+after pairs merged
+    tcs = conn.execute(&quot;SELECT tool, args, result FROM tool_calls LIMIT 5&quot;).fetchall()
+    assert len(tcs) &gt; 0
+    assert tcs[0][&quot;tool&quot;]
+
+    # 7. Verify file_ops contain extracted file paths
+    fos = conn.execute(&quot;SELECT op, path FROM file_ops&quot;).fetchall()
+    for fo in fos:
+        assert fo[&quot;op&quot;] in (&quot;read&quot;, &quot;write&quot;, &quot;edit&quot;, &quot;glob&quot;)
+        assert fo[&quot;path&quot;]
+
+    conn.close()
+
+
+def test_dashboard_api_with_test_data():
+    &quot;&quot;&quot;Test that dashboard API endpoints return data from test DB.&quot;&quot;&quot;
+    tmp = Path(tempfile.mkdtemp())
+    db_path = tmp / &quot;analytics.db&quot;
+
+    from src.coworker.analytics.db import init_db
+    init_db(db_path)
+
+    from tests.analytics.test_data import generate_test_dataset
+    generate_test_dataset(str(db_path), num_sessions=5)
+
+    # Override DB_PATH for dashboard
+    import src.coworker.analytics.db as db_module
+    original_path = db_module.DB_PATH
+    db_module.DB_PATH = db_path
+
+    try:
+        from src.coworker.dashboard.app import app
+        client = TestClient(app)
+
+        # All endpoints should return valid JSON
+        endpoints = [
+            &quot;/api/sessions&quot;,
+            &quot;/api/skills&quot;,
+            &quot;/api/tools&quot;,
+            &quot;/api/files&quot;,
+            &quot;/api/knowledge&quot;,
+            &quot;/api/initiatives&quot;,
+        ]
+        for ep in endpoints:
+            r = client.get(ep)
+            assert r.status_code == 200, f&quot;{ep} returned {r.status_code}&quot;
+            data = r.json()
+            assert isinstance(data, list), f&quot;{ep} should return array&quot;
+
+        # Session detail endpoint
+        sessions = client.get(&quot;/api/sessions?limit=1&quot;).json()
+        if sessions:
+            sid = sessions[0][&quot;id&quot;]
+            r = client.get(f&quot;/api/sessions/{sid}&quot;)
+            assert r.status_code == 200
+            detail = r.json()
+            assert &quot;session&quot; in detail
+            assert &quot;messages&quot; in detail
+            assert &quot;tool_calls&quot; in detail
+            assert &quot;file_ops&quot; in detail
+
+    finally:
+        db_module.DB_PATH = original_path
+
+
+def test_setup_idempotent():
+    &quot;&quot;&quot;Test that running setup twice does not corrupt data.&quot;&quot;&quot;
+    tmp = Path(tempfile.mkdtemp())
+    db_path = tmp / &quot;analytics.db&quot;
+
+    # First init
+    from src.coworker.analytics.db import init_db
+    conn1 = init_db(db_path)
+    conn1.close()
+
+    # Second init should not fail
+    conn2 = init_db(db_path)
+    count = conn2.execute(&quot;SELECT COUNT(*) FROM sqlite_master WHERE type=&#x27;table&#x27;&quot;).fetchone()[0]
+    assert count == 8  # 8 tables defined
+    conn2.close()</code></pre>
+<ul>
+<li>[ ] <strong>Step 4: Add Playwright to pyproject.toml</strong></li>
+</ul>
+<pre><code>[project.optional-dependencies]
+test = [&quot;pytest-playwright&quot;]</code></pre>
+<ul>
+<li>[ ] <strong>Step 5: Run E2E tests</strong></li>
+</ul>
+<pre><code>pip install pytest-playwright
+playwright install chromium
+python -m pytest tests/dashboard/test_e2e.py -v --headed</code></pre>
+<p>Expected: All PASS (dashboard loads, all views render)</p>
+<ul>
+<li>[ ] <strong>Step 6: Commit</strong></li>
+</ul>
+<pre><code>git add tests/dashboard/ pyproject.toml
+git commit -m &quot;test: add API and E2E Playwright tests for dashboard&quot;</code></pre>
+<hr>
+<h3>Wave Summary</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Wave</th>
+<th>Tasks</th>
+<th>Output</th>
+</tr></thead><tbody>
+<tr>
+<td>1</td>
+<td>1-6</td>
+<td>Listener (Claude + OpenCode), DB schema, import script, knowledge skill, installer</td>
+</tr>
+<tr>
+<td>2</td>
+<td>7-10</td>
+<td>FastAPI backend, vanilla JS frontend, test data gen, E2E tests</td>
+</tr>
+</tbody></table></div>
+<h3>Verification (MAC)</h3>
+<p>After Wave 1:</p>
+<ul>
+<li>[ ] <code>./setup/install.sh --global</code> — runs without errors, all artifacts created</li>
+<li>[ ] <code>~/.coworker/analytics/hooks/</code> — contains 4 .sh scripts, all executable</li>
+<li>[ ] <code>~/.claude/settings.json</code> — contains hooks config for all 4 events</li>
+<li>[ ] <code>~/.coworker/analytics/analytics.db</code> — exists with 8 tables</li>
+<li>[ ] <code>python -m pytest tests/analytics/ -v</code> — all import + E2E setup tests pass</li>
+<li>[ ] <code>python tests/analytics/test_data.py /tmp/test.db 20</code> — generates 20 sessions</li>
+<li>[ ] <code>coworker analytics-import</code> — processes JSONL into SQLite (or import script manually)</li>
+<li>[ ] <code>analytics.db</code> contains sessions, messages, tool_calls, file_ops, skills, session_stats, knowledge, session_summaries tables</li>
+</ul>
+<p>After Wave 2:</p>
+<ul>
+<li>[ ] <code>coworker dashboard</code> — starts on port 8080 without errors</li>
+<li>[ ] Dashboard loads in browser at http://localhost:8080</li>
+<li>[ ] All 7 sidebar views render (overview, sessions, skills, tools, files, knowledge, initiatives)</li>
+<li>[ ] Session detail view shows messages + tool calls + summary</li>
+<li>[ ] <code>python -m pytest tests/dashboard/test_api.py -v</code> — all API tests pass</li>
+<li>[ ] <code>python -m pytest tests/dashboard/test_e2e.py -v</code> — all E2E Playwright tests pass</li>
+<li>[ ] <code>python -m pytest tests/analytics/test_e2e_setup.py -v</code> — full pipeline test passes (setup → data → import → API)</li>
+</ul>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../design/ai-coworker-design.html"><span class="label">Previous</span>walter-worker Design</a><a class="next" href="2026-06-11-analytics-listener-design.html"><span class="label">Next</span>Analytics Listener — Design Document</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

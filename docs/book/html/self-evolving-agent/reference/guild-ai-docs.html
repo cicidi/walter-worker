@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guild.ai — Reference Documentation · reference · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/dashboard-ui-prd.html">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-29-devil-advocate-reviews-summary.html">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/auto-worker-design.html">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/dashboard-design.html">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/qa-autonomous-agent-design.html">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../INDEX.html">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="band-ai-docs.html">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="guild-agent-README.html">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="guild-ai-docs.html" aria-current="page">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="hermes-agent-README.html">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="hermes-agent-docs.html">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="jam-agent-README.html">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="pioneer-docs.html">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/memory-graph-spec.html">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/qa-autonomous-agent-spec.html">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/self-evolving-agent-spec.html">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-29-current-state.html">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-dashboard-data-not-verified.html">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../impl-plan/self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../impl-plan/dependency-and-sequencing-impl-plan.html">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/qa-autonomous-agent-impl-plan.html">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/self-evolving-agent-test-plan.html"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/2026-07-29-test-execution-report.html">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-graph-test-plan.html">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>reference</span> / <span>Guild.ai — Reference Documentation</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/reference/guild-ai-docs">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>Guild.ai — Reference Documentation</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/reference/guild-ai-docs.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Guild.ai — Reference Documentation</h2>
+<blockquote class="callout" data-label="NOTE"><p>Source: https://www.guild.ai/platform, https://github.com/mathomhaus/guild Commercial: guild.ai | Open Source: github.com/mathomhaus/guild Founded by James Everingham (ex-VP Eng at Meta) | $44M Series A</p></blockquote>
+<h3>Positioning</h3>
+<p>&quot;The control plane for AI agents&quot; — centralized infrastructure layer for managing full lifecycle of AI agents in production. &quot;Think Kubernetes, but for AI agents.&quot;</p>
+<h3>Architecture</h3>
+<h4>Managed Agent Hub</h4>
+<p>Centralized inventory: ownership, version history, access controls, reusable components.</p>
+<h4>Mediated Gateway / Proxy Layer</h4>
+<p>All agent → LLM traffic routed through <code>https://gateway.guild.ai</code>. Agents never see raw API keys. Gateway intercepts calls, verifies identity, applies token tracking, injects scoped credentials.</p>
+<h4>Credential Vault</h4>
+<p>Hardware-isolated, encrypted vault. Short-lived, scoped, ephemeral credentials per agent. Central rotation with zero downtime. Each agent gets unique identity principal with per-endpoint permissions.</p>
+<h4>Identity &amp; Auth (KYA — &quot;Know Your Agent&quot;)</h4>
+<p>Zero-trust: every agent is an independent security principal. Cryptographically signed token handshakes, mTLS, centralized OAuth. Agent identities decoupled from human employee accounts.</p>
+<h4>Gateway-Level Traffic Management</h4>
+<p>Automated failover across providers, concurrent request distribution, token throttling.</p>
+<h3>Capabilities</h3>
+<h4>Governance</h4>
+<ul>
+<li>Scoped credential management with per-endpoint permissions</li>
+<li>Full audit trails (every version, change, author)</li>
+<li>Git-backed versioning</li>
+<li>Access controls and ownership tracking</li>
+</ul>
+<h4>Observability</h4>
+<ul>
+<li>Real-time token usage and session traces</li>
+<li>Dashboards: tokens consumed, cost per agent/model, top users</li>
+<li>Incident tracking with session traces</li>
+</ul>
+<h4>Deployment</h4>
+<ul>
+<li>Model-agnostic (OpenAI, Anthropic, Google, OpenAI-compatible)</li>
+<li>Framework-agnostic (LangChain, CrewAI, etc.)</li>
+<li>BYOK — no vendor lock-in</li>
+<li>Cost-aware routing</li>
+</ul>
+<h4>Build</h4>
+<ul>
+<li>Open-source TypeScript SDK</li>
+<li>Sandboxed runtime</li>
+<li>Agent sharing and reusable components</li>
+<li>Integrations: GitHub, Jira, Slack, Confluence, Linear</li>
+</ul>
+<h3>Open Source: mathomhaus/guild</h3>
+<p>A separate open-source project (314 stars):</p>
+<ul>
+<li>Single Go binary + embedded MCP server + local SQLite</li>
+<li>Four primitives: Quests (tasks with atomic claiming), Lore (knowledge archive), Oaths (project principles), Briefs (session handoff notes)</li>
+<li>Hybrid search: BM25 keyword + vector semantic via reciprocal-rank fusion</li>
+<li>Works with any MCP client (Claude Code, Cursor, Codex, etc.)</li>
+<li>Install: <code>brew install mathomhaus/tap/guild</code> or <code>go install</code></li>
+</ul>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="guild-agent-README.html"><span class="label">Previous</span>The Agent Guild</a><a class="next" href="hermes-agent-README.html"><span class="label">Next</span>Hermes Agent ☤</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

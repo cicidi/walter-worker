@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>jam agent README · reference · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/dashboard-ui-prd.html">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-29-devil-advocate-reviews-summary.html">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/auto-worker-design.html">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/dashboard-design.html">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/qa-autonomous-agent-design.html">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../INDEX.html">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="band-ai-docs.html">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="guild-agent-README.html">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="guild-ai-docs.html">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="hermes-agent-README.html">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="hermes-agent-docs.html">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="jam-agent-README.html" aria-current="page">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="pioneer-docs.html">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/memory-graph-spec.html">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/qa-autonomous-agent-spec.html">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/self-evolving-agent-spec.html">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-29-current-state.html">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-dashboard-data-not-verified.html">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../impl-plan/self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../impl-plan/dependency-and-sequencing-impl-plan.html">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/qa-autonomous-agent-impl-plan.html">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/self-evolving-agent-test-plan.html"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/2026-07-29-test-execution-report.html">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-graph-test-plan.html">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>reference</span> / <span>jam agent README</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/reference/jam-agent-README">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>jam agent README</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/reference/jam-agent-README.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <p>&lt;p align=&quot;center&quot;&gt;   &lt;img src=&quot;apps/desktop/src/assets/jam-logo.png&quot; alt=&quot;Jam&quot; width=&quot;128&quot; /&gt; &lt;/p&gt;</p>
+<p>&lt;h1 align=&quot;center&quot;&gt;Jam&lt;/h1&gt;</p>
+<p>&lt;p align=&quot;center&quot;&gt;Autonomous AI Agent Orchestrator — build, run, and coordinate a team of autonomous coding agents from your desktop with voice control.&lt;/p&gt;</p>
+<p><a href="https://img.shields.io/github/v/release/Dag7/jam?label=Download&amp;style=flat-square">![Release</a>](https://github.com/Dag7/jam/releases/latest) <a href="https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-blue?style=flat-square">![Platform</a>]() <a href="https://img.shields.io/github/license/Dag7/jam?style=flat-square">![License</a>]()</p>
+<h3>Preview</h3>
+<p>&lt;p align=&quot;center&quot;&gt;   &lt;a href=&quot;https://youtu.be/sXrvp5j5U6s&quot;&gt;     &lt;img src=&quot;https://img.youtube.com/vi/sXrvp5j5U6s/maxresdefault.jpg&quot; alt=&quot;Jam Preview&quot; width=&quot;600&quot; /&gt;   &lt;/a&gt; &lt;/p&gt;</p>
+<h3>Quick Start</h3>
+<pre><code>git clone https://github.com/Dag7/jam.git
+cd jam
+./scripts/setup.sh
+yarn dev</code></pre>
+<p>The setup script handles everything: Node version, Yarn 4 via Corepack, dependencies, and verification. Just clone and run.</p>
+<blockquote class="callout" data-label="NOTE"><p><strong>Requires</strong>: Node.js &gt;= 22 (the script will install it via nvm/fnm if needed)</p></blockquote>
+<h3>Download</h3>
+<p>Pre-built binaries — no setup needed:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Platform</th>
+<th>Download</th>
+</tr></thead><tbody>
+<tr>
+<td>macOS</td>
+<td><a href="https://github.com/Dag7/jam/releases/latest/download/Jam.dmg">Jam.dmg</a></td>
+</tr>
+<tr>
+<td>Windows</td>
+<td><a href="https://github.com/Dag7/jam/releases/latest/download/Jam-Setup.exe">Jam-Setup.exe</a></td>
+</tr>
+<tr>
+<td>Linux</td>
+<td><a href="https://github.com/Dag7/jam/releases/latest/download/Jam.AppImage">Jam.AppImage</a></td>
+</tr>
+</tbody></table></div>
+<blockquote class="callout" data-label="NOTE"><p>macOS builds are signed and notarized with Apple Developer ID — no Gatekeeper warnings.</p></blockquote>
+<h3>What is Jam?</h3>
+<p>Jam is an <strong>autonomous agent orchestration system</strong>. It lets you spin up a team of AI coding agents that work independently — each with its own terminal, personality, voice, memory, and workspace. Agents execute tasks autonomously, learn from their interactions, evolve their personalities over time, and coordinate with each other. You interact through text or voice; Jam handles the routing, context, and lifecycle.</p>
+<h4>Features</h4>
+<ul>
+<li><strong>Autonomous agent orchestration</strong> — Agents work independently with their own PTY, memory, and evolving personality</li>
+<li><strong>Voice control</strong> — Talk to your agents hands-free with STT/TTS (Whisper + ElevenLabs/OpenAI)</li>
+<li><strong>4 agent runtimes</strong> — Claude Code, Cursor, OpenCode, and Codex CLI as backends</li>
+<li><strong>Living personalities</strong> — Each agent has a SOUL.md that evolves over time</li>
+<li><strong>Conversation memory</strong> — Agents remember past conversations across sessions via JSONL history</li>
+<li><strong>Dynamic skills</strong> — Agents auto-generate reusable skill files from learned patterns</li>
+<li><strong>Chat + Stage views</strong> — Unified chat or per-agent terminal view</li>
+<li><strong>Per-agent voices</strong> — Assign unique TTS voices (61 total across OpenAI + ElevenLabs)</li>
+<li><strong>Command routing</strong> — Voice commands routed to the right agent by name</li>
+<li><strong>Virtual computer</strong> — Each agent can get its own virtual desktop with browser, mouse, and keyboard</li>
+<li><strong>Computer use</strong> — Agents interact with GUIs via screenshot, click, type, scroll, and Playwright browser automation</li>
+<li><strong>Sandbox isolation</strong> — Docker containers or OS-level sandboxing (Seatbelt/Bubblewrap)</li>
+<li><strong>Git worktree isolation</strong> — Each agent can work on its own branch</li>
+<li><strong>Team coordination</strong> — Task scheduling, smart assignment, trust scoring</li>
+<li><strong>Auto-update</strong> — Built-in update mechanism via GitHub Releases</li>
+</ul>
+<h4>Architecture</h4>
+<p>&lt;p align=&quot;center&quot;&gt;   &lt;img src=&quot;docs/images/architecture-overview.png&quot; alt=&quot;Architecture Overview&quot; width=&quot;800&quot; /&gt; &lt;/p&gt;</p>
+<p>The system is a Yarn 4 monorepo with 10 packages:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Package</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td><code>@jam/core</code></td>
+<td>Domain models, port interfaces, event definitions</td>
+</tr>
+<tr>
+<td><code>@jam/eventbus</code></td>
+<td>In-process pub/sub EventBus (22 events) with diagnostics</td>
+</tr>
+<tr>
+<td><code>@jam/agent-runtime</code></td>
+<td>PTY management, agent lifecycle, 4 runtime implementations</td>
+</tr>
+<tr>
+<td><code>@jam/voice</code></td>
+<td>STT/TTS providers, command parser, voice service</td>
+</tr>
+<tr>
+<td><code>@jam/memory</code></td>
+<td>File-based agent memory with session persistence</td>
+</tr>
+<tr>
+<td><code>@jam/team</code></td>
+<td>Task scheduling, smart assignment, soul evolution, communication</td>
+</tr>
+<tr>
+<td><code>@jam/sandbox</code></td>
+<td>Docker containerization, seccomp, port allocation, audit logging</td>
+</tr>
+<tr>
+<td><code>@jam/os-sandbox</code></td>
+<td>OS-level sandboxing (Seatbelt/Bubblewrap), git worktree management</td>
+</tr>
+<tr>
+<td><code>@jam/computer-use</code></td>
+<td>Virtual desktop (Xvfb), screenshot, input simulation, Playwright browser automation, REST API</td>
+</tr>
+<tr>
+<td><code>@jam/desktop</code></td>
+<td>Electron + React desktop app</td>
+</tr>
+</tbody></table></div>
+<h4>Agent Runtimes</h4>
+<p>&lt;p align=&quot;center&quot;&gt;   &lt;img src=&quot;docs/images/runtime-pattern.png&quot; alt=&quot;Agent Runtime Pattern&quot; width=&quot;800&quot; /&gt; &lt;/p&gt;</p>
+<p>All runtimes extend <code>BaseAgentRuntime</code> using the Template Method pattern:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Runtime</th>
+<th>CLI</th>
+<th>Output</th>
+<th>Input</th>
+<th>Session Resume</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>Claude Code</strong></td>
+<td><code>claude</code></td>
+<td>JSONL</td>
+<td>stdin</td>
+<td><code>--resume &lt;id&gt;</code></td>
+</tr>
+<tr>
+<td><strong>Cursor</strong></td>
+<td><code>cursor-agent</code></td>
+<td>JSONL</td>
+<td>stdin</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>OpenCode</strong></td>
+<td><code>opencode</code></td>
+<td>Raw stream</td>
+<td>stdin</td>
+<td>—</td>
+</tr>
+<tr>
+<td><strong>Codex CLI</strong></td>
+<td><code>codex</code></td>
+<td>Raw stream</td>
+<td>CLI arg</td>
+<td>—</td>
+</tr>
+</tbody></table></div>
+<h4>Voice Providers</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Type</th>
+<th>Provider</th>
+<th>Options</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>STT</strong></td>
+<td>OpenAI Whisper</td>
+<td>whisper-1, gpt-4o-transcribe, gpt-4o-mini-transcribe</td>
+</tr>
+<tr>
+<td><strong>STT</strong></td>
+<td>ElevenLabs</td>
+<td>scribe_v1, scribe_v1_experimental</td>
+</tr>
+<tr>
+<td><strong>TTS</strong></td>
+<td>OpenAI</td>
+<td>13 voices, speed control</td>
+</tr>
+<tr>
+<td><strong>TTS</strong></td>
+<td>ElevenLabs</td>
+<td>48 voices, stability + similarity tuning</td>
+</tr>
+</tbody></table></div>
+<h4>Sandboxing</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Tier</th>
+<th>Method</th>
+<th>Features</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>OS</strong></td>
+<td>Seatbelt (macOS) / Bubblewrap (Linux)</td>
+<td>Domain whitelist, file deny lists, deny-write patterns</td>
+</tr>
+<tr>
+<td><strong>Docker</strong></td>
+<td>Container per agent</td>
+<td>CPU/memory limits, seccomp, network policy, disk quota, audit log</td>
+</tr>
+<tr>
+<td><strong>Worktree</strong></td>
+<td>Git branch isolation</td>
+<td>Auto-create worktrees, merge status tracking</td>
+</tr>
+</tbody></table></div>
+<h4>Virtual Computer &amp; Computer Use</h4>
+<p>Each agent can be given its own virtual desktop — a full X11 display running inside a Docker container. When &quot;Allow Computer Use&quot; is enabled on an agent, Jam spins up a complete desktop stack:</p>
+<pre><code>┌─────────────────────────────────────────────┐
+│  Docker Container                           │
+│  ┌───────────────────────────────────────┐  │
+│  │  Xvfb (Virtual Display :99)           │  │
+│  │  1920×1080 · 24-bit color             │  │
+│  ├───────────────────────────────────────┤  │
+│  │  Fluxbox (Window Manager)             │  │
+│  ├───────────────────────────────────────┤  │
+│  │  Computer-Use API Server (:3100)      │  │
+│  │  ├── Screenshot (scrot + ImageMagick) │  │
+│  │  ├── Input (xdotool: click/type/key)  │  │
+│  │  ├── Window mgmt (wmctrl)             │  │
+│  │  └── Browser (Playwright + Chromium)  │  │
+│  ├───────────────────────────────────────┤  │
+│  │  x11vnc → noVNC (:6080)              │  │
+│  │  (live view in Jam dashboard)         │  │
+│  └───────────────────────────────────────┘  │
+└─────────────────────────────────────────────┘</code></pre>
+<p><strong>What agents can do with it:</strong></p>
+<div class="table-wrap"><table><thead><tr>
+<th>Capability</th>
+<th>How</th>
+<th>Details</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>See the screen</strong></td>
+<td><code>GET /screenshot</code></td>
+<td>PNG/JPEG capture, region support, base64 output</td>
+</tr>
+<tr>
+<td><strong>Click &amp; scroll</strong></td>
+<td><code>POST /click</code>, <code>/scroll</code></td>
+<td>x/y coordinates, left/right/middle button, double-click</td>
+</tr>
+<tr>
+<td><strong>Type text</strong></td>
+<td><code>POST /type</code>, <code>/key</code></td>
+<td>Text input with delay, key combos (Ctrl+C, Alt+Tab, etc.)</td>
+</tr>
+<tr>
+<td><strong>Manage windows</strong></td>
+<td><code>GET /windows</code>, <code>POST /focus</code></td>
+<td>List, focus by title/ID, launch apps</td>
+</tr>
+<tr>
+<td><strong>Browse the web</strong></td>
+<td><code>POST /browser/launch</code></td>
+<td>Playwright-driven Chromium with full automation</td>
+</tr>
+<tr>
+<td><strong>Observe changes</strong></td>
+<td><code>GET /observe</code>, <code>POST /wait</code></td>
+<td>Composite status, poll for screen changes</td>
+</tr>
+</tbody></table></div>
+<p>The noVNC viewer is embedded directly in the Jam dashboard, so you can watch your agent interact with GUIs in real time.</p>
+<h3>How It Works</h3>
+<h4>Prompt Flow</h4>
+<p>&lt;p align=&quot;center&quot;&gt;   &lt;img src=&quot;docs/images/prompt-flow.png&quot; alt=&quot;Prompt Flow&quot; width=&quot;700&quot; /&gt; &lt;/p&gt;</p>
+<p>When you send a message: React UI captures input, invokes IPC to the main process, which parses the command, resolves the target agent, enqueues it, enriches context (SOUL.md + conversation history + skills), and executes via the agent&#x27;s runtime. The response is recorded and returned to the UI.</p>
+<h4>Voice Pipeline</h4>
+<p>&lt;p align=&quot;center&quot;&gt;   &lt;img src=&quot;docs/images/voice-pipeline.png&quot; alt=&quot;Voice Pipeline&quot; width=&quot;700&quot; /&gt; &lt;/p&gt;</p>
+<p>Voice flows through: audio capture → STT transcription → command parsing &amp; agent routing → agent execution → TTS response → audio playback. Progress phrases provide real-time voice feedback during execution.</p>
+<h4>Conversation Context</h4>
+<p>&lt;p align=&quot;center&quot;&gt;   &lt;img src=&quot;docs/images/conversation-context.png&quot; alt=&quot;Conversation Context&quot; width=&quot;700&quot; /&gt; &lt;/p&gt;</p>
+<p>Agents maintain context through three mechanisms:</p>
+<ol>
+<li><strong>Session ID resume</strong> — Claude Code uses <code>--resume</code> to continue server-side conversations</li>
+<li><strong>Conversation JSONL</strong> — Daily log files, last 20 entries injected into system prompt (all runtimes)</li>
+<li><strong>SOUL.md + Skills</strong> — Persistent personality and auto-matched skill files</li>
+</ol>
+<p>For detailed architecture documentation, see <a href="../../../../features/self-evolving-agent/reference/docs/architecture.md">docs/architecture.md</a>.</p>
+<h3>Configuration</h3>
+<h4>Prerequisites</h4>
+<ul>
+<li>At least one agent runtime CLI installed: <a href="https://docs.anthropic.com/en/docs/claude-code">Claude Code</a>, <a href="https://opencode.ai">OpenCode</a>, <a href="https://github.com/openai/codex">Codex CLI</a>, or <a href="https://cursor.com">Cursor</a></li>
+<li>API keys for your preferred voice providers (optional, for voice features):</li>
+<li>OpenAI API key (for Whisper STT and/or OpenAI TTS)</li>
+<li>ElevenLabs API key (for ElevenLabs STT and/or TTS)</li>
+</ul>
+<h4>First Launch</h4>
+<ol>
+<li>Launch Jam</li>
+<li>Open <strong>Settings</strong> (gear icon in sidebar)</li>
+<li>Add your API keys for voice providers</li>
+<li>Create an agent — pick a name, runtime, model, and voice</li>
+</ol>
+<h4>Agent Workspace</h4>
+<p>Each agent gets a directory at <code>~/.jam/agents/&lt;name&gt;/</code>:</p>
+<pre><code>~/.jam/agents/sue/
+├── SOUL.md              # Living personality file
+├── conversations/       # Daily JSONL conversation logs
+│   └── 2026-04-04.jsonl
+└── skills/              # Agent-created skill files
+    └── react-patterns.md</code></pre>
+<h3>Development</h3>
+<h4>Requirements</h4>
+<ul>
+<li>Node.js &gt;= 22 (Vite 7 requires 22.12+)</li>
+<li>Yarn 4 (managed automatically via Corepack)</li>
+</ul>
+<h4>Commands</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Command</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td><code>yarn dev</code></td>
+<td>Start desktop app in dev mode</td>
+</tr>
+<tr>
+<td><code>yarn build</code></td>
+<td>Build all packages</td>
+</tr>
+<tr>
+<td><code>yarn typecheck</code></td>
+<td>Type check all packages</td>
+</tr>
+<tr>
+<td><code>yarn test</code></td>
+<td>Run all tests</td>
+</tr>
+<tr>
+<td><code>yarn test:coverage</code></td>
+<td>Run tests with coverage</td>
+</tr>
+</tbody></table></div>
+<h4>Project Structure</h4>
+<pre><code>packages/
+  core/             # Domain models, port interfaces, events
+  eventbus/         # In-process EventBus + HookRegistry
+  agent-runtime/    # PTY management, agent lifecycle, runtimes
+  voice/            # STT/TTS providers, command parser
+  memory/           # File-based agent memory
+  team/             # Task scheduling, soul evolution, communication
+  sandbox/          # Docker containerization, seccomp
+  os-sandbox/       # OS-level sandboxing, git worktrees
+  computer-use/     # Virtual desktop, browser automation
+  brain/            # Brain client, memory store
+apps/
+  desktop/          # Electron + React desktop app</code></pre>
+<h4>Design Principles</h4>
+<ul>
+<li><strong>SOLID</strong> — Depend on abstractions (port interfaces in <code>@jam/core</code>); inject narrow deps</li>
+<li><strong>Template Method</strong> — <code>BaseAgentRuntime</code> owns shared lifecycle; runtimes override hooks</li>
+<li><strong>Strategy pattern</strong> — Pluggable runtimes, output strategies, and voice providers</li>
+<li><strong>Observer pattern</strong> — EventBus for decoupled event propagation</li>
+<li><strong>Container/Component</strong> — React containers wire to Zustand, components stay pure</li>
+<li><strong>Factory maps</strong> — Provider/command registries use data maps, never switch statements</li>
+</ul>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="hermes-agent-docs.html"><span class="label">Previous</span>Hermes Agent — Reference Documentation</a><a class="next" href="jam-docs.html"><span class="label">Next</span>Jam.dev MCP — Reference Documentation</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>
