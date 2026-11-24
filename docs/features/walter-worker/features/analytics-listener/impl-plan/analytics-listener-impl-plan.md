@@ -17,15 +17,15 @@ A hook must not stop or noticeably slow a session; its writes ignore failure. No
 
 ## Acceptance Criteria
 
-The feature is not done while the blocking open question QUES-A (secret redaction) is open. Beyond that, it is done when the tasks below are done, their Verify lines pass, and every other open question is fixed or explicitly accepted by the owner.
+The feature is not done while any blocking open question is open: QUES-A (secret redaction), QUES-I (typed prompts dropped by the transcript importer), QUES-J (hook lines that are not valid JSON), and QUES-K (pruning hook data that was never imported). Beyond that, it is done when the tasks below are done, their Verify lines pass, and every other open question is fixed or explicitly accepted by the owner.
 
 ## Execution order
 
-IMPL-A first, because every hook writes through it. IMPL-B and IMPL-C depend on IMPL-A and can proceed in parallel. IMPL-D depends on IMPL-A and IMPL-C, because it reads what the hooks wrote into the schema IMPL-C defines.
+IMPL-A, IMPL-C, and IMPL-E depend on nothing and can proceed in parallel; IMPL-A goes first among the hook work, because every hook writes through it. IMPL-B depends on IMPL-A. IMPL-D comes last, because it depends on IMPL-A and IMPL-C: it reads what the hooks wrote into the schema IMPL-C defines. IMPL-C does not use the hook files, so it does not wait for IMPL-A.
 
 ## IMPL-A — Session files
 
-Create the session directory and `session.yaml`, keep the sequence counter, quarantine records without a session id, and append JSON lines that ignore write failures (DSGN-A, DSGN-B). Depends on nothing. Blocks IMPL-B, IMPL-C, and IMPL-D.
+Create the session directory and `session.yaml`, keep the sequence counter, quarantine records without a session id, and append JSON lines that ignore write failures (DSGN-A, DSGN-B). Depends on nothing. Blocks IMPL-B and IMPL-D.
 
 Verify: `tests/analytics/test_hooks.py` `test_session_yaml_is_valid_when_cwd_contains_a_quote` and `test_prompt_content_is_json_escaped` pass.
 
@@ -33,7 +33,7 @@ Verify: `tests/analytics/test_hooks.py` `test_session_yaml_is_valid_when_cwd_con
 
 The prompt, before-tool, after-tool, and stop hooks with their payload parsing (DSGN-A). Depends on IMPL-A. Blocks nothing.
 
-Verify: `tests/analytics/test_hooks.py` `test_user_prompt_is_recorded` and `test_each_hook_starts_at_most_one_interpreter` pass, and `tests/hooks/on-stop.bats` passes.
+Verify: `tests/analytics/test_hooks.py` `test_user_prompt_is_recorded` and `test_each_hook_starts_at_most_one_interpreter` pass, and `tests/hooks/on-stop.bats` passes. The interpreter test only counts the text `python3 -c` in each `on-*.sh` file and does not count the second interpreter that `common.sh` starts (DSGN-B).
 
 ## IMPL-C — Database and migrations
 
@@ -51,7 +51,7 @@ Verify: `tests/python/test_import_data.py` `test_import_session_basic` and `test
 
 Score prompts and write draft traces (DSGN-D). Depends on nothing. Blocks nothing.
 
-Verify: no passing positive test exists yet; `tests/python/test_correction_detector.py::test_correction_detected` is marked expected-to-fail (QUES-G).
+Verify: no passing positive test exists yet; `tests/python/test_correction_detector.py::test_correction_detected` is marked expected-to-fail, and all four tests in that file run a hook path that does not exist, so the negative tests pass without running the detector (QUES-G).
 
 ## Change Log
 
@@ -59,3 +59,4 @@ Verify: no passing positive test exists yet; `tests/python/test_correction_detec
 |---|---|---|
 | 0.1 | 2026-11-04 | Draft (never committed) |
 | 0.2 | 2026-11-24 | Rewritten as a record of shipped work with Verify lines; added Acceptance Criteria (ARD-A) |
+| 0.3 | 2026-11-24 | Review fixes: one dependency for IMPL-C, IMPL-A's Blocks list corrected, IMPL-E added to the order, blocking questions QUES-I to QUES-K added to Acceptance Criteria, test limits stated (ARD-E) |
