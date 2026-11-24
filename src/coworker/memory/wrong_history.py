@@ -12,15 +12,43 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 
+from ..constants import SELF_EVOLVING_DOCS
+
 logger = logging.getLogger(__name__)
 
 #: A field label at the start of a line, e.g. `**Anti-pattern:**`. Marks where
 #: a wrapped multi-line value ends.
 _FIELD_LABEL_RE = re.compile(r"^\*\*[^*]+:\*\*")
 
-WH_DIR = "docs/features/self-evolving-agent/wrong-history"
+WH_DIR = f"{SELF_EVOLVING_DOCS}/wrong-history"
 MARKER_START = "<!-- WRONG-HISTORY START -->"
 MARKER_END = "<!-- WRONG-HISTORY END -->"
+
+
+def _extract_rule(text: str) -> str:
+    """The prevention rule from an entry, whole.
+
+    A rule routinely wraps across several lines. Both callers used to read only
+    the text after the marker on one line, which cut the shipped
+    adversarial-review rule off at "In any adversarial review (devil-advocate,
+    con/pro/judge)," — 61 of its 433 characters, ending on a comma. The index
+    rebuild had its own copy of the same mistake, so fixing one would have left
+    the other severing rules.
+
+    Runs until a blank line or the next **Field:** label.
+    """
+    lines = text.split("\n")
+    for i, line in enumerate(lines):
+        if "**Prevention rule:**" not in line:
+            continue
+        parts = [line.split("**Prevention rule:**")[-1].strip()]
+        for cont in lines[i + 1:]:
+            stripped = cont.strip()
+            if not stripped or _FIELD_LABEL_RE.match(stripped):
+                break
+            parts.append(stripped)
+        return " ".join(p for p in parts if p)
+    return ""
 
 
 def extract_rules(entries_dir: str | None = None) -> list[dict]:
@@ -46,24 +74,7 @@ def extract_rules(entries_dir: str | None = None) -> list[dict]:
 
         category = _extract_field(text, "category", "unknown")
         summary = _extract_field(text, "# ", "")
-        rule = ""
-        lines = text.split("\n")
-        for i, line in enumerate(lines):
-            if "**Prevention rule:**" not in line:
-                continue
-            # A rule routinely wraps across several lines. Reading only the
-            # first one cut it off mid-sentence: the shipped adversarial-review
-            # rule came out as "In any adversarial review (devil-advocate,
-            # con/pro/judge)," and prevented nothing. It runs until a blank
-            # line or the next **Field:** label.
-            parts = [line.split("**Prevention rule:**")[-1].strip()]
-            for cont in lines[i + 1:]:
-                stripped = cont.strip()
-                if not stripped or _FIELD_LABEL_RE.match(stripped):
-                    break
-                parts.append(stripped)
-            rule = " ".join(p for p in parts if p)
-            break
+        rule = _extract_rule(text)
 
         if rule:
             rules.append({
@@ -202,8 +213,13 @@ tags: [{tag_list}]
         return None
 
 
-def _rebuild_index() -> None:
-    """Rebuild the wrong-history INDEX.md from all entries."""
+def _rebuild_index() -> tuple[int, Path]:
+    """Rebuild the wrong-history INDEX.md from all entries.
+
+    Returns (entry count, path written) so the caller can say what it did. It
+    reported neither before, so "INDEX rebuilt" was the same message whether
+    the file had six entries or none.
+    """
     d = Path(WH_DIR) / "entries"
     entries = sorted(d.glob("*.md"), reverse=True) if d.exists() else []
 
@@ -214,11 +230,9 @@ def _rebuild_index() -> None:
             sev = _extract_field(text, "severity", "low")
             cat = _extract_field(text, "category", "unknown")
             summary = _extract_field(text, "# ", ep.stem)
-            rule = ""
-            for line in text.split("\n"):
-                if "**Prevention rule:**" in line:
-                    rule = line.split("**Prevention rule:**")[-1].strip()[:120]
-                    break
+            # Shared with extract_rules, so the two cannot disagree about where
+            # a rule ends. This had its own copy of the single-line read.
+            rule = _extract_rule(text)
             by_severity.setdefault(sev, []).append({
                 "date": _extract_field(text, "date", ep.stem[:10]),
                 "slug": ep.stem,
@@ -234,7 +248,9 @@ def _rebuild_index() -> None:
         "# Wrong History — Index",
         "",
         "> **Purpose:** Prevent repeating past mistakes.",
-        "> **Check before coding:** `grep -rl \"<keyword>\" docs/features/self-evolving-agent/wrong-history/entries/`",
+        # Derived, not written out: this line is generated into CLAUDE.local.md
+        # and was a second copy of the path the module already holds.
+        f"> **Check before coding:** `grep -rl \"<keyword>\" {WH_DIR}/entries/`",
         "",
     ]
 
@@ -266,6 +282,7 @@ def _rebuild_index() -> None:
     idx_path.parent.mkdir(parents=True, exist_ok=True)
     idx_path.write_text("\n".join(lines) + "\n")
     logger.info("Rebuilt wrong-history INDEX with %d entries", total)
+    return total, idx_path
 
 
 def _extract_field(text: str, field: str, default: str) -> str:

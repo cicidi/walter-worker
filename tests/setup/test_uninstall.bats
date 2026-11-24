@@ -188,3 +188,137 @@ print('kept' if 'echo MY-OWN-HOOK' in cmds else 'GONE')
 "
   [ "$output" = "kept" ]
 }
+
+@test "project-mode uninstall removes the OpenCode mirrors it created" {
+  # install --project writes $PROJECT/.opencode/instructions/*.md, but the
+  # manifest claimed {home}/.opencode/instructions/{name}.md — always the home
+  # path. So the claim matched nothing, and uninstall left every mirror behind
+  # pointing at a deleted target.
+  PROJ="$TEST_TMP/proj"
+  mkdir -p "$PROJ"
+
+  run bash "$REPO_ROOT/setup/install.sh" --project "$PROJ" <<< $'1'
+  [ "$status" -eq 0 ]
+  [ -d "$PROJ/.opencode/instructions" ]
+
+  run bash -c "echo y | bash '$REPO_ROOT/setup/uninstall.sh'"
+  [ "$status" -eq 0 ]
+
+  run bash -c "find '$PROJ/.opencode/instructions' -xtype l 2>/dev/null | wc -l"
+  [ "$output" = "0" ]
+}
+
+@test "the-super-lab's OpenCode symlinks are claimed, so they can be retired" {
+  # They are created in step 11b and were never claimed at all, while the
+  # comment beside the claim loop said owned_dirs covered them — it holds only
+  # .../skills/walter-worker. A skill dropped from the source therefore left a
+  # symlink to a deleted directory behind for ever.
+  # This file's setup() has no the-super-lab, so nothing would deploy.
+  SUPERLAB="$HOME/project/the-super-lab"
+  mkdir -p "$SUPERLAB/skills/one" "$SUPERLAB/personal-skills"
+  printf -- '---\nname: one\ndescription: t\n---\n# one\n' > "$SUPERLAB/skills/one/SKILL.md"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'1'
+  [ "$status" -eq 0 ]
+  [ -f "$HOME/.cursor/skills/one/SKILL.md" ]
+
+  run python3 -c "
+import json, os
+m = json.load(open(os.path.expanduser('~/.coworker/install-manifest.json')))
+print(sum(1 for f in m.get('files', []) if 'skills/the-super-lab/' in f))
+"
+  [ "$output" -ge 1 ]
+  run python3 -c "
+import json, os
+m = json.load(open(os.path.expanduser('~/.coworker/install-manifest.json')))
+print(sum(1 for f in m.get('files', []) if '.cursor/skills/one/' in f))
+"
+  [ "$output" -ge 1 ]
+
+  run bash -c "echo y | bash '$REPO_ROOT/setup/uninstall.sh'"
+  [ "$status" -eq 0 ]
+  [ ! -e "$HOME/.cursor/skills/one/SKILL.md" ]
+
+  run bash -c "ls -A '$HOME/.config/opencode/skills/the-super-lab' 2>/dev/null | wc -l"
+  [ "$output" = "0" ]
+}
+
+@test "a pristine snapshot is taken even when the files do not exist yet" {
+  # The guard was the directory's existence, and mkdir ran unconditionally. On
+  # a fresh machine there was nothing to copy, so the directory was created
+  # empty and `! -d` was false from then on: no snapshot was ever taken and
+  # --restore-pristine found an empty directory forever.
+  rm -rf "$HOME/.coworker/backups/pristine" "$HOME/.coworker/install-manifest.json"
+  rm -f "$HOME/.claude/settings.json" "$HOME/.claude/CLAUDE.md"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  [ -f "$HOME/.coworker/backups/pristine/.taken" ]
+  run cat "$HOME/.coworker/backups/pristine/absent.txt"
+  [[ "$output" == *"settings.json"* ]]
+
+  # Restoring removes what the install created, because that is what pristine
+  # means on a machine that had neither file.
+  run bash -c "echo y | bash '$REPO_ROOT/setup/uninstall.sh' --restore-pristine"
+  [ "$status" -eq 0 ]
+  [ ! -f "$HOME/.claude/settings.json" ]
+}
+
+@test "uninstall retires the directories it emptied" {
+  # install.sh retires emptied directories after its own prune; uninstall did
+  # nothing of the kind, so 15 empty ~/.claude/skills/<name>/ survived — plus
+  # ~/.cursor/skills, ~/.opencode/instructions and the hooks dir — and anything
+  # listing them still saw an install.
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'1'
+  [ "$status" -eq 0 ]
+
+  run bash -c "echo y | bash '$REPO_ROOT/setup/uninstall.sh'"
+  [ "$status" -eq 0 ]
+
+  # No leftovers beneath the tree roots.
+  run bash -c "find '$HOME/.claude/skills' '$HOME/.cursor/skills' '$HOME/.opencode/instructions' -mindepth 1 2>/dev/null | wc -l"
+  [ "$output" = "0" ]
+
+  # The roots are never removed, only their emptied children — but whether a
+  # root exists at all depends on whether this install created it, and this
+  # sandbox has no the-super-lab, so ~/.claude/skills may never have appeared.
+  run bash -c "find '$HOME/.claude/skills' -maxdepth 1 -type d -name 'skills' 2>/dev/null | wc -l"
+  [ "$output" = "0" ] || [ -d "$HOME/.claude/skills" ]
+}
+
+@test "uninstall strips a coworker hook added after the manifest was written" {
+  # `coworker sync` adds `coworker state-update` on any later run and does not
+  # rewrite the manifest, so the manifest-driven removal missed it and it kept
+  # firing after uninstall — while the closing banner said coworker entries had
+  # been stripped. Our hooks are identifiable independently of the manifest.
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  python3 -c "
+import json, os
+p = os.path.expanduser('~/.claude/settings.json')
+cfg = json.load(open(p))
+cfg['hooks'].setdefault('Stop', []).append(
+    {'matcher': '', 'hooks': [{'type': 'command', 'command': 'coworker state-update'}]})
+cfg['hooks'].setdefault('Stop', []).append(
+    {'matcher': '', 'hooks': [{'type': 'command', 'command': 'echo MY-OWN'}]})
+json.dump(cfg, open(p, 'w'), indent=2)
+"
+
+  run bash -c "echo y | bash '$REPO_ROOT/setup/uninstall.sh'"
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import json, os
+cfg = json.load(open(os.path.expanduser('~/.claude/settings.json')))
+cmds = [h.get('command') for groups in cfg.get('hooks', {}).values()
+        for g in groups for h in (g.get('hooks') or [])]
+print('|'.join(cmds))
+"
+  # Ours gone, including the one the manifest never recorded.
+  [[ "$output" != *"state-update"* ]]
+  [[ "$output" != *"coworker memory"* ]]
+  # The user's own hook is theirs and stays.
+  [[ "$output" == *"echo MY-OWN"* ]]
+}

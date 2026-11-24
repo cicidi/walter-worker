@@ -48,8 +48,14 @@ def register_analytics(main_group: click.Group) -> None:
 
     @analytics.command("dashboard")
     @click.option("--port", default=8080, help="Port to listen on")
+    @click.option(
+        "--host",
+        default="127.0.0.1",
+        show_default=True,
+        help="Interface to bind. Loopback by default; use 0.0.0.0 to expose it.",
+    )
     @click.option("--db", default=None, help="Path to analytics database")
-    def analytics_dashboard(port, db):
+    def analytics_dashboard(port, host, db):
         """Start the analytics dashboard."""
         import os
         # COWORKER_ANALYTICS_DB is process-global and _default_db_path() reads it,
@@ -61,8 +67,19 @@ def register_analytics(main_group: click.Group) -> None:
         try:
             import uvicorn
             from .dashboard.app import app
-            console.print(f"[green]Dashboard: http://localhost:{port}[/green]")
-            uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
+            # Loopback unless asked otherwise. This bound 0.0.0.0 and announced
+            # itself as localhost, so it was listening on every interface while
+            # saying it was not — reachable from the local network, with no
+            # auth, serving session prompts, file paths and tool arguments, and
+            # offering endpoints that rewrite ~/CLAUDE.local.md and skill state.
+            shown = "localhost" if host in ("127.0.0.1", "::1") else host
+            console.print(f"[green]Dashboard: http://{shown}:{port}[/green]")
+            if host not in ("127.0.0.1", "::1"):
+                console.print(
+                    f"[yellow]Listening on {host} — anyone who can reach this "
+                    f"port can read your sessions and change memory state.[/yellow]"
+                )
+            uvicorn.run(app, host=host, port=port, log_level="info")
         finally:
             if db:
                 if previous is None:

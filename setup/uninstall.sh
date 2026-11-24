@@ -33,7 +33,12 @@ RESTORE_PRIS=false
 if [[ ! -f "$MANIFEST" ]]; then
   error "No install manifest found at $MANIFEST"
   echo "  This may be a pre-manifest install. To clean up manually:"
-  echo "  rm -rf ~/.coworker ~/.claude/commands/walter-worker-*"
+  echo "    - ~/.claude/skills/<name>/ for each skill install.sh deployed"
+  echo "    - ~/.claude/commands/<name>.md for the bundle skills"
+  echo "    - ~/.cursor/skills/<name>/ and ~/.opencode/instructions/<name>.md"
+  echo "  Keep ~/.coworker/analytics/ and ~/.coworker/backups/ — this"
+  echo "  script preserves both, and there is no manifest-free way to tell"
+  echo "  your data from its own scripts."
   echo "  Also remove coworker hook entries from ~/.claude/settings.json hooks.*"
   exit 1
 fi
@@ -86,10 +91,13 @@ for f in m.get('files', []):
     if os.path.isfile(p) or os.path.islink(p):
         os.remove(p)
         print(f'  removed: {p}')
-" | while read -r line; do
-  echo "$line"
-  ((REMOVED_FILES++)) || true
-done
+" > /tmp/.coworker-uninstall-$$ 2>/dev/null || true
+cat /tmp/.coworker-uninstall-$$
+# Counted here rather than in the loop: `python3 ... | while read` runs the
+# loop in a subshell, so every increment was discarded and the closing banner
+# could only say "at least those in manifest".
+REMOVED_FILES=$(grep -c '^  removed: ' /tmp/.coworker-uninstall-$$ 2>/dev/null || true)
+rm -f /tmp/.coworker-uninstall-$$
 
 # Remove hook entries by command path
 echo ""
@@ -99,10 +107,22 @@ if [[ -f "$CLAUDE_SETTINGS" ]]; then
   python3 -c "
 import json
 m = json.load(open('$MANIFEST'))
-our_cmds = set(m.get('hook_commands', []))
-if not our_cmds:
-    print('  (no hook commands in manifest)')
-    exit(0)
+recorded = set(m.get('hook_commands', []))
+
+# The manifest is the primary source, but it goes stale: coworker sync adds
+# the state-update hook on any later run and does not rewrite the manifest, so
+# uninstall left it firing while the closing banner said coworker entries had
+# been stripped. These are the same patterns install.sh uses to claim its own
+# hooks, so the two sides agree on what is ours.
+#
+# No backticks in this block: it is a double-quoted bash string, so they would
+# be command substitutions to bash rather than part of the comment.
+OUR_PATH = '/.coworker/analytics/hooks/'
+OUR_CMDS = {'coworker state-update', 'coworker memory capture', 'coworker memory close'}
+
+def is_ours(cmd):
+    return bool(cmd) and (cmd in recorded or cmd in OUR_CMDS or OUR_PATH in cmd)
+
 cfg = json.load(open('$CLAUDE_SETTINGS'))
 hooks = cfg.get('hooks', {})
 n = 0
@@ -117,7 +137,7 @@ for event in list(hooks.keys()):
         inner = g.get('hooks', [])
         kept_inner = []
         for h in inner:
-            if isinstance(h, dict) and h.get('command') in our_cmds:
+            if isinstance(h, dict) and is_ours(h.get('command')):
                 n += 1
             else:
                 kept_inner.append(h)
@@ -125,7 +145,9 @@ for event in list(hooks.keys()):
             g['hooks'] = kept_inner
             cleaned.append(g)
         else:
-            n += 1  # entire group removed
+            # The group goes with it, but a group is a wrapper, not a hook.
+            # Counting both reported 12 removals for 6 hooks.
+            pass
     if cleaned:
         hooks[event] = cleaned
     else:
@@ -152,6 +174,43 @@ fi
 # deleted both, so the closing message was false and the restore below could
 # never find its source.
 echo ""
+# Retire what the removal emptied. install.sh does this after its own prune;
+# here nothing did, so 15 empty ~/.claude/skills/<name>/ survived uninstall,
+# along with ~/.cursor/rules, ~/.opencode/instructions and the hooks dir —
+# directories that still look installed to anything listing them.
+python3 -c "
+import json, os
+m = json.load(open('$MANIFEST'))
+# Strictly *below* these, never the roots themselves: ~/.claude/skills and
+# friends are standard locations, empty or not.
+TREES = [os.path.normpath(os.path.expanduser(p)) for p in (
+    '~/.claude/skills', '~/.claude/commands', '~/.cursor/rules',
+    '~/.cursor/skills', '~/.opencode/instructions',
+    '~/.config/opencode/skills/walter-worker',
+    '~/.config/opencode/skills/the-super-lab',
+    '~/.config/opencode/skills/the-super-lab-personal',
+    '~/.coworker/analytics/hooks',
+)]
+def inside(p):
+    return any(p.startswith(t + os.sep) for t in TREES)
+
+n = 0
+parents = {os.path.dirname(os.path.normpath(f)) for f in m.get('files', [])}
+for p in sorted(parents, key=len, reverse=True):
+    cur = p
+    while inside(cur):
+        try:
+            if not os.path.isdir(cur) or os.listdir(cur):
+                break
+            os.rmdir(cur)
+        except OSError:
+            break
+        n += 1
+        cur = os.path.dirname(cur)
+if n:
+    print(f'  removed {n} emptied directory(ies)')
+" 2>/dev/null || true
+
 log "Cleaning directories..."
 python3 -c "
 import json, shutil, os
@@ -181,19 +240,32 @@ for d in reversed(sorted(m.get('owned_dirs', []))):
             pass  # not empty or permission issue — leave it
 " 2>/dev/null || warn "Partial directory cleanup — some items may remain."
 
-echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 ok "Uninstall complete!"
-echo "   Files removed    : at least those in manifest"
+echo "   Files removed    : $REMOVED_FILES"
 echo "   Hook entries     : coworker entries stripped from settings.json"
 echo "   Analytics data   : ~/.coworker/analytics/ (preserved — delete manually)"
 echo ""
 if $RESTORE_PRIS; then
   PRIS="$HOME/.coworker/backups/pristine"
-  if [[ -d "$PRIS" ]]; then
+  # A marker, or any file actually in it. Snapshots written before the marker
+  # existed have neither the marker nor, on a fresh machine, any file — and an
+  # empty directory is an empty directory, not a backup.
+  if [[ -f "$PRIS/.taken" || -f "$PRIS/settings.json" || -f "$PRIS/CLAUDE.md" ]]; then
     log "Restoring pristine backup from $PRIS..."
     cp "$PRIS/settings.json" "$CLAUDE_SETTINGS" 2>/dev/null || warn "Could not restore settings.json"
     cp "$PRIS/CLAUDE.md" "$HOME/.claude/CLAUDE.md" 2>/dev/null || warn "Could not restore CLAUDE.md"
+
+    # Files that did not exist before the install. "Pristine" for those is
+    # absent, so restoring means removing what we created — otherwise a fresh
+    # machine restores to a state it was never in.
+    if [[ -f "$PRIS/absent.txt" ]]; then
+      while read -r p; do
+        if [[ -n "$p" && -e "$p" ]]; then
+          rm -f "$p" && log "  removed (was absent before install): $p"
+        fi
+      done < "$PRIS/absent.txt"
+    fi
   else
     warn "No pristine backup found at $PRIS"
   fi

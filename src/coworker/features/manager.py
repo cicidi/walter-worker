@@ -14,9 +14,7 @@ from ..models import (
     FeatureConfig,
 )
 from ..adapters.claude import inject_feature, remove_feature
-
-KEBAB_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
-
+from ..config import _validate_feature_name
 
 def _local_md_path(project_dir: Path) -> Path:
     return project_dir / "CLAUDE.local.md"
@@ -39,8 +37,9 @@ class FeatureManager:
     def create(self, name: str, description: str = "") -> FeatureConfig:
         if feature_exists(name):
             raise FileExistsError(f"Feature '{name}' already exists.")
-        if not KEBAB_RE.match(name):
-            raise ValueError(f"Name '{name}' must be kebab-case (e.g. 'auth-migration').")
+        # The shared rule, and its message. This had its own copy of the
+        # pattern and its own wording, so the two could accept different names.
+        _validate_feature_name(name)
 
         config = FeatureConfig(
             name=name,

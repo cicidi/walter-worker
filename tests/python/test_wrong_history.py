@@ -79,3 +79,36 @@ class TestWrappedPreventionRules:
 
         assert "Then stop." in rule
         assert "Anti-pattern" not in rule, "must not swallow the next field"
+
+
+class TestIndexKeepsTheWholeRule:
+    """The index rebuild had its own copy of the single-line rule read.
+
+    Both it and extract_rules took only the text after the marker on one line,
+    so a wrapped rule was severed in the index too — and fixing one would have
+    left the other severing rules. They now share one extractor.
+    """
+
+    def _entry(self, tmp_path):
+        entries = tmp_path / "entries"
+        entries.mkdir(parents=True, exist_ok=True)
+        (entries / "2026-01-01-wrapped.md").write_text(
+            "---\ndate: 2026-01-01\nseverity: high\ncategory: testing\n---\n\n"
+            "# Wrapped\n\n"
+            "**Prevention rule:** Start here,\nand the rest of the rule follows.\n\n"
+            "**Anti-pattern:** ignoring it\n"
+        )
+
+    def test_the_continuation_reaches_the_index(self, tmp_path, monkeypatch):
+        from coworker.memory import wrong_history as w
+
+        self._entry(tmp_path)
+        monkeypatch.setattr(w, "WH_DIR", str(tmp_path))
+
+        count, path = w._rebuild_index()
+
+        assert count == 1
+        assert path.exists()
+        text = path.read_text()
+        assert "the rest of the rule follows" in text, "index kept only line one"
+        assert "Anti-pattern" not in text

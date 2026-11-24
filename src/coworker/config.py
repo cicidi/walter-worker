@@ -206,7 +206,10 @@ FEATURES_DIR = GLOBAL_DIR / "features"
 # Pre-rename location. Still resolved so that upgrading the tool does not orphan
 # an existing data directory; `coworker feature migrate` moves it across.
 LEGACY_FEATURES_DIR = GLOBAL_DIR / "initiatives"
-_FEATURE_NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+#: Kebab-case feature names. The one definition: features/manager.py
+#: imported its own copy of this pattern, so the rule that decides what a
+#: feature may be called existed twice and could drift.
+FEATURE_NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 
 
 def _features_dir() -> Path:
@@ -223,7 +226,7 @@ def _features_dir() -> Path:
 
 
 def _validate_feature_name(name: str) -> str:
-    if not name or not _FEATURE_NAME_RE.match(name):
+    if not name or not FEATURE_NAME_RE.match(name):
         raise ValueError(
             f"Invalid feature name: {name!r}. "
             f"Must be kebab-case (e.g. 'my-project')."

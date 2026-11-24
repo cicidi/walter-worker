@@ -18,6 +18,7 @@ from .models import (
     KnowledgePoolEntry,
 )
 from .adapters import ADAPTERS
+from .constants import STATE_DIR
 from .features.manager import FeatureManager
 from .templates.project_claude_md import generate_project_claude_md
 from .templates.local_claude_md import (
@@ -307,7 +308,7 @@ def init(is_global, is_project):
             local_md_path.write_text(local_content)
             console.print("[green]Created:[/green] CLAUDE.local.md")
             gitignore_path = Path.cwd() / ".gitignore"
-            entries = ["CLAUDE.local.md", "docs/state/"]
+            entries = ["CLAUDE.local.md", STATE_DIR + "/"]
             if not gitignore_path.exists():
                 gitignore_path.write_text("\n".join(entries) + "\n")
             else:
@@ -319,7 +320,7 @@ def init(is_global, is_project):
                         if existing:
                             f.write("\n")
                         f.write("\n".join(new_entries) + "\n")
-            console.print("[dim]Added CLAUDE.local.md, docs/state/ to .gitignore[/dim]")
+            console.print(f"[dim]Added CLAUDE.local.md, {STATE_DIR}/ to .gitignore[/dim]")
 
         console.print("\n[bold green]Setup complete![/bold green] Run [cyan]coworker sync[/cyan] to apply.")
 
@@ -356,7 +357,7 @@ def state_update(task, summary):
     if not task:
         task = datetime.now().strftime("%Y-%m-%d")
 
-    state_path = root / "docs" / "state" / f"state-{task}.md"
+    state_path = root / STATE_DIR / f"state-{task}.md"
     state_path.parent.mkdir(parents=True, exist_ok=True)
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -477,7 +478,13 @@ def _scan_feature_progress(feature_name: str, project_dir: Path, config) -> dict
 
     # ── 3. Session scan from analytics.db ───────────────────────────────
     try:
-        db_path = Path.home() / ".coworker" / "analytics" / "analytics.db"
+        # Resolved, not spelled out: this ignored COWORKER_ANALYTICS_DB, so
+        # status read the real database even when the variable pointed
+        # elsewhere — and reported zero sessions when that database did not
+        # exist, rather than the configured one's count.
+        from .analytics.db import _default_db_path
+
+        db_path = _default_db_path()
         if db_path.exists():
             conn = sqlite3.connect(str(db_path))
             row = conn.execute(
@@ -493,7 +500,13 @@ def _scan_feature_progress(feature_name: str, project_dir: Path, config) -> dict
 
     # ── 4. Memory scan: session summaries + knowledge from analytics.db ──
     try:
-        db_path = Path.home() / ".coworker" / "analytics" / "analytics.db"
+        # Resolved, not spelled out: this ignored COWORKER_ANALYTICS_DB, so
+        # status read the real database even when the variable pointed
+        # elsewhere — and reported zero sessions when that database did not
+        # exist, rather than the configured one's count.
+        from .analytics.db import _default_db_path
+
+        db_path = _default_db_path()
         if db_path.exists():
             conn = sqlite3.connect(str(db_path))
             # Count session summaries linked to this feature
@@ -858,8 +871,20 @@ Describe when the AI should invoke this skill.
 3. Step three
 """)
     console.print(f"[green]Created:[/green] {skill_file}")
-    console.print("[dim]Add to coworker.yaml:[/dim]")
-    console.print(f"  skills:\n    - name: {name}\n      path: skills/{name}")
+    if is_global:
+        console.print("[dim]Register it in coworker.yaml:[/dim]")
+        console.print(f"  skills:\n    - name: {name}\n      path: skills/{name}")
+        console.print("[dim]That path is relative to ~/.coworker, not to the cwd.[/dim]")
+    else:
+        # The same instruction was printed either way, but it names a path under
+        # ~/.coworker — so following it after --project would register the
+        # global skill, not the one just written here.
+        console.print(
+            "[yellow]Note:[/yellow] nothing discovers a project-local "
+            ".coworker/skills/. The dashboard, the evolution score and "
+            "`coworker skill list` read ~/.coworker/skills/ and coworker.yaml, "
+            "so this skill has to be pointed at explicitly to be seen."
+        )
 
 
 @skill.command("pending")
@@ -954,7 +979,7 @@ def project_show(name):
                 yaml.dump(data, default_flow_style=False, allow_unicode=True)
             )
             return
-    console.print(f"[red]Project '{name}' not found.[/red]")
+    raise click.ClickException(f"Project '{name}' not found.")
 
 
 @project.command("add")
@@ -967,7 +992,7 @@ def project_add(name, local_path, repo, team):
     catalog = load_project_catalog()
     for p in catalog.projects:
         if p.name == name:
-            console.print(f"[yellow]Project '{name}' already exists.[/yellow]")
+            raise click.ClickException(f"Project '{name}' already exists.")
             return
 
     entry = ProjectEntry(
@@ -1017,7 +1042,7 @@ def project_edit(
             save_project_catalog(catalog)
             console.print(f"[green]Updated project '{name}'.[/green]")
             return
-    console.print(f"[red]Project '{name}' not found.[/red]")
+    raise click.ClickException(f"Project '{name}' not found.")
 
 
 @project.command("remove")
@@ -1028,7 +1053,7 @@ def project_remove(name):
     before = len(catalog.projects)
     catalog.projects = [p for p in catalog.projects if p.name != name]
     if len(catalog.projects) == before:
-        console.print(f"[yellow]Project '{name}' not found.[/yellow]")
+        raise click.ClickException(f"Project '{name}' not found.")
         return
     save_project_catalog(catalog)
     console.print(f"[green]Removed project '{name}'.[/green]")
@@ -1103,7 +1128,10 @@ def feature_start(name, description, proj_dir, role, branches):
         for action in actions:
             console.print(f"  [green]✓[/green] {action}")
     except FileNotFoundError as e:
-        console.print(f"[red]{e}[/red]")
+        # The manager raises this when the named entity is not there. Printing
+        # and returning made the command exit 0, so `feature activate nope`
+        # read as success to anything scripting it.
+        raise click.ClickException(str(e))
 
 
 @feature.command("create")
@@ -1137,7 +1165,7 @@ def feature_edit(name, proj_dir, description, add_proj, add_link_spec, add_decis
     # take it. A resolved path was computed and discarded, which only misled.
     config = load_feature(name)
     if config is None:
-        console.print(f"[red]Feature '{name}' not found.[/red]")
+        raise click.ClickException(f"Feature '{name}' not found.")
         return
 
     if description is not None:
@@ -1235,7 +1263,7 @@ def feature_show(name, proj_dir):
     """Show full feature config."""
     config = load_feature(name)
     if config is None:
-        console.print(f"[red]Feature '{name}' not found.[/red]")
+        raise click.ClickException(f"Feature '{name}' not found.")
         return
     data = config.model_dump(exclude_none=True)
     console.print(yaml.dump(data, default_flow_style=False, allow_unicode=True))
@@ -1253,7 +1281,10 @@ def feature_activate(name, proj_dir):
         for action in actions:
             console.print(f"  [green]✓[/green] {action}")
     except FileNotFoundError as e:
-        console.print(f"[red]{e}[/red]")
+        # The manager raises this when the named entity is not there. Printing
+        # and returning made the command exit 0, so `feature activate nope`
+        # read as success to anything scripting it.
+        raise click.ClickException(str(e))
 
 
 @feature.command("deactivate")
@@ -1277,8 +1308,7 @@ def feature_remove(name, proj_dir, force):
     mgr = FeatureManager(project_dir=pd)
     config = mgr.show(name)
     if config is None:
-        console.print(f"[red]Feature '{name}' not found.[/red]")
-        return
+        raise click.ClickException(f"Feature '{name}' not found.")
     if not force:
         ok = click.confirm(f"Remove feature '{name}' permanently?", default=False)
         if not ok:
@@ -1288,7 +1318,116 @@ def feature_remove(name, proj_dir, force):
         mgr.remove(name)
         console.print(f"[green]Removed feature '{name}'.[/green]")
     except FileNotFoundError as e:
-        console.print(f"[red]{e}[/red]")
+        # The manager raises this when the named entity is not there. Printing
+        # and returning made the command exit 0, so `feature activate nope`
+        # read as success to anything scripting it.
+        raise click.ClickException(str(e))
+
+    # A feature is global; the CLAUDE.local.md block it wrote is per project.
+    # Removing it from the project you happen to be in left the block behind
+    # everywhere else, so an agent working in another project was still told it
+    # had an active feature that no longer exists anywhere. Sweep the catalog
+    # for that block — only that block, matched by name, so a project with a
+    # different feature active is untouched.
+    from .adapters.claude import _resolve_local_md
+    from .templates.local_claude_md import remove_feature_from_local_md
+
+    swept = []
+    for entry in load_project_catalog().projects:
+        other = Path(entry.local_path)
+        if not other.exists() or other.resolve() == pd.resolve():
+            continue
+        local_md = _resolve_local_md(other)
+        if not local_md.exists():
+            continue
+        content = local_md.read_text(encoding="utf-8")
+        updated = remove_feature_from_local_md(content, name)
+        if updated != content:
+            backup.snapshot([local_md], "feature-remove")
+            local_md.write_text(updated, encoding="utf-8")
+            swept.append(entry.name)
+
+    if swept:
+        console.print(
+            f"[dim]Also cleared the '{name}' block in: {', '.join(swept)}[/dim]"
+        )
+
+    # The docs are deliberately left alone — they hold authored PRDs and specs,
+    # and deleting them on a `remove` would be real data loss. What was wrong is
+    # that nothing said so: afterwards neither `feature list` nor `feature show`
+    # mentions the name, so the tree became invisible and unreachable while
+    # still sitting on disk.
+    doc_dirs = [pd / "docs" / "features" / name]
+    doc_dirs += [p / "docs" / "features" / name for p in
+                 (Path(e.local_path) for e in load_project_catalog().projects)
+                 if p.exists() and p.resolve() != pd.resolve()]
+    kept = [d for d in doc_dirs if d.is_dir()]
+    if kept:
+        console.print(
+            f"[yellow]Kept[/yellow] {len(kept)} docs folder(s) — this only removed "
+            f"the feature definition:"
+        )
+        for d in kept:
+            console.print(f"  [dim]{d}[/dim]")
+        console.print("  [dim]No command references them now; delete any you do not want.[/dim]")
+
+
+@main.command()
+@click.argument("backup")
+@click.option("--yes", "-y", is_flag=True, help="Skip the confirmation prompt")
+def restore(backup, yes):
+    """Restore files from a backup directory.
+
+    \b
+    BACKUP is a directory under ~/.coworker/backups, or just its label —
+    `coworker restore upgrade` takes the newest one labelled upgrade.
+
+    install, upgrade, sync and the feature commands all snapshot the files they
+    are about to change and print where the copy went. Nothing could act on
+    that: backup.restore existed and no command called it, so the hint pointed
+    at an internal function.
+    """
+    from . import backup as backup_mod
+
+    try:
+        target = Path(backup).expanduser()
+        if not target.is_absolute() and not target.exists():
+            # Accept either the directory name the hint prints
+            # (20260925-113925-upgrade) or just its label (upgrade).
+            named = backup_mod.BACKUP_ROOT / backup
+            if named.is_dir():
+                target = named
+            else:
+                matches = sorted(backup_mod.BACKUP_ROOT.glob(f"*-{backup}"))
+                if not matches:
+                    raise click.ClickException(
+                        f"No backup matching {backup!r} under {backup_mod.BACKUP_ROOT}"
+                    )
+                target = matches[-1]
+        if not target.is_dir():
+            raise click.ClickException(f"No backup directory at {target}")
+
+        files = [f for f in target.rglob("*") if f.is_file()]
+        if not files:
+            raise click.ClickException(f"Backup at {target} holds no files")
+
+        console.print(f"[cyan]{target}[/cyan] holds {len(files)} file(s):")
+        for f in files[:10]:
+            console.print(f"  [dim]/{f.relative_to(target)}[/dim]")
+        if len(files) > 10:
+            console.print(f"  [dim]… and {len(files) - 10} more[/dim]")
+
+        if not yes and not click.confirm(
+            "Overwrite those paths with the backed-up copies?", default=False
+        ):
+            console.print("[dim]Cancelled.[/dim]")
+            return
+
+        restored = backup_mod.restore(target)
+    except FileNotFoundError as exc:
+        raise click.ClickException(str(exc))
+
+    console.print(f"[green]Restored {len(restored)} file(s).[/green]")
 
 
 # ── Deprecated alias ────────────────────────────────────────────────────────

@@ -71,10 +71,11 @@ def test_opencode_skills_deployed(installed_home):
 
 
 def test_super_lab_skills_deploy_to_three_harnesses(installed_home):
-    """the-super-lab skills reach Claude Code, OpenCode, and Cursor.
+    """the-super-lab skills reach Claude Code, Cursor, and OpenCode.
 
-    Claude and OpenCode receive whole directories so sibling files travel;
-    Cursor receives a flattened verbatim copy.
+    All three receive whole directories or a link to one, so sibling files
+    travel. Cursor reads Agent Skills from ~/.cursor/skills/, not the flat
+    ~/.cursor/rules/<name>.md files an earlier release wrote.
     """
     skill_md = installed_home / "project/the-super-lab/skills/alpha-skill/SKILL.md"
 
@@ -93,12 +94,13 @@ def test_super_lab_skills_deploy_to_three_harnesses(installed_home):
     assert (opencode_skill / "REFERENCE.md").is_file(), \
         "sibling file not reachable through the OpenCode symlink"
 
-    # Cursor — flattened verbatim copy
-    cursor_rule = installed_home / ".cursor/rules/alpha-skill.md"
-    assert cursor_rule.is_file(), "Cursor rule missing"
-    assert cursor_rule.read_text(encoding="utf-8") == skill_md.read_text(
-        encoding="utf-8"
-    ), "Cursor rule is not a verbatim copy"
+    # Cursor — directory copy, sibling files travel
+    cursor_skill = installed_home / ".cursor/skills/alpha-skill"
+    assert (cursor_skill / "SKILL.md").is_file(), "Cursor SKILL.md missing"
+    assert (cursor_skill / "REFERENCE.md").is_file(), \
+        "sibling file did not travel to Cursor"
+    assert (cursor_skill / "SKILL.md").read_text(encoding="utf-8") == \
+        skill_md.read_text(encoding="utf-8"), "Cursor copy is not verbatim"
 
 
 def test_install_creates_hook_scripts(installed_home):

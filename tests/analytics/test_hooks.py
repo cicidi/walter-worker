@@ -175,3 +175,75 @@ class TestPayloadShapeMatchesClaudeCode:
         record = json.loads(lines[0])
         assert record["tool"] == "Bash"
         assert "3 passed" in record["result"]
+
+
+class TestPayloadFieldsAreEscaped:
+    """common.sh defined escape_json and nothing called it.
+
+    The hooks interpolated tool, call_id, session_id and created straight into
+    a hand-built JSON string. A quote or backslash in any of them broke the
+    line, and both importers skip a line they cannot parse — so the record
+    disappeared without a word.
+    """
+
+    def test_a_quote_in_the_tool_name_still_parses(self, tmp_path):
+        home = tmp_path / "home"
+        home.mkdir()
+        cwd = tmp_path / "proj"
+        cwd.mkdir()
+
+        sessions = _run_hook(
+            "on-pre-tool.sh",
+            {"session_id": "esc-1", "tool_name": 'We"ird',
+             "tool_use_id": 'call_"x"', "tool_input": {}},
+            home, cwd,
+        )
+
+        lines = (sessions / "esc-1" / "tools.jsonl").read_text().splitlines()
+        assert lines, "the hook wrote nothing"
+        record = json.loads(lines[0])  # raises if the escaping is wrong
+        assert record["tool"] == 'We"ird'
+        assert record["call_id"] == 'call_"x"'
+
+    def test_a_quote_in_the_session_id_still_parses(self, tmp_path):
+        home = tmp_path / "home"
+        home.mkdir()
+        cwd = tmp_path / "proj"
+        cwd.mkdir()
+
+        sessions = _run_hook(
+            "on-stop.sh", {"session_id": 'ses"sion'}, home, cwd,
+        )
+
+        index = home / ".coworker" / "analytics" / "index.jsonl"
+        assert index.exists()
+        record = json.loads(index.read_text().splitlines()[0])
+        assert record["session_id"] == 'ses"sion'
+
+
+class TestHooksParseThePayloadOnce:
+    """Each hook started one interpreter per field it wanted.
+
+    on-post-tool.sh ran four — tool, call_id, result, duration — and
+    on-pre-tool.sh three, so a single tool call started seven python processes
+    (both hooks fire) to read one JSON object. Measured at about 12ms each,
+    that is most of what the hook costs, and these run on every tool call.
+
+    Asserted as a count because that is the property: one parse per hook. A
+    behavioural timing test would be flaky on a loaded machine.
+    """
+
+    def test_each_hook_starts_at_most_one_interpreter(self):
+        import re
+
+        counts = {}
+        for hook in sorted(HOOKS.glob("on-*.sh")):
+            counts[hook.name] = len(
+                re.findall(r"python3 -c", hook.read_text(encoding="utf-8"))
+            )
+
+        over = {name: n for name, n in counts.items() if n > 1}
+        assert not over, (
+            f"hooks starting more than one interpreter per invocation: {over}. "
+            f"Parse the payload once and read the fields from that."
+        )

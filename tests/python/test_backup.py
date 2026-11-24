@@ -114,3 +114,59 @@ def test_restore_bare_label_not_found(fake_backup_root):
     """restore with bare label that doesn't match any backup raises FileNotFoundError."""
     with pytest.raises(FileNotFoundError, match="No backup matching label"):
         backup.restore("nonexistent-label-xyz")
+
+
+class TestRetention:
+    """Nothing pruned the backup directory.
+
+    It reached 1623 directories and 137MB on the development machine — 894
+    `json-sync` and 714 `upgrade`, one per changed write, over months. The rest
+    were deliberate snapshots with one or two directories each, which is the
+    distinction the policy uses: a label that accumulates is trimmed, one that
+    does not is left alone.
+    """
+
+    def _root(self, tmp_path, monkeypatch):
+        from coworker import backup
+
+        root = tmp_path / "backups"
+        root.mkdir(parents=True)
+        monkeypatch.setattr(backup, "BACKUP_ROOT", root)
+        return backup, root
+
+    def test_only_the_accumulating_label_is_trimmed(self, tmp_path, monkeypatch):
+        backup, root = self._root(tmp_path, monkeypatch)
+        for i in range(40):
+            (root / f"202601{i % 28 + 1:02d}-{i % 24:02d}0000-json-sync").mkdir(exist_ok=True)
+        for i in range(3):
+            (root / f"2026010{i + 1}-120000-upgrade").mkdir()
+
+        backup.prune()
+
+        left = sorted(p.name for p in root.iterdir())
+        assert sum("json-sync" in n for n in left) == backup.KEEP_PER_LABEL
+        assert sum("upgrade" in n for n in left) == 3, "under the cap, left alone"
+
+    def test_deliberate_snapshots_and_pristine_survive(self, tmp_path, monkeypatch):
+        backup, root = self._root(tmp_path, monkeypatch)
+        for i in range(40):
+            (root / f"202601{i % 28 + 1:02d}-{i % 24:02d}0000-json-sync").mkdir(exist_ok=True)
+        (root / "pristine").mkdir()
+        (root / "pre-scanner-fix-20260925-030417").mkdir()
+
+        backup.prune()
+
+        names = {p.name for p in root.iterdir()}
+        assert "pristine" in names
+        assert "pre-scanner-fix-20260925-030417" in names
+
+    def test_the_directory_just_written_is_kept(self, tmp_path, monkeypatch):
+        backup, root = self._root(tmp_path, monkeypatch)
+        target = tmp_path / "settings.json"
+        target.write_text("{}")
+
+        newest = None
+        for _ in range(backup.KEEP_PER_LABEL + 5):
+            newest = backup.snapshot([target], "json-sync")
+
+        assert newest.exists(), "the snapshot just taken must not be pruned"

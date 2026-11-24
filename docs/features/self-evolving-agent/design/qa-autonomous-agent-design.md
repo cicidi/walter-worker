@@ -11,7 +11,7 @@
 > Initiative: self-evolving-agent | Type: design | Status: **DEFERRED**
 >
 > Builds on: [self-evolving-agent PRD v3](../prd/self-evolving-agent-prd-zh.md)
-> Backend (Path 1b, chosen 2026-07-24): MEMORY.md (content) + **sqlite-vec + fastembed** (semantic search, 384-dim, in-process) + slimmed SQLite `knowledge_index` (exact queries only). Task tracking + session continuity via state files. Self-contained — does **not** depend on the unbuilt self-evolution-engine modules. See the "v2 Backend" section below and [dependency-and-sequencing.md](../dependency-and-sequencing.md).
+> Backend (Path 1b, chosen 2026-07-24): MEMORY.md (content) + **sqlite-vec + fastembed** (semantic search, 384-dim, in-process) + slimmed SQLite `knowledge_index` (exact queries only). Task tracking + session continuity via state files. Self-contained — does **not** depend on the unbuilt self-evolution-engine modules. See the "v2 Backend" section below and [dependency-and-sequencing-impl-plan.md](../impl-plan/dependency-and-sequencing-impl-plan.md).
 
 ## Overview
 
@@ -36,7 +36,7 @@ A skill pipeline within self-evolving-agent that autonomously:
 
 ## v2 Backend: sqlite-vec + fastembed (Path 1b)
 
-> **Decision (2026-07-24):** sqlite-vec (in-process SQLite extension) + fastembed (ONNX, `BAAI/bge-small-en-v1.5`, 384-dim) on the existing `analytics.db`. Zero new services, zero API keys, zero external binaries. Spike validated 6/6 semantic queries on real knowledge entries (2026-07-24). See [dependency-and-sequencing.md](../dependency-and-sequencing.md).
+> **Decision (2026-07-24):** sqlite-vec (in-process SQLite extension) + fastembed (ONNX, `BAAI/bge-small-en-v1.5`, 384-dim) on the existing `analytics.db`. Zero new services, zero API keys, zero external binaries. Spike validated 6/6 semantic queries on real knowledge entries (2026-07-24). See [dependency-and-sequencing-impl-plan.md](../impl-plan/dependency-and-sequencing-impl-plan.md).
 
 ### What sqlite-vec replaces (v1 → v2)
 

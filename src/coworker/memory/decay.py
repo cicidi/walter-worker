@@ -42,7 +42,8 @@ def compute_effective_weight(
     Args:
         base_weight: The edge's current base_weight.
         last_traversed_at: ISO timestamp of last traversal, or None.
-        now: Current time (injectable for testing). Defaults to utcnow().
+        now: Current time (injectable for testing). Defaults to
+             datetime.now(timezone.utc).
 
     Returns:
         Effective weight as a float in [0.0, 1.0].

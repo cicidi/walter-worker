@@ -13,7 +13,7 @@ setup() {
   SUPERLAB="$HOME/project/the-super-lab"
   _fake_skill "$SUPERLAB/skills/skill-create" skill-create
   _fake_skill "$SUPERLAB/skills/tdd" tdd
-  mkdir -p "$SUPERLAB/personal-skills"
+  _fake_skill "$SUPERLAB/personal-skills/personal-skill" personal-skill
 
   # Mock git — install.sh still pulls the-super-lab
   mkdir -p "$TEST_TMP/bin"
@@ -101,7 +101,39 @@ SKEOF
   # install.sh reads the-super-lab in place and deploys it; it does not clone.
   [ -f "$HOME/.claude/skills/skill-create/SKILL.md" ]
   [ -f "$HOME/.config/opencode/skills/the-super-lab/skill-create/SKILL.md" ]
-  [ -f "$HOME/.cursor/rules/skill-create.md" ]
+  [ -f "$HOME/.cursor/skills/skill-create/SKILL.md" ]
+}
+
+@test "deploys personal-skills to the three harnesses" {
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ -f "$HOME/.claude/skills/personal-skill/SKILL.md" ]
+  [ -f "$HOME/.config/opencode/skills/the-super-lab-personal/personal-skill/SKILL.md" ]
+  [ -f "$HOME/.cursor/skills/personal-skill/SKILL.md" ]
+}
+
+@test "a skill directory symlinked back to the source does not abort the install" {
+  # The SDD installer symlinks spec-write and spec-review from ~/.claude/skills
+  # back into the-super-lab so edits are live. cp reports "same file" there and
+  # exits 1, which under set -e aborted the whole install part-way through the
+  # skill loop — before the hooks and manifest steps ran.
+  mkdir -p "$HOME/.claude/skills"
+  ln -s "$SUPERLAB/skills/skill-create" "$HOME/.claude/skills/skill-create"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ -L "$HOME/.claude/skills/skill-create" ]
+  [ -f "$SUPERLAB/skills/skill-create/SKILL.md" ]
+
+  # The manifest must claim the link, not the files it resolves to: an
+  # uninstall that walked through would delete the source skill.
+  run python3 -c "
+import json, os
+m = json.load(open(os.path.expanduser('~/.coworker/install-manifest.json')))
+src = '$SUPERLAB/skills/skill-create/SKILL.md'
+print(src in m.get('files', []))
+"
+  [ "$output" = "False" ]
 }
 
 # =============================================================================
@@ -355,7 +387,7 @@ MDEOF
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
   [ "$status" -eq 0 ]
   [ -f "$HOME/.claude/skills/skill-create/SKILL.md" ]
-  [ -f "$HOME/.cursor/rules/skill-create.md" ]
+  [ -f "$HOME/.cursor/skills/skill-create/SKILL.md" ]
 
   # Drop it from the source, the way a rename or a merge would.
   rm -rf "$SUPERLAB/skills/skill-create"
@@ -363,7 +395,7 @@ MDEOF
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
   [ "$status" -eq 0 ]
   [ ! -e "$HOME/.claude/skills/skill-create/SKILL.md" ]
-  [ ! -e "$HOME/.cursor/rules/skill-create.md" ]
+  [ ! -e "$HOME/.cursor/skills/skill-create/SKILL.md" ]
 }
 
 @test "retires the emptied skill directory, not only the file inside it" {
@@ -401,6 +433,30 @@ json.dump(m, open(p, 'w'))
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
   [ "$status" -eq 0 ]
   [ ! -e "$HOME/.config/opencode/skills/walter-worker/initiative-edit" ]
+}
+
+@test "retires the legacy flat Cursor rule it no longer writes" {
+  # An earlier release wrote ~/.cursor/rules/<name>.md. Current Cursor reads
+  # skills from ~/.cursor/skills/, so step 11b changed destination. A rule the
+  # previous manifest claimed must not survive as a ghost of the old layout.
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  mkdir -p "$HOME/.cursor/rules"
+  echo "legacy" > "$HOME/.cursor/rules/skill-create.md"
+  run python3 -c "
+import json, os
+p = os.path.expanduser('~/.coworker/install-manifest.json')
+m = json.load(open(p))
+m['files'].append(os.path.expanduser('~/.cursor/rules/skill-create.md'))
+json.dump(m, open(p, 'w'))
+"
+  [ "$status" -eq 0 ]
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ ! -e "$HOME/.cursor/rules/skill-create.md" ]
+  [ -f "$HOME/.cursor/skills/skill-create/SKILL.md" ]
 }
 
 @test "leaves a skill this installer never wrote alone" {
@@ -531,4 +587,105 @@ print(n)
   run bash -c "ls '$HOME/.claude/commands' | wc -l"
   [ "$output" -eq "$before" ]
   [ -f "$HOME/.claude/commands/init.md" ]
+}
+
+@test "install --skills reuses a selection without prompting" {
+  # update.sh re-runs the installer, which re-asked the skill question with
+  # None as the default. Passing the previous selection back means the question
+  # is not asked at all — and cannot be answered by accident, which is what let
+  # an update uninstall every skill.
+  #
+  # Skipped rather than answered: routing it through SKILL_CHOICE=1 would mean
+  # "All" to the case below, which silently overrode the selection.
+  run bash "$REPO_ROOT/setup/install.sh" --global --skills skill-create < /dev/null
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"Reusing the previous selection"* ]]
+  [[ "$output" != *"Skill selection:"* ]]
+
+  [ -f "$HOME/.claude/commands/skill-create.md" ]
+  [ -f "$HOME/.claude/commands/init.md" ]
+  [ ! -f "$HOME/.claude/commands/tdd.md" ]
+}
+
+@test "a subset selection installs each skill's own file" {
+  # SELECTED_SKILLS was paired with SKILL_PATHS by index, but SKILL_PATHS is
+  # indexed by AVAILABLE order — so any selection that was not "all of them, in
+  # order" installed another skill's file under the right name. The manual
+  # Select path hit it by entering "3 1"; --skills hit it every time.
+  run bash "$REPO_ROOT/setup/install.sh" --global --skills "skill-create" < /dev/null
+  [ "$status" -eq 0 ]
+
+  run python3 -c "
+import os, re
+d = os.path.expanduser('~/.claude/commands')
+bad = []
+for f in sorted(os.listdir(d)):
+    if not f.endswith('.md'):
+        continue
+    m = re.search(r'^name:\s*(\S+)', open(os.path.join(d, f), errors='ignore').read(), re.M)
+    if m and m.group(1) != f[:-3]:
+        bad.append(f)
+print(','.join(bad))
+"
+  [ -z "$output" ]
+}
+
+# =============================================================================
+# Test: retire the pre-2026 instructions layout
+#
+# An earlier release symlinked each skill as <name>/SKILL.md under
+# ~/.opencode/instructions. Nothing reads a directory named `instructions`:
+# OpenCode takes skills from <config>/skill and <config>/skills, and commands
+# from {command,commands}/**/*.md. Eleven inert directories had accumulated.
+# =============================================================================
+@test "retires the pre-2026 instruction directory layout" {
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  mkdir -p "$HOME/.opencode/instructions/legacy-skill"
+  ln -s "$HOME/.claude/skills/init/SKILL.md" \
+        "$HOME/.opencode/instructions/legacy-skill/SKILL.md"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ ! -e "$HOME/.opencode/instructions/legacy-skill" ]
+}
+
+@test "leaves an instruction directory holding a real file alone" {
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  # SKILL.md is a regular file here, not the symlink the old release wrote.
+  mkdir -p "$HOME/.opencode/instructions/user-thing"
+  echo "not ours" > "$HOME/.opencode/instructions/user-thing/SKILL.md"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ -f "$HOME/.opencode/instructions/user-thing/SKILL.md" ]
+}
+
+@test "leaves a one-symlink directory whose link is not named SKILL.md alone" {
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  mkdir -p "$HOME/.opencode/instructions/odd"
+  ln -s /etc/hostname "$HOME/.opencode/instructions/odd/something-else.md"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ -e "$HOME/.opencode/instructions/odd" ]
+}
+
+@test "leaves a SKILL.md symlink directory that holds a second entry alone" {
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  mkdir -p "$HOME/.opencode/instructions/two-things"
+  ln -s "$HOME/.claude/skills/init/SKILL.md" \
+        "$HOME/.opencode/instructions/two-things/SKILL.md"
+  ln -s /etc/hostname "$HOME/.opencode/instructions/two-things/extra.md"
+
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  [ -e "$HOME/.opencode/instructions/two-things" ]
 }

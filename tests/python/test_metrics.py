@@ -89,3 +89,35 @@ class TestUnrecognisedKeysAreNotDroppedSilently:
         # asserting on the bare name would match that list too.
         assert "no storage key: bogus" in caplog.text
         assert len(_load_metrics()["skill_reuse_rate"]) == 1
+
+
+class TestAScoreWithNoDataIsZero:
+    """The score paid out for the absence of problems.
+
+    Two terms reward "few corrections" and "no circuit breaker trips", and both
+    paid unconditionally when nothing had been recorded. So a machine that had
+    never run a session scored 20/100, while a genuinely struggling agent — low
+    reuse, low first-pass, high corrections — could score 18. A metric whose
+    floor comes from arithmetic rather than measurement cannot measure.
+    """
+
+    def test_no_data_scores_zero(self):
+        """No sessions and no skills in analytics.db is a score of 0.
+
+        This used to patch METRICS_PATH, a JSON store nothing wrote. The score
+        comes from analytics.db now, which the conftest points at a temp file.
+        """
+        assert compute_evolution_score() == 0
+
+    def test_recorded_metrics_no_longer_drive_the_score(self, tmp_path, monkeypatch):
+        """It delegates to the dashboard's computation over analytics.db."""
+        from coworker.dashboard.queries_evolution import evolution_score
+
+        monkeypatch.setattr(
+            "coworker.memory.metrics.METRICS_PATH", str(tmp_path / "m.json")
+        )
+        record_session_metrics("s1", {"skill_reuse_rate": 0.9})
+
+        from coworker.dashboard.queries_evolution import evolution_inputs
+        skills, used, total = evolution_inputs()
+        assert compute_evolution_score() == evolution_score(skills, used, total)

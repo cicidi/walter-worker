@@ -44,7 +44,7 @@ def extract_and_store(
     Returns:
         ExtractionResult with lessons, skill_candidates, and stats.
     """
-    from coworker.memory.capture import SESSION_END_PROMPT
+    from coworker.memory.capture import SESSION_END_PROMPT, _get_skill_threshold
 
     if len(transcript) > 50000:
         transcript = transcript[-50000:]
@@ -142,25 +142,6 @@ def extract_and_store(
     )
 
 
-def assess_skill(
-    mem0_client,
-    session_id: str,
-    tool_count: int,
-    transcript: str,
-) -> list[dict]:
-    """Check if a session's work pattern is skill-worthy.
-
-    Called at session-end. Returns list of skill candidate dicts.
-    """
-    if tool_count < _get_skill_threshold():
-        return []
-
-    # Collect task descriptions from transcript (simple heuristic)
-    candidates: list[dict] = []
-    # The full extraction is handled by extract_and_store above
-    return candidates
-
-
 def reconcile(
     mem0_client,
     session_id: str,
@@ -220,8 +201,3 @@ def reconcile(
 # ---------------------------------------------------------------------------
 
 
-def _get_skill_threshold() -> int:
-    """Return the minimum tool calls for a session to trigger skill creation."""
-    # Could be read from coworker config, env, etc.
-    import os
-    return int(os.environ.get("COWORKER_SKILL_THRESHOLD", "10"))

@@ -1,7 +1,7 @@
 # Wrong History — Index
 
 > **Purpose:** Prevent repeating past mistakes.
-> **Check before coding:** `grep -rl "<keyword>" docs/self-evolving-agent/wrong-history/entries/`
+> **Check before coding:** `grep -rl "<keyword>" docs/features/self-evolving-agent/wrong-history/entries/`
 
 ## 🔴 Critical
 | Date | Entry | Category | Prevention Rule |
@@ -14,10 +14,11 @@
 ## 🟡 High
 | Date | Entry | Category | Prevention Rule |
 |------|-------|----------|-----------------|
+| 2026-09-25 | [install.sh re-run on a live machine pruned 13 deployed skill mirrors](entries/2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.md) | code-quality | A prune must never retire paths the previous run claimed and this one did not se... |
 | 2026-07-28 | [find-issues command always fails on code phase due to 120s test timeout](entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.md) | code-quality | When running subprocess for full test suite, timeout must be >= 600s (tests take... |
-| 2026-07-27 | [Adversarial review PRO agent surrendered 12/12 — missed a HIGH bug](entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.md) | process | In con/pro/judge review, PRO MUST search counter-evidence & attempt to REFUTE each... |
+| 2026-07-27 | [Adversarial review's PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug](entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.md) | process | In any adversarial review (devil-advocate, con/pro/judge), the PRO/defender agen... |
 
 ## Stats
-- **Total entries:** 6
+- **Total entries:** 7
 - **🔴 Critical:** 4
-- **🟡 High:** 2
+- **🟡 High:** 3

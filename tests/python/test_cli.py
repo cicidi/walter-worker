@@ -141,7 +141,7 @@ class TestProjectShow:
     def test_project_show_missing(self, temp_coworker_dir):
         """Show a non-existent project."""
         result = runner.invoke(main, ["project", "show", "no-such-project"])
-        assert result.exit_code == 0
+        assert result.exit_code != 0  # a missing entity is a failure
         assert "not found" in result.output.lower()
 
 
@@ -161,7 +161,7 @@ class TestProjectAdd:
         """Adding a duplicate project shows a warning."""
         runner.invoke(main, ["project", "add", "dup-proj", "--path", "/tmp/y"])
         result = runner.invoke(main, ["project", "add", "dup-proj"])
-        assert result.exit_code == 0
+        assert result.exit_code != 0  # a missing entity is a failure
         assert "already exists" in result.output.lower()
 
     def test_project_add_with_repo_and_team(self, temp_coworker_dir):
@@ -246,7 +246,7 @@ class TestProjectEdit:
     def test_project_edit_missing(self, temp_coworker_dir):
         """Edit a non-existent project shows error."""
         result = runner.invoke(main, ["project", "edit", "no-such"])
-        assert result.exit_code == 0
+        assert result.exit_code != 0  # a missing entity is a failure
         assert "not found" in result.output.lower()
 
 
@@ -270,7 +270,7 @@ class TestProjectRemove:
     def test_project_remove_missing(self, temp_coworker_dir):
         """Remove a non-existent project shows warning."""
         result = runner.invoke(main, ["project", "remove", "no-such"])
-        assert result.exit_code == 0
+        assert result.exit_code != 0  # a missing entity is a failure
         assert "not found" in result.output.lower()
 
 
@@ -419,7 +419,7 @@ class TestFeatureShow:
     def test_feature_show_missing(self, temp_features_dir, monkeypatch):
         """Show a non-existent feature."""
         result = runner.invoke(main, ["feature", "show", "no-such"])
-        assert result.exit_code == 0
+        assert result.exit_code != 0  # a missing entity is a failure
         assert "not found" in result.output.lower()
 
 
@@ -473,7 +473,7 @@ class TestFeatureEdit:
     def test_feature_edit_missing(self, temp_features_dir, monkeypatch):
         """Edit a non-existent feature."""
         result = runner.invoke(main, ["feature", "edit", "no-such"])
-        assert result.exit_code == 0
+        assert result.exit_code != 0  # a missing entity is a failure
         assert "not found" in result.output.lower()
 
 
@@ -500,7 +500,7 @@ class TestFeatureRemove:
         result = runner.invoke(
             main, ["feature", "remove", "no-such", "--force"]
         )
-        assert result.exit_code == 0
+        assert result.exit_code != 0  # a missing entity is a failure
         assert "not found" in result.output.lower()
 
 
@@ -558,7 +558,7 @@ class TestFeatureActivate:
         """Activate a non-existent feature."""
         monkeypatch.chdir(temp_project_dir)
         result = runner.invoke(main, ["feature", "activate", "no-such"])
-        assert result.exit_code == 0
+        assert result.exit_code != 0  # a missing entity is a failure
         assert "not found" in result.output.lower()
 
 
@@ -1389,7 +1389,7 @@ class TestFeatureStartEdgeCases:
             main,
             ["feature", "start", "activate-fail", "--description", "will fail"],
         )
-        assert result.exit_code == 0
+        assert result.exit_code != 0  # a missing entity is a failure
         assert "not found" in result.output.lower()
 
     def test_start_resolves_project_name_from_catalog(
@@ -1540,7 +1540,7 @@ class TestFeatureRemoveEdgeCases:
         result = runner.invoke(
             main, ["feature", "remove", "vanish-me", "--force"],
         )
-        assert result.exit_code == 0
+        assert result.exit_code != 0  # a missing entity is a failure
         assert "not found" in result.output.lower()
 
 
@@ -2179,3 +2179,328 @@ class TestFindIssuesReportsFailure:
         )
 
         assert result.exit_code == 0, result.output
+
+
+class TestFeatureRemoveSweepsOtherProjects:
+    """A feature is global; its CLAUDE.local.md block is per project.
+
+    Removing the feature only cleaned the project the command ran in, so an
+    agent working in another project was still told it had an active feature
+    that no longer existed anywhere — and `status` does not warn about it.
+    """
+
+    def test_the_block_is_cleared_elsewhere_too(
+        self, temp_features_dir, tmp_path, monkeypatch
+    ):
+        from coworker.models import FeatureConfig, ProjectCatalog, ProjectEntry
+        from coworker.config import save_feature, save_project_catalog
+        from coworker.adapters.claude import inject_feature
+
+        here, other = tmp_path / "here", tmp_path / "other"
+        here.mkdir(); other.mkdir()
+        (other / "CLAUDE.local.md").write_text("# Other project\n")
+
+        save_feature(FeatureConfig(name="sweepme", description="x"))
+        save_project_catalog(ProjectCatalog(
+            projects=[ProjectEntry(name="other", local_path=str(other))]
+        ))
+        inject_feature(FeatureConfig(name="sweepme", description="x"),
+                       project_dir=other)
+
+        assert "FEATURE:sweepme" in (other / "CLAUDE.local.md").read_text()
+
+        monkeypatch.chdir(here)
+        result = runner.invoke(main, ["feature", "remove", "sweepme", "--force"])
+
+        assert result.exit_code == 0, result.output
+        assert "FEATURE:sweepme" not in (other / "CLAUDE.local.md").read_text()
+        assert "Other project" in (other / "CLAUDE.local.md").read_text()
+
+
+class TestFeatureRemoveReportsKeptDocs:
+    """`feature remove` left the docs tree behind without saying so.
+
+    Keeping the docs is right — they hold authored PRDs and specs, and deleting
+    them would be real data loss. The defect was the silence: afterwards
+    neither `feature list` nor `feature show` mentions the name, so the tree was
+    invisible and unreachable while still on disk.
+    """
+
+    def test_the_kept_docs_are_named(self, temp_features_dir, tmp_path, monkeypatch):
+        from coworker.config import save_feature
+        from coworker.models import FeatureConfig
+
+        proj = tmp_path / "proj"
+        (proj / "docs" / "features" / "doomed" / "prd").mkdir(parents=True)
+        prd = proj / "docs" / "features" / "doomed" / "prd" / "prd.md"
+        prd.write_text("# authored PRD")
+        save_feature(FeatureConfig(name="doomed", description="x"))
+        monkeypatch.chdir(proj)
+
+        result = runner.invoke(main, ["feature", "remove", "doomed", "--force"])
+
+        assert result.exit_code == 0, result.output
+        assert "docs" in result.output and "doomed" in result.output
+        # And it is still there — this command must not delete authored docs.
+        assert prd.read_text() == "# authored PRD"
+
+
+class TestMem0UnavailableIsConsistent:
+    """The family reported the same condition four ways and exited three.
+
+        query:    mem0 not available — vector search skipped   (0, partial)
+        search:   mem0 unavailable: <reason>                   (0, nothing done)
+        curate:   Curator skipped (mem0 unavailable): <reason>  (0, nothing done)
+        capture:  (silence)                                     (0, by design)
+
+    A search or a curator run that did not happen must not report success. The
+    hook path is the exception: --if-due runs once per session and a missing key
+    is not worth repeating at the user every time.
+    """
+
+    def _no_mem0(self, monkeypatch):
+        def boom(**kw):
+            raise RuntimeError("DEEPSEEK_API_KEY environment variable is required")
+
+        monkeypatch.setattr("coworker.memory.mem0_client.Mem0Client.from_config", boom)
+
+    def test_search_fails_when_mem0_is_unavailable(self, monkeypatch, temp_coworker_dir):
+        self._no_mem0(monkeypatch)
+        result = runner.invoke(main, ["memory", "search", "anything"])
+
+        assert result.exit_code != 0, "the search did not happen"
+        assert "mem0 unavailable" in result.output
+
+    def test_curate_fails_when_run_by_hand(self, monkeypatch, temp_coworker_dir):
+        self._no_mem0(monkeypatch)
+        result = runner.invoke(main, ["memory", "curate"])
+
+        assert result.exit_code != 0
+        assert "mem0 unavailable" in result.output
+
+    def test_curate_stays_quiet_on_the_hook_path(self, monkeypatch, temp_coworker_dir):
+        self._no_mem0(monkeypatch)
+        result = runner.invoke(main, ["memory", "curate", "--if-due"])
+
+        assert result.exit_code == 0, "the Stop hook must not fail every session"
+
+
+class TestQueryVectorDoesNotNeedAGraph:
+    """`--mode vector` reads mem0, not the graph.
+
+    The empty-graph guard ran before the mode check, so a vector query was
+    refused for a reason that did not apply to it — precisely when a user with
+    no graph yet would want one.
+    """
+
+    def test_vector_mode_is_not_blocked_by_an_empty_graph(
+        self, monkeypatch, temp_coworker_dir
+    ):
+        monkeypatch.setattr(
+            "coworker.memory.storage.load_graph", lambda *a, **k: _EmptyGraph()
+        )
+        result = runner.invoke(main, ["memory", "query", "--mode", "vector", "x"])
+
+        assert result.exit_code == 0, result.output
+        assert "Graph is empty" not in result.output
+
+
+class _EmptyGraph:
+    nodes: list = []
+    links: list = []
+
+
+class TestFindIssuesHonoursProject:
+    """--project was accepted, echoed, and had no effect.
+
+    The prd and spec paths were hardcoded to the self-evolving-agent feature,
+    so inspecting any project read that one — and the flag's own default,
+    walter-worker, did not match the path it read either.
+    """
+
+    def _findings(self, tmp_path, project):
+        out = tmp_path / "f.md"
+        result = runner.invoke(
+            main,
+            ["find-issues", "run", "--phases", "prd,spec",
+             "--project", project, "--output", str(out)],
+        )
+        assert result.exit_code == 0, result.output
+        return out.read_text()
+
+    def test_a_different_project_reads_its_own_docs(self, tmp_path):
+        here = self._findings(tmp_path, "walter-worker")
+        other = self._findings(tmp_path, "self-evolving-agent")
+
+        assert "docs/features/walter-worker" in here
+        assert "docs/features/self-evolving-agent" in other
+        assert here != other
+
+    def test_an_unknown_project_says_so_rather_than_reading_another(
+        self, tmp_path
+    ):
+        text = self._findings(tmp_path, "no-such-project-xyz")
+
+        assert "no PRD files under" in text
+        assert "self-evolving-agent" not in text
+
+
+class TestRestoreCommand:
+    """backup.restore existed and no command called it.
+
+    Every command that mutates a user file snapshots it first and prints where
+    the copy went — as `backup.restore('/path')`, an internal function users
+    were expected to call from a Python prompt.
+    """
+
+    def _backup(self, tmp_path, monkeypatch, content="ORIGINAL"):
+        from coworker import backup
+
+        home = tmp_path / "home"
+        home.mkdir(exist_ok=True)
+        monkeypatch.setenv("HOME", str(home))
+        monkeypatch.setattr(backup, "BACKUP_ROOT", home / ".coworker" / "backups")
+        target = home / "config.json"
+        target.write_text(content)
+        dest = backup.snapshot([target], "demo")
+        target.write_text("CHANGED")
+        return target, dest
+
+    def test_it_restores_by_directory_name(self, tmp_path, monkeypatch):
+        target, dest = self._backup(tmp_path, monkeypatch)
+
+        result = runner.invoke(main, ["restore", dest.name, "--yes"])
+
+        assert result.exit_code == 0, result.output
+        assert target.read_text() == "ORIGINAL"
+
+    def test_it_restores_by_label(self, tmp_path, monkeypatch):
+        target, _ = self._backup(tmp_path, monkeypatch)
+
+        result = runner.invoke(main, ["restore", "demo", "--yes"])
+
+        assert result.exit_code == 0, result.output
+        assert target.read_text() == "ORIGINAL"
+
+    def test_an_unknown_backup_is_an_error(self, tmp_path, monkeypatch):
+        self._backup(tmp_path, monkeypatch)
+
+        result = runner.invoke(main, ["restore", "no-such-label"])
+
+        assert result.exit_code != 0
+        assert "no-such-label" in result.output.lower() or "No backup" in result.output
+
+    def test_declining_leaves_the_file_alone(self, tmp_path, monkeypatch):
+        target, dest = self._backup(tmp_path, monkeypatch)
+
+        result = runner.invoke(main, ["restore", dest.name], input="n")
+
+        assert result.exit_code == 0
+        assert target.read_text() == "CHANGED", "a declined restore must not write"
+
+
+class TestDashboardBindsToLoopback:
+    """The dashboard bound 0.0.0.0 and announced itself as localhost.
+
+    So it listened on every interface while saying it did not: reachable from
+    the local network, with no auth, serving session prompts, file paths and
+    tool arguments — and offering endpoints that rewrite ~/CLAUDE.local.md and
+    change skill state.
+    """
+
+    def test_the_default_host_is_loopback(self, monkeypatch):
+        seen = {}
+        monkeypatch.setattr(
+            "uvicorn.run", lambda app, **kw: seen.update(kw)
+        )
+
+        result = runner.invoke(main, ["analytics", "dashboard", "--port", "8099"])
+
+        assert result.exit_code == 0, result.output
+        assert seen.get("host") == "127.0.0.1", "the default must not be exposed"
+
+    def test_an_explicit_host_is_honoured_and_warned_about(self, monkeypatch):
+        seen = {}
+        monkeypatch.setattr(
+            "uvicorn.run", lambda app, **kw: seen.update(kw)
+        )
+
+        result = runner.invoke(
+            main, ["analytics", "dashboard", "--host", "0.0.0.0", "--port", "8099"]
+        )
+
+        assert seen.get("host") == "0.0.0.0"
+        assert "anyone who can reach this port" in result.output
+
+
+class TestSkillNewTellsTheTruthAboutWhereItWrote:
+    """`skill new` printed the same registration line either way.
+
+    It names `path: skills/<name>`, which is relative to ~/.coworker — so after
+    --project, following it would register the global skill rather than the one
+    just created. And nothing discovers a project-local .coworker/skills/ at
+    all: the dashboard, the evolution score and `skill list` read
+    ~/.coworker/skills/ and coworker.yaml.
+    """
+
+    def test_project_says_nothing_discovers_that_directory(
+        self, tmp_path, monkeypatch
+    ):
+        monkeypatch.chdir(tmp_path)
+        result = runner.invoke(main, ["skill", "new", "demo", "--project"])
+
+        assert result.exit_code == 0, result.output
+        assert (tmp_path / ".coworker" / "skills" / "demo" / "SKILL.md").exists()
+        assert "nothing discovers" in result.output, (
+            "a scaffold nothing can see must say so"
+        )
+
+    def test_global_says_which_base_the_path_is_relative_to(
+        self, temp_coworker_dir, monkeypatch
+    ):
+        monkeypatch.chdir(temp_coworker_dir)
+        result = runner.invoke(main, ["skill", "new", "demo"])
+
+        assert result.exit_code == 0, result.output
+        assert "relative to ~/.coworker" in result.output
+
+
+class TestStatusHonoursTheConfiguredDatabase:
+    """The feature scan built the analytics path by hand.
+
+    Path.home() / ".coworker" / "analytics" / "analytics.db", twice, while
+    analytics/db.py resolves COWORKER_ANALYTICS_DB. So `coworker status`
+    counted sessions from the real database even when the variable pointed
+    elsewhere — and reported zero when that database did not exist, rather
+    than the configured one's count.
+    """
+
+    def test_the_scan_reads_the_resolved_path(self, tmp_path, monkeypatch):
+        import sqlite3
+
+        from coworker import cli as cli_mod
+        from coworker.analytics.db import SCHEMA
+
+        db = tmp_path / "configured.db"
+        conn = sqlite3.connect(db)
+        conn.executescript(SCHEMA)
+        conn.execute(
+            "INSERT INTO sessions (id, ide, project, feature, created_at) "
+            "VALUES ('s1','claude',?,'feat','2026-01-01')",
+            (tmp_path.name,)
+        )
+        conn.commit()
+        conn.close()
+
+        monkeypatch.setattr(
+            "coworker.analytics.db._default_db_path", lambda: db
+        )
+        from coworker.models import FeatureConfig
+
+        result = cli_mod._scan_feature_progress(
+            "feat", tmp_path, FeatureConfig(name="feat")
+        )
+
+        assert result["sessions"] == 1, (
+            "the scan must count the configured database, not a hardcoded one"
+        )

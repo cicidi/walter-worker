@@ -153,3 +153,128 @@ def test_no_bash_substitution_inside_python3_c_blocks():
         "bash-active characters inside python3 -c blocks:\n  "
         + "\n  ".join(offenders)
     )
+
+
+def test_the_two_scripts_agree_on_which_hooks_are_ours():
+    """install.sh and uninstall.sh each carry the list of hooks we own.
+
+    install.sh claims them for the manifest; uninstall.sh removes them, and has
+    to know them independently because the manifest goes stale — `coworker
+    sync` adds state-update without rewriting it. Two copies of one fact is how
+    the manifest and the removal drifted apart in the first place, so this
+    fails when they diverge rather than waiting for someone to notice a hook
+    that survived uninstall.
+    """
+    import re
+
+    def ours(text: str, pattern: str) -> set[str]:
+        m = re.search(pattern, text)
+        assert m, f"no hook list matching {pattern!r}"
+        return set(re.findall(r"'([^']+)'", m.group(1)))
+
+    install = (ROOT / "setup" / "install.sh").read_text(encoding="utf-8")
+    uninstall = (ROOT / "setup" / "uninstall.sh").read_text(encoding="utf-8")
+
+    install_cmds = ours(install, r"OUR_HOOK_CMDS = \(([^)]*)\)")
+    uninstall_cmds = ours(uninstall, r"OUR_CMDS = \{([^}]*)\}")
+
+    assert install_cmds == uninstall_cmds, (
+        "the two scripts disagree on which hook commands are ours: "
+        f"install-only {sorted(install_cmds - uninstall_cmds)}, "
+        f"uninstall-only {sorted(uninstall_cmds - install_cmds)}"
+    )
+
+    # And the path they consider ours.
+    for name, text in (("install.sh", install), ("uninstall.sh", uninstall)):
+        assert "/.coworker/analytics/hooks/" in text, (
+            f"{name} no longer recognises our hook directory"
+        )
+
+
+def test_the_feature_name_rule_has_one_definition():
+    """config.py and features/manager.py each compiled the kebab-case pattern.
+
+    Two copies of the rule that decides what a feature may be called, with two
+    different error messages. They agreed when this was written, which is
+    exactly the state that makes the next divergence invisible: a name one
+    accepts and the other rejects is a feature that can be created but not
+    loaded.
+
+    Asserted through behaviour — both paths reject the same set — rather than
+    by grepping for a second `re.compile`, so re-adding a copy that happens to
+    agree still passes only until it stops agreeing.
+    """
+    import pytest
+
+    from coworker.config import _validate_feature_name
+    from coworker.features.manager import FeatureManager
+
+    bad = ["My Feature", "my_feature", "my feature", "-lead", "trail-", "UPPER", ""]
+    for name in bad:
+        with pytest.raises(ValueError):
+            _validate_feature_name(name)
+        with pytest.raises(ValueError):
+            FeatureManager().create(name)
+
+    # And they accept the same good name.
+    assert _validate_feature_name("auth-migration") == "auth-migration"
+
+
+def test_the_self_evolving_docs_path_is_defined_once():
+    """Five modules named docs/features/self-evolving-agent by hand.
+
+    When the initiatives→features move landed, all five broke at once and
+    silently — the wrong-history directory, the auto-worker's state dir and
+    find-issues' default output all pointed at a directory that no longer
+    existed. constants.SELF_EVOLVING_DOCS is the one definition now.
+
+    Asserted by derivation rather than by grepping for the literal, so a module
+    that reaches for a *different* path fails here too.
+    """
+    from coworker.constants import SELF_EVOLVING_DOCS
+
+    from coworker.memory import wrong_history
+
+    assert wrong_history.WH_DIR.startswith(SELF_EVOLVING_DOCS), (
+        f"wrong-history reads {wrong_history.WH_DIR!r}, which is not under "
+        f"{SELF_EVOLVING_DOCS!r}"
+    )
+
+    # The generated instruction shown to the agent names the same place.
+    assert SELF_EVOLVING_DOCS in wrong_history.WH_DIR
+
+    # And the path it names exists in this repo, which is what broke before.
+    assert (ROOT / wrong_history.WH_DIR).is_dir()
+
+
+def test_every_file_a_hook_writes_is_one_an_importer_reads():
+    """The hooks write these in shell; the importers read them in Python.
+
+    Nothing connects the two but the literal spelling, and a rename on one side
+    loses records silently — the hook writes a file nobody reads, or the
+    importer looks for one that is never written. Same shape as the
+    payload-field mismatch that had the hooks recording empty prompts.
+
+    Checked per write site, not as a union of both sides: an earlier version
+    compared the sets of names mentioned anywhere, so renaming one hook's
+    target passed because another hook still used the old name.
+    """
+    import re
+
+    hooks = sorted((ROOT / "src" / "coworker" / "analytics" / "hooks").glob("*.sh"))
+    importers = sorted((ROOT / "src" / "coworker" / "analytics").glob("*.py"))
+
+    written = {}  # filename -> where it is written
+    for h in hooks:
+        for m in re.finditer(r"append_jsonl\s+\"([^\"]+)\"", h.read_text(encoding="utf-8", errors="ignore")):
+            written.setdefault(m.group(1), h.name)
+
+    read = set()
+    for p in importers:
+        read |= set(re.findall(r"[\"']([a-z_]+\.jsonl|session\.yaml)[\"']", p.read_text(encoding="utf-8", errors="ignore")))
+
+    assert written, "expected the hooks to write at least one file"
+    orphans = {name: src for name, src in written.items() if name not in read}
+    assert not orphans, (
+        f"hooks write files no importer reads: {orphans}. Importers read {sorted(read)}."
+    )

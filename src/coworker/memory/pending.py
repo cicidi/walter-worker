@@ -1,8 +1,11 @@
 """Pending queue — staged skill review before promotion.
 
-Auto-created/patched skills land in ~/.coworker/pending/skills/ as
-JSON files.  The user reviews and approves/rejects them.
-Unreviewed items expire after 30 days.
+Auto-created skills land in ~/.coworker/pending/skills/ as JSON files. The user
+reviews and approves/rejects them. Unreviewed items expire after 30 days.
+
+Nothing stages a *patch* to an existing skill: record_patch below is named for
+PRD §5.3 but no code path calls it, and there is no patch flow for it to
+record. Only creation is implemented.
 """
 
 from __future__ import annotations
@@ -261,7 +264,14 @@ def expire_old_items(days: int = AUTO_EXPIRE_DAYS) -> int:
     return count
 
 def record_patch(skill_name: str) -> None:
-    """Record a skill patch for tracking (PRD §5.3)."""
+    """Record a skill patch for tracking (PRD §5.3).
+
+    Nothing calls this, because nothing patches a skill — skills are only ever
+    created and staged, never modified in place. The function works, but it
+    records a history of an operation the project does not perform. Wiring it
+    means building the patch flow first; until then it is a placeholder, in the
+    same position as record_version below.
+    """
     import json
     from datetime import datetime, timezone
     path = _pending_dir() / f"{skill_name}-patches.json"

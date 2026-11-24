@@ -19,7 +19,11 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # script deploys its skills to Claude Code, OpenCode, and Cursor.
 THE_SUPER_LAB_DIR="${THE_SUPER_LAB_DIR:-$HOME/project/the-super-lab}"
 THE_SUPER_LAB_OPENCODE_DIR="$HOME/.config/opencode/skills/the-super-lab"
-CURSOR_RULES_DIR="$HOME/.cursor/rules"
+THE_SUPER_LAB_OPENCODE_PERSONAL_DIR="$HOME/.config/opencode/skills/the-super-lab-personal"
+# Cursor loads Agent Skills from <root>/skills/<name>/SKILL.md. The flat
+# ~/.cursor/rules/<name>.md files an earlier release wrote are rules, not
+# skills, and current Cursor does not discover them as skills.
+CURSOR_SKILLS_DIR="$HOME/.cursor/skills"
 GLOBAL_CLAUDE_MD="$HOME/.claude/CLAUDE.md"
 
 INSTALL_MODE=""
@@ -44,6 +48,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --global)   INSTALL_MODE="global"; shift ;;
     --project)  INSTALL_MODE="project"; PROJECT_PATH="$2"; shift 2 ;;
+    --skills)   PRESELECTED_SKILLS="$2"; shift 2 ;;
     --help|-h)
       echo "Usage: install.sh [--global | --project /path]"
       exit 0 ;;
@@ -67,12 +72,26 @@ echo ""
 # here. Nothing created this directory, so that option could only ever end at
 # "No pristine backup found". Taken once, on the first install, while both files
 # are still unmodified — the two the uninstaller restores.
+#
+# Guarded by a marker file rather than the directory's existence. On a fresh
+# machine neither file exists yet, so the loop copied nothing — but mkdir still
+# created the directory, and from then on `! -d` was false forever: the
+# snapshot was never taken, and --restore-pristine found an empty directory on
+# every install. Absence is recorded instead, because "this file was not here"
+# is the pristine state for a fresh machine and restoring it means deleting it.
 PRISTINE_DIR="$HOME/.coworker/backups/pristine"
-if [[ ! -d "$PRISTINE_DIR" ]]; then
+PRISTINE_TAKEN="$PRISTINE_DIR/.taken"
+if [[ ! -f "$PRISTINE_TAKEN" ]]; then
   mkdir -p "$PRISTINE_DIR"
+  : > "$PRISTINE_DIR/absent.txt"
   for f in "$HOME/.claude/settings.json" "$GLOBAL_CLAUDE_MD"; do
-    [[ -f "$f" ]] && cp "$f" "$PRISTINE_DIR/$(basename "$f")"
+    if [[ -f "$f" ]]; then
+      cp "$f" "$PRISTINE_DIR/$(basename "$f")"
+    else
+      echo "$f" >> "$PRISTINE_DIR/absent.txt"
+    fi
   done
+  touch "$PRISTINE_TAKEN"
   log "Saved pristine snapshot to $PRISTINE_DIR"
 fi
 
@@ -264,6 +283,39 @@ fi
 # =============================================================================
 # Step 8 — Skill selection
 # =============================================================================
+SELECTED_SKILLS=()
+#: Paired with SELECTED_SKILLS by position. The install loop uses this, not
+#: SKILL_PATHS — that array is indexed by AVAILABLE order, so using it with a
+#: subset paired every selection with another skill's file. Any selection that
+#: was not "all of them, in order" installed the wrong content under the right
+#: name, including the manual Select path entering "3 1".
+SELECTED_PATHS=()
+
+# A caller that knows the previous selection passes it, so an update does not
+# re-ask a question it already has the answer to — and cannot take the default
+# answer by accident on a run nobody is watching. It skips the prompt entirely
+# rather than answering it: routing it through SKILL_CHOICE=1 would mean "All"
+# to the case below, which silently overrode the selection.
+if [[ -n "${PRESELECTED_SKILLS:-}" ]]; then
+  # Walked in AVAILABLE order, not the caller's. SELECTED_SKILLS and
+  # SKILL_PATHS are parallel arrays and the install loop pairs them by index,
+  # so appending names in any other order pairs each name with another skill's
+  # file — it installs the wrong content under the right name.
+  for i in "${!AVAILABLE_SKILLS[@]}"; do
+    for name in $PRESELECTED_SKILLS; do
+      if [[ "${AVAILABLE_SKILLS[$i]}" == "$name" ]]; then
+        SELECTED_SKILLS+=("$name")
+        SELECTED_PATHS+=("${SKILL_PATHS[$i]}")
+        break
+      fi
+    done
+  done
+  # Set as well as used: the manifest block below reads it, and under set -u an
+  # unset variable aborts the script there. 2 is "selected individually", which
+  # is what a passed-in list is — and it is not 0, so the prune still runs.
+  SKILL_CHOICE=2
+  log "Reusing the previous selection: ${#SELECTED_SKILLS[@]} skill(s)."
+else
 echo ""
 echo "Skill selection:"
 echo "  0) None — skip skill installation [default]"
@@ -272,14 +324,13 @@ echo "  2) Select — pick individual skills"
 read -rp "  Choose [0]: " SKILL_CHOICE || SKILL_CHOICE=""
 SKILL_CHOICE="${SKILL_CHOICE:-0}"
 
-SELECTED_SKILLS=()
-
 case "$SKILL_CHOICE" in
   0)
     log "Skipping skill installation."
     ;;
   1)
     SELECTED_SKILLS=("${AVAILABLE_SKILLS[@]}")
+    SELECTED_PATHS=("${SKILL_PATHS[@]}")
     log "Installing all ${#SELECTED_SKILLS[@]} skills."
     ;;
   2)
@@ -289,17 +340,26 @@ case "$SKILL_CHOICE" in
       printf "  %2d) %s  (%s)\n" "$((i+1))" "${SKILL_LABELS[$i]}" "${AVAILABLE_SKILLS[$i]}"
     done
     read -rp "  Select: " SELECTED_NUMS || SELECTED_NUMS=""
+    # Collected, then walked in index order. SELECTED_SKILLS is paired with
+    # SKILL_PATHS by index, so entering "3 1" would otherwise install the
+    # third skill's file under the first skill's name.
+    _picked=""
     for num in $SELECTED_NUMS; do
       idx=$((num-1))
       if [[ $idx -ge 0 && $idx -lt ${#AVAILABLE_SKILLS[@]} ]]; then
-        SELECTED_SKILLS+=("${AVAILABLE_SKILLS[$idx]}")
+        _picked="$_picked $idx"
       fi
+    done
+    for idx in $(echo $_picked | tr ' ' '\n' | sort -n -u); do
+      SELECTED_SKILLS+=("${AVAILABLE_SKILLS[$idx]}")
+      SELECTED_PATHS+=("${SKILL_PATHS[$idx]}")
     done
     log "Selected ${#SELECTED_SKILLS[@]} skills."
     ;;
   *)
     error "Invalid choice"; exit 1 ;;
 esac
+fi
 
 # =============================================================================
 # Step 9 — Always install the core init skill
@@ -349,7 +409,7 @@ if [[ ${#SELECTED_SKILLS[@]} -gt 0 ]]; then
   echo ""
   log "Installing skills to Claude Code..."
   for i in "${!SELECTED_SKILLS[@]}"; do
-    install_skill "${SKILL_PATHS[$i]}" "$CLAUDE_DIR"
+    install_skill "${SELECTED_PATHS[$i]}" "$CLAUDE_DIR"
   done
 fi
 
@@ -403,56 +463,98 @@ if [[ -n "$OPENCODE_DIR" ]]; then
     pruned=$((pruned + 1))
   done < <(find "$OPENCODE_DIR" -xtype l 2>/dev/null)
   find "$OPENCODE_DIR" -mindepth 1 -type d -empty -delete 2>/dev/null || true
-  [[ $pruned -gt 0 ]] && ok "  Pruned $pruned stale OpenCode symlink(s)"
+
+  # Retire the pre-2026 layout: an earlier release symlinked each skill as
+  # $OPENCODE_DIR/<name>/SKILL.md. Nothing reads a directory named
+  # `instructions` -- OpenCode takes skills from <config>/skill and
+  # <config>/skills, and commands from {command,commands}/**/*.md -- so these
+  # were inert the day they were written and only accumulated. Eleven of them
+  # were still sitting here.
+  #
+  # A directory goes only when its sole entry is a symlink named SKILL.md, which
+  # is exactly and only what that release produced. rmdir is the guard: it
+  # refuses a directory that turns out to hold anything else, so a guess here
+  # cannot delete real content.
+  for legacy in "$OPENCODE_DIR"/*/; do
+    [[ -d "$legacy" && ! -L "${legacy%/}" && -L "${legacy}SKILL.md" ]] || continue
+    [[ "$(find "$legacy" -mindepth 1 -maxdepth 1 | wc -l)" -eq 1 ]] || continue
+    if rm -f "${legacy}SKILL.md" && rmdir "${legacy}" 2>/dev/null; then
+      pruned=$((pruned + 1))
+    fi
+  done
+
+  [[ $pruned -gt 0 ]] && ok "  Pruned $pruned stale OpenCode entr(y|ies)"
   ok "OpenCode sync complete."
 fi
 
 # =============================================================================
-# Step 11b — Deploy the-super-lab skills to Claude, OpenCode, and Cursor
+# Step 11b — Deploy the-super-lab skills to Claude, Cursor, and OpenCode
 # =============================================================================
 # the-super-lab is the source of truth. Each skill deploys to three harnesses:
 #   Claude Code  ~/.claude/skills/<name>/SKILL.md                (directory copy)
-#   OpenCode     ~/.config/opencode/skills/the-super-lab/<name>  (symlink to source)
-#   Cursor       ~/.cursor/rules/<name>.md                       (verbatim copy)
-# Claude and OpenCode receive whole directories so sibling files (for example
-# domain-modeling/ADR-FORMAT.md) travel with the skill. A flattened SKILL.md
-# copy silently drops them.
-if [[ -d "$THE_SUPER_LAB_DIR/skills" ]]; then
+#   Cursor       ~/.cursor/skills/<name>/SKILL.md                (directory copy)
+#   OpenCode     <opencode dir>/<name>                            (symlink to source)
+# Directory copies keep sibling files (domain-modeling/ADR-FORMAT.md) with the
+# skill; a flattened SKILL.md copy silently drops them.
+#
+# Both source trees deploy: skills/ into the-super-lab, personal-skills/ into
+# the-super-lab-personal. Keeping the OpenCode mirrors apart means a personal
+# skill cannot silently shadow a same-named the-super-lab skill.
+if [[ -d "$THE_SUPER_LAB_DIR" ]]; then
   echo ""
-  log "Deploying the-super-lab skills to Claude, OpenCode, Cursor..."
+  log "Deploying the-super-lab skills to Claude, Cursor, OpenCode..."
 
-  mkdir -p "$HOME/.claude/skills" "$THE_SUPER_LAB_OPENCODE_DIR" "$CURSOR_RULES_DIR"
-  DEPLOYED=0
-
-  for skill_dir in "$THE_SUPER_LAB_DIR/skills"/*/; do
-    [[ -d "$skill_dir" ]] || continue
-    skill_file="${skill_dir}SKILL.md"
-    [[ -f "$skill_file" ]] || continue
-    name="$(basename "$skill_dir")"
-
-    # Claude Code — directory, so sibling files travel
-    mkdir -p "$HOME/.claude/skills/$name"
-    cp "$skill_file" "$HOME/.claude/skills/$name/SKILL.md"
-    for sibling in "$skill_dir"*; do
-      [[ -f "$sibling" ]] || continue
-      [[ "$(basename "$sibling")" == "SKILL.md" ]] && continue
-      cp "$sibling" "$HOME/.claude/skills/$name/"
+  # Copy the top-level files of one skill into <dest_root>/<name>. A sibling
+  # directory (tests/) stays behind; SKILL.md does not reference it at runtime.
+  deploy_skill_copy() {
+    local src_dir="$1" dest_root="$2" name="$3"
+    local target="$dest_root/$name"
+    local f dst
+    mkdir -p "$target"
+    for f in "$src_dir"/*; do
+      [[ -f "$f" ]] || continue
+      dst="$target/$(basename "$f")"
+      # -ef catches a destination symlinked back to the source. cp reports
+      # "same file" and exits 1 there, which under set -e aborted the whole
+      # install part-way through the skill loop.
+      if [[ -e "$dst" && "$f" -ef "$dst" ]]; then
+        continue
+      fi
+      cp "$f" "$dst"
     done
+  }
 
-    # OpenCode — symlink the whole directory to the source
-    opencode_target="$THE_SUPER_LAB_OPENCODE_DIR/$name"
-    if [[ -e "$opencode_target" && ! -L "$opencode_target" ]]; then
-      rm -rf "$opencode_target"
-    fi
-    ln -sfn "${skill_dir%/}" "$opencode_target"
+  deploy_superlab_tree() {
+    local src_root="$1" opencode_dir="$2" label="$3"
+    local skill_dir skill_file name deployed=0
+    [[ -d "$src_root" ]] || { warn "No $label at $src_root — skipping."; return; }
+    for skill_dir in "$src_root"/*/; do
+      [[ -d "$skill_dir" ]] || continue
+      skill_file="${skill_dir}SKILL.md"
+      [[ -f "$skill_file" ]] || continue
+      name="$(basename "$skill_dir")"
 
-    # Cursor — verbatim flattened copy
-    cp "$skill_file" "$CURSOR_RULES_DIR/$name.md"
+      deploy_skill_copy "${skill_dir%/}" "$HOME/.claude/skills" "$name"
+      deploy_skill_copy "${skill_dir%/}" "$CURSOR_SKILLS_DIR" "$name"
 
-    ((DEPLOYED++)) || true
-  done
+      # OpenCode — symlink the whole directory to the source
+      if [[ -e "$opencode_dir/$name" && ! -L "$opencode_dir/$name" ]]; then
+        rm -rf "$opencode_dir/$name"
+      fi
+      ln -sfn "${skill_dir%/}" "$opencode_dir/$name"
 
-  ok "Deployed $DEPLOYED the-super-lab skills to Claude, OpenCode, and Cursor."
+      deployed=$((deployed + 1))
+    done
+    ok "Deployed $deployed $label skill(s) to Claude, Cursor, and OpenCode."
+  }
+
+  mkdir -p "$HOME/.claude/skills" "$CURSOR_SKILLS_DIR" \
+           "$THE_SUPER_LAB_OPENCODE_DIR" "$THE_SUPER_LAB_OPENCODE_PERSONAL_DIR"
+
+  deploy_superlab_tree "$THE_SUPER_LAB_DIR/skills" \
+                       "$THE_SUPER_LAB_OPENCODE_DIR" "the-super-lab"
+  deploy_superlab_tree "$THE_SUPER_LAB_DIR/personal-skills" \
+                       "$THE_SUPER_LAB_OPENCODE_PERSONAL_DIR" "personal-skills"
 fi
 
 # =============================================================================
@@ -472,7 +574,15 @@ fi
 if [[ "$INSTALL_MODE" == "project" ]]; then
   GITIGNORE="$PROJECT_PATH/.gitignore"
   [[ -f "$GITIGNORE" ]] || touch "$GITIGNORE"
-  for entry in "personal/" ".local_config.yaml" ".env" ".cursorrules" "AGENTS.md" "GEMINI.md" "CLAUDE.local.md" "docs/state/"; do
+  # docs/state is constants.STATE_DIR; asked for rather than written out, so
+  # the ignore rule and the directory the state files go into are the same fact.
+  STATE_DIR=$(python3 -c "
+import sys
+sys.path.insert(0, '$REPO_ROOT/src')
+from coworker.constants import STATE_DIR
+print(STATE_DIR)
+" 2>/dev/null || echo "docs/state")
+  for entry in "personal/" ".local_config.yaml" ".env" ".cursorrules" "AGENTS.md" "GEMINI.md" "CLAUDE.local.md" "$STATE_DIR/"; do
     grep -qxF "$entry" "$GITIGNORE" 2>/dev/null || echo "$entry" >> "$GITIGNORE"
   done
 fi
@@ -624,6 +734,12 @@ if [[ -d "$THE_SUPER_LAB_DIR/skills" ]]; then
     [[ -f "${_d}SKILL.md" ]] && MANIFEST_SUPERLAB+="$(basename "$_d") "
   done
 fi
+MANIFEST_SUPERLAB_PERSONAL=""
+if [[ -d "$THE_SUPER_LAB_DIR/personal-skills" ]]; then
+  for _d in "$THE_SUPER_LAB_DIR/personal-skills"/*/; do
+    [[ -f "${_d}SKILL.md" ]] && MANIFEST_SUPERLAB_PERSONAL+="$(basename "$_d") "
+  done
+fi
 
 python3 -c "
 import json, os, glob, shutil
@@ -631,6 +747,7 @@ home = os.environ['HOME']
 claude_dir = '${CLAUDE_DIR}'
 selected = '${MANIFEST_SKILLS}'.split()
 deployed = '${MANIFEST_SUPERLAB}'.split()
+deployed_personal = '${MANIFEST_SUPERLAB_PERSONAL}'.split()
 manifest = {
     # 2 = files are claimed by name, only what this installer wrote. Manifest 1
     # claimed every file found under ~/.claude, ~/.opencode and
@@ -659,16 +776,39 @@ for p in glob.glob(f'{home}/.coworker/analytics/hooks/*'):
 # Skills selected in step 10, flattened to <name>.md, plus their OpenCode mirror.
 for name in selected:
     claim(f'{claude_dir}/{name}.md')
-    claim(f'{home}/.opencode/instructions/{name}.md')
+    # Not {home}: in project mode these are written under $PROJECT_PATH, so
+    # claiming the home path meant uninstall removed nothing here and left
+    # every mirror behind as a dangling symlink.
+    claim(f'$OPENCODE_DIR/{name}.md')
 
-# the-super-lab skills deployed in step 11b, by name: the Claude directory copy
-# and the Cursor rules file. The OpenCode side is a symlink to the source repo
-# and is removed with owned_dirs.
-for name in deployed:
-    for root, _dirs, fns in os.walk(f'{home}/.claude/skills/{name}'):
+# the-super-lab skills deployed in step 11b, by name: the Claude and Cursor
+# directory copies, and the OpenCode symlink. The OpenCode symlink was not
+# claimed before, and the comment here claimed owned_dirs covered it — it does
+# not, it holds only .../skills/walter-worker. So a skill dropped from the
+# source left a symlink to a deleted directory behind for ever.
+#
+# A Claude or Cursor target that is itself a symlink back into the-super-lab is
+# claimed as that link, never walked: walking it would claim the source files,
+# and uninstall would then delete them out of the repository.
+def claim_tree(root):
+    if os.path.islink(root):
+        claim(root)
+        return
+    for dirpath, _dirs, fns in os.walk(root):
         for fn in fns:
-            claim(os.path.join(root, fn))
-    claim(f'{home}/.cursor/rules/{name}.md')
+            claim(os.path.join(dirpath, fn))
+
+for name in deployed:
+    claim(f'$THE_SUPER_LAB_OPENCODE_DIR/{name}')
+    claim_tree(f'{home}/.claude/skills/{name}')
+    claim_tree(f'{home}/.cursor/skills/{name}')
+
+# personal-skills/ deploys to its own OpenCode mirror, so a personal skill never
+# shadows a same-named the-super-lab skill (and vice versa).
+for name in deployed_personal:
+    claim(f'$THE_SUPER_LAB_OPENCODE_PERSONAL_DIR/{name}')
+    claim_tree(f'{home}/.claude/skills/{name}')
+    claim_tree(f'{home}/.cursor/skills/{name}')
 
 # The walter-worker skill tree this installer owns outright. Claim what the
 # rsync in step 6 PRODUCES, read from the source tree rather than from the
@@ -746,7 +886,10 @@ try:
     # leave the bare directory behind, so emptied ones are retired with it. The
     # walk stops at each tree root, never above it.
     _trees = (f'{home}/.claude/skills',
-              f'{home}/.config/opencode/skills/walter-worker')
+              f'{home}/.cursor/skills',
+              f'{home}/.config/opencode/skills/walter-worker',
+              f'{home}/.config/opencode/skills/the-super-lab',
+              f'{home}/.config/opencode/skills/the-super-lab-personal')
 
     def _retire_empty(d):
         while any(d.startswith(t + os.sep) for t in _trees):

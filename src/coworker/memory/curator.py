@@ -64,6 +64,55 @@ def mark_ran(state_path: str | Path | None = None, now: float | None = None) -> 
     path.write_text(str(now if now is not None else time.time()))
 
 
+#: Days a raw session directory is kept after it has been imported. The hooks
+#: stage each session under ~/.coworker/analytics/sessions/, import_data folds
+#: it into analytics.db, and nothing removed the staging copy — 133MB across
+#: 253 directories on the development machine, still growing. Only directories
+#: whose session is already in the database, and untouched for this long, are
+#: pruned, so nothing goes that has not been imported.
+SESSION_KEEP_DAYS = 30
+
+
+def _prune_imported_sessions(keep_days: int = SESSION_KEEP_DAYS) -> int:
+    """Delete raw session directories already imported into analytics.db.
+
+    Returns the number removed. With no database, nothing is provably
+    imported, so nothing is deleted.
+    """
+    import shutil
+    import time
+    from pathlib import Path
+
+    from ..analytics.auto_import import _parse_session_id
+    from ..analytics.db import get_db
+
+    sessions = Path.home() / ".coworker" / "analytics" / "sessions"
+    if not sessions.is_dir():
+        return 0
+
+    try:
+        conn = get_db()
+        known = {row[0] for row in conn.execute("SELECT id FROM sessions")}
+        conn.close()
+    except Exception as exc:
+        logger.warning("session prune skipped, no database to check against: %s", exc)
+        return 0
+
+    cutoff = time.time() - keep_days * 86400
+    removed = 0
+    for d in sessions.iterdir():
+        if not d.is_dir() or _parse_session_id(d) not in known:
+            continue
+        try:
+            if d.stat().st_mtime > cutoff:
+                continue
+            shutil.rmtree(d)
+            removed += 1
+        except OSError:
+            pass  # in use or permission issue — leave it
+    return removed
+
+
 def run_curator(mem0_client, skills_dir: str | None = None, export_path: str | None = None) -> dict:
     """Run all curator maintenance tasks.
 
@@ -74,6 +123,7 @@ def run_curator(mem0_client, skills_dir: str | None = None, export_path: str | N
         "archived": 0,
         "merged": 0,
         "exported_entries": 0,
+        "sessions_pruned": 0,
         "errors": [],
     }
 
@@ -89,7 +139,16 @@ def run_curator(mem0_client, skills_dir: str | None = None, export_path: str | N
     except Exception as exc:
         stats["errors"].append(f"archive: {exc}")
 
-    # 3. Export MEMORY.md
+    # 3. Prune raw session directories the database already holds. The design
+    #    puts periodic cleanup here; this is the only accumulating thing the
+    #    curator can bound without judgement, since "already imported and a
+    #    month old" is a fact rather than a policy.
+    try:
+        stats["sessions_pruned"] = _prune_imported_sessions()
+    except Exception as exc:
+        stats["errors"].append(f"prune: {exc}")
+
+    # 4. Export MEMORY.md
     if export_path:
         try:
             stats["exported_entries"] = export_memory_md(mem0_client, export_path)

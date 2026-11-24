@@ -765,3 +765,79 @@ class TestSkillSessionIds:
         b = client.get("/api/skill-mentions", params={"name": "my-skill"}).json()
 
         assert sorted(a) == sorted(b)
+
+
+class TestEvolutionScoreCanBeZero:
+    """The dashboard score had an unconditional +30.
+
+    A brand-new install with an empty database reported 30/100 — the agent had
+    evolved 30% before doing anything, and the score could never read lower.
+    Six unused skills on disk pushed it to 60 with still no sessions, so it was
+    partly measuring the filesystem. Reported by a tester checking each figure
+    against its source of truth rather than against "not empty".
+    """
+
+    def test_an_empty_database_scores_zero(self):
+        from coworker.dashboard.queries_evolution import _compute_evolution_score
+
+        assert _compute_evolution_score([], 0, 0) == 0
+
+    def test_skills_alone_do_not_raise_the_score(self):
+        from coworker.dashboard.queries_evolution import _compute_evolution_score
+
+        ten_unused = [{"state": "active"}] * 10
+        assert _compute_evolution_score(ten_unused, 0, 0) == 0
+
+    def test_reuse_still_moves_it(self):
+        from coworker.dashboard.queries_evolution import _compute_evolution_score
+
+        assert _compute_evolution_score([], 5, 10) > 0
+
+
+class TestWriteEndpointsRefuseForeignPages:
+    """Every state-changing endpoint took a bare POST.
+
+    A cross-origin form POST needs no preflight, so any page the user visited
+    could approve skills, rewrite ~/CLAUDE.local.md or reset the circuit breaker
+    on their localhost dashboard. The response would be unreadable to that page,
+    but the side effect is the point. Binding to loopback does not help: the
+    attacker is the user's own browser, which is on loopback.
+
+    The endpoints require X-Coworker-Dashboard now, which forces a preflight
+    this server does not answer.
+    """
+
+    WRITES = [
+        "/api/evolution/approve/anything",
+        "/api/evolution/reject/anything",
+        "/api/evolution/skills/anything/status?status=active",
+        "/api/memory/refresh-snapshot",
+        "/api/memory/reset-circuit",
+    ]
+
+    def test_a_bare_post_is_refused(self, client):
+        for url in self.WRITES:
+            r = client.post(url)
+            assert r.status_code == 403, f"{url} accepted an unmarked POST"
+            assert "X-Coworker-Dashboard" in r.text
+
+    def test_the_header_lets_it_through(self, client):
+        """The guard must not break the dashboard's own calls."""
+        r = client.post(
+            "/api/memory/reset-circuit",
+            headers={"X-Coworker-Dashboard": "1"},
+        )
+
+        assert r.status_code == 200, r.text
+
+    def test_the_dashboards_own_js_sends_the_header(self):
+        from importlib.resources import files as resource_files
+
+        js = (resource_files("coworker.dashboard") / "static" / "dashboard.js").read_text()
+
+        posts = js.count("method:'POST'")
+        assert posts, "expected the dashboard to make POST calls"
+        assert js.count("X-Coworker-Dashboard") == posts, (
+            "every POST in dashboard.js must carry the header, or the guard "
+            "breaks the page it protects"
+        )

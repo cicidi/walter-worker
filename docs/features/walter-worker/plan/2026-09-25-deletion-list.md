@@ -69,7 +69,7 @@ These are the ones the standing rule says to repair rather than remove. They are
 listed first in priority because they are the difference between a memory that
 evolves and a memory that only accumulates.
 
-### B1. `coworker/autoworker/` + `cli_autoworker.py` — the loop's driver
+### B1. `coworker/autoworker/` + `cli_autoworker.py` — the loop's driver — **DONE**
 
 ~35 KB: `engine.py` (spawns Claude SDK agents that "autonomously investigate and
 fix"), `rules.py`, `state.py`, plus a complete CLI registering `find-issues run`
@@ -171,7 +171,7 @@ which is the likeliest reason the wiring never happened.
 wiring `process_turn` there means an LLM call per tool call. That is a design
 decision about spend, not a bug fix.
 
-### B3. `engine.reconcile()` — a stub standing where the real code should be
+### B3. `engine.reconcile()` — a stub standing where the real code should be — **DONE**
 
 `engine.py:164` returns `0` unconditionally, with the comment *"For now, just
 note the gap — full re-extraction needs LLM"*. Meanwhile
@@ -183,7 +183,7 @@ stub or have it delegate.
 
 *Confidence: high.*
 
-### B4. `memory/metrics.py` — 118 lines, the "is it actually improving?" gauge
+### B4. `memory/metrics.py` — 118 lines, the "is it actually improving?" gauge — **DONE**
 
 "Collects effectiveness and safety metrics to track whether the agent is
 actually getting 'smarter over time.'" Exposes `record_session_metrics`,
@@ -200,7 +200,7 @@ produces numbers nobody acts on.
 
 ## C. Over-engineered or rarely used — candidates, not conclusions
 
-### C1. `_sync_mcp` is union-only — outdated MCP servers can never be removed
+### C1. `_sync_mcp` is union-only — **DONE**
 
 `adapters/claude.py:97` merges by name and never removes. The comment makes the
 intent explicit: refusing to delete entries the user may have added is the safe
@@ -208,12 +208,15 @@ direction. That is correct as a default and wrong as a permanent limit — a
 server that has been retired from `coworker.yaml` lives in `~/.claude.json`
 forever, which is the `[MCPPrune]` gap.
 
-Not a bug. Wants a deliberate `--prune-mcp` (or a managed-vs-user distinction),
-not a change to the default.
+**Resolved by a managed-vs-user distinction**, without a flag. Each adapter
+records what it wrote, keyed by the file it wrote it into, and prunes only
+entries that are still byte-for-byte what it wrote and are no longer produced.
+Anything the user added, or has since edited, is never touched. Implemented for
+all three adapters at once, because opencode was not union-only at all — it
+assigned the map outright and deleted every server the user had added, on every
+sync. Its test asserted that replacement, and is inverted with the reasoning.
 
-*Confidence: high on the behaviour, medium on the fix shape.*
-
-### C2. Two evolution scores, disagreeing — needs a ruling, not a patch
+### C2. Two evolution scores, disagreeing — **DONE**
 
 `evolution_score` and `skill_reuse_rate` are each computed twice, differently,
 from different sources. Both surfaces are live, so the dashboard and
@@ -237,16 +240,37 @@ Three consequences worth separating:
 3. The +30 base means the dashboard can never show 0, so a fresh install reads
    as 30% evolved.
 
-Not patched here: which score is authoritative is a product decision, and the
-spec's own signature — `compute_evolution_score(skills, experiences,
-total_sessions)` — matches neither implementation exactly, so the spec needs a
-ruling too. `memory/metrics.py` additionally reads a store that nothing writes
-(see B4), so until capture lands it will report 0 while the dashboard reports
-30-plus.
+**Fixed the part that was not a judgement call**: neither score can now be
+non-zero without data. The dashboard's unconditional `+30` is gone, so an empty
+database reads 0 rather than 30, and its skill term is capped at the session
+count so ten unused skills no longer add 50 points. `metrics.py` returns 0 when
+nothing has been recorded, instead of paying out for the *absence* of
+corrections and circuit trips — which is how an untouched machine scored 20
+while a struggling agent scored 18.
 
-*Confidence: high on the divergence; the resolution is a design call.*
+**Merged, on the spec's own words.** The spec settles which source is
+canonical — §7: "Collection: logged to analytics.db per session ... Exact
+formulas + dashboard -> impl detail, not spec." analytics.db is therefore the
+source, which is what the dashboard reads and what `metrics.py`'s separate JSON
+store was not.
 
-### C3. Documented-but-absent commands
+`evolution_inputs()` is now the one place that reads the score's inputs, and
+`compute_evolution_score()` delegates to the dashboard's computation. Verified
+on a database with one session and one agent skill: both surfaces report 25 and
+agree. This also fixed `coworker memory metrics` reporting 0 for ever — its
+store had no writer at all.
+
+`skills` are read from ~/.coworker/skills/*/usage.json rather than the DB
+table, because that is where an auto-created skill's provenance and state live.
+The cap added above means that directory can no longer inflate the score on its
+own: six agent skills with an empty database scored 60 before and scores 0 now.
+
+**Still dressing, not scored**: `record_session_metrics` and the seven-series
+table in `metrics.py` have no writer and no longer affect the score. Removing
+them is a cleanup, not a fix, and they are the only record of the per-metric
+shape the spec's table describes.
+
+### C3. Documented-but-absent commands — **DONE**
 
 `coworker knowledge` was the last one and is now implemented (see D). The scan
 that found it — fenced code blocks only, comments skipped — now runs as

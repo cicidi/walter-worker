@@ -239,7 +239,7 @@ Both Claude Code and OpenCode sessions feed the same graph. The graph layer is I
 
 | | Claude Code | OpenCode |
 |---|-------------|----------|
-| **Session-end hook (graph)** | `Stop` (async, stdin) → `coworker memory close` | `session.end` → `coworker memory close` (needs verification) |
+| **Session-end hook (graph)** | `Stop` (stdin) → `coworker memory close` — **wired in setup/install.sh** | `session.end` → `coworker memory close` (needs verification) |
 | Per-turn hook | `PostToolUse` → analytics JSONL only (**NOT** graph) | `tool.execute.after` → analytics only (**NOT** graph) |
 | Transcript format | JSONL | JSONL |
 | Graph write | `capture.py` → `pending/<session>.json` → merge worker → `graph.json` | Same |

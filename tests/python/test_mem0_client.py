@@ -576,3 +576,56 @@ class TestListEntries:
         memory.get_all.side_effect = RuntimeError("down")
         client = Mem0Client(memory)
         assert client.list_entries() == []
+
+
+class TestTelemetryDoesNotOpenDuplicatePostHogClients:
+    """mem0's telemetry builds a PostHog client at import and a second one
+    lazily, so every Stop hook printed:
+
+    "[PostHog] Multiple active PostHog clients detected for the same project
+    API key and host."
+
+    MEM0_TELEMETRY is read when mem0 is imported, so it must be defaulted
+    before `from mem0 import Memory` runs. That makes the process boundary the
+    honest place to observe it: in-process, the module is already cached by the
+    time this test runs.
+    """
+
+    def _env_without(self, name: str) -> dict:
+        return {k: v for k, v in os.environ.items() if k != name}
+
+    def test_it_is_off_unless_the_user_opted_in(self):
+        import subprocess
+        import sys
+
+        out = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                "import coworker.memory.mem0_client, os; print(os.environ['MEM0_TELEMETRY'])",
+            ],
+            env=self._env_without("MEM0_TELEMETRY"),
+            capture_output=True,
+            text=True,
+        )
+        assert out.returncode == 0, out.stderr
+        assert out.stdout.strip() == "false"
+
+    def test_an_explicit_opt_in_is_left_alone(self):
+        import subprocess
+        import sys
+
+        env = self._env_without("MEM0_TELEMETRY")
+        env["MEM0_TELEMETRY"] = "true"
+        out = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                "import coworker.memory.mem0_client, os; print(os.environ['MEM0_TELEMETRY'])",
+            ],
+            env=env,
+            capture_output=True,
+            text=True,
+        )
+        assert out.returncode == 0, out.stderr
+        assert out.stdout.strip() == "true"

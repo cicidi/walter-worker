@@ -219,6 +219,26 @@ This is the reliability-critical layer. PRD R2 demands per-turn persistence; the
 - `async: true` on the per-turn hooks → extraction does not block the tool call (PRD v5 fix; carried forward).
 - `session_id` arrives via **stdin JSON**, not an env var — hook command reads it from stdin.
 
+> **What is wired today** (2026-09-25). The commands above do not exist as
+> written: `coworker memory sync` is the Graphify re-sync, and none of the three
+> accepts `--ide` or `--trigger`, so running the lines as shown exits 2. The
+> installed hooks are the shell scripts under `src/coworker/analytics/hooks/`,
+> registered by `setup/install.sh`:
+>
+> | Event | Command |
+> |---|---|
+> | `UserPromptSubmit` | `on-user-prompt.sh`, `python3 on-correction.py` |
+> | `PreToolUse` | `on-pre-tool.sh` |
+> | `PostToolUse` | `on-post-tool.sh` |
+> | `Stop` | `on-stop.sh`, `coworker memory capture`, `coworker memory close` |
+>
+> Per-turn graph extraction (§3.1's `memory sync`) is deliberately not wired:
+> it costs one LLM call per tool call, and only the session-end half
+> (`memory capture` → `pending/` → `memory close` → `graph.json`) runs. The
+> names this spec reserved for both were taken by other commands — `memory
+> sync` by the Graphify re-sync, `memory close` by the graph merge — which is
+> why the capture stage is `memory capture`.
+
 ### 3.2 OpenCode plugin events
 
 Extend the existing `.opencode/coworker-analytics/` plugin:

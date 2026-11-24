@@ -19,3 +19,11 @@ DOCS_DISCIPLINES = (
     "how-to",
 )
 STATE_DIR = "docs/state"
+
+# The feature several modules reach for by path — the wrong-history directory,
+# the auto-worker's state dir, find-issues' default output. It was written out
+# in five places, and when the initiatives→features move landed, all five broke
+# silently at once. One definition, so the next move breaks in one place and
+# says so.
+SELF_EVOLVING_FEATURE = "self-evolving-agent"
+SELF_EVOLVING_DOCS = f"docs/features/{SELF_EVOLVING_FEATURE}"

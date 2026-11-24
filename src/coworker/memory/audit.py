@@ -47,7 +47,10 @@ def write_audit_record(
         ms=ms,
         status=status,
     )
-    p = Path(path)
+    # capture passes "~/.coworker/memory/"; Path() does not expand the tilde,
+    # so the record landed in a literal `~` directory under the cwd and was
+    # committed with the repo.
+    p = Path(path).expanduser()
     p.parent.mkdir(parents=True, exist_ok=True)
     with open(p, "a") as f:
         f.write(record)

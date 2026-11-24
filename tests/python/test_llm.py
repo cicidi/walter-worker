@@ -216,3 +216,67 @@ class TestLLMClientBuildProviderList:
         # primary skipped (empty key), gemini included
         assert all(p["provider"] != "deepseek" for p in providers)
         assert any(p["provider"] == "gemini" for p in providers)
+
+
+class TestFallbackModelIsNotAPinnedVersion:
+    """The fallback named a model that had been retired.
+
+    gemini-2.5-flash still appears in the API's model list but answers 404 for
+    new users — "no longer available to new users. Please update your code to
+    use models/gemini-3.8-flash" — so a user without DEEPSEEK_API_KEY got a
+    hard failure and no fallback at all.
+
+    A fallback exists to work when the primary does not, so it should not be
+    the part that expires. Asserted as a property rather than a name, so
+    replacing one pin with another does not pass this.
+    """
+
+    def test_no_fallback_pins_an_exact_gemini_version(self):
+        from coworker.memory.llm import FALLBACK_CHAIN
+
+        for entry in FALLBACK_CHAIN:
+            model = entry.get("model", "")
+            if entry.get("provider") != "gemini":
+                continue
+            assert model.endswith("-latest") or "preview" in model, (
+                f"gemini fallback pins {model!r}; a retired pin breaks the "
+                f"fallback silently. Use an alias such as gemini-flash-latest."
+            )
+
+
+class TestTheErrorMessageNamesRealProviders:
+    """It told users to set ANTHROPIC_API_KEY, which nothing reads.
+
+    FALLBACK_CHAIN holds gemini and nothing else, so a user without a DeepSeek
+    key read the error, set the variable it named, and got the same error
+    again. The README said the same thing.
+
+    Asserted as a property — every *_API_KEY the message names must belong to a
+    configured provider — so adding a provider to the chain, or removing one,
+    keeps the two in step without anyone remembering to edit the string.
+    """
+
+    def test_every_key_in_the_message_belongs_to_a_provider(self, monkeypatch):
+        import re
+
+        from coworker.memory.llm import FALLBACK_CHAIN, LLMClient
+
+        monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+        monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+        try:
+            LLMClient()._build_provider_list()
+        except RuntimeError as exc:
+            message = str(exc)
+        else:
+            pytest.fail("expected a RuntimeError when no provider is configured")
+
+        named = set(re.findall(r"\b[A-Z][A-Z_]*_API_KEY\b", message))
+        known = {"DEEPSEEK_API_KEY"} | {
+            str(c["api_key_env"]) for c in FALLBACK_CHAIN
+        }
+
+        assert named, f"the message names no key at all: {message}"
+        assert named <= known, (
+            f"the message names {sorted(named - known)}, which no provider reads. "
+            f"Configured: {sorted(known)}"
+        )

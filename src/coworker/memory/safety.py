@@ -1,7 +1,8 @@
 """Safety gates — spec §6 + §9.
 
 This module implements the circuit breaker only: it caps skill
-auto-creation/evolution at CIRCUIT_BREAKER_LIMIT per window.
+auto-creation at CIRCUIT_BREAKER_LIMIT per window. The spec words it as
+"create/patch", but only creation exists — see pending.record_patch.
 
 The spec lists three gates - "circuit breaker, sandbox dry-run before
 promotion, rollback". Of the other two:
@@ -24,7 +25,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-CIRCUIT_BREAKER_LIMIT = 3  # max skill create/patch per 24h
+CIRCUIT_BREAKER_LIMIT = 3  # max skill creations per 24h (see module docstring on patches)
 CIRCUIT_BREAKER_WINDOW_HOURS = 24
 
 
@@ -79,7 +80,7 @@ def check_circuit_breaker() -> dict:
 
 
 def record_auto_evolution(action: str, skill_name: str = "", detail: str = "") -> bool:
-    """Record an auto-evolution action (create/patch).
+    """Record an auto-evolution action. Only skill creation reaches this today.
 
     Returns True if the action was allowed, False if circuit breaker tripped.
     """
