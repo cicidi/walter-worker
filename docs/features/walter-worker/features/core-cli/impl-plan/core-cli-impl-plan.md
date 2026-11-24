@@ -13,15 +13,15 @@ This plan was written after the code shipped. Each task records a unit of work t
 
 ## Global Constraints
 
-No configuration command makes a network call. A command that overwrites a user-visible file takes a backup first (ARD-C). Settings files are merged, never replaced, and entries the user wrote are never removed (ARD-B).
+No configuration command makes a network call. A command that overwrites a user-visible file takes a backup first (ARD-C). Settings files are merged, never replaced, and entries the user wrote are never removed (ARD-B). The code at `a0f4ce0` does not yet meet these constraints everywhere; the exceptions are open questions in the [design](../design/core-cli-design.md#open-questions), among them QUES-B, QUES-E, QUES-K, QUES-O, QUES-S, and QUES-T.
 
 ## Acceptance Criteria
 
-The feature is not done while the blocking open question QUES-A is open. Beyond that, it is done when the tasks below are done, the pytest suites in their Verify lines pass, and every other open question is fixed or explicitly accepted by the owner.
+The feature is not done while any blocking open question is open: QUES-A, QUES-B, QUES-L, QUES-M, QUES-O, QUES-S, or QUES-T. Beyond that, it is done when the tasks below are done, the pytest suites in their Verify lines pass, and every other open question is fixed or explicitly accepted by the owner.
 
 ## Execution order
 
-IMPL-A and IMPL-B first, because every other command reads the configuration and writes through backups. IMPL-C to IMPL-H depend on them and can proceed in parallel. IMPL-I depends on nothing and can run at any time.
+IMPL-A and IMPL-B first, because every other command reads the configuration and writes through backups. IMPL-C and IMPL-D depend on both of them, IMPL-E and IMPL-F depend only on IMPL-A, and IMPL-G and IMPL-H depend only on IMPL-B; these six can proceed in parallel once their dependencies are done. IMPL-I depends on nothing and can run at any time.
 
 ## IMPL-A — Configuration model and merge
 
@@ -57,7 +57,7 @@ Verify: `tests/python/test_cli.py` `TestStatus::test_status`, `test_project_add_
 
 Listing, scaffolding, and the approve and reject flow with its safety check (DSGN-F). Depends on IMPL-A. Blocks nothing.
 
-Verify: `tests/python/test_cli.py` `test_skill_new_duplicate` passes, and `tests/python/test_pending.py` `test_approve` and `test_staging_stops_after_the_limit` pass.
+Verify: `tests/python/test_cli.py` `test_skill_new_duplicate` passes, and `tests/python/test_pending.py` `test_approve`, `test_reject`, and `test_promote_writes_to_both` pass.
 
 ## IMPL-G — `upgrade`
 
@@ -83,3 +83,4 @@ Verify: `tests/python/test_state_update.py` `test_state_update_noop_outside_cowo
 |---|---|---|
 | 0.1 | 2026-11-04 | Draft (never committed) |
 | 0.2 | 2026-11-24 | Rewritten as a record of shipped work with Verify lines; added Acceptance Criteria (ARD-A) |
+| 0.3 | 2026-11-24 | Review fixes: execution order matches each task's dependencies; all blocking open questions listed; IMPL-F verifies approve and reject instead of the staging limit (ARD-F) |

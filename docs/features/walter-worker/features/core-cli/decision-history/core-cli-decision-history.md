@@ -15,6 +15,7 @@ Decisions about the configuration commands. Newest first. Each decision has an e
 
 | ID | Date | Decision |
 |---|---|---|
+| **ARD-F** | 2026-11-24 | The review-fix pass for this backfill is applied as edits larger than the 10-line/200-character limit, authorized by the owner's 2026-11-24 instruction to decide the approach ("你自己看着弄"). |
 | **ARD-D** | 2026-11-24 | Where the code does not meet a requirement, the PRD keeps the requirement, the design states what the code does today, and the gap is a design Open Question for the owner to decide. |
 | **ARD-A** | 2026-11-24 | The uncommitted 2026-11-04 drafts are rewritten whole in their first commit. Their IDs were never published, so no old-to-new table is kept. |
 | **ARD-E** | 2026-09-25 | `restore` exposes the backups that mutating commands take, by path, folder name, or label. |
@@ -22,6 +23,10 @@ Decisions about the configuration commands. Newest first. Each decision has an e
 | **ARD-C** | 2026-07-07 | Every command that overwrites a user-visible file first copies it under `~/.coworker/backups/<timestamp>-<label>/`, keeping at most twenty copies per label. |
 
 ## Evidence Appendix
+
+### ARD-F
+
+The spec standard limits each AI edit under `docs/` to 10 lines and 200 characters unless a human authorizes a larger change and the authorization is recorded as an ARD. The 2026-11-24 review found false sentences and missing behavior across the design, implementation plan, and test plan, and the owner told the agent to decide the approach. Rejected: applying the pass as a long series of edits within the limit. Evidence: the review report [`raw/review/2026-11-24-spec-review-core-cli-gaps.md`](../raw/review/2026-11-24-spec-review-core-cli-gaps.md) (local, not committed).
 
 ### ARD-D
 
@@ -48,3 +53,4 @@ Several commands rewrote files the user also edits: the global `CLAUDE.md`, proj
 | Version | Date | Description |
 |---|---|---|
 | 0.1 | 2026-11-24 | Created with ARD-A to ARD-E |
+| 0.2 | 2026-11-24 | Review fixes: added ARD-F, which authorizes the review-fix pass as larger edits |
