@@ -102,6 +102,11 @@ def api_top_files(limit: int = 50):
     return queries.query_top_files(limit)
 
 
+@app.get("/api/file-summary")
+def api_file_summary():
+    return queries.query_file_summary()
+
+
 @app.get("/api/file-stats")
 def api_file_stats():
     return queries.query_file_stats()
@@ -311,7 +316,8 @@ def api_errors():
     """Error patterns across tools and sessions."""
     tool_errors = queries.query_error_patterns()
     session_errors = queries.query_session_errors(10)
-    return {"tool_errors": tool_errors, "session_errors": session_errors}
+    return {"tool_errors": tool_errors, "session_errors": session_errors,
+            "unknown_status": queries.query_unknown_error_status()}
 
 
 @app.get("/api/memory-stats")

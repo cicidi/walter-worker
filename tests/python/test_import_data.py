@@ -134,8 +134,9 @@ def test_import_session_basic(import_db, tmp_path):
     assert s["model"] == "claude-3"
     assert s["feature"] == "my-init"
     assert s["branch"] == "feat/x"
-    assert s["created_at"] == "2025-01-01T10:00:00"
-    assert s["closed_at"] == "2025-01-01T10:30:00"
+    from coworker.analytics.normalize import utc_iso
+    assert s["created_at"] == utc_iso("2025-01-01T10:00:00")
+    assert s["closed_at"] == utc_iso("2025-01-01T10:30:00")
 
     # messages
     msgs = import_db.execute(

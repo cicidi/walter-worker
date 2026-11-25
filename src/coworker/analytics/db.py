@@ -45,7 +45,8 @@ CREATE TABLE IF NOT EXISTS tool_calls (
     duration_ms     INTEGER,
     seq_before      INTEGER,
     seq_after       INTEGER,
-    ts              TEXT NOT NULL
+    ts              TEXT NOT NULL,
+    is_error        INTEGER
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_tc_unique ON tool_calls(session_id, call_id);
 CREATE INDEX IF NOT EXISTS idx_tc_session ON tool_calls(session_id);
@@ -175,9 +176,19 @@ def get_db(db_path: str | Path | None = None) -> sqlite3.Connection:
     _migrate_add_graph_enabled(conn)
     _migrate_add_session_stat_columns(conn)
     _migrate_add_session_summary_columns(conn)
+    _migrate_add_tool_call_is_error(conn)
     _migrate_rename_initiative_to_feature(conn)
     conn.commit()
     return conn
+
+
+def _migrate_add_tool_call_is_error(conn: sqlite3.Connection) -> None:
+    """tool_calls.is_error: 1 failed, 0 succeeded, NULL unknown (rows imported
+    before the source's error flag was read). The errors page used to guess
+    from whether the output text contained "error"."""
+    existing = {row[1] for row in conn.execute("PRAGMA table_info(tool_calls)")}
+    if "is_error" not in existing:
+        conn.execute("ALTER TABLE tool_calls ADD COLUMN is_error INTEGER")
 
 
 # session_summaries columns added after the table first shipped.

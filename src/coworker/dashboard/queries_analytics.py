@@ -36,13 +36,13 @@ def query_cost_analytics():
                ORDER BY total_cost DESC"""
         ).fetchall()
         daily = conn.execute(
-            """SELECT substr(s.created_at,1,10) as day,
+            """SELECT date(s.created_at, 'localtime') as day,
                       COALESCE(SUM(ss.tokens_input),0) as input_tokens,
                       COALESCE(SUM(ss.tokens_output),0) as output_tokens,
                       COUNT(DISTINCT s.id) as sessions
                FROM sessions s
                LEFT JOIN session_stats ss ON s.id = ss.session_id
-               WHERE s.created_at IS NOT NULL
+               WHERE s.created_at IS NOT NULL AND s.created_at != ''
                GROUP BY day ORDER BY day DESC LIMIT 30"""
         ).fetchall()
         return {"model_stats": [dict(r) for r in model_stats], "daily_tokens": [dict(r) for r in daily]}
@@ -61,7 +61,7 @@ def query_model_usage():
                GROUP BY ide_name ORDER BY sessions DESC"""
         ).fetchall()
         model_trend = conn.execute(
-            """SELECT substr(created_at,1,10) as day, model, COUNT(*) as count
+            """SELECT date(created_at, 'localtime') as day, model, COUNT(*) as count
                FROM sessions WHERE model IS NOT NULL AND created_at IS NOT NULL
                GROUP BY day, model ORDER BY day DESC LIMIT 50"""
         ).fetchall()
@@ -133,7 +133,6 @@ def query_models():
                                   ELSE s.model END, ''),
                       'unknown') as model_group,
                       COUNT(DISTINCT s.id) as session_count,
-                      COUNT(DISTINCT tc.call_id) as request_count,
                       COALESCE(SUM(ss.tokens_input),0) as total_tokens_in,
                       COALESCE(SUM(ss.tokens_output),0) as total_tokens_out,
                       COALESCE(SUM(ss.tokens_reasoning),0) as total_tokens_reasoning,
@@ -144,14 +143,23 @@ def query_models():
                       COALESCE(ROUND(MAX(ss.duration_min*60000),0),0) as max_duration_ms
                FROM sessions s
                LEFT JOIN session_stats ss ON s.id = ss.session_id
-               LEFT JOIN tool_calls tc ON s.id = tc.session_id
+               -- No join to tool_calls here: it repeated each session's stats
+               -- row once per tool call, multiplying every SUM below.
                WHERE s.model IS NOT NULL
                GROUP BY model_group
                ORDER BY total_cost DESC"""
         ).fetchall()
-        return [dict(r) for r in rows]
+        calls = dict(conn.execute(
+            f"""SELECT {_MODEL_GROUP_SQL} AS g, COUNT(*) FROM tool_calls tc
+                JOIN sessions s ON s.id = tc.session_id WHERE s.model IS NOT NULL GROUP BY g"""
+        ).fetchall())
+        return [dict(r, request_count=calls.get(r["model_group"], 0)) for r in rows]
     finally:
         conn.close()
+
+
+_MODEL_GROUP_SQL = """COALESCE(NULLIF(CASE WHEN s.model LIKE '{%}' THEN json_extract(s.model, '$.id')
+                                          ELSE s.model END, ''), 'unknown')"""
 
 
 # ═══════════════════════════════════════════════════════

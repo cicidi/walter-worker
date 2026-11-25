@@ -126,9 +126,14 @@ def query_evolution_skills(auto_train: bool = True, project: str = "", status: s
                 continue
             if status != "all" and skill.get("state", "active") != status:
                 continue
+            # One row per session, matched on the exact name in the args. This
+            # was DISTINCT (session_id, ts) — one row per call — with a
+            # substring LIKE, so "commit" also counted "commit-push" sessions.
             rows = conn.execute(
-                "SELECT DISTINCT session_id, ts FROM tool_calls WHERE tool = 'Skill' AND args LIKE ? ORDER BY ts",
-                (f"%{skill['name']}%",),
+                "SELECT session_id, MIN(ts) AS first FROM tool_calls WHERE tool = 'Skill' "
+                "AND json_valid(args) AND COALESCE(json_extract(args, '$.skill'), "
+                "json_extract(args, '$.name')) = ? GROUP BY session_id ORDER BY first",
+                (skill["name"],),
             ).fetchall()
             results.append({
                 "name": skill["name"],

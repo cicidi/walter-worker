@@ -289,10 +289,15 @@ def test_import_claude_jsonl_basic(auto_db, tmp_path):
     s = auto_db.execute("SELECT * FROM sessions WHERE id = ?", ("session-id",)).fetchone()
     assert s is not None
     assert s["ide"] == "claude-code"
-    assert s["project"] == "test-project"
+    # The project comes from cwd now; the transcript directory name is only a
+    # fallback. It was the encoded path ("-home-x-project-y"), so one repo
+    # showed up under two names.
+    assert s["project"] == "proj"
     assert s["cwd"] == "/tmp/proj"
     assert s["model"] == "claude-3"
-    assert s["created_at"] == "2025-01-01T10:00:00"
+    from coworker.analytics.normalize import utc_iso
+    assert s["created_at"] == utc_iso("2025-01-01T10:00:00")
+    assert s["closed_at"] == utc_iso("2025-01-01T10:00:09")
 
     # stats
     stats = auto_db.execute(
@@ -307,7 +312,9 @@ def test_import_claude_jsonl_basic(auto_db, tmp_path):
     assert auto_db.execute(
         "SELECT COUNT(*) FROM messages WHERE session_id = ?", ("session-id",)
     ).fetchone()[0] == 1
-    assert stats["tool_count"] == 4  # Read + Write + Edit + Bash (Skill counted separately)
+    # Every stored tool call, Skill included, so it equals the tool_calls rows
+    # the overview counts.
+    assert stats["tool_count"] == 5
     assert stats["skill_count"] == 1  # my-skill
     assert stats["read_count"] == 1  # Read
     assert stats["write_count"] == 2  # Write + Edit
@@ -738,184 +745,176 @@ def test_import_claude_hooks_fallback_matches_dedup_id(auto_db, tmp_path, monkey
 
 
 # ===================================================================
-# import_opencode_meta
+# import_opencode
 # ===================================================================
+
+
+def _oc_db(path: Path, sessions: list[tuple], messages=(), parts=()) -> Path:
+    """An opencode.db with the columns the importer reads."""
+    oc = sqlite3.connect(str(path))
+    oc.executescript(
+        "CREATE TABLE session (id TEXT, parent_id TEXT, directory TEXT, model TEXT, cost REAL,"
+        " tokens_input INT, tokens_output INT, tokens_reasoning INT, tokens_cache_read INT,"
+        " tokens_cache_write INT, time_created INT, time_updated INT);"
+        "CREATE TABLE message (id TEXT, session_id TEXT, time_created INT, data TEXT);"
+        "CREATE TABLE part (id TEXT, message_id TEXT, session_id TEXT, time_created INT, data TEXT);")
+    oc.executemany("INSERT INTO session VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", sessions)
+    oc.executemany("INSERT INTO message VALUES (?,?,?,?)", messages)
+    oc.executemany("INSERT INTO part VALUES (?,?,?,?,?)", parts)
+    oc.commit()
+    oc.close()
+    return path
+
+
+def _fresh_conn():
+    from coworker.analytics.db import SCHEMA
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys=ON")
+    conn.executescript(SCHEMA)
+    return conn
+
+
+def _oc_fixture(tmp_path, updated=1700000060000):
+    home = str(Path.home())
+
+    def tool(name, cid):
+        return json.dumps({"type": "tool", "callID": cid, "tool": name,
+                           "state": {"status": "completed", "input": {"filePath": "/x/a.py"},
+                                     "output": "ok", "time": {"start": 1, "end": 6}}})
+    return _oc_db(
+        tmp_path / "opencode.db",
+        [("ses_root", None, f"{home}/project/repo/sub", '{"id":"m0"}', 1.5, 100, 10, 1, 1000, 0,
+          1700000000000, updated),
+         ("ses_child", "ses_root", f"{home}/project/repo", None, 0.5, 50, 5, 0, 500, 0,
+          1700000010000, 1700000020000)],
+        [("msg_u", "ses_root", 1700000000001, json.dumps({"role": "user"})),
+         ("msg_a", "ses_root", 1700000000002, json.dumps({"role": "assistant", "modelID": "deepseek"})),
+         ("msg_c", "ses_child", 1700000010001, json.dumps({"role": "assistant", "modelID": "x"}))],
+        [("p1", "msg_u", "ses_root", 1700000000001, json.dumps({"type": "text", "text": "hi"})),
+         ("p2", "msg_a", "ses_root", 1700000000002, json.dumps({"type": "text", "text": "hello"})),
+         ("p3", "msg_a", "ses_root", 1700000000003, tool("read", "c1")),
+         ("p4", "msg_c", "ses_child", 1700000010002, tool("bash", "c2")),
+         ("p5", "msg_c", "ses_child", 1700000010003, json.dumps({"type": "text", "text": "sub"}))],
+    )
 
 
 def test_import_opencode_no_db_file(monkeypatch):
     from coworker.analytics import auto_import as ai_mod
-    from coworker.analytics.db import SCHEMA
-
-    conn = sqlite3.connect(":memory:")
-    conn.row_factory = sqlite3.Row
-    conn.executescript(SCHEMA)
-
     monkeypatch.setattr(ai_mod, "OPCODE_DB", Path("/nonexistent/opencode.db"))
-
-    result = ai_mod.import_opencode_meta(conn)
-    assert result == 0
-    conn.close()
+    assert ai_mod.import_opencode(_fresh_conn()) == 0
 
 
-def test_import_opencode_with_data(monkeypatch, tmp_path):
+def test_import_opencode_full_session(monkeypatch, tmp_path):
+    """Messages, tool calls, tokens and cost come from opencode.db; the
+    sub-agent session is folded into its root instead of being a session."""
     from coworker.analytics import auto_import as ai_mod
-    from coworker.analytics.db import SCHEMA
+    from coworker.analytics.normalize import utc_iso
+    monkeypatch.setattr(ai_mod, "OPCODE_DB", _oc_fixture(tmp_path))
+    conn = _fresh_conn()
 
-    # Create a temporary opencode.db
-    oc_path = tmp_path / "opencode.db"
-    oc = sqlite3.connect(str(oc_path))
-    oc.execute(
-        "CREATE TABLE IF NOT EXISTS session "
-        "(id TEXT, title TEXT, model TEXT, cost REAL, "
-        "tokens_input INTEGER, tokens_output INTEGER, time_created TEXT)"
-    )
-    oc.execute(
-        "INSERT INTO session (id, title, model, time_created) VALUES (?, ?, ?, ?)",
-        ("oc-sess-1", "Test Session", "gpt-4", "1700000000000"),
-    )
-    oc.execute(
-        "INSERT INTO session (id, title, model, time_created) VALUES (?, ?, ?, ?)",
-        ("oc-sess-2", "", "gpt-4", "1700000001000"),
-    )
-    oc.commit()
-    oc.close()
-
-    conn = sqlite3.connect(":memory:")
-    conn.row_factory = sqlite3.Row
-    conn.executescript(SCHEMA)
-
-    monkeypatch.setattr(ai_mod, "OPCODE_DB", oc_path)
-
-    result = ai_mod.import_opencode_meta(conn)
-    assert result == 1  # only oc-sess-1 (non-empty title)
-
-    s = conn.execute(
-        "SELECT * FROM sessions WHERE id = ?", ("oc-sess-1",)
-    ).fetchone()
-    assert s is not None
-    assert s["ide"] == "opencode"
-    assert s["model"] == "gpt-4"
-    conn.close()
+    assert ai_mod.import_opencode(conn) == 1
+    assert [r[0] for r in conn.execute("SELECT id FROM sessions")] == ["ses_root"]
+    s = conn.execute("SELECT * FROM sessions").fetchone()
+    assert (s["ide"], s["project"], s["model"]) == ("opencode", "repo", "deepseek")
+    assert s["created_at"] == utc_iso(1700000000000)
+    assert s["closed_at"] == utc_iso(1700000060000)
+    tools = conn.execute("SELECT tool, duration_ms FROM tool_calls ORDER BY tool").fetchall()
+    assert [tuple(t) for t in tools] == [("Bash", 5), ("Read", 5)]  # canonical names
+    assert [tuple(m) for m in conn.execute("SELECT type, content FROM messages ORDER BY seq")] == [
+        ("user", "hi"), ("assistant", "hello")]  # the sub-agent's text is not conversation
+    st = conn.execute("SELECT * FROM session_stats").fetchone()
+    assert (st["message_count"], st["tool_count"], st["turn_count"]) == (2, 2, 1)
+    assert (st["tokens_input"], st["tokens_cache_read"], st["cost"]) == (150, 1500, 2.0)
+    # Active minutes between events (all within seconds), not the span to
+    # time_updated.
+    assert st["duration_min"] == 0
 
 
-def test_import_opencode_invalid_timestamp(monkeypatch, tmp_path):
+def test_import_opencode_skips_unchanged_and_reimports_updated(monkeypatch, tmp_path):
     from coworker.analytics import auto_import as ai_mod
-    from coworker.analytics.db import SCHEMA
-
-    oc_path = tmp_path / "opencode_badts.db"
-    oc = sqlite3.connect(str(oc_path))
-    oc.execute(
-        "CREATE TABLE IF NOT EXISTS session "
-        "(id TEXT, title TEXT, model TEXT, cost REAL, "
-        "tokens_input INTEGER, tokens_output INTEGER, time_created TEXT)"
-    )
-    oc.execute(
-        "INSERT INTO session (id, title, model, time_created) VALUES (?, ?, ?, ?)",
-        ("oc-bad-ts", "Bad TS", "gpt-4", "not-a-number"),
-    )
-    oc.commit()
-    oc.close()
-
-    conn = sqlite3.connect(":memory:")
-    conn.row_factory = sqlite3.Row
-    conn.executescript(SCHEMA)
-
-    monkeypatch.setattr(ai_mod, "OPCODE_DB", oc_path)
-
-    result = ai_mod.import_opencode_meta(conn)
-    assert result == 1
-
-    s = conn.execute(
-        "SELECT * FROM sessions WHERE id = ?", ("oc-bad-ts",)
-    ).fetchone()
-    assert s is not None
-    conn.close()
-
-
-def test_import_opencode_no_timestamp(monkeypatch, tmp_path):
-    from coworker.analytics import auto_import as ai_mod
-    from coworker.analytics.db import SCHEMA
-
-    oc_path = tmp_path / "opencode_nots.db"
-    oc = sqlite3.connect(str(oc_path))
-    oc.execute(
-        "CREATE TABLE IF NOT EXISTS session "
-        "(id TEXT, title TEXT, model TEXT, cost REAL, "
-        "tokens_input INTEGER, tokens_output INTEGER, time_created TEXT)"
-    )
-    oc.execute(
-        "INSERT INTO session (id, title, model, time_created) VALUES (?, ?, ?, ?)",
-        ("oc-no-ts", "No TS", "gpt-4", None),
-    )
-    oc.commit()
-    oc.close()
-
-    conn = sqlite3.connect(":memory:")
-    conn.row_factory = sqlite3.Row
-    conn.executescript(SCHEMA)
-
-    monkeypatch.setattr(ai_mod, "OPCODE_DB", oc_path)
-
-    result = ai_mod.import_opencode_meta(conn)
-    assert result == 1
-
-    s = conn.execute(
-        "SELECT * FROM sessions WHERE id = ?", ("oc-no-ts",)
-    ).fetchone()
-    assert s is not None
-    conn.close()
-
-
-def test_import_opencode_skips_existing(monkeypatch, tmp_path):
-    from coworker.analytics import auto_import as ai_mod
-    from coworker.analytics.db import SCHEMA
-
-    oc_path = tmp_path / "opencode_existing.db"
-    oc = sqlite3.connect(str(oc_path))
-    oc.execute(
-        "CREATE TABLE IF NOT EXISTS session "
-        "(id TEXT, title TEXT, model TEXT, cost REAL, "
-        "tokens_input INTEGER, tokens_output INTEGER, time_created TEXT)"
-    )
-    oc.execute(
-        "INSERT INTO session (id, title, model, time_created) VALUES (?, ?, ?, ?)",
-        ("oc-s1", "Existing", "gpt-4", "1700000000000"),
-    )
-    oc.commit()
-    oc.close()
-
-    conn = sqlite3.connect(":memory:")
-    conn.row_factory = sqlite3.Row
-    conn.executescript(SCHEMA)
-    conn.execute(
-        "INSERT INTO sessions (id, ide, created_at) VALUES (?, ?, ?)",
-        ("oc-s1", "opencode", "2025-01-01"),
-    )
-    conn.commit()
-
-    monkeypatch.setattr(ai_mod, "OPCODE_DB", oc_path)
-
-    result = ai_mod.import_opencode_meta(conn)
-    assert result == 0
-    conn.close()
+    monkeypatch.setattr(ai_mod, "OPCODE_DB", _oc_fixture(tmp_path))
+    conn = _fresh_conn()
+    assert ai_mod.import_opencode(conn) == 1
+    assert ai_mod.import_opencode(conn) == 0
+    (tmp_path / "opencode.db").unlink()
+    monkeypatch.setattr(ai_mod, "OPCODE_DB", _oc_fixture(tmp_path, updated=1700000999000))
+    assert ai_mod.import_opencode(conn) == 1
+    assert conn.execute("SELECT COUNT(*) FROM tool_calls").fetchone()[0] == 2  # no duplicates
 
 
 def test_import_opencode_db_error(monkeypatch, tmp_path):
     from coworker.analytics import auto_import as ai_mod
-    from coworker.analytics.db import SCHEMA
+    bad = tmp_path / "opencode_corrupt.db"
+    bad.write_text("not a valid sqlite database")
+    monkeypatch.setattr(ai_mod, "OPCODE_DB", bad)
+    assert ai_mod.import_opencode(_fresh_conn()) == 0
 
-    oc_path = tmp_path / "opencode_corrupt.db"
-    oc_path.write_text("not a valid sqlite database")
 
-    conn = sqlite3.connect(":memory:")
-    conn.row_factory = sqlite3.Row
-    conn.executescript(SCHEMA)
+def test_import_claude_jsonl_ignores_replayed_tool_calls(auto_db, tmp_path):
+    """api-request-blob entries replay earlier tool calls; they are not new calls."""
+    from coworker.analytics.auto_import import import_claude_jsonl
+    call = {"type": "tool_use", "name": "Bash", "id": "t1", "input": {"command": "ls"}}
+    f = _make_jsonl(tmp_path / "s1.jsonl", [
+        {"type": "assistant", "timestamp": "2025-01-01T10:00:00Z", "cwd": "/tmp/p",
+         "message": {"id": "m1", "model": "c", "content": [call],
+                     "usage": {"input_tokens": 3, "output_tokens": 4, "cache_read_input_tokens": 5}}},
+        {"type": "assistant", "timestamp": "2025-01-01T10:00:00Z",
+         "message": {"id": "m1", "model": "c", "content": [{"type": "text", "text": "done"}],
+                     "usage": {"input_tokens": 3, "output_tokens": 4, "cache_read_input_tokens": 5}}},
+        {"type": "api-request-blob", "message": {"content": [call, dict(call, id="t0")]}},
+    ])
+    import_claude_jsonl(f, auto_db)
+    assert auto_db.execute("SELECT COUNT(*) FROM tool_calls").fetchone()[0] == 1
+    st = auto_db.execute("SELECT * FROM session_stats").fetchone()
+    # One API response written as two lines is counted once.
+    assert (st["tool_count"], st["tokens_input"], st["tokens_output"], st["tokens_cache_read"]) == (1, 3, 4, 5)
 
-    monkeypatch.setattr(ai_mod, "OPCODE_DB", oc_path)
 
-    result = ai_mod.import_opencode_meta(conn)
-    assert result == 0
-    conn.close()
+def test_import_claude_jsonl_records_tool_errors(auto_db, tmp_path):
+    from coworker.analytics.auto_import import import_claude_jsonl
+    f = _make_jsonl(tmp_path / "s2.jsonl", [
+        {"type": "assistant", "timestamp": "2025-01-01T10:00:00Z", "cwd": "/tmp/p",
+         "message": {"content": [{"type": "tool_use", "name": "Edit", "id": "e1", "input": {}},
+                                 {"type": "tool_use", "name": "Read", "id": "r1", "input": {}}]}},
+        {"type": "user", "timestamp": "2025-01-01T10:00:01Z",
+         "message": {"content": [
+             {"type": "tool_result", "tool_use_id": "e1", "is_error": True, "content": "not found"},
+             {"type": "tool_result", "tool_use_id": "r1", "content": "file body"}]}},
+    ])
+    import_claude_jsonl(f, auto_db)
+    rows = dict(auto_db.execute("SELECT call_id, is_error FROM tool_calls").fetchall())
+    assert rows == {"e1": 1, "r1": 0}
+    assert auto_db.execute("SELECT result FROM tool_calls WHERE call_id='e1'").fetchone()[0] == "not found"
+
+
+def test_run_once_reimports_changed_transcript(monkeypatch, tmp_path):
+    from coworker.analytics import auto_import as ai_mod
+    conn = _fresh_conn()
+    conn.execute("INSERT INTO sessions (id, ide, created_at) VALUES ('s', 'claude-code', '')")
+    conn.execute("INSERT INTO session_stats (session_id, updated_at) VALUES ('s', '2000-01-01T00:00:00')")
+    proj = tmp_path / "projects" / "p"
+    proj.mkdir(parents=True)
+    _make_jsonl(proj / "s.jsonl", [{"type": "assistant", "timestamp": "2025-01-01T10:00:00Z",
+                                     "cwd": "/tmp/p", "message": {"model": "c", "content": []}}])
+    monkeypatch.setattr(ai_mod, "get_db", lambda: conn)
+    monkeypatch.setattr(ai_mod, "CLAUDE_PROJECTS", tmp_path / "projects")
+    monkeypatch.setattr(ai_mod, "SESSIONS", tmp_path / "none")
+    monkeypatch.setattr(ai_mod, "OPCODE_DB", tmp_path / "none.db")
+    assert ai_mod.run_once()["claude_jsonl"] == 1
+
+
+def test_run_once_skips_opencode_hook_dirs(monkeypatch, tmp_path):
+    from coworker.analytics import auto_import as ai_mod
+    conn = _fresh_conn()
+    sd = tmp_path / "sessions" / "2026-01-01-T000000-abc"
+    sd.mkdir(parents=True)
+    (sd / "session.yaml").write_text('session_id: "2026-01-01-T000000-abc"\nide: "opencode"\ncwd: "/tmp"\n')
+    monkeypatch.setattr(ai_mod, "get_db", lambda: conn)
+    monkeypatch.setattr(ai_mod, "CLAUDE_PROJECTS", tmp_path / "none")
+    monkeypatch.setattr(ai_mod, "SESSIONS", tmp_path / "sessions")
+    monkeypatch.setattr(ai_mod, "OPCODE_DB", tmp_path / "none.db")
+    assert ai_mod.run_once()["claude_hooks"] == 0
 
 
 # ===================================================================
@@ -1008,6 +1007,9 @@ def test_run_once_skips_existing(monkeypatch, tmp_path):
         "INSERT INTO sessions (id, ide, created_at) VALUES (?, ?, ?)",
         ("session-abc", "claude-code", "2025-01-01"),
     )
+    # Imported after the file was last written, so there is nothing new.
+    conn.execute("INSERT INTO session_stats (session_id, updated_at) VALUES (?, ?)",
+                 ("session-abc", "9999-01-01T00:00:00"))
     conn.commit()
 
     projects_dir = tmp_path / "claude_projects"
