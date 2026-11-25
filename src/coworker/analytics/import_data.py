@@ -126,7 +126,10 @@ def import_session(session_dir: Path, conn_or_path=None):
                     # Skip meta, local-command echoes, and system-generated user messages
                     is_real_user = (
                         t == "user"
-                        and d.get("promptSource") == "typed"
+                        # Every source but "system" is the user's: "queued" (written
+                        # mid-turn), "suggestion_accepted", "sdk". "typed" alone
+                        # dropped those.
+                        and d.get("promptSource") != "system"
                         and not d.get("isMeta")                 # system-generated resume/command messages
                     )
                     is_assistant = t == "assistant"

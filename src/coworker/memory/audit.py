@@ -6,6 +6,7 @@ Gap detection identifies missing captures between records.
 
 from __future__ import annotations
 
+import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
@@ -24,6 +25,7 @@ def write_audit_record(
     ms: int,
     status: str,
     ts: str | None = None,
+    reason: str | None = None,
 ) -> None:
     """Append a timestamped audit record to the log file.
 
@@ -36,6 +38,10 @@ def write_audit_record(
         ms: Latency in milliseconds.
         status: ``"ok"`` or ``"error"``.
         ts: ISO-8601 timestamp (auto-generated if None).
+        reason: Why an error happened. JSON-quoted onto the end of the line,
+            so it stays one line and the space-split fields before it keep
+            their positions. Without it an error record said only "error":
+            the exception went to stderr, which the session-end hook discards.
     """
     ts = ts or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     record = AUDIT_LOG_FORMAT.format(
@@ -47,6 +53,8 @@ def write_audit_record(
         ms=ms,
         status=status,
     )
+    if reason:
+        record = record[:-1] + " reason=" + json.dumps(reason[:500], ensure_ascii=False) + "\n"
     # capture passes "~/.coworker/memory/"; Path() does not expand the tilde,
     # so the record landed in a literal `~` directory under the cwd and was
     # committed with the repo.

@@ -1070,3 +1070,21 @@ def test_import_session_keeps_long_raw_message_whole(import_db, tmp_path, monkey
     import_session(d, import_db)
     assert import_db.execute(
         "SELECT length(content) FROM messages WHERE session_id='long-1'").fetchone()[0] == 25000
+
+
+def test_import_session_keeps_queued_prompt(import_db, tmp_path, monkeypatch):
+    """A prompt written while a turn ran is "queued", not "typed"; it is still the user's."""
+    from coworker.analytics.import_data import import_session
+
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    raw_dir = tmp_path / ".claude" / "projects" / "-work-proj"
+    raw_dir.mkdir(parents=True)
+    _make_jsonl(raw_dir / "q-1.jsonl", [
+        {"type": "user", "promptSource": "queued", "timestamp": "t", "message": {"content": "mid-turn"}},
+        {"type": "user", "promptSource": "system", "timestamp": "t", "message": {"content": "<task-notification>"}},
+    ])
+    d = tmp_path / "sess"
+    d.mkdir()
+    (d / "session.yaml").write_text('session_id: "q-1"\ncwd: /work/proj\ncreated: t\n')
+    import_session(d, import_db)
+    assert [r[0] for r in import_db.execute("SELECT content FROM messages WHERE session_id='q-1'")] == ["mid-turn"]

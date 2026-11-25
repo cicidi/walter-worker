@@ -262,3 +262,19 @@ class TestSessionEndHasRoomForItsOwnResponse:
 
         assert result.error is None, result.error
         assert llm.max_tokens >= 4000
+
+
+class TestSessionEndErrorIsAudited:
+    def test_exception_text_reaches_the_audit_log(self, tmp_path):
+        from coworker.memory import capture
+
+        class _LLM:
+            def chat(self, messages, **kw):
+                raise RuntimeError("provider said 429")
+
+        t = tmp_path / "t.txt"
+        t.write_text("x")
+        capture.process_session_end(mem0_client=object(), llm_client=_LLM(), session_id="s1",
+                                    transcript_path=str(t), audit_dir=str(tmp_path))
+        line = (tmp_path / "audit.log").read_text()
+        assert 'error reason="RuntimeError: provider said 429"' in line
