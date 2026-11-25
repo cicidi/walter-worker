@@ -32,14 +32,23 @@ def _list_skills(provenance=None):
     return result
 
 
+# Upper bound for listing a whole mem0 store (get_all defaults to 20). Listing
+# ~2.5k entries takes ~0.1 s.
+_ALL_ENTRIES = 100_000
+
+
 def _count_agent_experiences(mem0_client=None):
-    """Count mem0 entries with agent provenance."""
+    """Count mem0 entries with agent provenance.
+
+    Uses list_entries, not search: search bumps use_count and last_used on
+    every hit, so counting with search(top_k=1000) rewrote 1000 entries per
+    page load (~16 s) and capped the count at 1000.
+    """
     try:
         from coworker.memory.mem0_client import Mem0Client
         if mem0_client is None:
             mem0_client = Mem0Client.from_config()
-        results = mem0_client.search(query=".", filters={"provenance": "agent"}, top_k=1000)
-        return len(results)
+        return len(mem0_client.list_entries(filters={"provenance": "agent"}, top_k=_ALL_ENTRIES))
     except Exception:
         return 0
 
@@ -151,10 +160,10 @@ def query_evolution_experiences(auto_train: bool = True, project: str = "", stat
         filters["provenance"] = "agent"
     if status != "all":
         filters["state"] = status
-    try:
-        raw = mem0.search(query=".", filters=filters, top_k=200)
-    except Exception:
-        return []
+    # list_entries, not search: search bumps use_count/last_used on every hit,
+    # so each page view rewrote 200 entries. Newest first, then the first 200.
+    raw = mem0.list_entries(filters=filters, top_k=_ALL_ENTRIES)
+    raw = sorted(raw, key=lambda r: r.get("created_at") or "", reverse=True)[:200]
     return [
         {
             "id": r.get("id", ""),
