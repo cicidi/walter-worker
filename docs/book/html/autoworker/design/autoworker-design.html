@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auto-worker — Design · design · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/autoworker-prd.html"><span class="tree-ord">1</span>Auto-worker — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/autoworker-decision-history.html"><span class="tree-ord">2</span>Auto-worker — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="autoworker-design.html" aria-current="page"><span class="tree-ord">3</span>Auto-worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/autoworker-impl-plan.html"><span class="tree-ord">4</span>Auto-worker — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/autoworker-test-plan.html"><span class="tree-ord">5</span>Auto-worker — Test Plan</a></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>autoworker</span> / <span>design</span> / <span>Auto-worker — Design</span></nav>
+    <article class="doc" data-doc="autoworker/design/autoworker-design">
+      <header class="doc-head">
+        <p class="eyebrow">autoworker</p>
+        <h1>Auto-worker — Design</h1>
+        <p class="source">Canonical: docs/features/autoworker/design/autoworker-design.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Auto-worker — Design</h2>
+<p>Requirements are in the <a href="../prd/autoworker-prd.html">PRD</a>. Decisions are in the <a href="../decision-history/autoworker-decision-history.html">decision history</a>. Behavior below was read from the code at commit <code>a0f4ce0</code>; where it does not meet a requirement, the gap is an Open Question.</p>
+<h3>Problem Statement</h3>
+<p>Specifications and code drift apart faster than a maintainer can audit them by hand. An AI agent can do the audit, but an unattended agent loop that hides its failures, runs forever, or reports success it did not have is worse than no loop.</p>
+<h3>Solution</h3>
+<p>The Python side is a thin supervisor. It builds a prompt, starts a headless Claude Code session per round with a time limit, appends the session&#x27;s output to a dated state file, and stops on a time budget or a round cap. The audit itself (reading specifications, comparing them with code, fixing, and classifying findings) is done by the agent following the prompt.</p>
+<h3>User Stories</h3>
+<p>The user stories are in the <a href="../prd/autoworker-prd.html#user-stories">PRD</a>.</p>
+<h3>Implementation Decisions</h3>
+<p>The agent runs as <code>claude -p &lt;prompt&gt; --output-format json</code> so the supervisor can read a structured result (<a class="id-ref" href="../decision-history/autoworker-decision-history.html#ARD-B">ARD-B</a>). A missing <code>claude</code> command is a failed round, never a silent fallback to a tool-less mode (<a class="id-ref" href="../decision-history/autoworker-decision-history.html#ARD-C">ARD-C</a>). There is no <code>coworker autoworker</code> command; the two commands are <code>coworker run</code> and <code>coworker find-issues run</code>.</p>
+<h3>Design</h3>
+<h4 id="DSGN-A"><a class="id-ref" href="#DSGN-A">DSGN-A</a> — <code>coworker run</code></h4>
+<p><code>coworker run [--loop] [--max-hours 12] [--project walter-worker]</code> prints a hint and exits 0 without <code>--loop</code>, which implements <a class="id-ref" href="../prd/autoworker-prd.html#PRD-A">PRD-A</a>. <code>--max-hours</code> accepts whole hours only. <code>--max-hours 0</code> runs no round, still writes a completed summary, and exits 0.</p>
+<p>With <code>--loop</code>, the command first imports the memory client, the language-model client, and the analytics database module. The language-model module imports the <code>openai</code> package at load time, and <code>openai</code> is installed only with the <code>memory</code> optional extra in <code>pyproject.toml</code>. Without that extra, the command stops with <code>ModuleNotFoundError: No module named &#x27;openai&#x27;</code> and exit status 1 before any round runs (<a class="id-ref" href="#QUES-G">QUES-G</a>). When the imports succeed, the command tries to set the three up. If any setup step fails, it prints &quot;Running in reduced mode&quot; and continues. None of the three is used by the loop. Setup creates <code>~/.coworker/memory/vector</code> and the analytics database (by default <code>~/.coworker/analytics/analytics.db</code>) only when the <code>mem0</code> package is installed and <code>DEEPSEEK_API_KEY</code> is set. Otherwise the first setup step fails and the later steps are skipped.</p>
+<h4 id="DSGN-B"><a class="id-ref" href="#DSGN-B">DSGN-B</a> — Rounds and stopping</h4>
+<p>Before the first round, the supervisor reads the wrong-history entries in <code>docs/features/self-evolving-agent/wrong-history/entries/</code> under the current folder. It keeps only entries whose severity is critical or high and that state a prevention rule. If at least one kept entry is critical, the supervisor writes every kept rule, critical and high alike, as a delimited block into <code>~/CLAUDE.local.md</code> in the home folder, replacing any earlier block. If no kept entry is critical, nothing is written, even when high entries exist. The lessons that the prompt tells the agent to record use severity high, so they never trigger an injection by themselves.</p>
+<p>This is how <a class="id-ref" href="../prd/autoworker-prd.html#PRD-F">PRD-F</a> is implemented, with two limits. Claude Code reads <code>CLAUDE.local.md</code> files from the working folder and its parent folders, so the block reaches the agent only when the working folder is inside the home folder. An injection error is caught and logged as a warning, and the run continues without the rules (<a class="id-ref" href="#QUES-H">QUES-H</a>).</p>
+<p>Each round starts <code>claude -p</code> in the current folder with a 600-second limit plus 30 seconds of grace. The command passes no permission-mode flag, so the session can use only the tools that the user&#x27;s Claude Code settings already allow (see Risks and Mitigations). The first round&#x27;s prompt asks the agent to audit the project against its specifications, fix real problems, follow eight working rules, and report with the labels DONE_RIGHT, DONE_WRONG, NOT_DONE, and MISMATCH. Every round&#x27;s prompt, not only the first, asks the agent to record a wrong-history entry after each fix.</p>
+<p>Rounds 2 and later start a fresh session whose prompt is only a short follow-up. That prompt carries no mission, no report labels, and no project name. The prior state passed to a round is the state file&#x27;s path plus counts of lines containing <code>| C-</code> (checked items) and <code>| Q-</code> (questions). Neither the supervisor nor the requested report labels produce such lines, so the counts are normally 0. No specification is loaded by the supervisor. <code>--project</code> appears only as text in the first round&#x27;s prompt.</p>
+<p>The loop checks the time budget at the top of each round, so a round can overrun it by up to 630 seconds. It stops after 50 rounds at most and sleeps 60 seconds between rounds when time remains. There is no stop on repeated failures. These rules implement <a class="id-ref" href="../prd/autoworker-prd.html#PRD-B">PRD-B</a>. <a class="id-ref" href="../prd/autoworker-prd.html#PRD-C">PRD-C</a> is met only partly. The specifications reach the agent only through the first round&#x27;s instructions, not as loaded context, and later rounds receive neither the specifications nor those instructions (<a class="id-ref" href="#QUES-C">QUES-C</a>).</p>
+<h4 id="DSGN-C"><a class="id-ref" href="#DSGN-C">DSGN-C</a> — State file and result</h4>
+<p>A successful round appends <code>## Round N Agent Output</code> with the first 5,000 characters of the agent&#x27;s result to <code>docs/features/self-evolving-agent/state/auto-worker-&lt;YYYY-MM-DD&gt;-state.md</code> in the current folder, whatever <code>--project</code> says. A round is successful when <code>claude</code> exits 0. If its output is not JSON, the raw output is recorded as the result. A round counts as a fix when its output contains &quot;fixed&quot; in any letter case or &quot;DONE_RIGHT&quot;, at most one per round. At the end the supervisor replaces every occurrence of the text <code>in_progress</code> in the file with <code>completed</code>, including any in the agent&#x27;s own output. It then appends the rounds, fixes, asked count (always 0), and elapsed time, and prints a one-line summary. A failed round is kept only in memory: it is not written to the state file, not printed, and the command still exits 0. This does not meet <a class="id-ref" href="../prd/autoworker-prd.html#PRD-D">PRD-D</a> (<a class="id-ref" href="#QUES-A">QUES-A</a>). The state folder is not ignored by git (<a class="id-ref" href="#QUES-D">QUES-D</a>).</p>
+<p>The date in the file name is the UTC date at the moment of each write, not the date the run started. A run that crosses UTC midnight therefore splits across two files, and the default 12-hour budget makes this likely. Rounds after midnight and the final summary go to a new file with a fresh header and the status completed. The first file keeps the status <code>in_progress</code> and has no summary. The prior state read by later rounds also switches to the new file (<a class="id-ref" href="#QUES-I">QUES-I</a>).</p>
+<h4 id="DSGN-D"><a class="id-ref" href="#DSGN-D">DSGN-D</a> — <code>coworker find-issues run</code></h4>
+<p><code>find-issues run [--project walter-worker] [--phases all] [--output PATH]</code> writes its report to <code>--output</code>, or by default to <code>docs/features/self-evolving-agent/state/issues-found-&lt;YYYY-MM-DD&gt;-auto.md</code>, overwriting it. An unknown phase name is an error with exit status 1.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Phase</th>
+<th>What it does</th>
+</tr></thead><tbody>
+<tr>
+<td><code>prd</code></td>
+<td>Counts lines in <code>docs/features/&lt;project&gt;/prd/*.md</code> that start with <code>- R</code> or contain <code>R1</code> or <code>R2</code> anywhere</td>
+</tr>
+<tr>
+<td><code>spec</code></td>
+<td>Counts section lines starting <code>## §</code> in <code>docs/features/&lt;project&gt;/spec/*.md</code></td>
+</tr>
+<tr>
+<td><code>web</code></td>
+<td>Writes a fixed note to search the web interactively</td>
+</tr>
+<tr>
+<td><code>code</code></td>
+<td>Runs <code>python3 -m pytest tests/python/ -q --tb=no</code> with a 600-second limit and counts modified files from <code>git status</code></td>
+</tr>
+</tbody></table></div>
+<p>Failing tests make the command write the report and then exit 1; otherwise it exits 0, including when the requirement or specification folders are missing. A test run that exceeds the limit ends the command with an uncaught error before the report is written (<a class="id-ref" href="#QUES-B">QUES-B</a>). An empty <code>--phases</code> value, such as <code>--phases &quot;&quot;</code> or only commas, is accepted. No phase runs, the report holds only its title line, and the command exits 0 (<a class="id-ref" href="#QUES-J">QUES-J</a>).</p>
+<p>The <code>prd</code> and <code>spec</code> phases follow conventions older than the current spec standard (<a class="id-ref" href="#QUES-E">QUES-E</a>). The <code>prd</code> phase reports 0 for a PRD that uses <code>PRD-A</code>-style ids, including this feature&#x27;s own PRD. The <code>spec</code> phase looks for a <code>spec/</code> folder, which the spec standard now calls <code>design/</code>. These rules implement <a class="id-ref" href="../prd/autoworker-prd.html#PRD-E">PRD-E</a>. No phase calls a language model.</p>
+<h4>Sub-problem ownership (子问题归属)</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>子问题</th>
+<th>归属</th>
+<th>依据</th>
+</tr></thead><tbody>
+<tr>
+<td>What the agent may change in the repository</td>
+<td>人决定</td>
+<td>UNKNOWN; set by the user&#x27;s Claude Code permissions, which this repository does not control</td>
+</tr>
+<tr>
+<td>Whether the unused rule classes should be wired in or removed</td>
+<td>人决定</td>
+<td><a class="id-ref" href="#QUES-F">QUES-F</a></td>
+</tr>
+<tr>
+<td>Which project&#x27;s state folder the loop should write to</td>
+<td>AI 查完人决定</td>
+<td><a class="id-ref" href="#QUES-D">QUES-D</a></td>
+</tr>
+</tbody></table></div>
+<h3>Testing Decisions</h3>
+<p>The supervisor&#x27;s agent start is tested with the subprocess replaced; <code>find-issues</code> is tested through the command line. The cases are in the <a href="../test-plan/autoworker-test-plan.html">test plan</a>, which notes that the loop itself has no test.</p>
+<h3>Out of Scope</h3>
+<p>The wrong-history commands are specified in the <a href="../../memory-platform/design/memory-platform-design.html">memory-platform design</a>. The self-evolving-agent feature&#x27;s documents are specified in that feature.</p>
+<h3>Further Notes</h3>
+<p><a href="../../../../../src/coworker/autoworker/rules.py"><code>src/coworker/autoworker/rules.py</code></a> and <code>state.py</code> define gap checks, a requirement auditor, a dead-code detector, and state helpers that have unit tests but no caller in either command. One of them still reads the documentation path from before the move to <code>docs/features/</code>.</p>
+<h3>Alternatives Considered</h3>
+<p>Doing the audit in Python with the rule classes was the earlier direction; the shipped commands delegate it to the agent instead, which can read any document and edit code. Running the agent through an API client without tools was rejected, because an audit that cannot read files or run tests reports nothing real (<a class="id-ref" href="../decision-history/autoworker-decision-history.html#ARD-C">ARD-C</a>).</p>
+<h3>Drawbacks</h3>
+<p>Because the audit lives in a prompt, its quality cannot be tested, and the supervisor&#x27;s &quot;fixed&quot; count is a guess from words in the output. Every round costs a full agent session.</p>
+<h3>Risks and Mitigations</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Risk</th>
+<th>Mitigation</th>
+</tr></thead><tbody>
+<tr>
+<td>The loop runs far longer than intended</td>
+<td>Time budget, 50-round cap, and per-round limit (<a class="id-ref" href="#DSGN-B">DSGN-B</a>)</td>
+</tr>
+<tr>
+<td>Failures look like success</td>
+<td>Not mitigated in the loop today (<a class="id-ref" href="#QUES-A">QUES-A</a>). In <code>find-issues</code>, an empty <code>--phases</code> value also exits 0 (<a class="id-ref" href="#QUES-J">QUES-J</a>).</td>
+</tr>
+<tr>
+<td>The agent makes unwanted changes</td>
+<td>Delegated to the user&#x27;s Claude Code permissions; no dry run exists</td>
+</tr>
+<tr>
+<td>The agent cannot do the work it is asked to do</td>
+<td>Not mitigated. A headless session cannot ask for permission, so any edit or shell command that the user&#x27;s settings do not already allow is refused, and the round may change nothing while still counting as successful.</td>
+</tr>
+</tbody></table></div>
+<h3>Open Questions</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Question</th>
+<th>Answer so far</th>
+<th>Owner</th>
+<th>Blocking</th>
+</tr></thead><tbody>
+<tr>
+<td><strong id="QUES-A"><a class="id-ref" href="#QUES-A">QUES-A</a></strong></td>
+<td>Failed rounds are not recorded or printed, and the run exits 0 even when every round failed, for example when <code>claude</code> is not installed. Record failures and exit non-zero, as <a class="id-ref" href="../prd/autoworker-prd.html#PRD-D">PRD-D</a> requires?</td>
+<td>Found in the code at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><strong id="QUES-B"><a class="id-ref" href="#QUES-B">QUES-B</a></strong></td>
+<td>A test run longer than 600 seconds ends <code>find-issues</code> with an uncaught error and no report. Catch it and report a timeout?</td>
+<td>Found in the code at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-C"><a class="id-ref" href="#QUES-C">QUES-C</a></strong></td>
+<td>The supervisor loads no specification; the agent is only told to read them. Rounds 2 and later also get no mission and no report labels. Load the project&#x27;s specifications as context in every round, as <a class="id-ref" href="../prd/autoworker-prd.html#PRD-C">PRD-C</a> asks, or relax <a class="id-ref" href="../prd/autoworker-prd.html#PRD-C">PRD-C</a>?</td>
+<td>Found in the code at <code>a0f4ce0</code>. The later-round part was added by the 2026-11-24 review.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-D"><a class="id-ref" href="#QUES-D">QUES-D</a></strong></td>
+<td>State always goes to the self-evolving-agent folder in the current directory, whatever <code>--project</code> says, and that folder is not ignored by git. Write per project, and ignore it?</td>
+<td>Found in the code at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-E"><a class="id-ref" href="#QUES-E">QUES-E</a></strong></td>
+<td>The <code>prd</code> phase of <code>find-issues</code> counts lines starting <code>- R</code> or containing <code>R1</code> or <code>R2</code>, and the <code>spec</code> phase looks for <code>spec/</code> and <code>## §</code> headings. The current spec standard uses none of these, so both phases find nothing in documents written to it. Update both phases?</td>
+<td>Found in the code at <code>a0f4ce0</code>. The <code>prd</code> part was added by the 2026-11-24 review.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-F"><a class="id-ref" href="#QUES-F">QUES-F</a></strong></td>
+<td>The rule classes and state helpers are tested but never called. Wire them in, or remove them?</td>
+<td>Found in the code at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-G"><a class="id-ref" href="#QUES-G">QUES-G</a></strong></td>
+<td><code>run --loop</code> imports the <code>openai</code> package before its reduced-mode error handling, so an install without the <code>memory</code> extra stops with <code>ModuleNotFoundError</code> before any round. Move the imports inside the error handling, or declare the extra required?</td>
+<td>Found by the 2026-11-24 review. The crash is visible, not silent. The PRD lists the extra under Resources Needed.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-H"><a class="id-ref" href="#QUES-H">QUES-H</a></strong></td>
+<td>Wrong-history injection needs one critical entry but then writes critical and high rules. It writes to <code>~/CLAUDE.local.md</code>, which reaches the agent only when the working folder is inside the home folder, and an error is only logged. Change the trigger, the content, or the target so <a class="id-ref" href="../prd/autoworker-prd.html#PRD-F">PRD-F</a> holds for every project?</td>
+<td>Found by the 2026-11-24 review. The agent&#x27;s own lessons are recorded as high, so they never trigger an injection.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-I"><a class="id-ref" href="#QUES-I">QUES-I</a></strong></td>
+<td>The state file name uses the UTC date at each write, so a run that crosses UTC midnight splits across two files and leaves the first one <code>in_progress</code> without a summary. Fix the date when the run starts?</td>
+<td>Found by the 2026-11-24 review. No round output is lost.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-J"><a class="id-ref" href="#QUES-J">QUES-J</a></strong></td>
+<td><code>find-issues run --phases &quot;&quot;</code> runs no phase, writes a report with only its title, and exits 0. Treat an empty phase list as an error, as <a class="id-ref" href="../prd/autoworker-prd.html#PRD-E">PRD-E</a> requires for an unknown phase name?</td>
+<td>Found by the 2026-11-24 review. A scheduled job with this value reports success while inspecting nothing.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+</tbody></table></div>
+<h3>Reversibility</h3>
+<p>Stopping the process ends a loop. An interrupt such as Ctrl-C skips the final summary, so the state file keeps the status <code>in_progress</code> and has no summary. The state and report files can be deleted. Changes the agent made are ordinary repository changes, reversible through version control. The block written to <code>~/CLAUDE.local.md</code> must be removed by hand. Setup may also create <code>~/.coworker/memory/vector</code> and the analytics database outside the repository (<a class="id-ref" href="#DSGN-A">DSGN-A</a>). The memory and analytics commands share them, so deleting them affects those commands too.</p>
+<h3>Terms</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Term</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td>Headless session</td>
+<td>A Claude Code run started with <code>-p</code>, which executes one prompt and exits without an interactive window</td>
+</tr>
+<tr>
+<td>Round</td>
+<td>One headless session and the recording of its output</td>
+</tr>
+<tr>
+<td>Wrong-history</td>
+<td>A folder of recorded past mistakes and the rules learned from them</td>
+</tr>
+</tbody></table></div>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Version</th>
+<th>Date</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td>0.1</td>
+<td>2026-11-04</td>
+<td>Draft (never committed)</td>
+</tr>
+<tr>
+<td>0.2</td>
+<td>2026-11-24</td>
+<td>Rewritten from the code at <code>a0f4ce0</code> with the 13 required sections; gaps recorded as <a class="id-ref" href="#QUES-A">QUES-A</a> to <a class="id-ref" href="#QUES-F">QUES-F</a> (<a class="id-ref" href="../decision-history/autoworker-decision-history.html#ARD-A">ARD-A</a>, <a class="id-ref" href="../decision-history/autoworker-decision-history.html#ARD-D">ARD-D</a>)</td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>2026-11-24</td>
+<td>Review fixes: the <code>openai</code> crash, the injection rule and its limits, the <code>prd</code> phase rule, the UTC-midnight split, later-round prompts, empty <code>--phases</code>, Ctrl-C, headless permissions; <a class="id-ref" href="#QUES-G">QUES-G</a> to <a class="id-ref" href="#QUES-J">QUES-J</a> added, <a class="id-ref" href="#QUES-C">QUES-C</a> and <a class="id-ref" href="#QUES-E">QUES-E</a> widened (<a class="id-ref" href="../decision-history/autoworker-decision-history.html#ARD-D">ARD-D</a>, <a class="id-ref" href="../decision-history/autoworker-decision-history.html#ARD-E">ARD-E</a>)</td>
+</tr>
+</tbody></table></div>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../decision-history/autoworker-decision-history.html"><span class="label">Previous</span>Auto-worker — Decision History</a><a class="next" href="../impl-plan/autoworker-impl-plan.html"><span class="label">Next</span>Auto-worker — Implementation Plan</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

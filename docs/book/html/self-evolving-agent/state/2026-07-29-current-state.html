@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Self-Evolving Agent — Current State · state · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/dashboard-ui-prd.html">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-29-devil-advocate-reviews-summary.html">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/auto-worker-design.html">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/dashboard-design.html">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/qa-autonomous-agent-design.html">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../INDEX.html">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/band-ai-docs.html">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-agent-README.html">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-ai-docs.html">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-README.html">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-docs.html">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-agent-README.html">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/pioneer-docs.html">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/memory-graph-spec.html">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/qa-autonomous-agent-spec.html">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/self-evolving-agent-spec.html">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-29-current-state.html" aria-current="page">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-dashboard-data-not-verified.html">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../impl-plan/self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../impl-plan/dependency-and-sequencing-impl-plan.html">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/qa-autonomous-agent-impl-plan.html">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/self-evolving-agent-test-plan.html"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/2026-07-29-test-execution-report.html">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-graph-test-plan.html">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>state</span> / <span>Self-Evolving Agent — Current State</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/state/2026-07-29-current-state">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>Self-Evolving Agent — Current State</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/state/2026-07-29-current-state.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Self-Evolving Agent — Current State</h2>
+<p><strong>Date:</strong> 2026-07-29 <strong>Initiative:</strong> self-evolving-agent <strong>Status:</strong> <strong>Steady state</strong> -- Memory platform Waves 1-4 complete. Auto-worker operational. Waves 5-7 (Dashboard, Auto-Worker full, Hooks) deferred.</p>
+<hr>
+<h3>1. Current Status</h3>
+<h4>Delivered</h4>
+<ul>
+<li><strong>Memory platform</strong> (Waves 1-4): 9 modules, 143 tests passing</li>
+<li><strong>Auto-worker</strong> (Round 1-19 + loop mode): Bug-fix loop operational, 101 issues found, 47 fixed</li>
+<li><strong>Dashboard</strong> (basic): 21 API endpoints / 200, frontend JS 566 lines / CSS 443 lines, up on port 8099</li>
+<li><strong>Design docs</strong>: PRD v4, spec, design (Guild-aligned), impl-plan, dependency-and-sequencing decision</li>
+</ul>
+<h4>In Progress / Deferred</h4>
+<ul>
+<li>Waves 5-7: Dashboard full frontend, Auto-Worker state/rules/engine, Hook configuration + E2E -- deferred</li>
+<li>Memory training pipeline backfill: summaries at 9.3% coverage (needs <code>coworker memory train</code>)</li>
+<li>Validate.py test coverage: untested module (T-4 gap)</li>
+</ul>
+<h4>Blocked / Risk</h4>
+<ul>
+<li>Guild OSS + Jam.dev MCP not installed (Path 1b foundation never done -- design chose Guild but never spiked it)</li>
+<li>Execution-model ambiguity: QA orchestrator as Python pipeline vs. Claude Code agent skill never resolved</li>
+<li>Spec still references FTS5 in 3 spots (never aligned to Guild)</li>
+</ul>
+<hr>
+<h3>2. Architecture Delivered (Waves 1-4)</h3>
+<pre><code>src/coworker/memory/
+├── __init__.py       # Module init, public exports
+├── llm.py            # DeepSeek-v4-Flash + Gemini fallback, reasoning token handling
+├── mem0_client.py    # mem0 v2 CRUD wrapper, fastembed (BGE-small, 384-dim)
+├── audit.py          # Audit trail (write records, gap detection)
+├── capture.py        # Per-turn extraction + session-end reconciliation
+├── engine.py         # Evolution engine (extract_and_store, reconcile)
+├── inject.py         # CLAUDE.local.md snapshot injection
+├── pending.py        # Staged skill review queue (approve/reject/expire, auto-promote)
+├── curator.py        # Periodic maintenance (stale/archive/export, recency-weighted scoring)
+├── train.py          # Batch training pipeline
+├── errors.py         # Error classes
+├── metrics.py        # Metrics tracking
+├── safety.py         # Safety guard
+├── validate.py       # Validation module (untested)
+└── wrong_history.py  # Auto-record wrong-history entries after fixes</code></pre>
+<pre><code>src/coworker/autoworker/
+├── __init__.py
+├── engine.py         # Auto-worker fix loop engine
+├── rules.py          # Auto-worker rules (24 tests)
+└── state.py          # Auto-worker state tracking (24 tests)</code></pre>
+<h4>Wave Summary</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Wave</th>
+<th>Scope</th>
+<th>Tests</th>
+<th>Status</th>
+</tr></thead><tbody>
+<tr>
+<td>Wave 1</td>
+<td>Foundation: LLM client + mem0 substrate</td>
+<td>60</td>
+<td>Complete</td>
+</tr>
+<tr>
+<td>Wave 2</td>
+<td>Capture layer: audit + per-turn extraction</td>
+<td>17</td>
+<td>Complete</td>
+</tr>
+<tr>
+<td>Wave 3</td>
+<td>Evolution engine: engine + inject + pending</td>
+<td>29</td>
+<td>Complete</td>
+</tr>
+<tr>
+<td>Wave 4</td>
+<td>Curator + Training pipeline</td>
+<td>8</td>
+<td>Complete</td>
+</tr>
+<tr>
+<td>Wave 5</td>
+<td>Dashboard API + frontend</td>
+<td>N/A</td>
+<td>Deferred (partial)</td>
+</tr>
+<tr>
+<td>Wave 6</td>
+<td>Auto-worker state/rules/engine</td>
+<td>N/A</td>
+<td>Deferred (partial)</td>
+</tr>
+<tr>
+<td>Wave 7</td>
+<td>Hook config + E2E deploy</td>
+<td>N/A</td>
+<td>Deferred</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>3. Key Metrics</h3>
+<h4>Test Coverage</h4>
+<ul>
+<li><strong>143 tests</strong> (119 core memory + 24 autoworker)</li>
+<li>Tier 1 (deterministic fixed-scenario): 143/143 passed</li>
+<li>Tier 2 (simulated LLM): Deferred -- requires session simulation infra</li>
+<li>Tier 3 (quality judge Agent-D): Not yet applied</li>
+</ul>
+<h4>Test File Breakdown</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Test File</th>
+<th>Tests</th>
+<th>Type</th>
+</tr></thead><tbody>
+<tr>
+<td>test_llm.py</td>
+<td>17</td>
+<td>12 unit + 5 real (DeepSeek v4 Flash)</td>
+</tr>
+<tr>
+<td>test_mem0_client.py</td>
+<td>43</td>
+<td>All real (mem0 + fastembed + Qdrant)</td>
+</tr>
+<tr>
+<td>test_audit.py</td>
+<td>10</td>
+<td>All unit</td>
+</tr>
+<tr>
+<td>test_inject.py</td>
+<td>11</td>
+<td>All unit (mock mem0)</td>
+</tr>
+<tr>
+<td>test_pending.py</td>
+<td>11</td>
+<td>All unit</td>
+</tr>
+<tr>
+<td>test_curator.py</td>
+<td>8</td>
+<td>All unit (mock mem0)</td>
+</tr>
+<tr>
+<td>test_engine.py</td>
+<td>7</td>
+<td>5 unit + 2 real</td>
+</tr>
+<tr>
+<td>test_capture.py</td>
+<td>7</td>
+<td>4 unit + 3 real</td>
+</tr>
+<tr>
+<td>test_errors.py</td>
+<td>+14</td>
+<td>Unit</td>
+</tr>
+<tr>
+<td>test_metrics.py</td>
+<td>+ included</td>
+<td>Unit</td>
+</tr>
+<tr>
+<td>test_train.py</td>
+<td>+ included</td>
+<td>Unit</td>
+</tr>
+<tr>
+<td>test_wrong_history.py</td>
+<td>+5</td>
+<td>Unit</td>
+</tr>
+<tr>
+<td>test_autoworker_state.py</td>
+<td>12</td>
+<td>Unit</td>
+</tr>
+<tr>
+<td>test_autoworker_rules.py</td>
+<td>12</td>
+<td>Unit</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>143</strong></td>
+<td></td>
+</tr>
+</tbody></table></div>
+<h4>Dashboard Health</h4>
+<ul>
+<li>Sessions: 569, Messages: 6,897, Tools: 12,110, Skills: 28</li>
+<li>Projects: 17, Models: 22, Project coverage: 28.3%</li>
+<li>All 21 API endpoints return 200</li>
+<li>Frontend: JS 566 lines (55 functions), CSS 443 lines, init+expand OK</li>
+</ul>
+<h4>Data Quality</h4>
+<ul>
+<li>Project coverage: 28.3% (&lt;50% threshold)</li>
+<li>Summaries: 53 (9.3% coverage -- LOW, needs <code>coworker memory train</code>)</li>
+<li>Knowledge entries: 7</li>
+<li>Initiatives: 6</li>
+<li>Cache hit rate: DeepSeek 97.8%, GPT 75.1%</li>
+</ul>
+<hr>
+<h3>4. Active Issues (remaining)</h3>
+<h4>HIGH</h4>
+<ul>
+<li><strong>S-2</strong>: Validate harness (memory/engine input validation)</li>
+<li><strong>S-3</strong>: Skill patching (auto-apply skill updates)</li>
+<li><strong>W-6</strong>: Benchmark (performance benchmarks for memory ops)</li>
+</ul>
+<h4>MEDIUM</h4>
+<ul>
+<li><strong>S-1</strong>: Training dashboard (UI for training pipeline)</li>
+<li><strong>W-3</strong>: Spend alerts (cost monitoring)</li>
+</ul>
+<h4>LOW</h4>
+<ul>
+<li><strong>W-4</strong>: OTel config (OpenTelemetry integration)</li>
+<li><strong>P-2</strong>: Dashboard completeness (full frontend for Waves 5-7)</li>
+</ul>
+<h4>Design-Level (not auto-fixable)</h4>
+<ul>
+<li>Guild feasibility spike never done (Path 1b foundation risk)</li>
+<li>Spec Guild alignment (3 FTS5 references need migration)</li>
+<li>Execution-model question (Python pipeline vs. Claude Code agent skill)</li>
+<li>Self-evolution engine (the actual &quot;越来越好用&quot; body) at 0% -- only memory platform built</li>
+<li>PRD hook architecture: 5 technical errors to fix before engine use</li>
+</ul>
+<hr>
+<h3>5. Historical Timeline</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Date</th>
+<th>Milestone</th>
+</tr></thead><tbody>
+<tr>
+<td>2026-07-24</td>
+<td><strong>Design review</strong>: Advocate review of PRD/spec/design. 6 broken cross-refs fixed. Chose Path 1b (Guild OSS + Jam.dev MCP). 9 feasibility risks cataloged. Guild uninstalled. Execution model ambiguous.</td>
+</tr>
+<tr>
+<td>2026-07-25 AM</td>
+<td><strong>Wave 1 (Foundation)</strong>: llm.py (120 lines) + mem0_client.py (190 lines). DeepSeek v4 Flash + Gemini 2.5 Flash fallback. fastembed (BGE-small, 384-dim). 60/60 tests passing. 6 issues resolved (model names, reasoning tokens, mem0 v2 API, fastembed switch, Qdrant locks, empty LLM extraction).</td>
+</tr>
+<tr>
+<td>2026-07-25 PM</td>
+<td><strong>Waves 2-4 (Capture + Engine + Curator)</strong>: audit.py, capture.py, engine.py, inject.py, pending.py, curator.py, train.py. 114/114 tests passing. Commit: <code>fb7018b feat(memory): mem0 substrate + DeepSeek LLM client</code>.</td>
+</tr>
+<tr>
+<td>2026-07-26</td>
+<td><strong>Auto-worker Rounds 1-19</strong>: Bug-fix loop operational. Dashboard CSS/JS restored from overwrite (Write tool regression). Tests expanded 100-&gt;143. Wrong-history entries auto-recorded. Commit: <code>d3d59a2</code>. System reaches steady state.</td>
+</tr>
+<tr>
+<td>2026-07-27</td>
+<td><strong>Auto-worker loop mode</strong>: Rounds 1-2 loop-mode. 4 API 500 errors fixed (FIX-2 through FIX-5). Data validation skill applied. Pending.py skill promotion wired (C-1). Cache hit rate added to Dashboard (W-2). Tests 770/770 in full suite. All 21 endpoints /200.</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>6. Key Design Decisions</h3>
+<ol>
+<li><strong>fastembed over HuggingFace</strong>: Avoids PyTorch DTensor compatibility issues. ONNX runtime, no GPU needed.</li>
+<li><strong>Embedded Qdrant</strong>: <code>embedding_model_dims=384</code> explicitly configured. Session-scoped MEM0_DIR for test isolation.</li>
+<li><strong>mem0 v2 API</strong>: <code>{&quot;results&quot;: [...]}</code> dict format, <code>openai_base_url</code> (not <code>base_url</code>), mandatory <code>user_id</code> in search filters.</li>
+<li><strong>DeepSeek v4 reasoning tokens</strong>: Fallback to <code>reasoning_content</code> when <code>content</code> is empty.</li>
+<li><strong>Anthropic removed from fallback</strong>: No OpenAI-compatible endpoint. Chain: DeepSeek v4 Flash -&gt; Gemini 2.5 Flash.</li>
+<li><strong>Pending queue</strong>: File-based JSON (<code>~/.coworker/pending/skills/</code>). 30-day auto-expire. Approve promotes to <code>~/.coworker/skills/</code>.</li>
+<li><strong>Frozen snapshot</strong>: mem0 -&gt; CLAUDE.local.md injection between <code>&lt;!-- MEMORY:project START/END --&gt;</code> markers. Replaced at session start.</li>
+<li><strong>Wrong-history auto-recording</strong>: Engine instructs agents to record after each fix via <code>wrong_history.py</code>.</li>
+</ol>
+<hr>
+<h3>7. Wrong-History Rules Active (3 critical)</h3>
+<p>From 2026-07-25/26 incidents:</p>
+<ol>
+<li><strong>NEVER use Write tool on existing files</strong> -- always use Edit with old_string/new_string</li>
+<li><strong>After Edit at end of file</strong>, verify original last-line initialization preserved with <code>tail -3</code></li>
+<li><strong>Never claim dashboard data is OK just because API returns non-empty</strong> -- trace to source of truth</li>
+</ol>
+<hr>
+<h3>8. Commits</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Commit</th>
+<th>Message</th>
+</tr></thead><tbody>
+<tr>
+<td><code>fb7018b</code></td>
+<td>feat(memory): mem0 substrate + DeepSeek LLM client -- Wave 1 foundation</td>
+</tr>
+<tr>
+<td><code>d3d59a2</code></td>
+<td>Auto-worker fixes: API endpoint repairs, data validation, pending promotion</td>
+</tr>
+<tr>
+<td><code>c95db93</code></td>
+<td>feat: add --min-score filter for vector/mem0 results (default 0.3)</td>
+</tr>
+<tr>
+<td><code>2c99c43</code></td>
+<td>feat: add full-text message search to memory query</td>
+</tr>
+<tr>
+<td><code>b3d556c</code></td>
+<td>fix: add source tag to graph results in both mode</td>
+</tr>
+<tr>
+<td><code>30157e1</code></td>
+<td>fix: increase MAX_SEEDS 3-&gt;5, MAX_DEPTH 3-&gt;6, remove edge filter</td>
+</tr>
+<tr>
+<td><code>78d2b32</code></td>
+<td>feat: token budget instead of hard top_k for query output</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>Dependencies</h3>
+<pre><code>openai&gt;=2.0
+mem0ai&gt;=2.0
+fastembed
+qdrant-client</code></pre>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../spec/self-evolving-agent-spec.html"><span class="label">Previous</span>Self-Evolving Agent — Memory Platform Spec</a><a class="next" href="../wrong-history/INDEX.html"><span class="label">Next</span>Wrong History — Index</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

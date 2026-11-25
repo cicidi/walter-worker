@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Decision Record — 2026-06-23 · decision-history · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/walter-worker-prd.html"><span class="tree-ord">1</span>walter-worker — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-core-prd.html">Core CLI &amp; Initiative System PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-dashboard-prd.html">Dashboard PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-knowledge-skill-prd.html">Knowledge Skill PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/ai-coworker-prd.html">walter-worker PRD</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="walter-worker-decision-history.html"><span class="tree-ord">2</span>walter-worker — Decision History</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="2025-04-10-integrate-loop-engineering-framework-by-running-lo-decision.html">Decision Record — 2025-04-10</a></li><li class="tree-leaf"><a class="tree-link" href="2026-03-30-feat-initial-commit--unified-ai-coworker-dev-env-decision.html">Decision Record — 2026-03-30</a></li><li class="tree-leaf"><a class="tree-link" href="2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.html">Decision Record — 2026-05-01</a></li><li class="tree-leaf"><a class="tree-link" href="2026-05-06-feat-add-skill-meta-import-skill--import-externa-decision.html">Decision Record — 2026-05-06</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.html">Decision Record — 2026-06-11</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-12-feat-add-opencode-context-injection-initiativema-decision.html">Decision Record — 2026-06-12</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.html">Decision Record — 2026-06-16</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-23-chore-remove-self-strain-decision.html" aria-current="page">Decision Record — 2026-06-23</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-24-chore-review-fixes--broken-refs-tests-docs-ch-decision.html">Decision Record — 2026-06-24</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-30-fix-deploy-ai-coworker-skills-to-opencode-skill-d-decision.html">Decision Record — 2026-06-30</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.html">Decision Record — 2026-07-02</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.html">Decision Record — 2026-07-07</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.html">Decision Record — 2026-07-08</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.html">Decision Record — 2026-07-10</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-13-feat-add-emoji-and-color-coded-fields-to-tmux-sta-decision.html">Decision Record — 2026-07-13</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-17-docs-add-doc-organize--indexmd-refs-to-claudem-decision.html">Decision Record — 2026-07-17</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.html">Decision Record — 2026-07-24</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-25-fixdashboard-restore-original-css-420442-line-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="unknown-remove-budget-related-features-from-prd-budget-fl-decision.html">Decision Record — unknown</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../design/walter-worker-design.html"><span class="tree-ord">3</span>walter-worker — Design</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../design/ai-coworker-design.html">walter-worker Design</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-analytics-dashboard-superpowers.html">Analytics Listener + Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-analytics-listener-design.html">Analytics Listener — Design Document</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-core-architecture-design.html">Core Architecture Design</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-feature-tracker.html">Feature Tracker</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-planning-hub.html">Planning Hub</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-09-25-deletion-list.html">Deletion List — 2026-09-25</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/2026-06-12-initiative-project-level-design.html">Initiative — Global to Project-Level Design</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/ai-coworker-spec.html">walter-worker Technical Specification</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-26-decision-timeline.html">Decision Timeline — walter-worker</a></li><li class="tree-leaf"><a class="tree-link" href="../work-review/2026-06-11-analytics-dashboard/acceptance.html">Analytics Dashboard — Acceptance Review</a></li><li class="tree-leaf"><a class="tree-link" href="../work-review/2026-06-11-analytics-dashboard/report.html">Acceptance Report — Analytics Dashboard</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/walter-worker-impl-plan.html"><span class="tree-ord">4</span>walter-worker Implementation Plan</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/walter-worker-test-plan.html"><span class="tree-ord">5</span>walter-worker — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/ai-coworker-test-plan.html">walter-worker Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><span class="tree-link"><span class="tree-ord">10</span>sub-feature</span></summary><ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/analytics-dashboard/design/analytics-dashboard-design.html">analytics-dashboard</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/prd/analytics-dashboard-prd.html"><span class="tree-ord">1</span>Analytics Dashboard — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/decision-history/analytics-dashboard-decision-history.html"><span class="tree-ord">2</span>Analytics Dashboard — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/design/analytics-dashboard-design.html"><span class="tree-ord">3</span>Analytics Dashboard — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/impl-plan/analytics-dashboard-impl-plan.html"><span class="tree-ord">4</span>Analytics Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/test-plan/analytics-dashboard-test-plan.html"><span class="tree-ord">5</span>Analytics Dashboard — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/analytics-listener/design/analytics-listener-design.html">analytics-listener</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/prd/analytics-listener-prd.html"><span class="tree-ord">1</span>Analytics Listener — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/decision-history/analytics-listener-decision-history.html"><span class="tree-ord">2</span>Analytics Listener — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/design/analytics-listener-design.html"><span class="tree-ord">3</span>Analytics Listener — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/impl-plan/analytics-listener-impl-plan.html"><span class="tree-ord">4</span>Analytics Listener — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/test-plan/analytics-listener-test-plan.html"><span class="tree-ord">5</span>Analytics Listener — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/core-cli/design/core-cli-design.html">core-cli</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/prd/core-cli-prd.html"><span class="tree-ord">1</span>Core CLI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/decision-history/core-cli-decision-history.html"><span class="tree-ord">2</span>Core CLI — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/design/core-cli-design.html"><span class="tree-ord">3</span>Core CLI — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/impl-plan/core-cli-impl-plan.html"><span class="tree-ord">4</span>Core CLI — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/test-plan/core-cli-test-plan.html"><span class="tree-ord">5</span>Core CLI — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/feature-system/design/feature-system-design.html">feature-system</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/prd/feature-system-prd.html"><span class="tree-ord">1</span>Feature System — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/decision-history/feature-system-decision-history.html"><span class="tree-ord">2</span>Feature System — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/design/feature-system-design.html"><span class="tree-ord">3</span>Feature System — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/impl-plan/feature-system-impl-plan.html"><span class="tree-ord">4</span>Feature System — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/test-plan/feature-system-test-plan.html"><span class="tree-ord">5</span>Feature System — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/setup-deploy/design/setup-deploy-design.html">setup-deploy</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/prd/setup-deploy-prd.html"><span class="tree-ord">1</span>Setup and Deploy — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/decision-history/setup-deploy-decision-history.html"><span class="tree-ord">2</span>Setup and Deploy — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/design/setup-deploy-design.html"><span class="tree-ord">3</span>Setup and Deploy — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/impl-plan/setup-deploy-impl-plan.html"><span class="tree-ord">4</span>Setup and Deploy — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/test-plan/setup-deploy-test-plan.html"><span class="tree-ord">5</span>Setup and Deploy — Test Plan</a></li></ul></details></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>walter-worker</span> / <span>decision-history</span> / <span>Decision Record — 2026-06-23</span></nav>
+    <article class="doc" data-doc="walter-worker/decision-history/2026-06-23-chore-remove-self-strain-decision">
+      <header class="doc-head">
+        <p class="eyebrow">walter-worker</p>
+        <h1>Decision Record — 2026-06-23</h1>
+        <p class="source">Canonical: docs/features/walter-worker/decision-history/2026-06-23-chore-remove-self-strain-decision.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Decision Record — 2026-06-23</h2>
+<blockquote class="callout" data-label="NOTE"><p>Project: walter-worker Decisions: 37</p></blockquote>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Date</th>
+<th>Change</th>
+</tr></thead><tbody>
+<tr>
+<td>2026-07-26</td>
+<td>Auto-generated from session analysis</td>
+</tr>
+</tbody></table></div>
+<h3>Decisions</h3>
+<h4>1. chore: remove self-strain</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T23:28:03-07:00</li>
+<li><strong>Context</strong>: git commit f342761c</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>f342761c</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>2. refactor: rename self-patch to english-grammar-fix</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T23:26:25-07:00</li>
+<li><strong>Context</strong>: git commit be857b45</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>be857b45</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>3. chore: delete connect-* integration skills</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T23:23:57-07:00</li>
+<li><strong>Context</strong>: git commit d5058d63</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>d5058d63</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>4. chore: delete gate-review, gate-ship, gate-tests</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T23:22:35-07:00</li>
+<li><strong>Context</strong>: git commit e2e56c14</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>e2e56c14</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>5. chore: gitignore .claude/hooks/</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T23:22:25-07:00</li>
+<li><strong>Context</strong>: git commit 953f4d13</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>953f4d13</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>6. docs: remove 5-stage pipeline from CLAUDE.md</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T23:22:14-07:00</li>
+<li><strong>Context</strong>: git commit 5d56b85c</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>5d56b85c</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>7. chore: delete flow-* development pipeline skills</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T23:21:14-07:00</li>
+<li><strong>Context</strong>: git commit feea84bd</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>feea84bd</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>8. chore: delete doc-review skill</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T23:18:59-07:00</li>
+<li><strong>Context</strong>: git commit bbb04a94</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>bbb04a94</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>9. refactor: bug-hunt — collect first, then reason with evidence</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T23:18:11-07:00</li>
+<li><strong>Context</strong>: git commit f8b7ffb6</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>f8b7ffb6</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>10. refactor: merge bug-sleuth into bug-hunt</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T23:16:30-07:00</li>
+<li><strong>Context</strong>: git commit af88df6e</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>af88df6e</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>11. refactor: bug-report supports any repo via project catalog</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T23:15:19-07:00</li>
+<li><strong>Context</strong>: git commit 6511f376</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>6511f376</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>12. refactor: merge bug-create into bug-report — unified issue creation</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T23:14:57-07:00</li>
+<li><strong>Context</strong>: git commit 4285718b</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>4285718b</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>13. feat: global self-heal hooks for Claude Code + OpenCode, project-level traces</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T23:09:53-07:00</li>
+<li><strong>Context</strong>: git commit 45e9edf0</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>45e9edf0</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>14. feat: rewrite self-heal + self-analyze — project-level traces, auto-hook, inject to CLAUDE.md</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T23:08:15-07:00</li>
+<li><strong>Context</strong>: git commit 5138ea3e</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>5138ea3e</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>15. feat: add session-memory skill to walter-worker skills/</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T22:57:54-07:00</li>
+<li><strong>Context</strong>: git commit bf28b735</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>bf28b735</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>16. feat: track file reads per session, distinguish skill vs prompt</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T22:54:46-07:00</li>
+<li><strong>Context</strong>: git commit 35da1c8e</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>35da1c8e</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>17. refactor: store session metadata only, not raw messages</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T22:53:40-07:00</li>
+<li><strong>Context</strong>: git commit 8015aad1</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>8015aad1</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>18. feat: import Claude Code native JSONL sessions (full messages + tool calls)</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T22:52:57-07:00</li>
+<li><strong>Context</strong>: git commit 0b57ec39</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>0b57ec39</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>19. fix: remove 8000 char truncation on OpenCode message import</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T22:52:11-07:00</li>
+<li><strong>Context</strong>: git commit 1ea3c484</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>1ea3c484</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>20. refactor: use DB as checkpoint, support incremental session updates</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T22:50:06-07:00</li>
+<li><strong>Context</strong>: git commit 6a642a28</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>6a642a28</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>21. feat: ask for DeepSeek API key during init, save to .local_config.yaml</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T22:48:09-07:00</li>
+<li><strong>Context</strong>: git commit 267ed5b0</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>267ed5b0</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>22. feat: add analytics auto-import daemon with checkpoint</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T22:46:54-07:00</li>
+<li><strong>Context</strong>: git commit cdf88052</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>cdf88052</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>23. docs: add analytics/memory/autonomous-agent roadmap to docs</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T22:33:46-07:00</li>
+<li><strong>Context</strong>: git commit c7660be2</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>c7660be2</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>24. docs: rewrite README and blueprint — walter-worker is context manager, not dev tool</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T22:32:52-07:00</li>
+<li><strong>Context</strong>: git commit 59067677</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>59067677</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>25. docs: rewrite blueprint and README for current architecture</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T22:29:48-07:00</li>
+<li><strong>Context</strong>: git commit e55482c6</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>e55482c6</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>26. docs: add README with install and usage guide</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T22:29:06-07:00</li>
+<li><strong>Context</strong>: git commit f8f7b302</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>f8f7b302</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>27. chore: remove personal/skills-backup-2026-05-01</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T22:28:00-07:00</li>
+<li><strong>Context</strong>: git commit a9f48e17</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>a9f48e17</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>28. feat: auto-scan in coworker init — detect language, deps, IDE, generate config</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T22:27:45-07:00</li>
+<li><strong>Context</strong>: git commit f9d30bf9</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>f9d30bf9</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>29. refactor: replace flat coworker-init.md with skills/init/SKILL.md</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T22:23:01-07:00</li>
+<li><strong>Context</strong>: git commit f849a7fd</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>f849a7fd</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>30. chore: remove install and import-mcp commands and skills</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T22:21:46-07:00</li>
+<li><strong>Context</strong>: git commit 796f29db</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>796f29db</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>31. feat: add 18 CLI command skills (analytics, initiative, project, status)</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T22:19:40-07:00</li>
+<li><strong>Context</strong>: git commit 1e2bddb1</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>1e2bddb1</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>32. chore: remove personal/skills/ from walter-worker, skills live in skill-factory</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T22:14:52-07:00</li>
+<li><strong>Context</strong>: git commit 1989bb09</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>1989bb09</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>33. chore: remove global/ directory</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T22:14:18-07:00</li>
+<li><strong>Context</strong>: git commit 28c0f1df</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>28c0f1df</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>34. chore: remove .mcp.json, add to gitignore</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T22:13:09-07:00</li>
+<li><strong>Context</strong>: git commit 0f5824bf</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>0f5824bf</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>35. refactor: rename all skills to new naming scheme</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T22:10:41-07:00</li>
+<li><strong>Context</strong>: git commit b22a2b8c</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>b22a2b8c</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>36. refactor: rename setup-coworker to init, delete duplicate create-skill files</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T22:07:17-07:00</li>
+<li><strong>Context</strong>: git commit 47740a4d</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>47740a4d</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>37. chore: remove docs/ and global/skills/commit/ from tracking, add to gitignore</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-06-23T21:54:08-07:00</li>
+<li><strong>Context</strong>: git commit c114ee45</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>c114ee45</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.html"><span class="label">Previous</span>Decision Record — 2026-06-16</a><a class="next" href="2026-06-24-chore-review-fixes--broken-refs-tests-docs-ch-decision.html"><span class="label">Next</span>Decision Record — 2026-06-24</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

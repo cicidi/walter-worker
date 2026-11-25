@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>walter-worker Test Plan · test-plan · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/walter-worker-prd.html"><span class="tree-ord">1</span>walter-worker — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-core-prd.html">Core CLI &amp; Initiative System PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-dashboard-prd.html">Dashboard PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-knowledge-skill-prd.html">Knowledge Skill PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/ai-coworker-prd.html">walter-worker PRD</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../decision-history/walter-worker-decision-history.html"><span class="tree-ord">2</span>walter-worker — Decision History</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../decision-history/2025-04-10-integrate-loop-engineering-framework-by-running-lo-decision.html">Decision Record — 2025-04-10</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-03-30-feat-initial-commit--unified-ai-coworker-dev-env-decision.html">Decision Record — 2026-03-30</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.html">Decision Record — 2026-05-01</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-05-06-feat-add-skill-meta-import-skill--import-externa-decision.html">Decision Record — 2026-05-06</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.html">Decision Record — 2026-06-11</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-12-feat-add-opencode-context-injection-initiativema-decision.html">Decision Record — 2026-06-12</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.html">Decision Record — 2026-06-16</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-23-chore-remove-self-strain-decision.html">Decision Record — 2026-06-23</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-24-chore-review-fixes--broken-refs-tests-docs-ch-decision.html">Decision Record — 2026-06-24</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-30-fix-deploy-ai-coworker-skills-to-opencode-skill-d-decision.html">Decision Record — 2026-06-30</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.html">Decision Record — 2026-07-02</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.html">Decision Record — 2026-07-07</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.html">Decision Record — 2026-07-08</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.html">Decision Record — 2026-07-10</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-13-feat-add-emoji-and-color-coded-fields-to-tmux-sta-decision.html">Decision Record — 2026-07-13</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-17-docs-add-doc-organize--indexmd-refs-to-claudem-decision.html">Decision Record — 2026-07-17</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.html">Decision Record — 2026-07-24</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/unknown-remove-budget-related-features-from-prd-budget-fl-decision.html">Decision Record — unknown</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../design/walter-worker-design.html"><span class="tree-ord">3</span>walter-worker — Design</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../design/ai-coworker-design.html">walter-worker Design</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-analytics-dashboard-superpowers.html">Analytics Listener + Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-analytics-listener-design.html">Analytics Listener — Design Document</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-core-architecture-design.html">Core Architecture Design</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-feature-tracker.html">Feature Tracker</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-planning-hub.html">Planning Hub</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-09-25-deletion-list.html">Deletion List — 2026-09-25</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/2026-06-12-initiative-project-level-design.html">Initiative — Global to Project-Level Design</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/ai-coworker-spec.html">walter-worker Technical Specification</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-26-decision-timeline.html">Decision Timeline — walter-worker</a></li><li class="tree-leaf"><a class="tree-link" href="../work-review/2026-06-11-analytics-dashboard/acceptance.html">Analytics Dashboard — Acceptance Review</a></li><li class="tree-leaf"><a class="tree-link" href="../work-review/2026-06-11-analytics-dashboard/report.html">Acceptance Report — Analytics Dashboard</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/walter-worker-impl-plan.html"><span class="tree-ord">4</span>walter-worker Implementation Plan</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="walter-worker-test-plan.html"><span class="tree-ord">5</span>walter-worker — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="ai-coworker-test-plan.html" aria-current="page">walter-worker Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><span class="tree-link"><span class="tree-ord">10</span>sub-feature</span></summary><ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/analytics-dashboard/design/analytics-dashboard-design.html">analytics-dashboard</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/prd/analytics-dashboard-prd.html"><span class="tree-ord">1</span>Analytics Dashboard — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/decision-history/analytics-dashboard-decision-history.html"><span class="tree-ord">2</span>Analytics Dashboard — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/design/analytics-dashboard-design.html"><span class="tree-ord">3</span>Analytics Dashboard — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/impl-plan/analytics-dashboard-impl-plan.html"><span class="tree-ord">4</span>Analytics Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/test-plan/analytics-dashboard-test-plan.html"><span class="tree-ord">5</span>Analytics Dashboard — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/analytics-listener/design/analytics-listener-design.html">analytics-listener</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/prd/analytics-listener-prd.html"><span class="tree-ord">1</span>Analytics Listener — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/decision-history/analytics-listener-decision-history.html"><span class="tree-ord">2</span>Analytics Listener — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/design/analytics-listener-design.html"><span class="tree-ord">3</span>Analytics Listener — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/impl-plan/analytics-listener-impl-plan.html"><span class="tree-ord">4</span>Analytics Listener — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/test-plan/analytics-listener-test-plan.html"><span class="tree-ord">5</span>Analytics Listener — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/core-cli/design/core-cli-design.html">core-cli</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/prd/core-cli-prd.html"><span class="tree-ord">1</span>Core CLI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/decision-history/core-cli-decision-history.html"><span class="tree-ord">2</span>Core CLI — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/design/core-cli-design.html"><span class="tree-ord">3</span>Core CLI — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/impl-plan/core-cli-impl-plan.html"><span class="tree-ord">4</span>Core CLI — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/test-plan/core-cli-test-plan.html"><span class="tree-ord">5</span>Core CLI — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/feature-system/design/feature-system-design.html">feature-system</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/prd/feature-system-prd.html"><span class="tree-ord">1</span>Feature System — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/decision-history/feature-system-decision-history.html"><span class="tree-ord">2</span>Feature System — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/design/feature-system-design.html"><span class="tree-ord">3</span>Feature System — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/impl-plan/feature-system-impl-plan.html"><span class="tree-ord">4</span>Feature System — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/test-plan/feature-system-test-plan.html"><span class="tree-ord">5</span>Feature System — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/setup-deploy/design/setup-deploy-design.html">setup-deploy</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/prd/setup-deploy-prd.html"><span class="tree-ord">1</span>Setup and Deploy — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/decision-history/setup-deploy-decision-history.html"><span class="tree-ord">2</span>Setup and Deploy — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/design/setup-deploy-design.html"><span class="tree-ord">3</span>Setup and Deploy — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/impl-plan/setup-deploy-impl-plan.html"><span class="tree-ord">4</span>Setup and Deploy — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/test-plan/setup-deploy-test-plan.html"><span class="tree-ord">5</span>Setup and Deploy — Test Plan</a></li></ul></details></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>walter-worker</span> / <span>test-plan</span> / <span>walter-worker Test Plan</span></nav>
+    <article class="doc" data-doc="walter-worker/test-plan/ai-coworker-test-plan">
+      <header class="doc-head">
+        <p class="eyebrow">walter-worker</p>
+        <h1>walter-worker Test Plan</h1>
+        <p class="source">Canonical: docs/features/walter-worker/test-plan/ai-coworker-test-plan.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>walter-worker Test Plan</h2>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Date</th>
+<th>Version</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td>2026-07-25</td>
+<td>1.0</td>
+<td>Initial test plan. Based on development history through 2026-07-25. Covers all identified testing strategies, key scenarios, quality gates, tools, and bug patterns.</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>1. Testing Strategy</h3>
+<p>The project follows a <strong>three-tier testing pyramid</strong> augmented with <strong>acceptance</strong> and <strong>smoke</strong> tests. The strategy aligns with the development history, which shows explicit unit, integration, and end-to-end (e2e) test runs, as well as acceptance gates.</p>
+<h4>1.1 Unit Tests</h4>
+<ul>
+<li><strong>Scope</strong>: Individual functions, classes, and methods (e.g., semantic merge engine, skill installer, analytics pipeline components, dashboard data processing).</li>
+<li><strong>Coverage target</strong>: ≥ 96% (achieved via “300+ new tests across 10 modules” on 2026-07-25).</li>
+<li><strong>Examples from history</strong>:</li>
+<li><code>fix(P1)</code>: “relative imports + stats keys + fresh-DB bootstrap + smoke test”</li>
+<li><code>fix(P3)</code>: “rewrite semantic_merge — fence-aware ordered parse, round-trip, protected ranges + verify”</li>
+<li><code>fix(tests)</code>: “restore cwd in test_scaffold_conforms (monkeypatch fixture) — fixes 3 state_update failures”</li>
+<li><strong>Framework</strong>: pytest (with fixtures, monkeypatch, tmp_path).</li>
+</ul>
+<h4>1.2 Integration Tests</h4>
+<ul>
+<li><strong>Scope</strong>: Interaction between subsystems – skills ↔ install mechanism, analytics daemon ↔ database, CLI ↔ configuration files, dashboard ↔ backend API.</li>
+<li><strong>Key examples</strong>:</li>
+<li>Hermetic install fixture (<code>fix(H2): hermetic install fixture + fix dead/wrong asserts</code>)</li>
+<li>Skill sync and rename detection (<code>fix: skill sync without --delete, detect renames via content hash</code>)</li>
+<li>Analytics auto-import daemon with checkpoint (<code>feat: analytics auto-import daemon with checkpoint</code>)</li>
+<li>Session import from Claude Code JSONL (<code>feat: import Claude Code native JSONL sessions</code>)</li>
+<li><strong>Approach</strong>: Isolation using temporary directories (tmp_path), mock LLM calls (DeepSeek), in‑memory SQLite databases.</li>
+</ul>
+<h4>1.3 End-to-End (E2E) Tests</h4>
+<ul>
+<li><strong>Scope</strong>: Full user workflows – install walter-worker, run a skill, verify output, tear down.</li>
+<li><strong>Explicit evidence</strong>:</li>
+<li><code>feat: add knowledge skill, e2e tests (3/3 passing)</code></li>
+<li><code>reviews: 6/6 tests PASS</code> (combined unit + e2e)</li>
+<li>“36 tests PASS” (mix of unit, integration, e2e)</li>
+<li><strong>Tooling</strong>: Minimal CLI invocations; possibly <code>pytest</code> with shell fixtures or custom runners.</li>
+</ul>
+<h4>1.4 Smoke Tests</h4>
+<ul>
+<li><strong>Scope</strong>: Quick sanity checks after installation or upgrades.</li>
+<li><strong>Examples</strong>:</li>
+<li><code>smoke test</code> part of <code>fix(P1)</code>.</li>
+<li><code>feat: add analytics installer integration, uninstall cleanup, install verification tests (5/5 PASS)</code> → install/uninstall verification is a smoke test.</li>
+</ul>
+<h4>1.5 Acceptance Tests</h4>
+<ul>
+<li><strong>Scope</strong>: Validation against signed acceptance criteria.</li>
+<li><strong>Evidence</strong>: “11/12 criteria SIGNED” → “12/12 criteria SIGNED, 36 tests PASS, 0 blockers”.</li>
+<li><strong>Process</strong>: Criteria defined in planning docs (e.g., PRD, spec), then manual/automated verification during review.</li>
+</ul>
+<hr>
+<h3>2. Key Test Scenarios</h3>
+<p>Listed by functional area, with references to decisions that motivated or validated them.</p>
+<h4>2.1 Skill Lifecycle</h4>
+<ul>
+<li><strong>Install skill</strong>: Validate that <code>coworker install &lt;skill&gt;</code> copies files to the correct location, updates manifest, fires hooks.</li>
+<li><strong>Uninstall skill</strong>: Remove files, restore original hooks, verify no orphan state.</li>
+<li><strong>Import external skill</strong> (<code>meta-import-skill</code>): License check, auto-install, conflict detection.</li>
+<li><strong>Skill naming scheme</strong> (<code>coworker-{category}</code>): Ensure all skills adhere to the new naming; upgrade from old names works.</li>
+<li><strong>Skill frontmatter format</strong>: Dual-format (Claude Code + OpenCode) parsing passes for all skills.</li>
+</ul>
+<h4>2.2 Init &amp; Configuration</h4>
+<ul>
+<li><strong><code>coworker init</code></strong>: Auto‑detect language, dependencies, IDE; generate <a href="../../../../../CLAUDE.md"><code>CLAUDE.md</code></a>, <code>.local_config.yaml</code>, and hooks.</li>
+<li><strong>Three-layer CLAUDE.md</strong>: Verify that global → project → local files are merged correctly and that the local file can override the project file.</li>
+<li><strong>Environment variables</strong>: Hardcoded personal paths removed (<code>fix(H4)</code>); parameterized paths work across machines.</li>
+</ul>
+<h4>2.3 Analytics &amp; Dashboard</h4>
+<ul>
+<li><strong>Analytics import pipeline</strong>: Collect session data from OpenCode / Claude Code, parse JSONL, store in SQLite.</li>
+<li><strong>Session deduplication</strong>: LLM‑based semantic dedup using DeepSeek (<code>fix(analytics): session dedup + LLM semantic knowledge dedup</code>).</li>
+<li><strong>Dashboard views</strong>: Session Monitor, Projects, Hotspots, Errors, Memory Control, Cost/Token, Model/IDE, Efficiency, Data Quality – all correct data fetched from correct DB columns.</li>
+<li><strong>DB schema consistency</strong>: Column names (<code>op_type → op</code>, <code>file_path → path</code>) match actual migration (<code>fix(dashboard): correct DB column names</code>).</li>
+</ul>
+<h4>2.4 Initiative &amp; Project Management</h4>
+<ul>
+<li><strong>Initiative migration</strong>: Migrate from global‑level to project‑level storage; data integrity after migration.</li>
+<li><strong>Project catalog</strong>: <code>bug-report</code> supports any repo via catalog – verify catalog loading.</li>
+</ul>
+<h4>2.5 Self-Heal &amp; Development Loop</h4>
+<ul>
+<li><strong>Self-heal hooks</strong>: Global hooks for Claude Code / OpenCode; auto‑inject to <a href="../../../../../CLAUDE.md"><code>CLAUDE.md</code></a>.</li>
+<li><strong>Auto-worker</strong>: Spec‑compliant Claude SDK agent with safety gates, metrics, skill CLI.</li>
+<li><strong>Polish loop</strong>: QA PROTECTED heuristic flags only marker removals, not legitimate changes.</li>
+</ul>
+<h4>2.6 CLI Commands</h4>
+<ul>
+<li>18 CLI command skills (analytics, initiative, project, status) – test each command with valid/invalid arguments.</li>
+<li><code>coworker upgrade</code> – merge engine wired to CLI (<code>fix(G1)</code>).</li>
+</ul>
+<h4>2.7 State &amp; File Management</h4>
+<ul>
+<li><strong>State file naming</strong>: <code>state-{task}.md</code> in <code>docs/state/</code>; auto‑timestamp to avoid session collisions.</li>
+<li><strong>Semantic merge</strong>: Fence‑aware, ordered, round‑trip, protected ranges – verify with forced edge cases (nested fences, missing close markers).</li>
+</ul>
+<hr>
+<h3>3. Quality Gates / Acceptance Criteria</h3>
+<p>Based on the signed criteria in the development timeline (11→12 criteria).</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Gate</th>
+<th>Condition</th>
+<th>Measured by</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>G1: All Tests Pass</strong></td>
+<td>0 failures across unit, integration, e2e suites.</td>
+<td>Automated CI run (pytest exit code).</td>
+</tr>
+<tr>
+<td><strong>G2: No Blockers</strong></td>
+<td>No open P0/P1 bugs.</td>
+<td>GitHub issues / tracker.</td>
+</tr>
+<tr>
+<td><strong>G3: Coverage ≥ 96%</strong></td>
+<td>Line coverage for core modules (skills, analytics, dashboard).</td>
+<td><code>pytest --cov</code> report.</td>
+</tr>
+<tr>
+<td><strong>G4: Acceptance Criteria Signed</strong></td>
+<td>All PRD/spec criteria met and signed off by reviewer.</td>
+<td>Review checklist (12 items).</td>
+</tr>
+<tr>
+<td><strong>G5: Smoke Test Passes</strong></td>
+<td>Minimal install → run → uninstall cycle works on a fresh environment.</td>
+<td>Manual or automated script.</td>
+</tr>
+<tr>
+<td><strong>G6: Security / Safety</strong></td>
+<td>No hardcoded personal paths; license checks on imported skills; hook‑ownership safety.</td>
+<td>Code review + assertions.</td>
+</tr>
+<tr>
+<td><strong>G7: Performance</strong></td>
+<td>Analytics import handles sessions up to 1 MB without truncation (fix: “remove 8000 char truncation”).</td>
+<td>Load test.</td>
+</tr>
+<tr>
+<td><strong>G8: Compatibility</strong></td>
+<td>Bash 3.2+ (macOS default) supported – no <code>declare -A</code>.</td>
+<td>Shell syntax linter.</td>
+</tr>
+<tr>
+<td><strong>G9: Documentation</strong></td>
+<td>README, blueprint, and changelog reflect current architecture; no overclaimed features.</td>
+<td>Editorial review.</td>
+</tr>
+<tr>
+<td><strong>G10: Install &amp; Uninstall</strong></td>
+<td>Verify install verification tests (5/5 pass); clean teardown after uninstall.</td>
+<td><code>fix(G2)</code>, <code>fix(P8)</code>.</td>
+</tr>
+<tr>
+<td><strong>G11: State Consistency</strong></td>
+<td>State files are timestamped and never collide.</td>
+<td>Automation test with concurrent runs.</td>
+</tr>
+<tr>
+<td><strong>G12: Dashboard Correctness</strong></td>
+<td>All views return expected data with correct field names.</td>
+<td>E2E dashboard tests.</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>4. Tools and Frameworks Used</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Tool / Framework</th>
+<th>Purpose</th>
+<th>Evidence in History</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>pytest</strong></td>
+<td>Primary test runner (unit, integration, e2e)</td>
+<td><code>fix(tests): restore cwd in test_scaffold_conforms (monkeypatch fixture)</code> – implies pytest fixtures.</td>
+</tr>
+<tr>
+<td><strong>pytest-monkeypatch</strong></td>
+<td>Environment/temp isolation</td>
+<td>Same commit as above.</td>
+</tr>
+<tr>
+<td><strong>pytest-cov</strong></td>
+<td>Coverage measurement</td>
+<td>Coverage target achieved.</td>
+</tr>
+<tr>
+<td><strong>tox / nox</strong> (likely)</td>
+<td>Multi‑environment testing</td>
+<td>Not explicit, but common with CI.</td>
+</tr>
+<tr>
+<td><strong>GitHub Actions</strong></td>
+<td>CI – automated test runs</td>
+<td><code>fix(H1): add … CI</code>.</td>
+</tr>
+<tr>
+<td><strong>SQLite (in‑memory)</strong></td>
+<td>Test database isolation</td>
+<td>Integration tests use fresh DB bootstrap (<code>fix(P1)</code>).</td>
+</tr>
+<tr>
+<td><strong>DeepSeek / LLM</strong></td>
+<td>Semantic dedup verification</td>
+<td><code>fix(analytics): session dedup + LLM semantic knowledge dedup</code>.</td>
+</tr>
+<tr>
+<td><strong>ShellCheck</strong> / bash linting</td>
+<td>Bash 3.2 compatibility</td>
+<td><code>fix(P6): bash 3.2 compat — replace declare -A with indexed arrays</code>.</td>
+</tr>
+<tr>
+<td><strong>Hermetic install fixture</strong></td>
+<td>Custom pytest fixture to simulate install/uninstall</td>
+<td><code>fix(H2): hermetic install fixture + fix dead/wrong asserts</code>.</td>
+</tr>
+<tr>
+<td><strong>content‑hash rename detection</strong></td>
+<td>Skill sync without <code>--delete</code></td>
+<td><code>fix: skill sync without --delete, detect renames via content hash</code>.</td>
+</tr>
+<tr>
+<td><strong>pre‑commit hooks</strong> (likely)</td>
+<td>Code quality</td>
+<td>Not explicit, but consistent with project discipline.</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>5. Bug Patterns Found and How They Were Fixed</h3>
+<p>The development history reveals several recurring bug categories. Each pattern below includes the root cause and the applied fix.</p>
+<h4>5.1 Hardcoded Paths and Environment Assumptions</h4>
+<ul>
+<li><strong>Pattern</strong>: Personal home paths (<code>/Users/cicidi/…</code>), absolute paths in configuration.</li>
+<li><strong>Impact</strong>: Unportable, breaks on other machines.</li>
+<li><strong>Fix</strong>: Parameterize with environment variables (<code>$HOME</code>, <code>$(whoami)</code>, config files).  </li>
+</ul>
+<p>  *Decision*: <code>fix(H4): remove hardcoded personal paths; parameterize with env vars</code>.</p>
+<h4>5.2 Database Schema Mismatches</h4>
+<ul>
+<li><strong>Pattern</strong>: Column names in code differ from actual DB schema (e.g., <code>op_type</code> vs <code>op</code>, <code>file_path</code> vs <code>path</code>).</li>
+<li><strong>Impact</strong>: Dashboard shows empty/missing data.</li>
+<li><strong>Fix</strong>: Correct column names in SQL queries; add migration step or use constants.  </li>
+</ul>
+<p>  *Decision*: <code>fix(dashboard): correct DB column names — op_type→op, file_path→path</code>.</p>
+<h4>5.3 Truncation and Data Loss</h4>
+<ul>
+<li><strong>Pattern</strong>: 8000-character limit on message import; data truncated silently.</li>
+<li><strong>Impact</strong>: Loss of session context, incomplete analytics.</li>
+<li><strong>Fix</strong>: Remove truncation; store full message content.  </li>
+</ul>
+<p>  *Decision*: <code>fix: remove 8000 char truncation on OpenCode message import</code>.</p>
+<h4>5.4 Bash Compatibility</h4>
+<ul>
+<li><strong>Pattern</strong>: Use of <code>declare -A</code> (associative arrays) requires Bash 4, but macOS (default shell) is Bash 3.2.</li>
+<li><strong>Impact</strong>: Installation script fails on macOS.</li>
+<li><strong>Fix</strong>: Replace with indexed arrays and separate key/value lists.  </li>
+</ul>
+<p>  *Decision*: <code>fix(P6): bash 3.2 compat — replace declare -A with indexed arrays</code>.</p>
+<h4>5.5 State File Collisions</h4>
+<ul>
+<li><strong>Pattern</strong>: Multiple sessions write to the same state file (e.g., <code>state-task.md</code>).</li>
+<li><strong>Impact</strong>: Overwritten state, concurrent session corruption.</li>
+<li><strong>Fix</strong>: Auto‑timestamp state filenames (e.g., <code>state-{task}-{epoch}.md</code>).  </li>
+</ul>
+<p>  *Decision*: <code>fix: auto-timestamp state files to prevent session collisions</code>.</p>
+<h4>5.6 Broken Import/Missing Dependencies</h4>
+<ul>
+<li><strong>Pattern</strong>: Phantom import references (<code>import-mcp</code> skill no longer exists), missing <code>fi</code> in shell script blocks.</li>
+<li><strong>Impact</strong>: Installation fails; tests fail with ImportError.</li>
+<li><strong>Fix</strong>: Delete stale references, restore correct syntax.  </li>
+</ul>
+<p>  *Decisions*: <code>fix(G2): remove phantom import-mcp, fix core skill path, fix banner</code> and <code>fix(G2): restore missing fi — install.sh MCP block syntax</code>.</p>
+<h4>5.7 Inconsistent Frontmatter and Doc Types</h4>
+<ul>
+<li><strong>Pattern</strong>: Skills had old naming schemes, mixed doc types (e.g., <code>doc-review</code>, <code>flow-*</code>).</li>
+<li><strong>Impact</strong>: Claude Code cannot discover skills; documentation becomes hard to navigate.</li>
+<li><strong>Fix</strong>: Canonical frontmatter schema, migration script, merge of doc types (9 types).  </li>
+</ul>
+<p>  *Decisions*: <code>fix(G11): canonical frontmatter schema + migration + scaffold fix</code>, several refactors merging types.</p>
+<h4>5.8 Threading / Test Isolation Issues</h4>
+<ul>
+<li><strong>Pattern</strong>: Tests that modify global state (like <code>os.chdir</code>) cause cascading failures.</li>
+<li><strong>Impact</strong>: 3 state_update tests failing because CWD not restored after test.</li>
+<li><strong>Fix</strong>: Use monkeypatch fixture to restore CWD after each test.  </li>
+</ul>
+<p>  *Decision*: <code>fix(tests): restore cwd in test_scaffold_conforms (monkeypatch fixture) — fixes 3 state_update failures</code>.</p>
+<h4>5.9 Overclaimed Documentation</h4>
+<ul>
+<li><strong>Pattern</strong>: README claimed features (e.g., token savings, knowledge graph) that were not yet implemented.</li>
+<li><strong>Impact</strong>: Misleading users; unrealistic expectations.</li>
+</ul>
+<p>-</p>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="walter-worker-test-plan.html"><span class="label">Previous</span>walter-worker — Test Plan</a><a class="next" href="../features/analytics-dashboard/prd/analytics-dashboard-prd.html"><span class="label">Next</span>Analytics Dashboard — PRD</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

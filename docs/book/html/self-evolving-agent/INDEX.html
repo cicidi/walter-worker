@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>self-evolving-agent — Document Index · self-evolving-agent · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="prd/self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="prd/dashboard-ui-prd.html">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="prd/self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="decision-history/2026-07-29-devil-advocate-reviews-summary.html">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="design/auto-worker-design.html">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="design/dashboard-design.html">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="design/memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="design/qa-autonomous-agent-design.html">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="INDEX.html" aria-current="page">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="reference/actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="reference/band-ai-docs.html">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="reference/guild-agent-README.html">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="reference/guild-ai-docs.html">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="reference/hermes-agent-README.html">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="reference/hermes-agent-docs.html">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="reference/jam-agent-README.html">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="reference/jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="reference/pioneer-docs.html">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="reference/senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="spec/memory-graph-spec.html">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="spec/qa-autonomous-agent-spec.html">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="spec/self-evolving-agent-spec.html">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="state/2026-07-29-current-state.html">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="wrong-history/INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="wrong-history/entries/2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="wrong-history/entries/2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="wrong-history/entries/2026-07-27-dashboard-data-not-verified.html">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="wrong-history/entries/2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="wrong-history/entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="wrong-history/entries/2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="impl-plan/self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="impl-plan/dependency-and-sequencing-impl-plan.html">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="impl-plan/qa-autonomous-agent-impl-plan.html">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="test-plan/self-evolving-agent-test-plan.html"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="test-plan/2026-07-29-test-execution-report.html">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="test-plan/memory-graph-test-plan.html">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="test-plan/memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>self-evolving-agent — Document Index</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/INDEX">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>self-evolving-agent — Document Index</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/INDEX.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>self-evolving-agent — Document Index</h2>
+<blockquote class="callout" data-label="NOTE"><p>Last updated: 2026-07-29 Initiative: Autonomous agent that self-evolves in a continuous loop Total: 61 documents across 10 categories</p></blockquote>
+<hr>
+<h3>PRD — Product Requirements</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>File</th>
+<th>Lines</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td><a href="prd/dashboard-ui-prd.html">dashboard-ui-prd.md</a></td>
+<td>204</td>
+<td>Dashboard UI — PRD</td>
+</tr>
+<tr>
+<td><a href="prd/self-evolving-agent-prd-zh.html">self-evolving-agent-prd-zh.md</a></td>
+<td>457</td>
+<td>Self-Evolving Agent — PRD</td>
+</tr>
+<tr>
+<td><a href="prd/self-evolving-agent-prd.html">self-evolving-agent-prd.md</a></td>
+<td>486</td>
+<td>Self-Evolving Agent — PRD</td>
+</tr>
+</tbody></table></div>
+<h3>Design — Technical Architecture</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>File</th>
+<th>Lines</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td><a href="design/auto-worker-design.html">auto-worker-design.md</a></td>
+<td>474</td>
+<td>Auto-Worker — Design</td>
+</tr>
+<tr>
+<td><a href="design/dashboard-design.html">dashboard-design.md</a></td>
+<td>170</td>
+<td>Dashboard — Evolution Page Design</td>
+</tr>
+<tr>
+<td><a href="design/memory-platform-design.html">memory-platform-design.md</a></td>
+<td>399</td>
+<td>Memory Platform — Design</td>
+</tr>
+<tr>
+<td><a href="design/qa-autonomous-agent-design.html">qa-autonomous-agent-design.md</a></td>
+<td>532</td>
+<td>QA Autonomous Agent — Design ⚠️ DEFERRED</td>
+</tr>
+</tbody></table></div>
+<h3>Spec — Detailed Specifications</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>File</th>
+<th>Lines</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td><a href="spec/memory-graph-spec.html">memory-graph-spec.md</a></td>
+<td>801</td>
+<td>Memory Graph — Spec</td>
+</tr>
+<tr>
+<td><a href="spec/qa-autonomous-agent-spec.html">qa-autonomous-agent-spec.md</a></td>
+<td>662</td>
+<td>QA Autonomous Agent — Spec ⚠️ DEFERRED</td>
+</tr>
+<tr>
+<td><a href="spec/self-evolving-agent-spec.html">self-evolving-agent-spec.md</a></td>
+<td>750</td>
+<td>Self-Evolving Agent — Memory Platform Spec</td>
+</tr>
+</tbody></table></div>
+<h3>Implementation Plan</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>File</th>
+<th>Lines</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td><a href="impl-plan/dependency-and-sequencing-impl-plan.html">dependency-and-sequencing-impl-plan.md</a></td>
+<td>117</td>
+<td>Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</td>
+</tr>
+<tr>
+<td><a href="impl-plan/qa-autonomous-agent-impl-plan.html">qa-autonomous-agent-impl-plan.md</a></td>
+<td>1078</td>
+<td>QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</td>
+</tr>
+<tr>
+<td><a href="impl-plan/self-evolving-agent-impl-plan.html">self-evolving-agent-impl-plan.md</a></td>
+<td>2517</td>
+<td>Self-Evolving Agent — Implementation Plan</td>
+</tr>
+</tbody></table></div>
+<h3>Test Plan</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>File</th>
+<th>Lines</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td><a href="test-plan/2026-07-29-test-execution-report.html">2026-07-29-test-execution-report.md</a></td>
+<td>104</td>
+<td>Memory Query System — 测试执行报告</td>
+</tr>
+<tr>
+<td><a href="test-plan/memory-graph-test-plan.html">memory-graph-test-plan.md</a></td>
+<td>243</td>
+<td>Memory Graph — Test Plan</td>
+</tr>
+<tr>
+<td><a href="test-plan/memory-query-test-plan.html">memory-query-test-plan.md</a></td>
+<td>92</td>
+<td>Memory Query System — 测试策划书</td>
+</tr>
+<tr>
+<td><a href="test-plan/self-evolving-agent-test-plan.html">self-evolving-agent-test-plan.md</a></td>
+<td>2206</td>
+<td>Self-Evolving Agent — Test Plan</td>
+</tr>
+</tbody></table></div>
+<h3>Decision History</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>File</th>
+<th>Lines</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td><a href="decision-history/2026-07-29-devil-advocate-reviews-summary.html">2026-07-29-devil-advocate-reviews-summary.md</a></td>
+<td>150</td>
+<td>Devil&#x27;s Advocate Reviews — Consolidated Decision History</td>
+</tr>
+</tbody></table></div>
+<h3>State — Current Progress</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>File</th>
+<th>Lines</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td><a href="state/2026-07-29-current-state.html">2026-07-29-current-state.md</a></td>
+<td>196</td>
+<td>Self-Evolving Agent — Current State</td>
+</tr>
+</tbody></table></div>
+<h3>Reference — External Projects</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>File</th>
+<th>Lines</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td><a href="reference/actian-vectordb-docs.html">actian-vectordb-docs.md</a></td>
+<td>51</td>
+<td>Actian VectorAI DB — Reference Documentation</td>
+</tr>
+<tr>
+<td><a href="reference/band-ai-docs.html">band-ai-docs.md</a></td>
+<td>53</td>
+<td>BAND AI — Reference Documentation</td>
+</tr>
+<tr>
+<td><a href="reference/guild-agent-README.html">guild-agent-README.md</a></td>
+<td>246</td>
+<td>The Agent Guild</td>
+</tr>
+<tr>
+<td><a href="reference/guild-ai-docs.html">guild-ai-docs.md</a></td>
+<td>61</td>
+<td>Guild.ai — Reference Documentation</td>
+</tr>
+<tr>
+<td><a href="reference/hermes-agent-README.html">hermes-agent-README.md</a></td>
+<td>265</td>
+<td>(untitled)</td>
+</tr>
+<tr>
+<td><a href="reference/hermes-agent-docs.html">hermes-agent-docs.md</a></td>
+<td>56</td>
+<td>Hermes Agent — Reference Documentation</td>
+</tr>
+<tr>
+<td><a href="reference/jam-agent-README.html">jam-agent-README.md</a></td>
+<td>262</td>
+<td>(untitled)</td>
+</tr>
+<tr>
+<td><a href="reference/jam-docs.html">jam-docs.md</a></td>
+<td>42</td>
+<td>Jam.dev MCP — Reference Documentation</td>
+</tr>
+<tr>
+<td><a href="reference/pioneer-docs.html">pioneer-docs.md</a></td>
+<td>77</td>
+<td>Pioneer.ai — Reference Documentation</td>
+</tr>
+<tr>
+<td><a href="reference/senso-ai-docs.html">senso-ai-docs.md</a></td>
+<td>37</td>
+<td>Senso.ai — Reference Documentation</td>
+</tr>
+</tbody></table></div>
+<h3>Wrong History — Mistake Prevention</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>File</th>
+<th>Lines</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td><a href="wrong-history/INDEX.html">INDEX.md</a></td>
+<td>24</td>
+<td>Wrong History — Index</td>
+</tr>
+<tr>
+<td><a href="wrong-history/entries/2026-07-25-dashboard-css-js-overwrite.html">2026-07-25-dashboard-css-js-overwrite.md</a></td>
+<td>28</td>
+<td>(untitled)</td>
+</tr>
+<tr>
+<td><a href="wrong-history/entries/2026-07-25-dashboard-init-call-lost.html">2026-07-25-dashboard-init-call-lost.md</a></td>
+<td>24</td>
+<td>(untitled)</td>
+</tr>
+<tr>
+<td><a href="wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">2026-07-27-adversarial-review-pro-agent-must-not-surrender.md</a></td>
+<td>61</td>
+<td>(untitled)</td>
+</tr>
+<tr>
+<td><a href="wrong-history/entries/2026-07-27-dashboard-data-not-verified.html">2026-07-27-dashboard-data-not-verified.md</a></td>
+<td>43</td>
+<td>(untitled)</td>
+</tr>
+<tr>
+<td><a href="../../../features/self-evolving-agent/wrong-history/entries/2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%">2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.md</a>-due-to-mi.md)</td>
+<td>26</td>
+<td>(untitled)</td>
+</tr>
+<tr>
+<td><a href="wrong-history/entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.md</a></td>
+<td>26</td>
+<td>(untitled)</td>
+</tr>
+<tr>
+<td><code>entries/</code></td>
+<td>—</td>
+<td>6 files</td>
+</tr>
+</tbody></table></div>
+<h3>Raw Context &amp; Archives</h3>
+<p>Scratch — gitignored, not shipped (doc-organize Mode C). Still on disk under <code>raw/</code>; not part of a clone. What it supported:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Content</th>
+<th>Supported</th>
+</tr></thead><tbody>
+<tr>
+<td><code>2026-07-26-cross-project-gaps.md</code></td>
+<td>the gap list in <a href="prd/self-evolving-agent-prd.html"><code>prd/self-evolving-agent-prd.md</code></a></td>
+</tr>
+<tr>
+<td><code>issues-found/CONSOLIDATED-summary.md</code></td>
+<td>the 2026-07-29 wrong-history entries</td>
+</tr>
+<tr>
+<td><code>demo-html/</code>, <code>html-ppt/</code></td>
+<td>the 2026-07-29 PRD walkthrough deck; no design input</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>Move Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Date</th>
+<th>Action</th>
+<th>Detail</th>
+</tr></thead><tbody>
+<tr>
+<td>2026-07-29</td>
+<td>Merged</td>
+<td>18 issues-found rounds → CONSOLIDATED-summary.md</td>
+</tr>
+<tr>
+<td>2026-07-29</td>
+<td>Merged</td>
+<td>4 state snapshots → 2026-07-29-current-state.md</td>
+</tr>
+<tr>
+<td>2026-07-29</td>
+<td>Merged</td>
+<td>6 devil-advocate reviews → decision-history entry</td>
+</tr>
+<tr>
+<td>2026-07-29</td>
+<td>Moved</td>
+<td>HTML files → raw/demo-html/</td>
+</tr>
+<tr>
+<td>2026-07-29</td>
+<td>Renamed</td>
+<td>4 files to comply with naming conventions</td>
+</tr>
+<tr>
+<td>2026-07-29</td>
+<td>Deferred</td>
+<td>wrong-history/ move (code has hardcoded path)</td>
+</tr>
+</tbody></table></div>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="design/qa-autonomous-agent-design.html"><span class="label">Previous</span>QA Autonomous Agent — Design ⚠️ DEFERRED</a><a class="next" href="reference/actian-vectordb-docs.html"><span class="label">Next</span>Actian VectorAI DB — Reference Documentation</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../assets/app.js"></script>
+</body>
+</html>

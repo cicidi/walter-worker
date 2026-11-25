@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>walter-worker PRD · prd · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="walter-worker-prd.html"><span class="tree-ord">1</span>walter-worker — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="2026-06-11-core-prd.html">Core CLI &amp; Initiative System PRD</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-11-dashboard-prd.html">Dashboard PRD</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-11-knowledge-skill-prd.html">Knowledge Skill PRD</a></li><li class="tree-leaf"><a class="tree-link" href="ai-coworker-prd.html" aria-current="page">walter-worker PRD</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../decision-history/walter-worker-decision-history.html"><span class="tree-ord">2</span>walter-worker — Decision History</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../decision-history/2025-04-10-integrate-loop-engineering-framework-by-running-lo-decision.html">Decision Record — 2025-04-10</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-03-30-feat-initial-commit--unified-ai-coworker-dev-env-decision.html">Decision Record — 2026-03-30</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.html">Decision Record — 2026-05-01</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-05-06-feat-add-skill-meta-import-skill--import-externa-decision.html">Decision Record — 2026-05-06</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.html">Decision Record — 2026-06-11</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-12-feat-add-opencode-context-injection-initiativema-decision.html">Decision Record — 2026-06-12</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.html">Decision Record — 2026-06-16</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-23-chore-remove-self-strain-decision.html">Decision Record — 2026-06-23</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-24-chore-review-fixes--broken-refs-tests-docs-ch-decision.html">Decision Record — 2026-06-24</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-30-fix-deploy-ai-coworker-skills-to-opencode-skill-d-decision.html">Decision Record — 2026-06-30</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.html">Decision Record — 2026-07-02</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.html">Decision Record — 2026-07-07</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.html">Decision Record — 2026-07-08</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.html">Decision Record — 2026-07-10</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-13-feat-add-emoji-and-color-coded-fields-to-tmux-sta-decision.html">Decision Record — 2026-07-13</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-17-docs-add-doc-organize--indexmd-refs-to-claudem-decision.html">Decision Record — 2026-07-17</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.html">Decision Record — 2026-07-24</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/unknown-remove-budget-related-features-from-prd-budget-fl-decision.html">Decision Record — unknown</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../design/walter-worker-design.html"><span class="tree-ord">3</span>walter-worker — Design</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../design/ai-coworker-design.html">walter-worker Design</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-analytics-dashboard-superpowers.html">Analytics Listener + Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-analytics-listener-design.html">Analytics Listener — Design Document</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-core-architecture-design.html">Core Architecture Design</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-feature-tracker.html">Feature Tracker</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-planning-hub.html">Planning Hub</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-09-25-deletion-list.html">Deletion List — 2026-09-25</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/2026-06-12-initiative-project-level-design.html">Initiative — Global to Project-Level Design</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/ai-coworker-spec.html">walter-worker Technical Specification</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-26-decision-timeline.html">Decision Timeline — walter-worker</a></li><li class="tree-leaf"><a class="tree-link" href="../work-review/2026-06-11-analytics-dashboard/acceptance.html">Analytics Dashboard — Acceptance Review</a></li><li class="tree-leaf"><a class="tree-link" href="../work-review/2026-06-11-analytics-dashboard/report.html">Acceptance Report — Analytics Dashboard</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/walter-worker-impl-plan.html"><span class="tree-ord">4</span>walter-worker Implementation Plan</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/walter-worker-test-plan.html"><span class="tree-ord">5</span>walter-worker — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/ai-coworker-test-plan.html">walter-worker Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><span class="tree-link"><span class="tree-ord">10</span>sub-feature</span></summary><ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/analytics-dashboard/design/analytics-dashboard-design.html">analytics-dashboard</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/prd/analytics-dashboard-prd.html"><span class="tree-ord">1</span>Analytics Dashboard — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/decision-history/analytics-dashboard-decision-history.html"><span class="tree-ord">2</span>Analytics Dashboard — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/design/analytics-dashboard-design.html"><span class="tree-ord">3</span>Analytics Dashboard — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/impl-plan/analytics-dashboard-impl-plan.html"><span class="tree-ord">4</span>Analytics Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/test-plan/analytics-dashboard-test-plan.html"><span class="tree-ord">5</span>Analytics Dashboard — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/analytics-listener/design/analytics-listener-design.html">analytics-listener</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/prd/analytics-listener-prd.html"><span class="tree-ord">1</span>Analytics Listener — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/decision-history/analytics-listener-decision-history.html"><span class="tree-ord">2</span>Analytics Listener — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/design/analytics-listener-design.html"><span class="tree-ord">3</span>Analytics Listener — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/impl-plan/analytics-listener-impl-plan.html"><span class="tree-ord">4</span>Analytics Listener — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/test-plan/analytics-listener-test-plan.html"><span class="tree-ord">5</span>Analytics Listener — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/core-cli/design/core-cli-design.html">core-cli</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/prd/core-cli-prd.html"><span class="tree-ord">1</span>Core CLI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/decision-history/core-cli-decision-history.html"><span class="tree-ord">2</span>Core CLI — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/design/core-cli-design.html"><span class="tree-ord">3</span>Core CLI — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/impl-plan/core-cli-impl-plan.html"><span class="tree-ord">4</span>Core CLI — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/test-plan/core-cli-test-plan.html"><span class="tree-ord">5</span>Core CLI — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/feature-system/design/feature-system-design.html">feature-system</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/prd/feature-system-prd.html"><span class="tree-ord">1</span>Feature System — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/decision-history/feature-system-decision-history.html"><span class="tree-ord">2</span>Feature System — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/design/feature-system-design.html"><span class="tree-ord">3</span>Feature System — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/impl-plan/feature-system-impl-plan.html"><span class="tree-ord">4</span>Feature System — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/test-plan/feature-system-test-plan.html"><span class="tree-ord">5</span>Feature System — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/setup-deploy/design/setup-deploy-design.html">setup-deploy</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/prd/setup-deploy-prd.html"><span class="tree-ord">1</span>Setup and Deploy — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/decision-history/setup-deploy-decision-history.html"><span class="tree-ord">2</span>Setup and Deploy — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/design/setup-deploy-design.html"><span class="tree-ord">3</span>Setup and Deploy — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/impl-plan/setup-deploy-impl-plan.html"><span class="tree-ord">4</span>Setup and Deploy — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/test-plan/setup-deploy-test-plan.html"><span class="tree-ord">5</span>Setup and Deploy — Test Plan</a></li></ul></details></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>walter-worker</span> / <span>prd</span> / <span>walter-worker PRD</span></nav>
+    <article class="doc" data-doc="walter-worker/prd/ai-coworker-prd">
+      <header class="doc-head">
+        <p class="eyebrow">walter-worker</p>
+        <h1>walter-worker PRD</h1>
+        <p class="source">Canonical: docs/features/walter-worker/prd/ai-coworker-prd.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <pre><code># walter-worker PRD
+
+**Product Requirements Document**
+
+*Version: 1.0 (Reconstructed from development history up to 2026-07-25)*
+
+---
+
+## Change Log
+
+| Date | Version | Change |
+|------|---------|--------|
+| 2026-07-25 | 1.0 | Initial PRD reconstruction from development decisions. Includes self-evolving-agent phase (memory, auto-worker, dashboard v2). |
+
+---
+
+## 1. Project Overview and Goals
+
+### 1.1 Overview
+Ai-coworker is a **context manager** for AI coding assistants (Claude Code, OpenCode). It provides a structured development environment that enhances the capabilities of these assistants through:
+
+- A skill-based plugin system for reusable commands and workflows.
+- Automated analytics and session import pipeline to collect telemetry from AI coding sessions.
+- A dashboard for visualizing productivity, costs, and memory usage.
+- A memory subsystem (mem0 + DeepSeek) for persistent learning across sessions.
+- An autonomous agent (auto-worker) that can execute long-running tasks with safety guarantees.
+- A three-layer CLAUDE.md architecture (Global → Project → Local) for adaptive configuration.
+
+The project is **not** a standalone development tool; it is designed to be used *inside* an AI assistant environment (such as Claude Code or OpenCode). Skills are written in Markdown frontmatter format and are consumed by the AI.
+
+### 1.2 Goals
+1. **Improve AI assistant productivity** by providing a reusable skill library and automatic context injection.
+2. **Provide actionable analytics** – track session data, file operations, skill usage, costs, and efficiency.
+3. **Enable persistent memory** – allow the AI to recall past sessions and learn from experience.
+4. **Support autonomous task execution** – run multi-step workflows with self-healing and safety checks.
+5. **Maintain high code quality** – ≥96% test coverage, hermetic installs, manifest-driven lifecycle.
+
+---
+
+## 2. Target Users / Use Cases
+
+### 2.1 Primary Users
+- **AI power users** who run Claude Code or OpenCode daily and want to optimise their workflow.
+- **Developers** using AI coding assistants in complex, multi-project environments (including git worktrees).
+- **Teams** that want to standardise AI behaviour across projects (via global / project CLAUDE.md layers).
+
+### 2.2 Use Cases
+
+| Use Case | Description | Decisions Trace |
+|----------|-------------|-----------------|
+| **Project onboarding** | Run `coworker init` to auto-detect language, dependencies, IDE, and generate a tailored CLAUDE.local.md. | `feat: auto-scan in coworker init` |
+| **Session analytics** | Automatically import Claude Code JSONL sessions and OpenCode logs, deduplicate, and store in SQLite. View via dashboard. | `feat: analytics auto-import daemon`, `feat: import Claude Code native JSONL sessions` |
+| **Skill management** | Install external skills with license check (`meta-import-skill`), uninstall with safety, sync across repos via content hash. | `feat: add meta-import-skill`, `fix: skill sync without --delete, detect renames via content hash` |
+| **Bug tracking** | Use `bug-report` to create issues in any repo via project catalog; use `bug-hunt` to collect evidence and reason. | `refactor: merge bug-create into bug-report`, `refactor: bug-hunt — collect first, then reason` |
+| **Self-healing** | Automatic hooks and traces that detect and fix configuration drift in CLAUDE.md files. | `feat: rewrite self-heal + self-analyze` |
+| **Memory recall** | AI can query past session summaries, decisions, and knowledge chunks via `session-memory` skill. | `feat: add session-memory skill` |
+| **Autonomous agent** | Deploy the auto-worker skill to run long tasks (e.g., “implement feature X”) with safety gates, timeouts, and progress metrics. | `feat: add auto-worker skill`, `feat: spec-compliant auto-worker — Claude SDK agent, safety gates` |
+| **Documentation organization** | Use `doc-organize` skill to classify documents into 9 types (decision, design, research, etc.) and generate INDEX.md. | `refactor: reorganize docs/ using doc-organize conventions (9 types)` |
+
+---
+
+## 3. Core Features and Requirements
+
+### 3.1 Initialization and Configuration (`coworker init`)
+
+| # | Feature | Description | Source Decisions |
+|---|---------|-------------|------------------|
+| F1 | **Auto-scan project** | Detect language, dependencies, IDE, and generate CLAUDE.local.md with initiative and config. | `feat: auto-scan in coworker init — detect language, deps, IDE, generate config` |
+| F2 | **DeepSeek API key** | Prompt user for DeepSeek API key during init; store in `.local_config.yaml`. | `feat: ask for DeepSeek API key during init, save to .local_config.yaml` |
+| F3 | **Force upgrade** | `--force` flag to overwrite existing project CLAUDE.md. | `feat: add --force flag to init for upgrading project CLAUDE.md` |
+| F4 | **Three-layer CLAUDE.md** | Global (shared), Project, Local (per-working-copy) architecture. Hooks and patterns injected. | `feat: three-layer CLAUDE.md architecture (Global → Project → Local)` |
+
+### 3.2 Skills System
+
+Skills are Markdown files with frontmatter (coworker-{category}-{name}) that define reusable commands for the AI assistant. They live in `skills/` directory and are deployed to `~/.claude/skills/`.
+
+| # | Feature | Description | Source Decisions |
+|---|---------|-------------|------------------|
+| F5 | **Skill naming scheme** | `coworker-{category}-{name}` format. | `refactor: rename all skills to new naming scheme` |
+| F6 | **Dual frontmatter** | Support both Claude Code and OpenCode format (v1). | `feat: upgrade skill frontmatter to Claude Code + OpenCode dual format` |
+| F7 | **Manifest-driven install/uninstall** | Use manifest to track hook ownership and safe uninstall. | `fix: manifest-driven install/uninstall with hook-ownership safety` |
+| F8 | **External skill import** | `meta-import-skill` – import from URL with license check and auto-install. | `feat: add skill meta-import-skill — import external skills with license check and auto-install` |
+| F9 | **Skill sync** | Sync skills across repos without `--delete`, detect renames via content hash. | `fix: skill sync without --delete, detect renames via content hash</code></pre>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="2026-06-11-knowledge-skill-prd.html"><span class="label">Previous</span>Knowledge Skill PRD</a><a class="next" href="../decision-history/walter-worker-decision-history.html"><span class="label">Next</span>walter-worker — Decision History</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

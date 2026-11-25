@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Analytics Dashboard — Design · design · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../../../prd/walter-worker-prd.html"><span class="tree-ord">1</span>walter-worker — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../../prd/2026-06-11-core-prd.html">Core CLI &amp; Initiative System PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../../prd/2026-06-11-dashboard-prd.html">Dashboard PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../../prd/2026-06-11-knowledge-skill-prd.html">Knowledge Skill PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../../prd/ai-coworker-prd.html">walter-worker PRD</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../../decision-history/walter-worker-decision-history.html"><span class="tree-ord">2</span>walter-worker — Decision History</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2025-04-10-integrate-loop-engineering-framework-by-running-lo-decision.html">Decision Record — 2025-04-10</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-03-30-feat-initial-commit--unified-ai-coworker-dev-env-decision.html">Decision Record — 2026-03-30</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.html">Decision Record — 2026-05-01</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-05-06-feat-add-skill-meta-import-skill--import-externa-decision.html">Decision Record — 2026-05-06</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.html">Decision Record — 2026-06-11</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-12-feat-add-opencode-context-injection-initiativema-decision.html">Decision Record — 2026-06-12</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.html">Decision Record — 2026-06-16</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-23-chore-remove-self-strain-decision.html">Decision Record — 2026-06-23</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-24-chore-review-fixes--broken-refs-tests-docs-ch-decision.html">Decision Record — 2026-06-24</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-30-fix-deploy-ai-coworker-skills-to-opencode-skill-d-decision.html">Decision Record — 2026-06-30</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.html">Decision Record — 2026-07-02</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.html">Decision Record — 2026-07-07</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.html">Decision Record — 2026-07-08</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.html">Decision Record — 2026-07-10</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-13-feat-add-emoji-and-color-coded-fields-to-tmux-sta-decision.html">Decision Record — 2026-07-13</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-17-docs-add-doc-organize--indexmd-refs-to-claudem-decision.html">Decision Record — 2026-07-17</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.html">Decision Record — 2026-07-24</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/unknown-remove-budget-related-features-from-prd-budget-fl-decision.html">Decision Record — unknown</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../../design/walter-worker-design.html"><span class="tree-ord">3</span>walter-worker — Design</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../../design/ai-coworker-design.html">walter-worker Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-analytics-dashboard-superpowers.html">Analytics Listener + Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-analytics-listener-design.html">Analytics Listener — Design Document</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-core-architecture-design.html">Core Architecture Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-feature-tracker.html">Feature Tracker</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-planning-hub.html">Planning Hub</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-09-25-deletion-list.html">Deletion List — 2026-09-25</a></li><li class="tree-leaf"><a class="tree-link" href="../../../spec/2026-06-12-initiative-project-level-design.html">Initiative — Global to Project-Level Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../../spec/ai-coworker-spec.html">walter-worker Technical Specification</a></li><li class="tree-leaf"><a class="tree-link" href="../../../state/2026-07-26-decision-timeline.html">Decision Timeline — walter-worker</a></li><li class="tree-leaf"><a class="tree-link" href="../../../work-review/2026-06-11-analytics-dashboard/acceptance.html">Analytics Dashboard — Acceptance Review</a></li><li class="tree-leaf"><a class="tree-link" href="../../../work-review/2026-06-11-analytics-dashboard/report.html">Acceptance Report — Analytics Dashboard</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../../../impl-plan/walter-worker-impl-plan.html"><span class="tree-ord">4</span>walter-worker Implementation Plan</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../../test-plan/walter-worker-test-plan.html"><span class="tree-ord">5</span>walter-worker — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../../test-plan/ai-coworker-test-plan.html">walter-worker Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><span class="tree-link"><span class="tree-ord">10</span>sub-feature</span></summary><ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="analytics-dashboard-design.html">analytics-dashboard</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/analytics-dashboard-prd.html"><span class="tree-ord">1</span>Analytics Dashboard — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/analytics-dashboard-decision-history.html"><span class="tree-ord">2</span>Analytics Dashboard — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="analytics-dashboard-design.html" aria-current="page"><span class="tree-ord">3</span>Analytics Dashboard — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/analytics-dashboard-impl-plan.html"><span class="tree-ord">4</span>Analytics Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/analytics-dashboard-test-plan.html"><span class="tree-ord">5</span>Analytics Dashboard — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../analytics-listener/design/analytics-listener-design.html">analytics-listener</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../analytics-listener/prd/analytics-listener-prd.html"><span class="tree-ord">1</span>Analytics Listener — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-listener/decision-history/analytics-listener-decision-history.html"><span class="tree-ord">2</span>Analytics Listener — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-listener/design/analytics-listener-design.html"><span class="tree-ord">3</span>Analytics Listener — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-listener/impl-plan/analytics-listener-impl-plan.html"><span class="tree-ord">4</span>Analytics Listener — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-listener/test-plan/analytics-listener-test-plan.html"><span class="tree-ord">5</span>Analytics Listener — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../core-cli/design/core-cli-design.html">core-cli</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../core-cli/prd/core-cli-prd.html"><span class="tree-ord">1</span>Core CLI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../core-cli/decision-history/core-cli-decision-history.html"><span class="tree-ord">2</span>Core CLI — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../../core-cli/design/core-cli-design.html"><span class="tree-ord">3</span>Core CLI — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../core-cli/impl-plan/core-cli-impl-plan.html"><span class="tree-ord">4</span>Core CLI — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../core-cli/test-plan/core-cli-test-plan.html"><span class="tree-ord">5</span>Core CLI — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../feature-system/design/feature-system-design.html">feature-system</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../feature-system/prd/feature-system-prd.html"><span class="tree-ord">1</span>Feature System — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../feature-system/decision-history/feature-system-decision-history.html"><span class="tree-ord">2</span>Feature System — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../../feature-system/design/feature-system-design.html"><span class="tree-ord">3</span>Feature System — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../feature-system/impl-plan/feature-system-impl-plan.html"><span class="tree-ord">4</span>Feature System — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../feature-system/test-plan/feature-system-test-plan.html"><span class="tree-ord">5</span>Feature System — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../setup-deploy/design/setup-deploy-design.html">setup-deploy</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../setup-deploy/prd/setup-deploy-prd.html"><span class="tree-ord">1</span>Setup and Deploy — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../setup-deploy/decision-history/setup-deploy-decision-history.html"><span class="tree-ord">2</span>Setup and Deploy — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../../setup-deploy/design/setup-deploy-design.html"><span class="tree-ord">3</span>Setup and Deploy — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../setup-deploy/impl-plan/setup-deploy-impl-plan.html"><span class="tree-ord">4</span>Setup and Deploy — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../setup-deploy/test-plan/setup-deploy-test-plan.html"><span class="tree-ord">5</span>Setup and Deploy — Test Plan</a></li></ul></details></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../../../index.html">Docs</a> / <span>walter-worker</span> / <span>features</span> / <span>analytics-dashboard</span> / <span>design</span> / <span>Analytics Dashboard — Design</span></nav>
+    <article class="doc" data-doc="walter-worker/features/analytics-dashboard/design/analytics-dashboard-design">
+      <header class="doc-head">
+        <p class="eyebrow">walter-worker</p>
+        <h1>Analytics Dashboard — Design</h1>
+        <p class="source">Canonical: docs/features/walter-worker/features/analytics-dashboard/design/analytics-dashboard-design.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Analytics Dashboard — Design</h2>
+<p>Requirements are in the <a href="../prd/analytics-dashboard-prd.html">PRD</a>. Decisions are in the <a href="../decision-history/analytics-dashboard-decision-history.html">decision history</a>. Behavior below was read from the code at commit <code>a0f4ce0</code>; where it does not meet a requirement, the gap is an Open Question.</p>
+<h3>Problem Statement</h3>
+<p>The analytics database holds months of sessions, but SQL is not how a developer wants to look at last week. Some state also needs a person&#x27;s decision, such as whether a proposed skill should be promoted, and that decision is easier to make while looking at the evidence.</p>
+<h3>Solution</h3>
+<p>A small FastAPI server (FastAPI is a Python web framework; uvicorn is the server that runs it) serves a static single-page front end and a JSON interface over the local analytics database and stores. The front end is plain HTML, JavaScript, and CSS. Write actions sit behind a header that only the page&#x27;s own script sends. Today the page itself can reach only one write action, changing a skill&#x27;s status (<a class="id-ref" href="#DSGN-D">DSGN-D</a>).</p>
+<h3>User Stories</h3>
+<p>The user stories are in the <a href="../prd/analytics-dashboard-prd.html#user-stories">PRD</a>.</p>
+<h3>Implementation Decisions</h3>
+<p>The default bind is <code>127.0.0.1</code> because the data includes full prompts (<a class="id-ref" href="../decision-history/analytics-dashboard-decision-history.html#ARD-F">ARD-F</a>). There is no login. A cross-site write is blocked by requiring the header <code>X-Coworker-Dashboard: 1</code> on every write request, which a page on another site cannot send without the browser asking this server first (<a class="id-ref" href="../decision-history/analytics-dashboard-decision-history.html#ARD-C">ARD-C</a>). The header protects only against a page whose origin differs from the dashboard&#x27;s. It does not protect against DNS rebinding, an attack in which a foreign site makes the browser treat that site as the dashboard&#x27;s own origin; the server checks neither the <code>Host</code> header nor the WebSocket <code>Origin</code> header (<a class="id-ref" href="#QUES-G">QUES-G</a>, <a class="id-ref" href="#QUES-H">QUES-H</a>).</p>
+<h3>Design</h3>
+<h4 id="DSGN-A"><a class="id-ref" href="#DSGN-A">DSGN-A</a> — Starting the server</h4>
+<p><code>coworker analytics dashboard [--port 8080] [--host 127.0.0.1] [--db PATH]</code> starts uvicorn. <code>--db</code> sets the environment variable <code>COWORKER_ANALYTICS_DB</code>, which names the database file, for the run and restores the old value afterwards. Without <code>--db</code> the server uses that variable if it is set, else <code>~/.coworker/analytics/analytics.db</code>. Any host other than the literal <code>127.0.0.1</code> or <code>::1</code> prints a warning, so <code>--host localhost</code> also warns (<code>cli_analytics.py</code> at <code>a0f4ce0</code>). This implements <a class="id-ref" href="../prd/analytics-dashboard-prd.html#PRD-A">PRD-A</a>.</p>
+<h4 id="DSGN-B"><a class="id-ref" href="#DSGN-B">DSGN-B</a> — Pages</h4>
+<p>The front end has three groups. Activity holds Summary, Sessions (with filters on session id, AI tool, project, and feature, applied in the browser), and Files. Insights holds Usage, Cost, Quality, and Knowledge. System holds Health, Errors, Evolution, and Graph, which embeds the memory graph page. Most pages show an error panel with a retry button when a request fails; the Graph page shows an error without a retry button. This implements <a class="id-ref" href="../prd/analytics-dashboard-prd.html#PRD-B">PRD-B</a>.</p>
+<p>The Summary refreshes by polling: while Summary is open, the page requests <code>/api/overview</code> over HTTP every 15 seconds and skips the request while the browser tab is hidden (<code>dashboard.js:618-619</code> at <code>a0f4ce0</code>). The page never opens the WebSocket at <code>/ws</code>. This implements <a class="id-ref" href="../prd/analytics-dashboard-prd.html#PRD-F">PRD-F</a>.</p>
+<p>Clicking a session row opens that session, which loads <code>/api/sessions/{id}</code> and <code>/api/sessions/{id}/timeline</code> (<code>viewSession</code> in <code>dashboard.js</code>, <a class="id-ref" href="#DSGN-C">DSGN-C</a>). This implements <a class="id-ref" href="../prd/analytics-dashboard-prd.html#PRD-G">PRD-G</a>.</p>
+<p>The page can reach only one write action: on a skill&#x27;s Evolution page, buttons change the skill&#x27;s status (<code>dashboard.js:659</code>). The script also defines functions that approve and reject a proposed skill, but no control calls them (<code>dashboard.js:660-661</code>). A Memory Control page with &quot;Refresh Snapshot&quot; and &quot;Reset Circuit&quot; buttons exists in the script, but no menu entry or link leads to it (<code>dashboard.js:590,670</code>). Its &quot;Refresh Snapshot&quot; button posts to <code>/api/memory/refresh</code>, which does not exist and answers 405; the real endpoint is <code>/api/memory/refresh-snapshot</code> (<a class="id-ref" href="#QUES-F">QUES-F</a>).</p>
+<h4 id="DSGN-C"><a class="id-ref" href="#DSGN-C">DSGN-C</a> — Read interface</h4>
+<p>All read endpoints are <code>GET</code> under <code>/api/</code>. The main ones are listed here. The full documented interface is the OpenAPI description that FastAPI serves at <code>/openapi.json</code>; FastAPI also serves it as browsable pages at <code>/docs</code> and <code>/redoc</code>. These three paths are public to anyone who can reach the port, like every other endpoint.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Endpoint</th>
+<th>Returns</th>
+</tr></thead><tbody>
+<tr>
+<td><code>/api/overview</code></td>
+<td>Totals, active sessions, ten recent sessions, the ten most used tools, and daily session counts for the 14 most recent days that have any sessions (days without sessions are left out, so the window can span months; <code>queries.py:139-142</code> at <code>a0f4ce0</code>, <a class="id-ref" href="#QUES-I">QUES-I</a>)</td>
+</tr>
+<tr>
+<td><code>/api/sessions?limit=50</code></td>
+<td>Sessions with their statistics</td>
+</tr>
+<tr>
+<td><code>/api/sessions/{id}</code></td>
+<td>One session&#x27;s messages, tool calls, file operations, summary, and statistics</td>
+</tr>
+<tr>
+<td><code>/api/sessions/{id}/timeline</code></td>
+<td>Messages, tool calls, and file operations merged in time order</td>
+</tr>
+<tr>
+<td><code>/api/tools</code>, <code>/api/tool-detail</code></td>
+<td>Calls, average duration, and longest duration per tool; <code>/api/tool-detail</code> also gives each tool&#x27;s type, server name, and session count</td>
+</tr>
+<tr>
+<td><code>/api/files</code>, <code>/api/top-files</code>, <code>/api/file-stats</code>, <code>/api/file-detail</code></td>
+<td>File activity</td>
+</tr>
+<tr>
+<td><code>/api/skills</code>, <code>/api/skill-detail</code>, <code>/api/skill-timeline</code>, <code>/api/skill-session-ids</code>, <code>/api/skill-mentions</code></td>
+<td>Skill usage</td>
+</tr>
+<tr>
+<td><code>/api/knowledge</code>, <code>/api/knowledge/{id}/sessions</code>, <code>/api/features</code>, <code>/api/projects</code>, <code>/api/hotspots</code>, <code>/api/daily-sessions</code></td>
+<td>Knowledge cards, features, projects, the most frequently modified files, and daily session counts</td>
+</tr>
+<tr>
+<td><code>/api/cost-analytics</code>, <code>/api/models</code>, <code>/api/model-usage</code>, <code>/api/efficiency</code></td>
+<td>Cost and model figures</td>
+</tr>
+<tr>
+<td><code>/api/errors</code>, <code>/api/session-errors</code>, <code>/api/data-quality</code>, <code>/api/memory-stats</code></td>
+<td>Health and errors</td>
+</tr>
+<tr>
+<td><code>/api/graph</code>, <code>/api/evolution/overview</code>, <code>/api/evolution/skills</code>, <code>/api/evolution/skills/{name}</code>, <code>/api/evolution/experiences</code>, <code>/api/evolution/experiences/{id}</code>, <code>/api/evolution/pending</code></td>
+<td>The memory graph and the skill evolution views</td>
+</tr>
+</tbody></table></div>
+<p>A WebSocket at <code>/ws</code> replies with the overview each time a client sends it a message. The page does not use it. The server accepts a WebSocket connection from any origin, and browsers apply no same-origin rule to WebSockets, so any website the user visits can read the overview, including the ten most recent sessions with their project, working folder, branch, feature, and model (<code>app.py:378-387</code> at <code>a0f4ce0</code>, <a class="id-ref" href="#QUES-H">QUES-H</a>).</p>
+<p>The database is created with its schema on first access, so an empty or new database gives empty results, not errors, and an unknown session id returns an empty record with status 200. An unknown skill on <code>/api/evolution/skills/{name}</code> returns 404. <code>/api/evolution/experiences/{id}</code> returns 404 for any failure, including a failure to start the memory store, not only for an unknown id (<code>app.py:229-237</code>). A malformed number in a query parameter gets the framework&#x27;s automatic 422 response. A negative limit is passed to the database unchecked, and in SQLite <code>LIMIT -1</code> means no limit, so every row is returned (<a class="id-ref" href="#QUES-D">QUES-D</a>). These rules implement <a class="id-ref" href="../prd/analytics-dashboard-prd.html#PRD-C">PRD-C</a>. The two session endpoints, <code>/api/sessions/{id}</code> and <code>/api/sessions/{id}/timeline</code>, implement <a class="id-ref" href="../prd/analytics-dashboard-prd.html#PRD-G">PRD-G</a>. Two skill endpoints return wrong results (<a class="id-ref" href="#QUES-B">QUES-B</a>).</p>
+<h4 id="DSGN-D"><a class="id-ref" href="#DSGN-D">DSGN-D</a> — Write interface</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Endpoint</th>
+<th>Effect</th>
+</tr></thead><tbody>
+<tr>
+<td><code>POST /api/evolution/approve/{id}</code></td>
+<td>Approves a proposed skill and promotes it to the active skills; 404 when unknown; also 404, with the item marked rejected, when the item fails the safety check (<a class="id-ref" href="#QUES-J">QUES-J</a>)</td>
+</tr>
+<tr>
+<td><code>POST /api/evolution/reject/{id}</code></td>
+<td>Rejects a proposed skill; 404 when unknown</td>
+</tr>
+<tr>
+<td>`POST /api/evolution/skills/{name}/status?status=active\</td>
+<td>pending\</td>
+<td>inactive`</td>
+<td>Rewrites that skill&#x27;s usage record; 400 for a bad status, 404 for an unknown skill, 500 when the record cannot be read or written</td>
+</tr>
+<tr>
+<td><code>POST /api/memory/refresh-snapshot</code></td>
+<td>Rewrites the memory snapshot in <code>~/CLAUDE.local.md</code>; 500 on failure</td>
+</tr>
+<tr>
+<td><code>POST /api/memory/reset-circuit</code></td>
+<td>Resets the memory circuit breaker</td>
+</tr>
+</tbody></table></div>
+<p>Every write request without the header <code>X-Coworker-Dashboard: 1</code> is refused with 403. This implements <a class="id-ref" href="../prd/analytics-dashboard-prd.html#PRD-D">PRD-D</a>, except that the page can reach only the skill status action (<a class="id-ref" href="#DSGN-B">DSGN-B</a>, <a class="id-ref" href="#QUES-F">QUES-F</a>) and the header does not stop a DNS rebinding attack (<a class="id-ref" href="#QUES-G">QUES-G</a>).</p>
+<h4 id="DSGN-E"><a class="id-ref" href="#DSGN-E">DSGN-E</a> — Figures without data</h4>
+<p>Token and cost columns exist in the database, but no importer fills them at <code>a0f4ce0</code>. Session duration is filled only for sessions imported from hook directories. The page shows these missing figures as zero, not as missing: the columns default to 0 (<code>db.py:86-92</code>), the queries wrap sums in <code>COALESCE(..., 0)</code> (<code>queries_analytics.py</code> <code>query_cost_analytics</code> and <code>query_models</code>, <code>queries.py</code> <code>query_projects</code>), and the Health page then shows &quot;Total Cost $0.0000&quot; and &quot;Total Tokens 0&quot; (<code>dashboard.js:600-601</code>). <a class="id-ref" href="../prd/analytics-dashboard-prd.html#PRD-E">PRD-E</a> is therefore not met (<a class="id-ref" href="#QUES-C">QUES-C</a>). The <code>cost</code> column is an integer column, so a fractional dollar amount would be cut to a whole number once an importer fills it (<a class="id-ref" href="#QUES-C">QUES-C</a>).</p>
+<h4>Sub-problem ownership (子问题归属)</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>子问题</th>
+<th>归属</th>
+<th>依据</th>
+</tr></thead><tbody>
+<tr>
+<td>Whether the dashboard should ever be reachable from another machine, and with what login</td>
+<td>人决定</td>
+<td><a class="id-ref" href="#QUES-A">QUES-A</a></td>
+</tr>
+<tr>
+<td>Where cost and token figures should come from</td>
+<td>AI 查完人决定</td>
+<td><a class="id-ref" href="#QUES-C">QUES-C</a>; the analytics listener&#x27;s <a class="id-ref" href="#QUES-H">QUES-H</a></td>
+</tr>
+<tr>
+<td>How to keep other websites from reading session data (Host and Origin checks)</td>
+<td>AI 查完人决定</td>
+<td><a class="id-ref" href="#QUES-G">QUES-G</a>, <a class="id-ref" href="#QUES-H">QUES-H</a></td>
+</tr>
+<tr>
+<td>Whether the page should offer approve, reject, snapshot, and circuit actions</td>
+<td>人决定</td>
+<td><a class="id-ref" href="#QUES-F">QUES-F</a></td>
+</tr>
+</tbody></table></div>
+<h3>Testing Decisions</h3>
+<p>The server is tested in process with FastAPI&#x27;s test client against a shared in-memory SQLite database that the test fixtures fill with sample rows. A sweep calls every read endpoint whose path has no parameter. The graph, evolution, and memory endpoints read files under the real home folder (<code>~/.coworker</code>), which the tests do not redirect. No test runs the endpoints against an empty database. The cases are in the <a href="../test-plan/analytics-dashboard-test-plan.html">test plan</a>.</p>
+<h3>Out of Scope</h3>
+<p>Session recording and import, and the memory graph&#x27;s own logic, are specified elsewhere, as listed in the <a href="../prd/analytics-dashboard-prd.html#out-of-scope">PRD</a>.</p>
+<h3>Further Notes</h3>
+<p>The <code>dashboard</code> skill in walter-worker&#x27;s <code>skills/</code> folder documents an <code>import --files</code> option and <code>start</code>, <code>stop</code>, and <code>--daemon</code> forms that the command does not have (<a class="id-ref" href="#QUES-E">QUES-E</a>).</p>
+<h3>Alternatives Considered</h3>
+<p>A server-rendered page per view was rejected in favor of one static page over a JSON interface, which keeps the server small and lets the same interface serve tests. Requiring a login was rejected for a loopback-only default (<a class="id-ref" href="../decision-history/analytics-dashboard-decision-history.html#ARD-F">ARD-F</a>).</p>
+<h3>Drawbacks</h3>
+<p>The interface has more than forty endpoints, several overlapping. The page reads everything through the server, so nothing works when the server is stopped.</p>
+<h3>Risks and Mitigations</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Risk</th>
+<th>Mitigation</th>
+</tr></thead><tbody>
+<tr>
+<td>Prompts become visible to others on the network</td>
+<td>Loopback by default and a warning otherwise (<a class="id-ref" href="#DSGN-A">DSGN-A</a>); no login exists (<a class="id-ref" href="#QUES-A">QUES-A</a>)</td>
+</tr>
+<tr>
+<td>Another website triggers a write</td>
+<td>The required header (<a class="id-ref" href="#DSGN-D">DSGN-D</a>), which works only while the other site&#x27;s origin differs from the dashboard&#x27;s</td>
+</tr>
+<tr>
+<td>DNS rebinding: a foreign site makes the browser treat it as the dashboard&#x27;s origin, then reads every endpoint, full prompts included, and sends the header on writes</td>
+<td>Not mitigated; the server does not check the <code>Host</code> header (<a class="id-ref" href="#QUES-G">QUES-G</a>)</td>
+</tr>
+<tr>
+<td>Another website reads the overview through the WebSocket</td>
+<td>Not mitigated; the server does not check the <code>Origin</code> header (<a class="id-ref" href="#QUES-H">QUES-H</a>)</td>
+</tr>
+<tr>
+<td>A figure misleads</td>
+<td>Not mitigated where data is missing (<a class="id-ref" href="#QUES-C">QUES-C</a>)</td>
+</tr>
+</tbody></table></div>
+<h3>Open Questions</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Question</th>
+<th>Answer so far</th>
+<th>Owner</th>
+<th>Blocking</th>
+</tr></thead><tbody>
+<tr>
+<td><strong id="QUES-A"><a class="id-ref" href="#QUES-A">QUES-A</a></strong></td>
+<td>There is no login. Bound to a non-loopback host, anyone who can reach the port reads full prompts. Refuse non-loopback binds, or add a token?</td>
+<td>Found in the code at <code>a0f4ce0</code>; a warning is printed.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-B"><a class="id-ref" href="#QUES-B">QUES-B</a></strong></td>
+<td><code>/api/skill-detail?name=...</code> requires the tool to be <code>Skill</code> and equal to the name at once, so with a name it matches nothing. <code>/api/skill-timeline</code> filters on the tool equal to the skill name, so it returns nothing for real skills. Both ignore <code>days</code>. The page calls skill-detail. Fix the queries?</td>
+<td>Found in <code>queries.py:382-410</code> at <code>a0f4ce0</code> and by the 2026-11-24 review (W6).</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-C"><a class="id-ref" href="#QUES-C">QUES-C</a></strong></td>
+<td>Token and cost figures are never filled, and duration only for hook-imported sessions, yet the page shows them as zero, which violates <a class="id-ref" href="../prd/analytics-dashboard-prd.html#PRD-E">PRD-E</a>. The <code>cost</code> column is an integer, so fractional dollars would be cut. Show missing figures as missing, store cost as a decimal number, and fill both from the importer?</td>
+<td>Found in the code at <code>a0f4ce0</code> and by the 2026-11-24 review (I3).</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-D"><a class="id-ref" href="#QUES-D">QUES-D</a></strong></td>
+<td>Negative <code>limit</code> values reach the database unchecked, and <code>LIMIT -1</code> returns every row. Validate them?</td>
+<td>Found in the code at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-E"><a class="id-ref" href="#QUES-E">QUES-E</a></strong></td>
+<td>The <code>dashboard</code> skill documents options the command does not have. Update the skill?</td>
+<td>Found in <a href="../../../../../../../skills/dashboard/SKILL.md"><code>skills/dashboard/SKILL.md</code></a> at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-F"><a class="id-ref" href="#QUES-F">QUES-F</a></strong></td>
+<td>The page cannot approve or reject a proposed skill, refresh the memory snapshot, or reset the circuit breaker, although <a class="id-ref" href="../prd/analytics-dashboard-prd.html#PRD-D">PRD-D</a> and the user stories expect it. The approve and reject functions have no control, the Memory Control page has no way in, and its refresh button posts to a wrong URL (405). Wire these into the page, or drop them from the requirements?</td>
+<td>Found in <code>dashboard.js</code> at <code>a0f4ce0</code> and by the 2026-11-24 review (C1).</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-G"><a class="id-ref" href="#QUES-G">QUES-G</a></strong></td>
+<td>The server checks no <code>Host</code> header, so a DNS rebinding attack lets a foreign page read every endpoint, confidential prompts included, and send the write header. Add a host allow-list, for example Starlette&#x27;s <code>TrustedHostMiddleware</code> limited to <code>localhost</code> and <code>127.0.0.1</code>?</td>
+<td>Found in <code>app.py</code> at <code>a0f4ce0</code>; a request with <code>Host: evil.example:8080</code> gets 200 on reads and writes (2026-11-24 review, I1).</td>
+<td>cicidi</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><strong id="QUES-H"><a class="id-ref" href="#QUES-H">QUES-H</a></strong></td>
+<td>The WebSocket at <code>/ws</code> accepts any <code>Origin</code>, so any website can read the overview with recent session details. Check <code>Origin</code>, or remove <code>/ws</code>, which the page does not use?</td>
+<td>Found in <code>app.py:378-387</code> at <code>a0f4ce0</code>; a connection with <code>Origin: http://evil.example</code> received the overview (2026-11-24 review, I2).</td>
+<td>cicidi</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><strong id="QUES-I"><a class="id-ref" href="#QUES-I">QUES-I</a></strong></td>
+<td>The activity chart shows the 14 most recent days that have sessions, not the last 14 calendar days. Are calendar days intended?</td>
+<td>Found in <code>queries.py:139-142</code> at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-J"><a class="id-ref" href="#QUES-J">QUES-J</a></strong></td>
+<td>Approve answers 404 &quot;not found&quot; when the item exists but fails the safety check, and it marks the item rejected. Return a distinct error that says the check failed?</td>
+<td>Found in <code>memory/pending.py</code> and <code>app.py</code> at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+</tbody></table></div>
+<h3>Reversibility</h3>
+<p>Stopping the server ends all access. The write actions change skill status, pending items, the memory snapshot, and the circuit breaker. A skill status can be set back from the page. In the <a href="../../../../memory-platform/prd/memory-platform-prd.html">memory platform</a>, the snapshot block in <code>~/CLAUDE.local.md</code> can be rewritten with <code>coworker memory refresh</code> or removed by hand, and a pending skill can be marked rejected with <code>coworker skill reject</code>. Whether a promoted skill can be taken back by a command is UNKNOWN. A circuit-breaker reset cannot be undone; the counter simply starts again from zero.</p>
+<h3>Terms</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Term</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td>Loopback address</td>
+<td><code>127.0.0.1</code>, reachable only from the same machine</td>
+</tr>
+<tr>
+<td>Endpoint</td>
+<td>One URL path and method the server answers</td>
+</tr>
+<tr>
+<td>403, 404, 422, 500</td>
+<td>HTTP status codes: refused, not found, invalid input, server error</td>
+</tr>
+<tr>
+<td>WebSocket</td>
+<td>A connection that stays open so the server can answer repeated requests quickly</td>
+</tr>
+<tr>
+<td>DNS rebinding</td>
+<td>An attack in which a foreign website changes what its domain name points to, so the browser sends that site&#x27;s requests to the dashboard and treats the answers as same-origin</td>
+</tr>
+<tr>
+<td>Circuit breaker</td>
+<td>A counter in <code>~/.coworker/safety/circuit_state.json</code> that allows at most three skill proposals per 24-hour window; resetting it sets the count to zero</td>
+</tr>
+<tr>
+<td>Memory snapshot</td>
+<td>The block of the current project&#x27;s memories that the memory platform writes between markers in <code>~/CLAUDE.local.md</code>, so the next session starts with them</td>
+</tr>
+<tr>
+<td>Memory loop</td>
+<td>The memory platform&#x27;s process that, at the end of each session, extracts lessons and candidate skills and stages the skills in <code>~/.coworker/pending/skills/</code> for approval</td>
+</tr>
+<tr>
+<td>Knowledge cards</td>
+<td>Entries in the analytics database&#x27;s <code>knowledge</code> table that <code>coworker knowledge</code> derives from recorded sessions</td>
+</tr>
+<tr>
+<td>Hook directories</td>
+<td>The per-session folders under <code>~/.coworker/analytics/sessions/</code> that the analytics listener&#x27;s hook scripts write while a session runs</td>
+</tr>
+</tbody></table></div>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Version</th>
+<th>Date</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td>0.1</td>
+<td>2026-11-04</td>
+<td>Draft (never committed)</td>
+</tr>
+<tr>
+<td>0.2</td>
+<td>2026-11-24</td>
+<td>Rewritten from the code at <code>a0f4ce0</code> with the 13 required sections; gaps recorded as <a class="id-ref" href="#QUES-A">QUES-A</a> to <a class="id-ref" href="#QUES-E">QUES-E</a> (<a class="id-ref" href="../decision-history/analytics-dashboard-decision-history.html#ARD-A">ARD-A</a>, <a class="id-ref" href="../decision-history/analytics-dashboard-decision-history.html#ARD-D">ARD-D</a>)</td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>2026-11-24</td>
+<td>Review fixes: the page&#x27;s reachable writes, polling refresh, the 14-day rule, zero for missing figures, public <code>/docs</code>, <code>/redoc</code>, and <code>/openapi.json</code>, and write error cases corrected; <a class="id-ref" href="../prd/analytics-dashboard-prd.html#PRD-G">PRD-G</a> anchored; terms defined; memory platform linked; <a class="id-ref" href="#QUES-F">QUES-F</a> to <a class="id-ref" href="#QUES-J">QUES-J</a> added, <a class="id-ref" href="#QUES-G">QUES-G</a> and <a class="id-ref" href="#QUES-H">QUES-H</a> blocking (<a class="id-ref" href="../decision-history/analytics-dashboard-decision-history.html#ARD-E">ARD-E</a>, <a class="id-ref" href="../decision-history/analytics-dashboard-decision-history.html#ARD-F">ARD-F</a>)</td>
+</tr>
+</tbody></table></div>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../prd/analytics-dashboard-prd.html"><span class="label">Previous</span>Analytics Dashboard — PRD</a><a class="next" href="../impl-plan/analytics-dashboard-impl-plan.html"><span class="label">Next</span>Analytics Dashboard — Implementation Plan</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../../../assets/app.js"></script>
+</body>
+</html>

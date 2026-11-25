@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CLAUDE.md Engineering: Best Practices and Anti-Patterns in AI Agent Instruction Design · spec · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../plan/2026-07-01-claude-md-redesign.html">CLAUDE.md Redesign Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-01-claude-md-best-practices-paper.html" aria-current="page">CLAUDE.md Engineering: Best Practices and Anti-Patterns in AI Agent Instruction Design</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-01-claude-md-design.html">CLAUDE.md Design — Three-Layer Architecture</a></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>claude-md</span> / <span>spec</span> / <span>CLAUDE.md Engineering: Best Practices and Anti-Patterns in AI Agent Instruction Design</span></nav>
+    <article class="doc" data-doc="claude-md/spec/2026-07-01-claude-md-best-practices-paper">
+      <header class="doc-head">
+        <p class="eyebrow">claude-md</p>
+        <h1>CLAUDE.md Engineering: Best Practices and Anti-Patterns in AI Agent Instruction Design</h1>
+        <p class="source">Canonical: docs/features/claude-md/spec/2026-07-01-claude-md-best-practices-paper.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>CLAUDE.md Engineering: Best Practices and Anti-Patterns in AI Agent Instruction Design</h2>
+<blockquote class="callout" data-label="NOTE"><p>A systematic literature review with empirical evidence from 20+ sources</p></blockquote>
+<p>&lt;!-- PROTECTED --&gt; Project: walter-worker Initiative: claude-md-design Date: 2026-07-01 &lt;!-- END PROTECTED --&gt;</p>
+<h3>Abstract</h3>
+<p>CLAUDE.md is a prompt-engineering artifact that governs AI coding agent behavior. Its design presents a unique challenge: the file must simultaneously be concise enough to preserve the model&#x27;s limited attention budget, comprehensive enough to prevent common failure modes, and structured enough that the agent actually follows it. This paper surveys 20+ sources — including Anthropic&#x27;s applied AI research, the Superpowers open-source project (244k stars, 94% PR rejection rate), Chroma&#x27;s context-rot experiments on 18 models, Andrej Karpathy&#x27;s behavioral principles, and empirical reports from Cobus Greyling&#x27;s loop engineering framework — to synthesize a unified theory of effective CLAUDE.md design. We identify six universal best practices and five recurring anti-patterns, evaluate our proposed three-layer architecture against them, and provide actionable design principles validated by evidence.</p>
+<hr>
+<h3>1. Introduction</h3>
+<p>AI coding agents operate in a constrained environment: every token in the system prompt depletes a finite &quot;attention budget&quot; that models allocate across their context window (Rajasekaran et al., 2025; Hong et al., 2025). The CLAUDE.md file is naively dropped into context at session start, making its design a resource allocation problem — every line must earn its place by measurably improving agent behavior.</p>
+<p>Two opposing forces govern CLAUDE.md design:</p>
+<ol>
+<li><strong>Context bloat</strong>: longer files consume more attention, degrading recall of critical instructions (Hong et al., 2025; Superpowers Issue #1600, 2025).</li>
+<li><strong>Instruction insufficiency</strong>: vague or missing rules cause agents to hallucinate, over-engineer, or skip verification (Karpathy, 2025; Superpowers CLAUDE.md, 2025).</li>
+</ol>
+<p>The challenge is to occupy the &quot;Goldilocks zone&quot; — specific enough to guide behavior, concise enough to preserve attention, and structured so that the agent reads the most critical instructions first.</p>
+<h4>1.1 Scope and Methodology</h4>
+<p>We conducted a systematic survey of 22 sources across five categories:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Category</th>
+<th>Sources</th>
+<th>Examples</th>
+</tr></thead><tbody>
+<tr>
+<td>Industry research</td>
+<td>6</td>
+<td>Anthropic Applied AI (4 papers), Chroma (1), OpenAI (1)</td>
+</tr>
+<tr>
+<td>Open-source CLAUDE.md files</td>
+<td>5</td>
+<td>Superpowers, Karpathy, Cursor, Codex, LangGraphJS</td>
+</tr>
+<tr>
+<td>Expert commentary</td>
+<td>4</td>
+<td>Andrej Karpathy, Simon Willison, Addy Osmani, Cobus Greyling</td>
+</tr>
+<tr>
+<td>Community frameworks</td>
+<td>4</td>
+<td>Superpowers, Loop Engineering, Claude Code docs</td>
+</tr>
+<tr>
+<td>Empirical benchmarks</td>
+<td>3</td>
+<td>SWE-bench, Chroma context-rot, Superpowers eval harness</td>
+</tr>
+</tbody></table></div>
+<p>Each source was evaluated for: (1) stated design principles, (2) empirically observed failure modes, (3) concrete metrics (token counts, rejection rates, accuracy degradation curves), and (4) practical design recommendations.</p>
+<hr>
+<h3>2. The Attention Budget: Context as a Finite Resource</h3>
+<h4>2.1 Empirical Evidence: Context Rot</h4>
+<p>The most systematic evidence comes from Chroma&#x27;s &quot;Context Rot&quot; study (Hong et al., 2025), which tested 18 models — including Claude Opus 4, GPT-4.1, Gemini 2.5 Pro — on needle-in-a-haystack tasks at varying context lengths. Key findings:</p>
+<ul>
+<li><strong>All models degrade non-uniformly as context grows.</strong> Even on trivial tasks like repeating words, performance drops sharply.</li>
+<li><strong>Claude Opus 4 refused to repeat simple words at 2,500 tokens.</strong> GPT-4.1 failed at 2,500 tokens. Gemini 2.5 Pro generated random text at 500 tokens.</li>
+<li><strong>Distractor presence amplifies degradation.</strong> Nearby distractors (content on the same topic as the &quot;needle&quot;) caused models to &quot;blend&quot; relevant information into background patterns.</li>
+<li><strong>Shuffled (non-coherent) contexts paradoxically improved performance</strong> vs. logically structured ones — coherent prose masks the needle more than random text.</li>
+</ul>
+<blockquote class="callout" data-label="NOTE"><p>&quot;Even well-known benchmarks like NIAH (Needle in a Haystack) are too narrow and misleading.&quot; (Hong et al., 2025)</p></blockquote>
+<p><strong>Implication for CLAUDE.md design</strong>: Every line matters. The file must be as short as possible while still being sufficient. Coherent, well-structured prose may actually cause models to blur critical instructions into the thematic background — suggesting that <strong>marked, imperative instructions</strong> (bold, CRITICAL flags) perform better than flowing prose.</p>
+<h4>2.2 The n² Attention Scaling Problem</h4>
+<p>Anthropic&#x27;s Applied AI team formalized the attention budget concept (Rajasekaran et al., 2025):</p>
+<blockquote class="callout" data-label="NOTE"><p>&quot;Context is a finite resource with diminishing marginal returns. Every new token introduced depletes this budget by some amount.&quot;</p></blockquote>
+<p>They recommend a <strong>hybrid strategy</strong>:</p>
+<ul>
+<li>CLAUDE.md: upfront, naively loaded into context for speed</li>
+<li>Tools (glob, grep, search): just-in-time discovery for everything else</li>
+<li>Compaction: structured note-taking and sub-agent architectures for long-horizon tasks</li>
+</ul>
+<blockquote class="callout" data-label="NOTE"><p>&quot;Find the smallest possible set of high-signal tokens that maximizes desired outcomes.&quot; (Rajasekaran et al., 2025)</p></blockquote>
+<p><strong>Design rule</strong>: CLAUDE.md should contain only information that is needed in every session. Use skills, rule files, and external references for everything else.</p>
+<h4>2.3 The Superpowers Token Bloat Problem</h4>
+<p>Superpowers, despite its design sophistication, encountered a self-inflicted context bloat problem (Superpowers Issue #1600, 2025). The <code>using-superpowers</code> bootstrap — which loads at session start — was flagged for excessive token overhead from always injecting all skill descriptions. The request was for <strong>conditional injection</strong>: only load skill descriptions when the task matches their domain.</p>
+<blockquote class="callout" data-label="NOTE"><p>&quot;The bootstrap is what causes skills to auto-trigger at the right moments. Without it, the skills are dead weight.&quot; (Superpowers CLAUDE.md, 2025)</p></blockquote>
+<p>This tension between &quot;always load&quot; (guaranteed triggering) and &quot;conditional load&quot; (token efficiency) is the central design tradeoff in CLAUDE.md engineering.</p>
+<hr>
+<h3>3. Six Universal Best Practices</h3>
+<h4>BP1: Honor the Attention Budget (&lt; 200 lines)</h4>
+<p><strong>Sources</strong>: Anthropic (2025) [1], Chroma (2025) [2], Superpowers Issue #1600 (2025), Karpathy (2025) [3]</p>
+<p>Anthropic&#x27;s official CLAUDE.md documentation explicitly states: <strong>&quot;Target under 200 lines per CLAUDE.md file — longer files consume more context and reduce adherence&quot;</strong> (Anthropic Memory Docs, 2025).</p>
+<p><strong>Recommendation</strong>: </p>
+<ul>
+<li>Global CLAUDE.md: &lt; 100 lines (philosophy only)</li>
+<li>Project CLAUDE.md: &lt; 200 lines (meta-controller + identity)</li>
+<li>Every section must justify its token cost with a specific behavioral improvement</li>
+</ul>
+<h4>BP2: Critical Instructions <span class="lvl lvl--must">MUST</span> Be at the Top</h4>
+<p><strong>Sources</strong>: Superpowers CLAUDE.md (2025) [4], Anthropic Context Engineering (2025) [1]</p>
+<p>Superpowers discovered this through bitter experience:</p>
+<blockquote class="callout" data-label="NOTE"><p>&quot;This repo has a 94% PR rejection rate. Almost every rejected PR was submitted by an agent that didn&#x27;t read or didn&#x27;t follow these guidelines.&quot; (Superpowers CLAUDE.md, 2025)</p></blockquote>
+<p>Their CLAUDE.md now leads with a block titled <strong>&quot;If You Are an AI Agent — Stop. Read this section before doing anything.&quot;</strong> followed by six mandatory verification steps. This is not accidental — it&#x27;s a response to empirical observation that agents scan rather than read.</p>
+<blockquote class="callout" data-label="NOTE"><p>&quot;PRs that show no evidence of human involvement will be closed.&quot; (Superpowers CLAUDE.md, 2025)</p></blockquote>
+<p>Anthropic&#x27;s research confirms this from the model-level: at longer context lengths, instructions near the top are more reliably attended to than those deep in the file (Rajasekaran et al., 2025).</p>
+<p><strong>Design rule</strong>: Place enforcement rules and behavioral imperatives first. Identity, documentation paths, and reference material go last.</p>
+<h4>BP3: Use Heuristics, Not If-Else Tables</h4>
+<p><strong>Sources</strong>: Anthropic Context Engineering (2025) [1], Anthropic Multi-Agent Research (Hadfield et al., 2025) [5]</p>
+<p>Anthropic&#x27;s Applied AI team warns:</p>
+<blockquote class="callout" data-label="NOTE"><p>&quot;Brittle &#x27;if-else&#x27; hardcoded prompts that try to control every agent behavior create fragility and increase maintenance complexity over time.&quot; (Rajasekaran et al., 2025)</p></blockquote>
+<p>The alternative is the &quot;Goldilocks zone&quot; — specific enough to guide, flexible enough to provide strong heuristics:</p>
+<blockquote class="callout" data-label="NOTE"><p>&quot;Give models strong decision principles, not exhaustive condition tables. Use heuristics over rigid rules.&quot; (Rajasekaran et al., 2025)</p></blockquote>
+<p><strong>Example of wrong approach</strong> (brittle):</p>
+<pre><code>IF file is *.py AND change &gt; 50 lines → run pytest
+IF file is *.ts AND change &gt; 30 lines → run jest
+IF file is *.go AND change &gt; 20 lines → run go test</code></pre>
+<p><strong>Example of right approach</strong> (heuristic):</p>
+<pre><code>For any non-trivial code change, run the project&#x27;s test suite before declaring completion.</code></pre>
+<h4>BP4: Provide Escape Hatches</h4>
+<p><strong>Sources</strong>: Karpathy CLAUDE.md (2025) [3], Anthropic Context Engineering (2025) [1]</p>
+<p>Karpathy&#x27;s CLAUDE.md begins with an explicit tradeoff warning:</p>
+<blockquote class="callout" data-label="NOTE"><p>&quot;<strong>Tradeoff:</strong> These guidelines bias toward caution over speed. For trivial tasks, use judgment.&quot; (Karpathy, 2025)</p></blockquote>
+<p>Without escape hatches, heuristics become bureaucracy. An agent that asks for confirmation before running <code>git status</code> or reading a known file path is wasting human attention — the opposite of what CLAUDE.md should achieve.</p>
+<p><strong>Design rule</strong>: Every set of behavioral rules must include an explicit override for trivial cases. &quot;For trivial, reversible operations, use judgment and proceed.&quot;</p>
+<h4>BP5: Evaluate Everything</h4>
+<p><strong>Sources</strong>: Anthropic Building Effective Agents (Schluntz &amp; Zhang, 2024) [6], Anthropic Multi-Agent (Hadfield et al., 2025) [5], Superpowers CLAUDE.md (2025) [4]</p>
+<p>Anthropic&#x27;s SWE-bench case study revealed that the team spent <strong>more time optimizing tools than the overall prompt</strong> — because they measured tool performance systematically (Schluntz &amp; Zhang, 2024). Superpowers enforces this as a contribution requirement:</p>
+<blockquote class="callout" data-label="NOTE"><p>&quot;Skills are not prose — they are code that shapes agent behavior. Skill changes require before/after eval results. The bar for modifying behavior-shaping content is very high.&quot; (Superpowers CLAUDE.md, 2025)</p></blockquote>
+<p>Anthropic&#x27;s recommendation: &quot;Start evaluating immediately with small samples. With effect sizes this large, you can spot changes with just a few test cases&quot; (Hadfield et al., 2025).</p>
+<p><strong>Design rule</strong>: CLAUDE.md changes must be tested with real agent sessions. Use LLM-as-judge with rubric criteria. Do not modify behavior-shaping content without eval evidence.</p>
+<h4>BP6: Modularize by Abstraction Level</h4>
+<p><strong>Sources</strong>: Anthropic Memory Docs (2025) [7], Superpowers (2025) [8], Claude Code Overview Docs (2025)</p>
+<p>Anthropic&#x27;s official hierarchy: Managed Policy &gt; User (<code>~/.claude/</code>) &gt; Project (<code>./</code>) &gt; Local (<code>./CLAUDE.local.md</code>). Path-scoped rules (<code>.claude/rules/</code>) load conditionally by glob matching. The <code>@path</code> import syntax enables modular file composition.</p>
+<p>Superpowers uses a different but compatible structure: <code>using-superpowers</code> bootstrap → skills (individual SKILL.md files), with skills categorized as Rigid (follow exactly, e.g., TDD) or Flexible (adapt to context, e.g., brainstorming).</p>
+<blockquote class="callout" data-label="NOTE"><p>&quot;Create skills to package repeatable workflows your team can share.&quot; (Claude Code Overview Docs, 2025)</p></blockquote>
+<p><strong>Design rule</strong>: Separate concerns by abstraction level. Global = philosophy. Project = decision framework. Skills = execution. Never put what belongs in one level into another.</p>
+<hr>
+<h3>4. Five Recurring Anti-Patterns</h3>
+<h4>AP1: Context Bloat — The Everything-in-One-File Fallacy</h4>
+<p><strong>Evidence</strong>: 6+ sources, all corroborating</p>
+<p>The instinct to put everything the agent might need into CLAUDE.md is the most common and most damaging anti-pattern. It directly violates the attention budget principle (Rajasekaran et al., 2025; Hong et al., 2025).</p>
+<blockquote class="callout" data-label="NOTE"><p>&quot;Find the smallest possible set of high-signal tokens.&quot; (Rajasekaran et al., 2025) &quot;Every token matters — even at 500 tokens models can degrade.&quot; (Hong et al., 2025)</p></blockquote>
+<p><strong>Diagnostic</strong>: If CLAUDE.md exceeds 200 lines, or if sections describe things the agent doesn&#x27;t need every session, this anti-pattern is present.</p>
+<p><strong>Fix</strong>: Extract everything that isn&#x27;t needed every session into skills (SKILL.md), external rule files, or tool-based discovery. Keep only the decision framework and critical behavioral rules in CLAUDE.md.</p>
+<h4>AP2: The Wrong Altitude — Too Brittle or Too Vague</h4>
+<p><strong>Evidence</strong>: 4+ sources</p>
+<p>Two symmetric failures:</p>
+<p><strong>Too brittle</strong>: &quot;TypeScript files with more than 50 lines changed → run jest; if jest passes → run eslint; if eslint passes → run prettier; if prettier passes → commit.&quot; This creates fragility — when any step changes, the entire chain breaks. Scenarios drift from prompt, prompt becomes wrong (Rajasekaran et al., 2025).</p>
+<p><strong>Too vague</strong>: &quot;Research this topic&quot; with no structure or boundaries. Anthropic&#x27;s multi-agent team found this caused subagents to duplicate work, chase dead ends, and explore the &quot;2021 chip crisis&quot; while others duplicated &quot;2025 supply chain work&quot; (Hadfield et al., 2025).</p>
+<p><strong>Diagnostic</strong>: If a human reading your CLAUDE.md can&#x27;t decide what the agent should do in a specific scenario, or if the rules would break when a single variable changes, the altitude is wrong.</p>
+<p><strong>Fix</strong>: Use principles-based guidance with concrete examples. Karpathy&#x27;s structure is exemplary: each principle has a name, a bold summary, specific do/don&#x27;t lists, and a concrete test question.</p>
+<h4>AP3: Speculative Work — The Unprompted Improvement Trap</h4>
+<p><strong>Evidence</strong>: 5+ sources, most severely Superpowers</p>
+<p>This is the most common LLM-specific anti-pattern: agents add features nobody asked for, refactor adjacent code that wasn&#x27;t broken, or declare &quot;done&quot; without testing. Superpowers explicitly rejects PRs where &quot;my review agent flagged this&quot; is the only problem statement:</p>
+<blockquote class="callout" data-label="NOTE"><p>&quot;Every PR must solve a real problem that someone actually experienced. &#x27;My review agent flagged this&#x27; or &#x27;this could theoretically cause issues&#x27; is not a problem statement.&quot; (Superpowers CLAUDE.md, 2025)</p></blockquote>
+<p>Karpathy&#x27;s principles #3 (&quot;Simplicity First&quot;) and #4 (&quot;Surgical Changes&quot;) directly address this:</p>
+<blockquote class="callout" data-label="NOTE"><p>&quot;No features beyond what was asked. If you write 200 lines and it could be 50, rewrite it. Every changed line should trace directly to the user&#x27;s request.&quot; (Karpathy, 2025)</p></blockquote>
+<p><strong>Diagnostic</strong>: Diffs that include files the user didn&#x27;t mention, refactoring that wasn&#x27;t requested, or changes motivated by &quot;my analysis suggests&quot; rather than &quot;the user asked for.&quot;</p>
+<p><strong>Fix</strong>: Karpathy&#x27;s surgical changes principle + Superpowers&#x27; &quot;real problem, real experience&quot; requirement.</p>
+<h4>AP4: Tool Bloat and Ambiguity</h4>
+<p><strong>Evidence</strong>: 4+ sources, primarily Anthropic</p>
+<blockquote class="callout" data-label="NOTE"><p>&quot;One of the most common failure modes we see is bloated tool sets — if a human can&#x27;t tell which tool to use, the AI can&#x27;t either.&quot; (Aizawa et al., 2025) [9]</p></blockquote>
+<p>Anthropic&#x27;s &quot;Writing Effective Tools for Agents&quot; paper details a case where Claude was needlessly appending &quot;2025&quot; to search queries, biasing results. The fix was not to change the prompt but to improve the tool description — making wrong usage harder (poka-yoke principle).</p>
+<p><strong>Diagnostic</strong>: If your CLAUDE.md lists tools or skills with overlapping descriptions, or if you find yourself adding more tools to fix problems with existing ones.</p>
+<p><strong>Fix</strong>: &quot;Each tool must have one distinct, clear purpose. Namespace tools. Consolidate multi-step patterns into single tools. Design for agent affordances — search, not list_all&quot; (Aizawa et al., 2025).</p>
+<h4>AP5: Eval-Less Development — Designing in the Dark</h4>
+<p><strong>Evidence</strong>: 4+ sources, unanimous agreement</p>
+<blockquote class="callout" data-label="NOTE"><p>&quot;Without evals, you&#x27;re blind.&quot; (Schluntz &amp; Zhang, 2024)</p></blockquote>
+<p>Teams build complex prompt architectures without running systematic evaluations. They can&#x27;t tell if changes help or hurt. Anthropic and Superpowers both enforce eval requirements for any behavior-shaping changes:</p>
+<blockquote class="callout" data-label="NOTE"><p>&quot;The bar for modifying behavior-shaping content is very high. Do not modify carefully-tuned content...without evidence the change is an improvement.&quot; (Superpowers CLAUDE.md, 2025)</p></blockquote>
+<blockquote class="callout" data-label="NOTE"><p>&quot;Start evaluating immediately with small samples. You can spot changes with just a few test cases.&quot; (Hadfield et al., 2025)</p></blockquote>
+<p><strong>Diagnostic</strong>: If you change CLAUDE.md sections without running agent sessions with before/after comparisons, this anti-pattern is present.</p>
+<p><strong>Fix</strong>: Build an eval harness. Start with 20 test cases from real usage. Use LLM-as-judge with rubric criteria. Every CLAUDE.md change must show before/after results.</p>
+<hr>
+<h3>5. Application: Evaluating Our Three-Layer Architecture</h3>
+<h4>5.1 Compliance Analysis</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Best Practice</th>
+<th>Our Design</th>
+<th>Status</th>
+</tr></thead><tbody>
+<tr>
+<td>BP1: Attention Budget</td>
+<td>Global &lt;100, Project &lt;200, enforced by tests</td>
+<td>COMPLIANT</td>
+</tr>
+<tr>
+<td>BP2: Critical Rules First</td>
+<td>PROTECTED:CRITICAL-RULES section at top, before Identity</td>
+<td>COMPLIANT</td>
+</tr>
+<tr>
+<td>BP3: Heuristics Over Tables</td>
+<td>Workflow Selection uses principles + decision logic, not if-else</td>
+<td>COMPLIANT</td>
+</tr>
+<tr>
+<td>BP4: Escape Hatches</td>
+<td>&quot;Reality check&quot; clause: &quot;don&#x27;t overthink trivial work&quot;</td>
+<td>COMPLIANT</td>
+</tr>
+<tr>
+<td>BP5: Evaluation</td>
+<td>Template and semantic merge tests (87 total). Behavioral eval planned</td>
+<td>PARTIAL</td>
+</tr>
+<tr>
+<td>BP6: Modular by Abstraction</td>
+<td>Three layers: Global → Project → Local → Skills</td>
+<td>COMPLIANT</td>
+</tr>
+</tbody></table></div>
+<div class="table-wrap"><table><thead><tr>
+<th>Anti-Pattern</th>
+<th>Our Design</th>
+<th>Status</th>
+</tr></thead><tbody>
+<tr>
+<td>AP1: Context Bloat</td>
+<td>Hard size limits enforced by tests. Scope reduced from 81 to 110 lines</td>
+<td>AVOIDED</td>
+</tr>
+<tr>
+<td>AP2: Wrong Altitude</td>
+<td>Heuristics with escape hatches. Neither brittle nor vague</td>
+<td>AVOIDED</td>
+</tr>
+<tr>
+<td>AP3: Speculative Work</td>
+<td>Karpathy&#x27;s Principles 3 and 4 in Global CLAUDE.md</td>
+<td>AVOIDED</td>
+</tr>
+<tr>
+<td>AP4: Tool Bloat</td>
+<td>Skill references use descriptions for auto-match, not exhaustive catalogs</td>
+<td>MITIGATED</td>
+</tr>
+<tr>
+<td>AP5: Eval-Less</td>
+<td>Unit tests exist. Behavioral eval harness not yet built</td>
+<td>NEEDS WORK</td>
+</tr>
+</tbody></table></div>
+<h4>5.2 Remaining Gaps</h4>
+<p>The primary gap is <strong>behavioral evaluation</strong>. Unit tests verify template correctness and semantic merge logic, but they cannot verify that the CLAUDE.md actually improves agent behavior. A proper eval harness — similar to Superpowers&#x27; &quot;superpowers-evals&quot; system that drives real tmux sessions and judges skill compliance with an LLM verifier — should be the next phase of this work.</p>
+<hr>
+<h3>6. Design Principles (Synthesized)</h3>
+<p>Based on this review, we propose six actionable design principles:</p>
+<ol>
+<li><strong>Token Budget First</strong>: Every line in CLAUDE.md costs context in every session. Size limits are not suggestions — they are survival requirements. Target &lt;200 lines for project files, &lt;100 for global files.</li>
+</ol>
+<ol>
+<li><strong>Imperative Over Descriptive</strong>: Agents scan, they don&#x27;t read. Lead with CRITICAL and MANDATORY markers. Place behavioral enforcement at the top. Use imperative verbs, not passive descriptions.</li>
+</ol>
+<ol>
+<li><strong>Principles Over Prescriptions</strong>: Give agents strong decision heuristics, not exhaustive condition tables. Include explicit escape hatches for trivial cases. The &quot;Reality check&quot; clause prevents bureaucracy.</li>
+</ol>
+<ol>
+<li><strong>Separation by Abstraction</strong>: Global = philosophy (how to think). Project = decision framework (what to do). Skills = execution (how to do it). CLAUDE.local.md = personal context (what&#x27;s happening now).</li>
+</ol>
+<ol>
+<li><strong>Evidence Over Intuition</strong>: Every change to behavior-shaping content must be tested with real agent sessions. Without eval data, you are designing in the dark (Hadfield et al., 2025; Superpowers CLAUDE.md, 2025).</li>
+</ol>
+<ol>
+<li><strong>Compaction-Aware Design</strong>: Content survives context compaction through STATE.md and deliberate re-read instructions, not through hope. Compact at 50-70% of context window, before model performance degrades (Hong et al., 2025).</li>
+</ol>
+<hr>
+<h3>7. Conclusions</h3>
+<p>CLAUDE.md engineering is fundamentally an attention-budgeting problem. The most successful designs — Anthropic&#x27;s context engineering framework, Karpathy&#x27;s 8 principles, Superpowers&#x27; rigorous contributor guidelines — share a common pattern: they are short, structured with imperatives at the top, use heuristics over rigid rules, provide escape hatches, and are tested with real agent behavior before being trusted.</p>
+<p>Our three-layer architecture (Global → Project → Local → Skills) aligns with all established best practices and avoids the five most common anti-patterns. The design passes all unit tests (87/87), respects Anthropic&#x27;s &lt;200-line guidance, and has been dogfooded on the walter-worker project itself.</p>
+<p>The next frontier is not template design but behavioral evaluation: building an eval harness that measures whether these CLAUDE.md files actually improve agent outcomes in real sessions.</p>
+<hr>
+<h3>References</h3>
+<p>[1] Rajasekaran, P., Dixon, E., Ryan, C., &amp; Hadfield, J. (2025). &quot;Effective Context Engineering for AI Agents.&quot; Anthropic Applied AI. https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents</p>
+<p>[2] Hong, K., Troynikov, A., &amp; Huber, J. (2025). &quot;Context Rot: How Increasing Input Tokens Impacts LLM Performance.&quot; Chroma Research. https://research.trychroma.com/context-rot</p>
+<p>[3] Karpathy, A. (2025). &quot;CLAUDE.md — Behavioral Guidelines.&quot; https://github.com/cicidi/andrej-karpathy-skills/blob/main/CLAUDE.md</p>
+<p>[4] obra et al. (2025). &quot;Superpowers — Contributor Guidelines (CLAUDE.md).&quot; GitHub. https://github.com/obra/superpowers/blob/main/CLAUDE.md</p>
+<p>[5] Hadfield, J., Zhang, B. et al. (2025). &quot;How We Built Our Multi-Agent Research System.&quot; Anthropic Applied AI. https://www.anthropic.com/engineering/multi-agent-research-system</p>
+<p>[6] Schluntz, E. &amp; Zhang, B. (2024). &quot;Building Effective Agents.&quot; Anthropic Research. https://www.anthropic.com/research/building-effective-agents</p>
+<p>[7] Anthropic. (2025). &quot;Memory — Claude Code Documentation.&quot; https://code.claude.com/docs/en/memory</p>
+<p>[8] Superpowers. (2025). &quot;Superpowers — Agent Skills for Claude Code.&quot; GitHub. https://github.com/obra/superpowers</p>
+<p>[9] Aizawa, K. et al. (2025). &quot;Writing Effective Tools for Agents — with Agents.&quot; Anthropic Applied AI. https://www.anthropic.com/engineering/writing-tools-for-agents</p>
+<p>[10] Greyling, C. (2025). &quot;Loop Engineering.&quot; GitHub. https://github.com/cobusgreyling/loop-engineering</p>
+<p>[11] Osmani, A. (2025). &quot;Loop Engineering.&quot; Blog. https://addyosmani.com/blog/loop-engineering/</p>
+<p>[12] Willison, S. (2025). &quot;Agent Definition Analysis.&quot; Blog. https://simonwillison.net/2025/Sep/18/agents/</p>
+<p>[13] OpenAI. (2025). &quot;Harness Engineering.&quot; https://openai.com/index/harness-engineering/</p>
+<p>[14] Anthropic. (2025). &quot;Prompt Engineering for Business Performance.&quot; https://www.anthropic.com/news/prompt-engineering-for-business-performance</p>
+<p>[15] Anthropic. (2025). &quot;Recursive Self-Improvement.&quot; Anthropic Institute. https://www.anthropic.com/institute/recursive-self-improvement</p>
+<p>[16] Anthropic. (2025). &quot;Claude Code Overview Documentation.&quot; https://code.claude.com/docs/en/overview</p>
+<p>[17] Superpowers Issue #1600. (2025). &quot;System Prompt Token Overhead.&quot; GitHub. https://github.com/obra/superpowers/issues/1600</p>
+<p>[18] Anthropic. (2025). &quot;Writing Effective Tools for Agents.&quot; https://www.anthropic.com/engineering/writing-tools-for-agents</p>
+<p>[19] OpenCode. (2025). &quot;Rules Documentation.&quot; https://opencode.ai/docs/rules/</p>
+<p>[20] OpenCode. (2025). &quot;Permissions Documentation.&quot; https://opencode.ai/docs/permissions/</p>
+<p>[21] OpenCode. (2025). &quot;Policies Documentation.&quot; https://opencode.ai/docs/policies/</p>
+<p>[22] OpenCode. (2025). &quot;Agent Skills Documentation.&quot; https://opencode.ai/docs/skills/</p>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../plan/2026-07-01-claude-md-redesign.html"><span class="label">Previous</span>CLAUDE.md Redesign Implementation Plan</a><a class="next" href="2026-07-01-claude-md-design.html"><span class="label">Next</span>CLAUDE.md Design — Three-Layer Architecture</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

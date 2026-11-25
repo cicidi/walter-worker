@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hermes Agent ☤ · reference · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/dashboard-ui-prd.html">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-29-devil-advocate-reviews-summary.html">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/auto-worker-design.html">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/dashboard-design.html">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/qa-autonomous-agent-design.html">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../INDEX.html">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="band-ai-docs.html">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="guild-agent-README.html">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="guild-ai-docs.html">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="hermes-agent-README.html" aria-current="page">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="hermes-agent-docs.html">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="jam-agent-README.html">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="pioneer-docs.html">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/memory-graph-spec.html">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/qa-autonomous-agent-spec.html">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/self-evolving-agent-spec.html">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-29-current-state.html">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-dashboard-data-not-verified.html">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../impl-plan/self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../impl-plan/dependency-and-sequencing-impl-plan.html">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/qa-autonomous-agent-impl-plan.html">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/self-evolving-agent-test-plan.html"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/2026-07-29-test-execution-report.html">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-graph-test-plan.html">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>reference</span> / <span>Hermes Agent ☤</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/reference/hermes-agent-README">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>Hermes Agent ☤</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/reference/hermes-agent-README.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <p>&lt;p align=&quot;center&quot;&gt;   &lt;img src=&quot;assets/banner.png&quot; alt=&quot;Hermes Agent&quot; width=&quot;100%&quot;&gt; &lt;/p&gt;</p>
+<h2>Hermes Agent ☤</h2>
+<p>&lt;p align=&quot;center&quot;&gt;   &lt;a href=&quot;https://hermes-agent.nousresearch.com/&quot;&gt;Hermes Agent&lt;/a&gt; | &lt;a href=&quot;https://hermes-agent.nousresearch.com/&quot;&gt;Hermes Desktop&lt;/a&gt; &lt;/p&gt; &lt;p align=&quot;center&quot;&gt;   &lt;a href=&quot;https://hermes-agent.nousresearch.com/docs/&quot;&gt;&lt;img src=&quot;https://img.shields.io/badge/Docs-hermes--agent.nousresearch.com-FFD700?style=for-the-badge&quot; alt=&quot;Documentation&quot;&gt;&lt;/a&gt;   &lt;a href=&quot;https://discord.gg/NousResearch&quot;&gt;&lt;img src=&quot;https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&amp;logo=discord&amp;logoColor=white&quot; alt=&quot;Discord&quot;&gt;&lt;/a&gt;   &lt;a href=&quot;https://github.com/NousResearch/hermes-agent/blob/main/LICENSE&quot;&gt;&lt;img src=&quot;https://img.shields.io/badge/License-MIT-green?style=for-the-badge&quot; alt=&quot;License: MIT&quot;&gt;&lt;/a&gt;   &lt;a href=&quot;https://nousresearch.com&quot;&gt;&lt;img src=&quot;https://img.shields.io/badge/Built%20by-Nous%20Research-blueviolet?style=for-the-badge&quot; alt=&quot;Built by Nous Research&quot;&gt;&lt;/a&gt;   &lt;a href=&quot;README.zh-CN.md&quot;&gt;&lt;img src=&quot;https://img.shields.io/badge/Lang-中文-red?style=for-the-badge&quot; alt=&quot;中文&quot;&gt;&lt;/a&gt;   &lt;a href=&quot;README.ur-pk.md&quot;&gt;&lt;img src=&quot;https://img.shields.io/badge/Lang-اردو-green?style=for-the-badge&quot; alt=&quot;اردو&quot;&gt;&lt;/a&gt;   &lt;a href=&quot;README.es.md&quot;&gt;&lt;img src=&quot;https://img.shields.io/badge/Lang-Español-orange?style=for-the-badge&quot; alt=&quot;Español&quot;&gt;&lt;/a&gt; &lt;/p&gt;</p>
+<p><strong>The self-improving AI agent built by <a href="https://nousresearch.com">Nous Research</a>.</strong> It&#x27;s the only agent with a built-in learning loop — it creates skills from experience, improves them during use, nudges itself to persist knowledge, searches its own past conversations, and builds a deepening model of who you are across sessions. Run it on a $5 VPS, a GPU cluster, or serverless infrastructure that costs nearly nothing when idle. It&#x27;s not tied to your laptop — talk to it from Telegram while it works on a cloud VM.</p>
+<p>Use any model you want — <a href="https://portal.nousresearch.com">Nous Portal</a>, OpenRouter, OpenAI, your own endpoint, and <a href="https://hermes-agent.nousresearch.com/docs/integrations/providers">many others</a>. Switch with <code>hermes model</code> — no code changes, no lock-in.</p>
+<p>&lt;table&gt; &lt;tr&gt;&lt;td&gt;&lt;b&gt;A real terminal interface&lt;/b&gt;&lt;/td&gt;&lt;td&gt;Full TUI with multiline editing, slash-command autocomplete, conversation history, interrupt-and-redirect, and streaming tool output.&lt;/td&gt;&lt;/tr&gt; &lt;tr&gt;&lt;td&gt;&lt;b&gt;Lives where you do&lt;/b&gt;&lt;/td&gt;&lt;td&gt;Telegram, Discord, Slack, WhatsApp, Signal, and CLI — all from a single gateway process. Voice memo transcription, cross-platform conversation continuity.&lt;/td&gt;&lt;/tr&gt; &lt;tr&gt;&lt;td&gt;&lt;b&gt;A closed learning loop&lt;/b&gt;&lt;/td&gt;&lt;td&gt;Agent-curated memory with periodic nudges. Autonomous skill creation after complex tasks. Skills self-improve during use. FTS5 session search with LLM summarization for cross-session recall. &lt;a href=&quot;https://github.com/plastic-labs/honcho&quot;&gt;Honcho&lt;/a&gt; dialectic user modeling. Compatible with the &lt;a href=&quot;https://agentskills.io&quot;&gt;agentskills.io&lt;/a&gt; open standard.&lt;/td&gt;&lt;/tr&gt; &lt;tr&gt;&lt;td&gt;&lt;b&gt;Scheduled automations&lt;/b&gt;&lt;/td&gt;&lt;td&gt;Built-in cron scheduler with delivery to any platform. Daily reports, nightly backups, weekly audits — all in natural language, running unattended.&lt;/td&gt;&lt;/tr&gt; &lt;tr&gt;&lt;td&gt;&lt;b&gt;Delegates and parallelizes&lt;/b&gt;&lt;/td&gt;&lt;td&gt;Spawn isolated subagents for parallel workstreams. Write Python scripts that call tools via RPC, collapsing multi-step pipelines into zero-context-cost turns.&lt;/td&gt;&lt;/tr&gt; &lt;tr&gt;&lt;td&gt;&lt;b&gt;Runs anywhere, not just your laptop&lt;/b&gt;&lt;/td&gt;&lt;td&gt;Six terminal backends — local, Docker, SSH, Singularity, Modal, and Daytona. Daytona and Modal offer serverless persistence — your agent&#x27;s environment hibernates when idle and wakes on demand, costing nearly nothing between sessions. Run it on a $5 VPS or a GPU cluster.&lt;/td&gt;&lt;/tr&gt; &lt;tr&gt;&lt;td&gt;&lt;b&gt;Research-ready&lt;/b&gt;&lt;/td&gt;&lt;td&gt;Batch trajectory generation, trajectory compression for training the next generation of tool-calling models.&lt;/td&gt;&lt;/tr&gt; &lt;/table&gt;</p>
+<hr>
+<h3>Quick Install</h3>
+<h4>Linux, macOS, WSL2, Termux</h4>
+<pre><code>curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash</code></pre>
+<h4>Windows (native, PowerShell)</h4>
+<blockquote class="callout" data-label="NOTE"><p><strong>Heads up:</strong> Native Windows runs Hermes without WSL — CLI, gateway, TUI, and tools all work natively. If you&#x27;d rather use WSL2, the Linux/macOS one-liner above works there too. Found a bug? Please <a href="https://github.com/NousResearch/hermes-agent/issues">file issues</a>.</p></blockquote>
+<p>Run this in PowerShell:</p>
+<pre><code>iex (irm https://hermes-agent.nousresearch.com/install.ps1)</code></pre>
+<p>The installer handles everything: uv, Python 3.11, Node.js, ripgrep, ffmpeg, <strong>and a portable Git Bash</strong> (MinGit, unpacked to <code>%LOCALAPPDATA%\hermes\git</code> — no admin required, completely isolated from any system Git install). Hermes uses this bundled Git Bash to run shell commands.</p>
+<p>If you already have Git installed, the installer detects it and uses that instead. Otherwise a ~45MB MinGit download is all you need — it won&#x27;t touch or interfere with any system Git.</p>
+<blockquote class="callout" data-label="NOTE"><p><strong>Android / Termux:</strong> The tested manual path is documented in the <a href="https://hermes-agent.nousresearch.com/docs/getting-started/termux">Termux guide</a>. On Termux, Hermes installs a curated <code>.[termux]</code> extra because the full <code>.[all]</code> extra currently pulls Android-incompatible voice dependencies.  <strong>Windows:</strong> Native Windows is fully supported — the PowerShell one-liner above installs everything. If you&#x27;d rather use WSL2, the Linux command works there too. Native Windows install lives under <code>%LOCALAPPDATA%\hermes</code>; WSL2 installs under <code>~/.hermes</code> as on Linux.</p></blockquote>
+<p>After installation:</p>
+<pre><code>source ~/.bashrc    # reload shell (or: source ~/.zshrc)
+hermes              # start chatting!</code></pre>
+<h4>Troubleshooting</h4>
+<h5>Windows Defender or antivirus flags <code>uv.exe</code> as malware</h5>
+<p>If your antivirus (Bitdefender, Windows Defender, etc.) quarantines <code>uv.exe</code> from the Hermes <code>bin</code> folder (<code>%LOCALAPPDATA%\hermes\bin\uv.exe</code>), this is a <strong>false positive</strong>. The file is Astral&#x27;s <code>uv</code> — the Rust Python package manager Hermes bundles to manage its Python environment. ML-based antivirus engines commonly flag unsigned Rust binaries that download and install packages.</p>
+<p><strong>To verify your copy is authentic:</strong></p>
+<pre><code># Install GitHub CLI if needed
+winget install --id GitHub.cli
+
+# Login to GitHub
+gh auth login
+
+# Run verification
+$uv = &quot;$env:LOCALAPPDATA\hermes\bin\uv.exe&quot;
+$ver = (&amp; $uv --version).Split(&#x27; &#x27;)[1]
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+$zip = &quot;$env:TEMP\uv.zip&quot;
+Invoke-WebRequest &quot;https://github.com/astral-sh/uv/releases/download/$ver/uv-x86_64-pc-windows-msvc.zip&quot; -OutFile $zip -UseBasicParsing
+gh attestation verify $zip --repo astral-sh/uv
+Expand-Archive $zip &quot;$env:TEMP\uv_x&quot; -Force
+(Get-FileHash &quot;$env:TEMP\uv_x\uv.exe&quot;).Hash -eq (Get-FileHash $uv).Hash</code></pre>
+<p>If attestation says &quot;Verification succeeded&quot; and the last line prints <code>True</code>, you&#x27;re good.</p>
+<p><strong>To whitelist Hermes:</strong></p>
+<ul>
+<li><strong>Windows Defender:</strong> Run PowerShell as Admin → <code>Add-MpPreference -ExclusionPath &quot;$env:LOCALAPPDATA\hermes\bin&quot;</code></li>
+<li><strong>Bitdefender:</strong> Add an exception in the Bitdefender console (Protection &gt; Antivirus &gt; Settings &gt; Manage Exceptions)</li>
+<li>Whitelist the <strong>folder</strong>, not the file hash — Hermes updates <code>uv</code> and the hash changes every version</li>
+</ul>
+<p>For more context, see the upstream Astral reports: <a href="https://github.com/astral-sh/uv/issues/13553">astral-sh/uv#13553</a>, <a href="https://github.com/astral-sh/uv/issues/15011">astral-sh/uv#15011</a>, <a href="https://github.com/astral-sh/uv/issues/10079">astral-sh/uv#10079</a>.</p>
+<hr>
+<h3>Getting Started</h3>
+<pre><code>hermes              # Interactive CLI — start a conversation
+hermes model        # Choose your LLM provider and model
+hermes tools        # Configure which tools are enabled
+hermes config set   # Set individual config values
+hermes config get   # Print individual config values
+hermes gateway      # Start the messaging gateway (Telegram, Discord, etc.)
+hermes setup        # Run the full setup wizard (configures everything at once)
+hermes claw migrate # Migrate from OpenClaw (if coming from OpenClaw)
+hermes update       # Update to the latest version
+hermes doctor       # Diagnose any issues</code></pre>
+<p>📖 <strong><a href="https://hermes-agent.nousresearch.com/docs/">Full documentation →</a></strong></p>
+<hr>
+<h3>Skip the API-key collection — Nous Portal</h3>
+<p>Hermes works with whatever provider you want — that&#x27;s not changing. But if you&#x27;d rather not collect five separate API keys for the model, web search, image generation, TTS, and a cloud browser, <strong><a href="https://portal.nousresearch.com">Nous Portal</a></strong> covers all of them under one subscription:</p>
+<ul>
+<li><strong>300+ models</strong> — pick any of them with <code>/model &lt;name&gt;</code></li>
+<li><strong>Tool Gateway</strong> — web search (Firecrawl), image generation (FAL), text-to-speech (OpenAI), cloud browser (Browser Use), all routed through your sub. No extra accounts.</li>
+</ul>
+<p>One command from a fresh install:</p>
+<pre><code>hermes setup --portal</code></pre>
+<p>That logs you in via OAuth, sets Nous as your provider, and turns on the Tool Gateway. Check what&#x27;s wired up any time with <code>hermes portal info</code>. Full details on the <a href="https://hermes-agent.nousresearch.com/docs/user-guide/features/tool-gateway">Tool Gateway docs page</a>.</p>
+<p>You can still bring your own keys per-tool whenever you want — the gateway is per-backend, not all-or-nothing.</p>
+<hr>
+<h3>CLI vs Messaging Quick Reference</h3>
+<p>Hermes has two entry points: start the terminal UI with <code>hermes</code>, or run the gateway and talk to it from Telegram, Discord, Slack, WhatsApp, Signal, or Email. Once you&#x27;re in a conversation, many slash commands are shared across both interfaces.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Action</th>
+<th>CLI</th>
+<th>Messaging platforms</th>
+</tr></thead><tbody>
+<tr>
+<td>Start chatting</td>
+<td><code>hermes</code></td>
+<td>Run <code>hermes gateway setup</code> + <code>hermes gateway start</code>, then send the bot a message</td>
+</tr>
+<tr>
+<td>Start fresh conversation</td>
+<td><code>/new</code> or <code>/reset</code></td>
+<td><code>/new</code> or <code>/reset</code></td>
+</tr>
+<tr>
+<td>Change model</td>
+<td><code>/model [provider:model]</code></td>
+<td><code>/model [provider:model]</code></td>
+</tr>
+<tr>
+<td>Set a personality</td>
+<td><code>/personality [name]</code></td>
+<td><code>/personality [name]</code></td>
+</tr>
+<tr>
+<td>Retry or undo the last turn</td>
+<td><code>/retry</code>, <code>/undo</code></td>
+<td><code>/retry</code>, <code>/undo</code></td>
+</tr>
+<tr>
+<td>Compress context / check usage</td>
+<td><code>/compress</code>, <code>/usage</code>, <code>/insights [--days N]</code></td>
+<td><code>/compress</code>, <code>/usage</code>, <code>/insights [days]</code></td>
+</tr>
+<tr>
+<td>Browse skills</td>
+<td><code>/skills</code> or <code>/&lt;skill-name&gt;</code></td>
+<td><code>/&lt;skill-name&gt;</code></td>
+</tr>
+<tr>
+<td>Interrupt current work</td>
+<td><code>Ctrl+C</code> or send a new message</td>
+<td><code>/stop</code> or send a new message</td>
+</tr>
+<tr>
+<td>Platform-specific status</td>
+<td><code>/platforms</code></td>
+<td><code>/status</code>, <code>/sethome</code></td>
+</tr>
+</tbody></table></div>
+<p>For the full command lists, see the <a href="https://hermes-agent.nousresearch.com/docs/user-guide/cli">CLI guide</a> and the <a href="https://hermes-agent.nousresearch.com/docs/user-guide/messaging">Messaging Gateway guide</a>.</p>
+<hr>
+<h3>Documentation</h3>
+<p>All documentation lives at <strong><a href="https://hermes-agent.nousresearch.com/docs/">hermes-agent.nousresearch.com/docs</a></strong>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Section</th>
+<th>What&#x27;s Covered</th>
+</tr></thead><tbody>
+<tr>
+<td><a href="https://hermes-agent.nousresearch.com/docs/getting-started/quickstart">Quickstart</a></td>
+<td>Install → setup → first conversation in 2 minutes</td>
+</tr>
+<tr>
+<td><a href="https://hermes-agent.nousresearch.com/docs/user-guide/cli">CLI Usage</a></td>
+<td>Commands, keybindings, personalities, sessions</td>
+</tr>
+<tr>
+<td><a href="https://hermes-agent.nousresearch.com/docs/user-guide/configuration">Configuration</a></td>
+<td>Config file, providers, models, all options</td>
+</tr>
+<tr>
+<td><a href="https://hermes-agent.nousresearch.com/docs/user-guide/messaging">Messaging Gateway</a></td>
+<td>Telegram, Discord, Slack, WhatsApp, Signal, Home Assistant</td>
+</tr>
+<tr>
+<td><a href="https://hermes-agent.nousresearch.com/docs/user-guide/security">Security</a></td>
+<td>Command approval, DM pairing, container isolation</td>
+</tr>
+<tr>
+<td><a href="https://hermes-agent.nousresearch.com/docs/user-guide/features/tools">Tools &amp; Toolsets</a></td>
+<td>40+ tools, toolset system, terminal backends</td>
+</tr>
+<tr>
+<td><a href="https://hermes-agent.nousresearch.com/docs/user-guide/features/skills">Skills System</a></td>
+<td>Procedural memory, Skills Hub, creating skills</td>
+</tr>
+<tr>
+<td><a href="https://hermes-agent.nousresearch.com/docs/user-guide/features/memory">Memory</a></td>
+<td>Persistent memory, user profiles, best practices</td>
+</tr>
+<tr>
+<td><a href="https://hermes-agent.nousresearch.com/docs/user-guide/features/mcp">MCP Integration</a></td>
+<td>Connect any MCP server for extended capabilities</td>
+</tr>
+<tr>
+<td><a href="https://hermes-agent.nousresearch.com/docs/user-guide/features/cron">Cron Scheduling</a></td>
+<td>Scheduled tasks with platform delivery</td>
+</tr>
+<tr>
+<td><a href="https://hermes-agent.nousresearch.com/docs/user-guide/features/context-files">Context Files</a></td>
+<td>Project context that shapes every conversation</td>
+</tr>
+<tr>
+<td><a href="https://hermes-agent.nousresearch.com/docs/developer-guide/architecture">Architecture</a></td>
+<td>Project structure, agent loop, key classes</td>
+</tr>
+<tr>
+<td><a href="https://hermes-agent.nousresearch.com/docs/developer-guide/contributing">Contributing</a></td>
+<td>Development setup, PR process, code style</td>
+</tr>
+<tr>
+<td><a href="https://hermes-agent.nousresearch.com/docs/reference/cli-commands">CLI Reference</a></td>
+<td>All commands and flags</td>
+</tr>
+<tr>
+<td><a href="https://hermes-agent.nousresearch.com/docs/reference/environment-variables">Environment Variables</a></td>
+<td>Complete env var reference</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>Migrating from OpenClaw</h3>
+<p>If you&#x27;re coming from OpenClaw, Hermes can automatically import your settings, memories, skills, and API keys.</p>
+<p><strong>During first-time setup:</strong> The setup wizard (<code>hermes setup</code>) automatically detects <code>~/.openclaw</code> and offers to migrate before configuration begins.</p>
+<p><strong>Anytime after install:</strong></p>
+<pre><code>hermes claw migrate              # Interactive migration (full preset)
+hermes claw migrate --dry-run    # Preview what would be migrated
+hermes claw migrate --preset user-data   # Migrate without secrets
+hermes claw migrate --overwrite  # Overwrite existing conflicts</code></pre>
+<p>What gets imported:</p>
+<ul>
+<li><strong>SOUL.md</strong> — persona file</li>
+<li><strong>Memories</strong> — MEMORY.md and USER.md entries</li>
+<li><strong>Skills</strong> — user-created skills → <code>~/.hermes/skills/openclaw-imports/</code></li>
+<li><strong>Command allowlist</strong> — approval patterns</li>
+<li><strong>Messaging settings</strong> — platform configs, allowed users, working directory</li>
+<li><strong>API keys</strong> — allowlisted secrets (Telegram, OpenRouter, OpenAI, Anthropic, ElevenLabs)</li>
+<li><strong>TTS assets</strong> — workspace audio files</li>
+<li><strong>Workspace instructions</strong> — AGENTS.md (with <code>--workspace-target</code>)</li>
+</ul>
+<p>See <code>hermes claw migrate --help</code> for all options, or use the <code>openclaw-migration</code> skill for an interactive agent-guided migration with dry-run previews.</p>
+<hr>
+<h3>Contributing</h3>
+<p>We welcome contributions! See the <a href="https://hermes-agent.nousresearch.com/docs/developer-guide/contributing">Contributing Guide</a> for development setup, code style, and PR process.</p>
+<p>Quick start for contributors — use the standard installer, then work from the full git checkout it creates at <code>$HERMES_HOME/hermes-agent</code> (usually <code>~/.hermes/hermes-agent</code>). This matches the layout used by <code>hermes update</code>, the managed venv, lazy dependencies, gateway, and docs tooling.</p>
+<pre><code>curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
+cd &quot;${HERMES_HOME:-$HOME/.hermes}/hermes-agent&quot;
+uv pip install -e &quot;.[all,dev]&quot;
+scripts/run_tests.sh</code></pre>
+<p>Manual clone fallback (for throwaway clones/CI where you intentionally do not want the managed install layout):</p>
+<p>Create the venv outside the cloned source tree — a venv inside the directory the agent operates from can be wiped by a relative-path command the agent runs against its own checkout, destroying the running runtime mid-session.</p>
+<pre><code>curl -LsSf https://astral.sh/uv/install.sh | sh
+uv venv ~/.hermes/venvs/hermes-dev --python 3.11
+source ~/.hermes/venvs/hermes-dev/bin/activate
+uv pip install -e &quot;.[all,dev]&quot;
+scripts/run_tests.sh</code></pre>
+<hr>
+<h3>Community</h3>
+<ul>
+<li>💬 <a href="https://discord.gg/NousResearch">Discord</a></li>
+<li>📚 <a href="https://agentskills.io">Skills Hub</a></li>
+<li>🐛 <a href="https://github.com/NousResearch/hermes-agent/issues">Issues</a></li>
+<li>🔌 <a href="https://github.com/avifenesh/computer-use-linux">computer-use-linux</a> — Linux desktop-control MCP server for Hermes and other MCP hosts, with AT-SPI accessibility trees, Wayland/X11 input, screenshots, and compositor window targeting.</li>
+<li>🔌 <a href="https://github.com/AaronWong1999/hermesclaw">HermesClaw</a> — Community WeChat bridge: Run Hermes Agent and OpenClaw on the same WeChat account.</li>
+</ul>
+<hr>
+<h3>License</h3>
+<p>MIT — see <a href="../../../../features/self-evolving-agent/reference/LICENSE">LICENSE</a>.</p>
+<p>Built by <a href="https://nousresearch.com">Nous Research</a>.</p>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="guild-ai-docs.html"><span class="label">Previous</span>Guild.ai — Reference Documentation</a><a class="next" href="hermes-agent-docs.html"><span class="label">Next</span>Hermes Agent — Reference Documentation</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

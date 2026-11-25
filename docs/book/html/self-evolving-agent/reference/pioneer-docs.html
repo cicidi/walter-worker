@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pioneer.ai — Reference Documentation · reference · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/dashboard-ui-prd.html">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-29-devil-advocate-reviews-summary.html">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/auto-worker-design.html">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/dashboard-design.html">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/qa-autonomous-agent-design.html">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../INDEX.html">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="band-ai-docs.html">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="guild-agent-README.html">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="guild-ai-docs.html">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="hermes-agent-README.html">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="hermes-agent-docs.html">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="jam-agent-README.html">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="pioneer-docs.html" aria-current="page">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/memory-graph-spec.html">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/qa-autonomous-agent-spec.html">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/self-evolving-agent-spec.html">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-29-current-state.html">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-dashboard-data-not-verified.html">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../impl-plan/self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../impl-plan/dependency-and-sequencing-impl-plan.html">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/qa-autonomous-agent-impl-plan.html">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/self-evolving-agent-test-plan.html"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/2026-07-29-test-execution-report.html">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-graph-test-plan.html">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>reference</span> / <span>Pioneer.ai — Reference Documentation</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/reference/pioneer-docs">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>Pioneer.ai — Reference Documentation</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/reference/pioneer-docs.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Pioneer.ai — Reference Documentation</h2>
+<blockquote class="callout" data-label="NOTE"><p>Source: https://docs.pioneer.ai | Promo code: HACKATHONSF0724 Agent: https://agent.pioneer.ai Company: Fastino Labs (backed by $25M from Khosla Ventures, Insight Partners, M12/Microsoft, NEA)</p></blockquote>
+<h3>Overview</h3>
+<p>Pioneer is a platform that identifies model failures, retrains specialist models on user data, and routes traffic automatically — all behind OpenAI/Anthropic-compatible endpoints requiring no code changes.</p>
+<h3>Core Capabilities</h3>
+<ol>
+<li><strong>Drop-in inference</strong> — Clients point existing SDKs at Pioneer, preserving the same API surface and code.</li>
+<li><strong>Automatic gap detection</strong> — Traffic is clustered by use case; Pioneer highlights accuracy/cost/latency gaps.</li>
+<li><strong>Specialist model training</strong> — Fleet of small fine-tuned models (Qwen, Llama, DeepSeek, GLiNER, etc.) trained without user MLOps.</li>
+<li><strong>User-controlled routing</strong> — Lift, cost, latency metrics per specialist; routing decisions remain with user.</li>
+</ol>
+<h3>Adaptive Inference (Self-Improving Loop)</h3>
+<p>Continuous improvement loop that:</p>
+<ul>
+<li><strong>Monitors</strong> live inference traces for failure patterns</li>
+<li><strong>Clusters</strong> production traffic by use case</li>
+<li><strong>Performs semantic triage</strong> on failures (filtering poisoned/contradictory data)</li>
+<li><strong>Synthesizes corrective training curricula</strong> (gold corrections, hard negatives, replay data)</li>
+<li><strong>Retrains and promotes</strong> improved checkpoints behind same endpoint</li>
+<li><strong>Regression gates</strong> ensure updates pass tests; auto-rolls back on degradation</li>
+<li>Each run produces downloadable PDF audit report</li>
+</ul>
+<h3>Supported Models</h3>
+<h4>Encoder Models (Structured Extraction)</h4>
+<ul>
+<li>GLiNER2 Large — NER, text classification, structured JSON extraction</li>
+<li>GLiGuard 300M — Content moderation/safety classification</li>
+<li>GLiNER2-PII — PII detection and redaction</li>
+</ul>
+<h4>Decoder Models (LLMs)</h4>
+<ul>
+<li>Qwen3 32B — Coding, multilingual, multi-step reasoning</li>
+<li>Llama — RAG, summarization, general chat</li>
+<li>DeepSeek V4 Pro — Coding-first, extended chain-of-thought, agentic planning</li>
+<li>Gemma — Fast, low-latency coding</li>
+<li>Nemotron — High-throughput coding/reasoning</li>
+<li>Kimi K2.6 — 256K-context, long-context retrieval</li>
+</ul>
+<h4>Proprietary (Inference Only)</h4>
+<ul>
+<li>Claude Sonnet 4.6 / Claude Opus 4.7</li>
+<li>GPT-4.1 / GPT-5.5</li>
+</ul>
+<h3>API Endpoints</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Purpose</th>
+</tr></thead><tbody>
+<tr>
+<td><code>/base-models</code></td>
+<td>GET</td>
+<td>List available base models</td>
+</tr>
+<tr>
+<td><code>/inference</code></td>
+<td>POST</td>
+<td>Run inference via OpenAI/Anthropic-compatible endpoint</td>
+</tr>
+<tr>
+<td><code>/felix/training-jobs</code></td>
+<td>POST</td>
+<td>Start LoRA fine-tuning job</td>
+</tr>
+<tr>
+<td><code>/felix/evaluations</code></td>
+<td>POST</td>
+<td>Benchmark fine-tuned vs base model</td>
+</tr>
+</tbody></table></div>
+<h3>Workflow</h3>
+<ol>
+<li>Upload dataset (or use synthetic data generation)</li>
+<li>Run inference via <code>POST /inference</code></li>
+<li>Fine-tune via <code>POST /felix/training-jobs</code></li>
+<li>Evaluate via <code>POST /felix/evaluations</code></li>
+<li>Deploy — route traffic by referencing training job ID</li>
+</ol>
+<h3>Performance Highlights</h3>
+<ul>
+<li>ARC-Challenge (Llama 3B): 5.3% → 72.6% after 11 autonomous iterations (~$36)</li>
+<li>SMS Spam (GLiNER2): F1 0.159 → 0.997</li>
+<li>HumanEval (Qwen 8B): 71.3% → 92.7%</li>
+<li>GSM8K with 15% poisoned logs: 75.9% → 81.2% (naive retraining dropped to 62.6%)</li>
+</ul>
+<h3>Pricing</h3>
+<ul>
+<li>Free: $75 usage credits, no credit card</li>
+<li>Paid: From $40/month</li>
+<li>Promo: HACKATHONSF0724</li>
+</ul>
+<h3>Technical Report</h3>
+<ul>
+<li>arXiv:2604.09791 — Pioneer Agent: Continual Improvement of Small Language Models in Production</li>
+</ul>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="jam-docs.html"><span class="label">Previous</span>Jam.dev MCP — Reference Documentation</a><a class="next" href="senso-ai-docs.html"><span class="label">Next</span>Senso.ai — Reference Documentation</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

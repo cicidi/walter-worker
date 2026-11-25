@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Core CLI — Design · design · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../../../prd/walter-worker-prd.html"><span class="tree-ord">1</span>walter-worker — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../../prd/2026-06-11-core-prd.html">Core CLI &amp; Initiative System PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../../prd/2026-06-11-dashboard-prd.html">Dashboard PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../../prd/2026-06-11-knowledge-skill-prd.html">Knowledge Skill PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../../prd/ai-coworker-prd.html">walter-worker PRD</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../../decision-history/walter-worker-decision-history.html"><span class="tree-ord">2</span>walter-worker — Decision History</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2025-04-10-integrate-loop-engineering-framework-by-running-lo-decision.html">Decision Record — 2025-04-10</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-03-30-feat-initial-commit--unified-ai-coworker-dev-env-decision.html">Decision Record — 2026-03-30</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.html">Decision Record — 2026-05-01</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-05-06-feat-add-skill-meta-import-skill--import-externa-decision.html">Decision Record — 2026-05-06</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.html">Decision Record — 2026-06-11</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-12-feat-add-opencode-context-injection-initiativema-decision.html">Decision Record — 2026-06-12</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.html">Decision Record — 2026-06-16</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-23-chore-remove-self-strain-decision.html">Decision Record — 2026-06-23</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-24-chore-review-fixes--broken-refs-tests-docs-ch-decision.html">Decision Record — 2026-06-24</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-30-fix-deploy-ai-coworker-skills-to-opencode-skill-d-decision.html">Decision Record — 2026-06-30</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.html">Decision Record — 2026-07-02</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.html">Decision Record — 2026-07-07</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.html">Decision Record — 2026-07-08</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.html">Decision Record — 2026-07-10</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-13-feat-add-emoji-and-color-coded-fields-to-tmux-sta-decision.html">Decision Record — 2026-07-13</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-17-docs-add-doc-organize--indexmd-refs-to-claudem-decision.html">Decision Record — 2026-07-17</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.html">Decision Record — 2026-07-24</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/unknown-remove-budget-related-features-from-prd-budget-fl-decision.html">Decision Record — unknown</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../../design/walter-worker-design.html"><span class="tree-ord">3</span>walter-worker — Design</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../../design/ai-coworker-design.html">walter-worker Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-analytics-dashboard-superpowers.html">Analytics Listener + Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-analytics-listener-design.html">Analytics Listener — Design Document</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-core-architecture-design.html">Core Architecture Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-feature-tracker.html">Feature Tracker</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-planning-hub.html">Planning Hub</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-09-25-deletion-list.html">Deletion List — 2026-09-25</a></li><li class="tree-leaf"><a class="tree-link" href="../../../spec/2026-06-12-initiative-project-level-design.html">Initiative — Global to Project-Level Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../../spec/ai-coworker-spec.html">walter-worker Technical Specification</a></li><li class="tree-leaf"><a class="tree-link" href="../../../state/2026-07-26-decision-timeline.html">Decision Timeline — walter-worker</a></li><li class="tree-leaf"><a class="tree-link" href="../../../work-review/2026-06-11-analytics-dashboard/acceptance.html">Analytics Dashboard — Acceptance Review</a></li><li class="tree-leaf"><a class="tree-link" href="../../../work-review/2026-06-11-analytics-dashboard/report.html">Acceptance Report — Analytics Dashboard</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../../../impl-plan/walter-worker-impl-plan.html"><span class="tree-ord">4</span>walter-worker Implementation Plan</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../../test-plan/walter-worker-test-plan.html"><span class="tree-ord">5</span>walter-worker — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../../test-plan/ai-coworker-test-plan.html">walter-worker Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><span class="tree-link"><span class="tree-ord">10</span>sub-feature</span></summary><ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../../analytics-dashboard/design/analytics-dashboard-design.html">analytics-dashboard</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../analytics-dashboard/prd/analytics-dashboard-prd.html"><span class="tree-ord">1</span>Analytics Dashboard — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-dashboard/decision-history/analytics-dashboard-decision-history.html"><span class="tree-ord">2</span>Analytics Dashboard — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-dashboard/design/analytics-dashboard-design.html"><span class="tree-ord">3</span>Analytics Dashboard — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-dashboard/impl-plan/analytics-dashboard-impl-plan.html"><span class="tree-ord">4</span>Analytics Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-dashboard/test-plan/analytics-dashboard-test-plan.html"><span class="tree-ord">5</span>Analytics Dashboard — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../analytics-listener/design/analytics-listener-design.html">analytics-listener</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../analytics-listener/prd/analytics-listener-prd.html"><span class="tree-ord">1</span>Analytics Listener — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-listener/decision-history/analytics-listener-decision-history.html"><span class="tree-ord">2</span>Analytics Listener — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-listener/design/analytics-listener-design.html"><span class="tree-ord">3</span>Analytics Listener — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-listener/impl-plan/analytics-listener-impl-plan.html"><span class="tree-ord">4</span>Analytics Listener — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-listener/test-plan/analytics-listener-test-plan.html"><span class="tree-ord">5</span>Analytics Listener — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="core-cli-design.html">core-cli</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/core-cli-prd.html"><span class="tree-ord">1</span>Core CLI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/core-cli-decision-history.html"><span class="tree-ord">2</span>Core CLI — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="core-cli-design.html" aria-current="page"><span class="tree-ord">3</span>Core CLI — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/core-cli-impl-plan.html"><span class="tree-ord">4</span>Core CLI — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/core-cli-test-plan.html"><span class="tree-ord">5</span>Core CLI — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../feature-system/design/feature-system-design.html">feature-system</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../feature-system/prd/feature-system-prd.html"><span class="tree-ord">1</span>Feature System — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../feature-system/decision-history/feature-system-decision-history.html"><span class="tree-ord">2</span>Feature System — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../../feature-system/design/feature-system-design.html"><span class="tree-ord">3</span>Feature System — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../feature-system/impl-plan/feature-system-impl-plan.html"><span class="tree-ord">4</span>Feature System — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../feature-system/test-plan/feature-system-test-plan.html"><span class="tree-ord">5</span>Feature System — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../setup-deploy/design/setup-deploy-design.html">setup-deploy</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../setup-deploy/prd/setup-deploy-prd.html"><span class="tree-ord">1</span>Setup and Deploy — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../setup-deploy/decision-history/setup-deploy-decision-history.html"><span class="tree-ord">2</span>Setup and Deploy — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../../setup-deploy/design/setup-deploy-design.html"><span class="tree-ord">3</span>Setup and Deploy — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../setup-deploy/impl-plan/setup-deploy-impl-plan.html"><span class="tree-ord">4</span>Setup and Deploy — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../setup-deploy/test-plan/setup-deploy-test-plan.html"><span class="tree-ord">5</span>Setup and Deploy — Test Plan</a></li></ul></details></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../../../index.html">Docs</a> / <span>walter-worker</span> / <span>features</span> / <span>core-cli</span> / <span>design</span> / <span>Core CLI — Design</span></nav>
+    <article class="doc" data-doc="walter-worker/features/core-cli/design/core-cli-design">
+      <header class="doc-head">
+        <p class="eyebrow">walter-worker</p>
+        <h1>Core CLI — Design</h1>
+        <p class="source">Canonical: docs/features/walter-worker/features/core-cli/design/core-cli-design.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Core CLI — Design</h2>
+<p>Requirements are in the <a href="../prd/core-cli-prd.html">PRD</a>. Decisions are in the <a href="../decision-history/core-cli-decision-history.html">decision history</a>. Behavior below was read from the code at commit <code>a0f4ce0</code>, and rechecked at <code>634adf1</code> after walter-worker PRs #16 to #23; where it does not meet a requirement, the gap is an Open Question.</p>
+<h3>Problem Statement</h3>
+<p>Each AI coding tool keeps its own settings file in its own format: Claude Code in <code>settings.json</code> and <code>~/.claude.json</code>, Gemini CLI in <code>~/.gemini/settings.json</code>, OpenCode in <code>~/.config/opencode/config.json</code>. Keeping MCP servers and permissions consistent across them by hand drifts, and a tool that rewrites another tool&#x27;s file can silently delete the user&#x27;s own entries.</p>
+<h3>Solution</h3>
+<p>One YAML configuration, global plus an optional project layer, is the source. <code>coworker sync</code> translates it into each tool&#x27;s format through one adapter per tool. Each adapter merges into the existing file rather than replacing it, and remembers which entries it wrote, so it can later remove its own retired entries without touching the user&#x27;s.</p>
+<h3>User Stories</h3>
+<p>The user stories are in the <a href="../prd/core-cli-prd.html#user-stories">PRD</a>.</p>
+<h3>Implementation Decisions</h3>
+<p>Settings writes are atomic (written to a temporary file, then renamed) and are skipped when the content would not change, so a repeated sync creates no new backup (<a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-B">ARD-B</a>). Decision <a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-C">ARD-C</a> says that every command that overwrites a user-visible file first copies it under <code>~/.coworker/backups/</code>. The code at <code>a0f4ce0</code> does this for most writes but not all of them. These writes take no backup: an existing project <code>coworker.yaml</code> overwritten by <code>init --project</code> (<a class="id-ref" href="#QUES-B">QUES-B</a>), the OpenCode settings file (<a class="id-ref" href="#QUES-E">QUES-E</a>), the project <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> rewritten by <code>project sync</code> (<a class="id-ref" href="#QUES-K">QUES-K</a>, <a class="id-ref" href="#QUES-S">QUES-S</a>), the project catalog <code>~/.coworker/project.yaml</code> (<a class="id-ref" href="#QUES-T">QUES-T</a>), and the <code>.gitignore</code> lines that <code>init</code> appends. There is no Cursor adapter.</p>
+<h3>Design</h3>
+<h4 id="DSGN-A"><a class="id-ref" href="#DSGN-A">DSGN-A</a> — <code>init</code></h4>
+<p>Without a flag, <code>init</code> asks whether to initialize globally; answering no means project mode. <code>init --global</code> creates <code>~/.coworker/</code> and <code>~/.coworker/skills/</code> and writes <code>coworker.yaml</code> from the template only when it is missing. It detects nothing. This implements <a class="id-ref" href="../prd/core-cli-prd.html#PRD-A">PRD-A</a>.</p>
+<p><code>init --project</code> scans the current folder: the project name is the folder name, the repository comes from <code>git remote get-url origin</code>, the language and frameworks from <code>package.json</code>, <code>pyproject.toml</code>, <code>go.mod</code>, or <code>Cargo.toml</code> (first match wins), the AI tools from <code>~/.claude</code>, <code>~/.config/opencode</code>, <code>~/.gemini</code>, and <code>&lt;project&gt;/.cursor</code>, plus topic folders under <code>docs/</code> and links from the project catalog. It prints the result and asks for confirmation; declining writes nothing. It then writes <code>.coworker/coworker.yaml</code>, copies each <code>skills/*/SKILL.md</code> that has a name into <code>.claude/commands/</code> and <code>.opencode/instructions/</code> (skipping files already there), writes <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> (see below), creates <code>docs/</code>, and writes <code>CLAUDE.local.md</code>. This implements <a class="id-ref" href="../prd/core-cli-prd.html#PRD-B">PRD-B</a>, with one gap: an existing <code>.coworker/coworker.yaml</code> is overwritten with no backup (<a class="id-ref" href="#QUES-B">QUES-B</a>). When <code>init --project</code> runs in the home folder itself, that file is the global file <code>~/.coworker/coworker.yaml</code>, so the global configuration is replaced by the project template with no backup.</p>
+<p><a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> is written from the template when missing. When it exists and contains the <code>&lt;!-- PROTECTED:CRITICAL-RULES --&gt;</code> marker it is left alone; otherwise it is backed up with the label <code>init</code> and overwritten. When <code>CLAUDE.local.md</code> exists, only its <code>## Project Info</code> section is rewritten, with a backup if the content changed; when it is missing it is created, and <code>CLAUDE.local.md</code> and <code>docs/state/</code> are added to <code>.gitignore</code> if absent. <code>init</code> then prints that it added both entries, even when both were already present and nothing was added.</p>
+<h4 id="DSGN-B"><a class="id-ref" href="#DSGN-B">DSGN-B</a> — Configuration</h4>
+<p>The global file is <code>~/.coworker/coworker.yaml</code>; the project file is the nearest <code>.coworker/coworker.yaml</code> found by walking up from the current folder. The walk checks every parent folder except the filesystem root, so from any folder under the home folder it reaches the home folder and finds the global file itself. In a folder under the home folder with no project file of its own, the global file therefore also counts as the project file: it is merged with itself, which changes nothing, and <code>status</code> reports a project configuration as found.</p>
+<p>Top-level fields are <code>version</code>, <code>scope</code>, <code>mcp</code> (servers, each with a name, command, arguments, environment, and an enabled flag), <code>skills</code> (name, path, description, enabled), <code>permissions</code> (allow and deny lists), and per-tool sections. The <code>claude</code> section holds <code>effortLevel</code>, <code>skipDangerousModePermissionPrompt</code>, and an <code>extra</code> map; the <code>gemini</code> and <code>opencode</code> sections hold only an <code>extra</code> map (a set of key-value pairs). Unknown keys are dropped when a file is read, at the top level and inside these sections, so a key such as <code>gemini: {theme: dark}</code> is silently ignored (<a class="id-ref" href="#QUES-P">QUES-P</a>).</p>
+<p>The merge takes the global file as the base. A project MCP server is added, replacing a global server of the same name. A project skill is added only when its name is new, so the global skill wins a clash. Non-empty project allow and deny lists replace the global ones. The per-tool sections come from the global file only. This implements <a class="id-ref" href="../prd/core-cli-prd.html#PRD-C">PRD-C</a>, except that an invalid file ends the command with a Python traceback and exit status 1 (<a class="id-ref" href="#QUES-C">QUES-C</a>).</p>
+<h4 id="DSGN-C"><a class="id-ref" href="#DSGN-C">DSGN-C</a> — <code>sync</code></h4>
+<p><code>sync [--tool claude|gemini|opencode|all] [--project]</code> runs the selected adapters, <code>all</code> by default, against the global targets or, with <code>--project</code>, the current folder&#x27;s targets. The configuration used is always the merged one. Each adapter reports its actions; a failing adapter prints an error and the others still run. The command ends with &quot;Done.&quot; or &quot;Finished with errors&quot; and exits 0 in both cases. <code>--global</code> is accepted and has no effect (<a class="id-ref" href="#QUES-F">QUES-F</a>).</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Adapter</th>
+<th>Files (global / <code>--project</code>)</th>
+<th>What it writes</th>
+</tr></thead><tbody>
+<tr>
+<td>Claude Code</td>
+<td><code>~/.claude/settings.json</code>, <code>~/.claude.json</code>, <code>~/.claude/skills/</code> / the same under <code>&lt;project&gt;/.claude/</code> and <code>&lt;project&gt;/.mcp.json</code></td>
+<td>Permissions merged as a sorted union with the user&#x27;s; MCP servers into <code>~/.claude.json</code> or <code>.mcp.json</code>; it removes the <code>coworker state-update</code> Stop hook an earlier release added (<a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-G">ARD-G</a>); each enabled skill copied into <code>skills/&lt;name&gt;/</code>. Any <code>mcpServers</code> block in <code>settings.json</code> is deleted, even when the <code>mcp</code> list is empty, and its servers are not moved to the other file (<a class="id-ref" href="#QUES-O">QUES-O</a>)</td>
+</tr>
+<tr>
+<td>Gemini CLI</td>
+<td><code>~/.gemini/settings.json</code> / <code>&lt;project&gt;/.gemini/settings.json</code></td>
+<td>The keys of the <code>gemini.extra</code> map, and MCP servers</td>
+</tr>
+<tr>
+<td>OpenCode</td>
+<td><code>~/.config/opencode/config.json</code> / <code>&lt;project&gt;/.opencode/config.json</code></td>
+<td>The keys of the <code>opencode.extra</code> map, MCP servers in OpenCode&#x27;s local-server shape, and a permission allowing <code>coworker *</code> in bash</td>
+</tr>
+</tbody></table></div>
+<p>No adapter writes the <code>claude</code> section: <code>effortLevel</code>, <code>skipDangerousModePermissionPrompt</code>, and <code>claude.extra</code> have no effect, although the global template ships the first two (<a class="id-ref" href="#QUES-P">QUES-P</a>).</p>
+<p>For every adapter, MCP servers the user wrote are kept, and a configured server replaces a same-named one. A server is removed only when walter-worker&#x27;s record at <code>~/.coworker/mcp-managed.json</code> shows it wrote that server, the server is no longer configured, and the file still holds exactly what was written. With an empty <code>mcp</code> list nothing is pruned. Claude Code and Gemini writes are atomic and backed up under the label <code>json-sync</code> when the content changes. The OpenCode adapter writes in place with no backup (<a class="id-ref" href="#QUES-E">QUES-E</a>). Permissions are only ever added: <code>sync</code> never removes a permission, even one it added earlier that the configuration no longer lists. It adds no hook, and it removes the <code>coworker state-update</code> Stop hook while keeping other hooks in the same group (<a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-G">ARD-G</a>).</p>
+<p>Skills removed from the configuration are never deleted from the tool. A skill folder that contains a subfolder makes the Claude Code adapter fail with an &quot;Is a directory&quot; error: the adapter is reported as failed, the files listed after the subfolder (possibly including <code>SKILL.md</code>) are not copied, and the skills after it in the configuration are not installed (<a class="id-ref" href="#QUES-J">QUES-J</a>). With <code>--project</code>, the files are written in the current folder even when the project file was found in a parent folder, and every relative skill path is resolved against the current folder. Global skill paths are relative to <code>~/.coworker/</code>, so under <code>--project</code> they are reported as &quot;skill path not found&quot; (<a class="id-ref" href="#QUES-U">QUES-U</a>). These rules implement <a class="id-ref" href="../prd/core-cli-prd.html#PRD-D">PRD-D</a>, except for <a class="id-ref" href="#QUES-J">QUES-J</a>, <a class="id-ref" href="#QUES-O">QUES-O</a>, and <a class="id-ref" href="#QUES-U">QUES-U</a>; no adapter makes a network call, which implements <a class="id-ref" href="../prd/core-cli-prd.html#PRD-E">PRD-E</a>.</p>
+<h4 id="DSGN-D"><a class="id-ref" href="#DSGN-D">DSGN-D</a> — <code>status</code></h4>
+<p><code>status</code> prints a table of the global and project configuration files, with their paths and the number of MCP servers and skills in each. When a feature is active in the project (see the <a href="../../feature-system/design/feature-system-design.html">feature system</a>), it also prints the feature&#x27;s details, the files under <code>docs/features/&lt;name&gt;/</code>, the number of commits mentioning the feature since it was created, session and summary counts from the analytics database, recent topics, and the remaining work. Because the project-file search reaches the home folder (<a class="id-ref" href="#DSGN-B">DSGN-B</a>), the project row says &quot;found&quot; in every folder under the home folder. It writes no file; the one side effect is that reading an active feature may create the empty folder <code>~/.coworker/features/</code>. This implements <a class="id-ref" href="../prd/core-cli-prd.html#PRD-F">PRD-F</a>.</p>
+<h4 id="DSGN-E"><a class="id-ref" href="#DSGN-E">DSGN-E</a> — <code>project</code></h4>
+<p>The catalog is <code>~/.coworker/project.yaml</code>; a missing file counts as empty. Each entry has a name, a local path, a repository, a team, an environment, upstream and downstream project names, knowledge pools, and references to GitHub, Slack, and Reddit. <code>add NAME</code> defaults the path to the current folder and fails on a duplicate name; <code>edit NAME</code> changes the path or repository and adds upstream, downstream, or knowledge-pool entries; <code>list</code>, <code>show</code>, and <code>remove</code> work by name. An unknown name in <code>show</code>, <code>edit</code>, or <code>remove</code> is an error with exit status 1. <code>add</code>, <code>edit</code>, and <code>remove</code> rewrite <code>~/.coworker/project.yaml</code> from the parsed catalog with no backup, and the rewrite drops comments and any key the catalog format does not define (<a class="id-ref" href="#QUES-T">QUES-T</a>).</p>
+<p><code>project sync</code> writes the catalog, knowledge pools, references, and documentation layout into the current project&#x27;s <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> between <code>&lt;!-- COWORKER:STATIC START --&gt;</code> and <code>&lt;!-- COWORKER:STATIC END --&gt;</code>, replacing an earlier block or appending one, with no backup (<a class="id-ref" href="#QUES-K">QUES-K</a>). When <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> holds the START marker but not the END marker, everything from START to the end of the file is replaced by the new block, so any text the user wrote after START is deleted (<a class="id-ref" href="#QUES-S">QUES-S</a>). This implements <a class="id-ref" href="../prd/core-cli-prd.html#PRD-G">PRD-G</a>, except for <a class="id-ref" href="#QUES-S">QUES-S</a> and <a class="id-ref" href="#QUES-T">QUES-T</a>.</p>
+<h4 id="DSGN-F"><a class="id-ref" href="#DSGN-F">DSGN-F</a> — <code>skill</code></h4>
+<p><code>skill list</code> prints the skills in the merged configuration. <code>skill new NAME</code> scaffolds <code>~/.coworker/skills/&lt;name&gt;/SKILL.md</code>, or <code>&lt;project&gt;/.coworker/skills/&lt;name&gt;/SKILL.md</code> with <code>--project</code>, and refuses to overwrite an existing file. Proposed skills wait in <code>~/.coworker/pending/skills/</code> as JSON files, each carrying a status such as pending, approved, or rejected. <code>skill pending</code> lists every item in that folder whatever its status, ordered by file modification time, newest first, so approving or rejecting an item moves it to the top.</p>
+<p><code>skill pending --approve-all</code> runs the approval below on every item whose status is pending and prints how many it approved; the count also includes items that failed the safety check and were rejected (<a class="id-ref" href="#QUES-R">QUES-R</a>). <code>--type TYPE</code> limits <code>--approve-all</code> to items whose <code>type</code> field equals TYPE, but staged items have no <code>type</code> field, so with <code>--type</code> nothing is approved (<a class="id-ref" href="#QUES-R">QUES-R</a>).</p>
+<p><code>skill approve ID</code> runs a safety check (a name of at least three characters, no shell metacharacters, no dangerous commands in the description, a source session) and, on success, promotes the skill. The promoted folder is <code>~/.coworker/skills/&lt;folder&gt;/</code>, where the folder name is the skill&#x27;s name in lower case with spaces turned into dashes. It receives a <code>SKILL.md</code> stub when none is there and a <code>usage.json</code> record of where the skill came from, and the skill is copied to the Claude Code and OpenCode command folders when absent. The check does not reject <code>/</code> or <code>..</code> in a name, so such a name can place the promoted folder outside <code>~/.coworker/skills/</code> (<a class="id-ref" href="#QUES-W">QUES-W</a>).</p>
+<p>A failed check marks the item rejected. <code>skill reject ID</code> marks it rejected. <code>approve</code> does not look at the item&#x27;s current status, so a rejected item is promoted if a later <code>approve</code> passes the check (<a class="id-ref" href="#QUES-Q">QUES-Q</a>). For both commands an unknown ID prints &quot;Not found&quot; and exits 0. This implements <a class="id-ref" href="../prd/core-cli-prd.html#PRD-H">PRD-H</a>, except for <a class="id-ref" href="#QUES-Q">QUES-Q</a>, <a class="id-ref" href="#QUES-R">QUES-R</a>, <a class="id-ref" href="#QUES-W">QUES-W</a>, and the fact that a failed safety check is also reported as &quot;Not found&quot; (<a class="id-ref" href="#QUES-D">QUES-D</a>).</p>
+<h4 id="DSGN-G"><a class="id-ref" href="#DSGN-G">DSGN-G</a> — <code>upgrade</code></h4>
+<p><code>upgrade [--dry-run] [-y] [--force]</code> compares <code>~/.claude/CLAUDE.md</code>, section by section (a section is a heading and the text under it), with the current template. These sections are kept: a section inside a protected span or containing a <code>&lt;!-- FEATURE:</code> or <code>&lt;!-- INITIATIVE:</code> marker, a section identical to the template, a section the user only appended to, a section whose template text is still a placeholder such as <code>_(none configured)_</code>, and a section the template does not have. Any other differing section is decided against the merge base <code>~/.coworker/claude-md-base.md</code>, the template as last written (<a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-H">ARD-H</a>). Only the template changed means overwrite, only the user changed means keep, and both changed means a conflict. Without a base, a section where the user added lines and the template added none is a conflict and is kept, and any other differing section is overwritten. A template section with a new heading is appended.</p>
+<p>The command prints the plan. An overwrite made without a base lists up to five of the lines it replaces; a conflict lists up to five lines it would lose. <code>--force</code> turns conflicts into overwrites. <code>--dry-run</code> stops after the plan. With no <code>~/.claude/CLAUDE.md</code> it prints a hint to run the installer and exits 0. Without a terminal and without <code>-y</code> it prints a refusal and exits 0. When no section would be overwritten or appended it prints &quot;Already up to date&quot;; otherwise it asks for confirmation.</p>
+<p>It then backs up the file under the label <code>upgrade</code>, merges in memory, and checks every protected span, pairing spans by order and comparing their text (<a class="id-ref" href="#QUES-N">QUES-N</a>). On a violation the command stops without writing the file and exits 1. After a write, or when nothing needed writing, it stores the template as the new base; a conflicted section keeps its old base, so it is reported again. This implements <a class="id-ref" href="../prd/core-cli-prd.html#PRD-I">PRD-I</a> when the base holds the section; otherwise an overwrite can drop the user&#x27;s lines after listing them (<a class="id-ref" href="#QUES-M">QUES-M</a>).</p>
+<h4 id="DSGN-H"><a class="id-ref" href="#DSGN-H">DSGN-H</a> — <code>restore</code></h4>
+<p>Backups are folders named <code>&lt;YYYYMMDD-HHMMSS&gt;-&lt;label&gt;</code> under <code>~/.coworker/backups/</code>, each holding copies at their original absolute paths. At most twenty folders are kept per label; the <code>pristine</code> folder, the snapshot the installer takes before its first change and <code>uninstall --restore-pristine</code> restores, is never pruned. <code>restore BACKUP</code> accepts a path, a folder name, or a label, and a label picks the newest folder whose name ends with it. It lists up to ten files, asks for confirmation unless <code>-y</code> is given, and copies every file back. It does not back up the current files first and does not delete files absent from the backup. An unknown backup, or a backup folder that holds no files, is an error with exit status 1. Besides folders under <code>~/.coworker/backups/</code>, <code>restore</code> accepts any existing directory given as a path, and copies each file in it to the absolute path that mirrors its place in that directory (<a class="id-ref" href="#QUES-V">QUES-V</a>). This implements <a class="id-ref" href="../prd/core-cli-prd.html#PRD-J">PRD-J</a>; the label match can pick a longer label (<a class="id-ref" href="#QUES-I">QUES-I</a>).</p>
+<h4 id="DSGN-I"><a class="id-ref" href="#DSGN-I">DSGN-I</a> — <code>state-update</code></h4>
+<p><code>state-update [TASK] [-s SUMMARY]</code> walks up from the current folder to the first folder containing a <code>.coworker/</code> folder or a <code>CLAUDE.local.md</code> file, and exits silently with status 0 if none is found. It writes <code>&lt;root&gt;/docs/state/state-&lt;TASK&gt;.md</code>, where TASK defaults to today&#x27;s date. A new file gets a heading, a start time, a status line, and a <code>## Progress</code> section; an existing file gets a timestamped update with the summary.</p>
+<p>Once <code>~/.coworker/</code> exists (<code>init --global</code> creates it), the walk from any folder under the home folder stops at the home folder at the latest. A repository that walter-worker does not manage therefore gets its note written to <code>~/docs/state/state-&lt;date&gt;.md</code> when someone runs the command there by hand (<a class="id-ref" href="#QUES-L">QUES-L</a>). Since <a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-G">ARD-G</a>, no Stop hook runs it. <a class="id-ref" href="../prd/core-cli-prd.html#PRD-K">PRD-K</a> is therefore not met: it requires doing nothing outside a managed project. The summary is also ignored when the file is first created (<a class="id-ref" href="#QUES-H">QUES-H</a>).</p>
+<h4>Sub-problem ownership (子问题归属)</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>子问题</th>
+<th>归属</th>
+<th>依据</th>
+</tr></thead><tbody>
+<tr>
+<td>Whether secrets in MCP environments should be expanded from the environment or <code>~/.coworker/.env</code></td>
+<td>人决定</td>
+<td><a class="id-ref" href="#QUES-G">QUES-G</a></td>
+</tr>
+<tr>
+<td>Whether <code>sync</code> should delete skills removed from the configuration</td>
+<td>人决定</td>
+<td><a class="id-ref" href="#QUES-J">QUES-J</a></td>
+</tr>
+<tr>
+<td>Whether an adapter for Cursor is wanted</td>
+<td>人决定</td>
+<td>UNKNOWN; the 2026-11-04 draft claimed one, and none exists</td>
+</tr>
+</tbody></table></div>
+<h3>Testing Decisions</h3>
+<p>Most command tests use Click&#x27;s test runner and a temporary home directory; some read or write the real one (<a class="id-ref" href="#QUES-X">QUES-X</a>); adapters and the merge are tested directly. The cases are in the <a href="../test-plan/core-cli-test-plan.html">test plan</a>.</p>
+<h3>Out of Scope</h3>
+<p>The feature commands, analytics, memory, the auto-worker, and the installer have their own specifications.</p>
+<h3>Further Notes</h3>
+<p><code>sync</code> exits 0 even when an adapter fails, on purpose: an install or hook that runs it must not stop because one tool&#x27;s file is malformed. The failure is the last line printed.</p>
+<h3>Alternatives Considered</h3>
+<p>Writing each tool&#x27;s file from scratch was rejected because it deletes the user&#x27;s own servers and permissions. Tracking ownership with markers inside JSON was rejected because JSON has no comments; a separate record of written entries is used instead (<a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-B">ARD-B</a>).</p>
+<h3>Drawbacks</h3>
+<p>The project layer cannot override per-tool settings or a global skill of the same name. Skills are copied, so an edited skill reaches a tool only on the next sync.</p>
+<h3>Risks and Mitigations</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Risk</th>
+<th>Mitigation</th>
+</tr></thead><tbody>
+<tr>
+<td>Sync deletes a user&#x27;s MCP server</td>
+<td>Only servers recorded as written, and still unchanged, are removed (<a class="id-ref" href="#DSGN-C">DSGN-C</a>). Not mitigated for a <code>mcpServers</code> block in Claude Code&#x27;s <code>settings.json</code>, which is always deleted (<a class="id-ref" href="#QUES-O">QUES-O</a>)</td>
+</tr>
+<tr>
+<td>Upgrade loses user lines</td>
+<td>Conflicts are shown and kept unless <code>--force</code>. With a merge base, a section both sides changed is a conflict; without one, the plan lists the lines replaced (<a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-H">ARD-H</a>). Protected spans are checked after the merge (<a class="id-ref" href="#DSGN-G">DSGN-G</a>)</td>
+</tr>
+<tr>
+<td>An overwrite cannot be undone</td>
+<td>Backups before overwriting, and <code>restore</code> (<a class="id-ref" href="#DSGN-H">DSGN-H</a>); gaps in <a class="id-ref" href="#QUES-B">QUES-B</a>, <a class="id-ref" href="#QUES-E">QUES-E</a>, <a class="id-ref" href="#QUES-K">QUES-K</a>, <a class="id-ref" href="#QUES-S">QUES-S</a>, <a class="id-ref" href="#QUES-T">QUES-T</a></td>
+</tr>
+</tbody></table></div>
+<h3>Open Questions</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Question</th>
+<th>Answer so far</th>
+<th>Owner</th>
+<th>Blocking</th>
+</tr></thead><tbody>
+<tr>
+<td><strong id="QUES-A"><a class="id-ref" href="#QUES-A">QUES-A</a></strong></td>
+<td><code>upgrade</code> crashed, before PR #20, when one section is a conflict and another is an overwrite or an addition, and <code>--force</code> was not given; the backup is taken and nothing is written. Fix the merge to keep conflicts?</td>
+<td>Fixed in PR #20 (<code>8e3b48c</code>); see <code>test_upgrade_conflict_beside_overwrite_does_not_crash</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-B"><a class="id-ref" href="#QUES-B">QUES-B</a></strong></td>
+<td><code>init --project</code> overwrites an existing <code>.coworker/coworker.yaml</code> with no backup. Back it up, or refuse?</td>
+<td>Found in the code at <code>a0f4ce0</code>. Run in the home folder, it overwrites the global <code>~/.coworker/coworker.yaml</code> the same way (<code>../raw/review/2026-11-24-spec-review-core-cli-gaps.md</code>).</td>
+<td>cicidi</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><strong id="QUES-C"><a class="id-ref" href="#QUES-C">QUES-C</a></strong></td>
+<td>An invalid <code>coworker.yaml</code> ends any command with a traceback. Print a one-line error naming the file?</td>
+<td>Found in the code at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-D"><a class="id-ref" href="#QUES-D">QUES-D</a></strong></td>
+<td><code>skill approve</code> reports a failed safety check as &quot;Not found&quot; and exits 0. Report the real reason?</td>
+<td>Found in the code at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-E"><a class="id-ref" href="#QUES-E">QUES-E</a></strong></td>
+<td>The OpenCode adapter writes its file in place, twice, with no backup. Make it atomic and backed up like the others?</td>
+<td>Found in the code at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-F"><a class="id-ref" href="#QUES-F">QUES-F</a></strong></td>
+<td><code>sync --global</code> has no effect. Remove the flag, or make it skip the project layer?</td>
+<td>Found in the code at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-G"><a class="id-ref" href="#QUES-G">QUES-G</a></strong></td>
+<td>MCP environment values are copied literally, so a secret written in <code>coworker.yaml</code> lands in every tool&#x27;s file. Expand references instead?</td>
+<td>Not implemented; the 2026-11-04 draft claimed it was.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-H"><a class="id-ref" href="#QUES-H">QUES-H</a></strong></td>
+<td><code>state-update -s</code> is ignored when the state file is first created. Write the summary then too?</td>
+<td>Found in the code at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-I"><a class="id-ref" href="#QUES-I">QUES-I</a></strong></td>
+<td>A <code>restore</code> label also matches longer labels ending in it, so <code>sync</code> can pick a <code>json-sync</code> backup. Match the label exactly?</td>
+<td>Found in the code at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-J"><a class="id-ref" href="#QUES-J">QUES-J</a></strong></td>
+<td><code>sync</code> never removes a skill dropped from the configuration. A skill folder with a subfolder makes the Claude Code adapter fail with &quot;Is a directory&quot;, so later files and later skills are not installed. Fix both?</td>
+<td>Found in the code at <code>a0f4ce0</code>; the failure was reproduced by the 2026-11-24 review (I2).</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-K"><a class="id-ref" href="#QUES-K">QUES-K</a></strong></td>
+<td><code>project sync</code> rewrites <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> with no backup. Back it up?</td>
+<td>Found in the code at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-L"><a class="id-ref" href="#QUES-L">QUES-L</a></strong></td>
+<td><code>state-update</code> treats the home folder as a managed project whenever <code>~/.coworker/</code> exists, so it writes <code>~/docs/state/</code> from any unmanaged repository under the home folder. Exclude the home folder, or require <code>.coworker/coworker.yaml</code>?</td>
+<td>Reproduced by the 2026-11-24 review (C1). The existing test sets the home folder to a folder without <code>.coworker/</code>, so it does not catch this. Since PR #19 (<code>b03f596</code>, <a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-G">ARD-G</a>) no hook runs it, so only a manual run writes there.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-M"><a class="id-ref" href="#QUES-M">QUES-M</a></strong></td>
+<td>Before PR #21, <code>upgrade</code> overwrote a section that both the user and the template changed, discarding the user&#x27;s lines without listing them. This contradicts <a class="id-ref" href="../prd/core-cli-prd.html#PRD-I">PRD-I</a>. List them and keep the section as a conflict, or change the requirement?</td>
+<td>Reproduced by the 2026-11-24 review (C2). Fixed in PR #21 (<code>f917bbf</code>) by a three-way merge (<a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-H">ARD-H</a>). Without a base, the section is still overwritten, but its lines are listed first. Owner to accept or fix the no-base path.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-N"><a class="id-ref" href="#QUES-N">QUES-N</a></strong></td>
+<td>Before PR #20, the protected-span check compared spans by line number, so a change in line count above an untouched span is reported as a violation and <code>upgrade</code> exits 1. Compare span text instead?</td>
+<td>Reproduced by the 2026-11-24 review (I1); fixed in PR #20 (<code>8e3b48c</code>).</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-O"><a class="id-ref" href="#QUES-O">QUES-O</a></strong></td>
+<td><code>sync</code> deletes a <code>mcpServers</code> block from Claude Code&#x27;s <code>settings.json</code> and does not move its servers to <code>~/.claude.json</code>. Migrate them, or keep the block?</td>
+<td>Reproduced by the 2026-11-24 review (I3). A <code>json-sync</code> backup is taken, but the action list does not mention the removal.</td>
+<td>cicidi</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><strong id="QUES-P"><a class="id-ref" href="#QUES-P">QUES-P</a></strong></td>
+<td>Keys in the <code>gemini</code> and <code>opencode</code> sections outside <code>extra</code> are dropped, and the <code>claude</code> section is never written to any file. Accept these keys, or remove the <code>claude</code> section from the template?</td>
+<td>Reproduced by the 2026-11-24 review (I4).</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-Q"><a class="id-ref" href="#QUES-Q">QUES-Q</a></strong></td>
+<td><code>skill approve</code> promotes an item that was rejected earlier. This contradicts <a class="id-ref" href="../prd/core-cli-prd.html#PRD-H">PRD-H</a>. Refuse to approve a rejected item?</td>
+<td>Reproduced by the 2026-11-24 review (I5).</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-R"><a class="id-ref" href="#QUES-R">QUES-R</a></strong></td>
+<td><code>skill pending --approve-all</code> counts items that failed the safety check as approved, and <code>--type</code> filters on a field staged items never have. Count only promotions, and remove or fix <code>--type</code>?</td>
+<td>Found by the 2026-11-24 review (I6) and confirmed in the code at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-S"><a class="id-ref" href="#QUES-S">QUES-S</a></strong></td>
+<td><code>project sync</code> deletes everything after a START marker that has no END marker, with no backup. Refuse, or stop at the next heading?</td>
+<td>Reproduced by the 2026-11-24 review (I7). The test <code>test_replace_or_append_truncated_block_appends_after_start</code> pins today&#x27;s behavior.</td>
+<td>cicidi</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><strong id="QUES-T"><a class="id-ref" href="#QUES-T">QUES-T</a></strong></td>
+<td><code>project add</code>, <code>edit</code>, and <code>remove</code> rewrite <code>~/.coworker/project.yaml</code> with no backup, dropping comments and unknown keys. Back it up and keep them?</td>
+<td>Found by the 2026-11-24 review (W2) and confirmed in the code at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><strong id="QUES-U"><a class="id-ref" href="#QUES-U">QUES-U</a></strong></td>
+<td><code>sync --project</code> resolves global skill paths against the project folder, so they are not found. Resolve each skill against the file that declared it?</td>
+<td>Found by the 2026-11-24 review (W4) and confirmed in the code at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-V"><a class="id-ref" href="#QUES-V">QUES-V</a></strong></td>
+<td><code>restore</code> accepts any directory and copies its files onto the mirrored absolute paths. Restrict it to <code>~/.coworker/backups/</code>?</td>
+<td>Found by the 2026-11-24 review (W5) and confirmed in the code at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-W"><a class="id-ref" href="#QUES-W">QUES-W</a></strong></td>
+<td>The safety check allows <code>/</code> and <code>..</code> in a skill name, so promotion can write outside <code>~/.coworker/skills/</code>. Reject them?</td>
+<td>Found by the 2026-11-24 review (minor) and confirmed by reading the code at <code>a0f4ce0</code>; not reproduced.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-X"><a class="id-ref" href="#QUES-X">QUES-X</a></strong></td>
+<td>Some tests use the real home folder; one overwrote the owner&#x27;s <code>~/.coworker/project.yaml</code> on 2026-11-24. Give every test a temporary HOME?</td>
+<td><code>test_cli.py</code> <code>test_the_block_is_cleared_elsewhere_too</code> calls <code>save_project_catalog</code>, which writes <code>config.py:185</code> at <code>634adf1</code>; <code>test_status</code> reads the real config.</td>
+<td>cicidi</td>
+<td>yes</td>
+</tr>
+</tbody></table></div>
+<h3>Reversibility</h3>
+<p>Files backed up before a change can be restored with <code>coworker restore &lt;label&gt;</code>: <code>init</code> for <code>init</code>, <code>json-sync</code> for Claude Code and Gemini settings, <code>upgrade</code> for the global <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a>. Writes without a backup (<a class="id-ref" href="#QUES-B">QUES-B</a>, <a class="id-ref" href="#QUES-E">QUES-E</a>, <a class="id-ref" href="#QUES-K">QUES-K</a>, <a class="id-ref" href="#QUES-S">QUES-S</a>, <a class="id-ref" href="#QUES-T">QUES-T</a>, and the <code>.gitignore</code> lines <code>init</code> appends) are not reversible by the tool. Removing a server from <code>coworker.yaml</code> and syncing again prunes that server only while at least one server stays configured; with an empty <code>mcp</code> list nothing is pruned. Permissions that <code>sync</code> adds are never removed by a later sync, so they must be removed by hand or restored from a backup. A <code>mcpServers</code> block that <code>sync</code> deletes from <code>settings.json</code> comes back only from a <code>json-sync</code> backup (<a class="id-ref" href="#QUES-O">QUES-O</a>).</p>
+<h3>Terms</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Term</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td>Adapter</td>
+<td>The part of <code>sync</code> that translates the configuration into one tool&#x27;s settings format</td>
+</tr>
+<tr>
+<td>MCP server</td>
+<td>An external tool server an AI tool connects to through the Model Context Protocol</td>
+</tr>
+<tr>
+<td>Protected span</td>
+<td>Text between <code>&lt;!-- PROTECTED --&gt;</code> and <code>&lt;!-- END PROTECTED --&gt;</code> (or the START/END spelling) that <code>upgrade</code> must never change</td>
+</tr>
+<tr>
+<td>Backup label</td>
+<td>The word at the end of a backup folder&#x27;s name, naming the command that took it</td>
+</tr>
+</tbody></table></div>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Version</th>
+<th>Date</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td>0.1</td>
+<td>2026-11-04</td>
+<td>Draft (never committed)</td>
+</tr>
+<tr>
+<td>0.2</td>
+<td>2026-11-24</td>
+<td>Rewritten from the code at <code>a0f4ce0</code> with the 13 required sections; gaps recorded as <a class="id-ref" href="#QUES-A">QUES-A</a> to <a class="id-ref" href="#QUES-K">QUES-K</a> (<a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-A">ARD-A</a>, <a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-D">ARD-D</a>)</td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>2026-11-24</td>
+<td>Review fixes: false claims corrected (backups, rollback, per-tool sections, project-file search, reversibility); exit statuses and <code>skill pending</code> options added; gaps recorded as <a class="id-ref" href="#QUES-L">QUES-L</a> to <a class="id-ref" href="#QUES-W">QUES-W</a> (<a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-D">ARD-D</a>, <a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-F">ARD-F</a>)</td>
+</tr>
+<tr>
+<td>0.4</td>
+<td>2026-11-24</td>
+<td><a class="id-ref" href="#QUES-A">QUES-A</a>, <a class="id-ref" href="#QUES-M">QUES-M</a>, and <a class="id-ref" href="#QUES-N">QUES-N</a> answered by PRs #20 and #21; <a class="id-ref" href="#QUES-L">QUES-L</a> not blocking after PR #19 (<a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-G">ARD-G</a>, <a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-H">ARD-H</a>)</td>
+</tr>
+<tr>
+<td>0.5</td>
+<td>2026-11-24</td>
+<td>Rechecked at <code>634adf1</code>; <a class="id-ref" href="../prd/core-cli-prd.html#PRD-I">PRD-I</a> limit stated; <code>pristine</code> explained; <a class="id-ref" href="#QUES-X">QUES-X</a> (tests use the real home) added</td>
+</tr>
+</tbody></table></div>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../prd/core-cli-prd.html"><span class="label">Previous</span>Core CLI — PRD</a><a class="next" href="../impl-plan/core-cli-impl-plan.html"><span class="label">Next</span>Core CLI — Implementation Plan</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../../../assets/app.js"></script>
+</body>
+</html>

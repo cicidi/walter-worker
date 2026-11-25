@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Setup and Deploy — Design · design · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../../../prd/walter-worker-prd.html"><span class="tree-ord">1</span>walter-worker — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../../prd/2026-06-11-core-prd.html">Core CLI &amp; Initiative System PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../../prd/2026-06-11-dashboard-prd.html">Dashboard PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../../prd/2026-06-11-knowledge-skill-prd.html">Knowledge Skill PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../../prd/ai-coworker-prd.html">walter-worker PRD</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../../decision-history/walter-worker-decision-history.html"><span class="tree-ord">2</span>walter-worker — Decision History</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2025-04-10-integrate-loop-engineering-framework-by-running-lo-decision.html">Decision Record — 2025-04-10</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-03-30-feat-initial-commit--unified-ai-coworker-dev-env-decision.html">Decision Record — 2026-03-30</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.html">Decision Record — 2026-05-01</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-05-06-feat-add-skill-meta-import-skill--import-externa-decision.html">Decision Record — 2026-05-06</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.html">Decision Record — 2026-06-11</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-12-feat-add-opencode-context-injection-initiativema-decision.html">Decision Record — 2026-06-12</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.html">Decision Record — 2026-06-16</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-23-chore-remove-self-strain-decision.html">Decision Record — 2026-06-23</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-24-chore-review-fixes--broken-refs-tests-docs-ch-decision.html">Decision Record — 2026-06-24</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-30-fix-deploy-ai-coworker-skills-to-opencode-skill-d-decision.html">Decision Record — 2026-06-30</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.html">Decision Record — 2026-07-02</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.html">Decision Record — 2026-07-07</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.html">Decision Record — 2026-07-08</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.html">Decision Record — 2026-07-10</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-13-feat-add-emoji-and-color-coded-fields-to-tmux-sta-decision.html">Decision Record — 2026-07-13</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-17-docs-add-doc-organize--indexmd-refs-to-claudem-decision.html">Decision Record — 2026-07-17</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.html">Decision Record — 2026-07-24</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/unknown-remove-budget-related-features-from-prd-budget-fl-decision.html">Decision Record — unknown</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../../design/walter-worker-design.html"><span class="tree-ord">3</span>walter-worker — Design</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../../design/ai-coworker-design.html">walter-worker Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-analytics-dashboard-superpowers.html">Analytics Listener + Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-analytics-listener-design.html">Analytics Listener — Design Document</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-core-architecture-design.html">Core Architecture Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-feature-tracker.html">Feature Tracker</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-planning-hub.html">Planning Hub</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-09-25-deletion-list.html">Deletion List — 2026-09-25</a></li><li class="tree-leaf"><a class="tree-link" href="../../../spec/2026-06-12-initiative-project-level-design.html">Initiative — Global to Project-Level Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../../spec/ai-coworker-spec.html">walter-worker Technical Specification</a></li><li class="tree-leaf"><a class="tree-link" href="../../../state/2026-07-26-decision-timeline.html">Decision Timeline — walter-worker</a></li><li class="tree-leaf"><a class="tree-link" href="../../../work-review/2026-06-11-analytics-dashboard/acceptance.html">Analytics Dashboard — Acceptance Review</a></li><li class="tree-leaf"><a class="tree-link" href="../../../work-review/2026-06-11-analytics-dashboard/report.html">Acceptance Report — Analytics Dashboard</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../../../impl-plan/walter-worker-impl-plan.html"><span class="tree-ord">4</span>walter-worker Implementation Plan</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../../test-plan/walter-worker-test-plan.html"><span class="tree-ord">5</span>walter-worker — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../../test-plan/ai-coworker-test-plan.html">walter-worker Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><span class="tree-link"><span class="tree-ord">10</span>sub-feature</span></summary><ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../../analytics-dashboard/design/analytics-dashboard-design.html">analytics-dashboard</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../analytics-dashboard/prd/analytics-dashboard-prd.html"><span class="tree-ord">1</span>Analytics Dashboard — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-dashboard/decision-history/analytics-dashboard-decision-history.html"><span class="tree-ord">2</span>Analytics Dashboard — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-dashboard/design/analytics-dashboard-design.html"><span class="tree-ord">3</span>Analytics Dashboard — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-dashboard/impl-plan/analytics-dashboard-impl-plan.html"><span class="tree-ord">4</span>Analytics Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-dashboard/test-plan/analytics-dashboard-test-plan.html"><span class="tree-ord">5</span>Analytics Dashboard — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../analytics-listener/design/analytics-listener-design.html">analytics-listener</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../analytics-listener/prd/analytics-listener-prd.html"><span class="tree-ord">1</span>Analytics Listener — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-listener/decision-history/analytics-listener-decision-history.html"><span class="tree-ord">2</span>Analytics Listener — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-listener/design/analytics-listener-design.html"><span class="tree-ord">3</span>Analytics Listener — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-listener/impl-plan/analytics-listener-impl-plan.html"><span class="tree-ord">4</span>Analytics Listener — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-listener/test-plan/analytics-listener-test-plan.html"><span class="tree-ord">5</span>Analytics Listener — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../core-cli/design/core-cli-design.html">core-cli</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../core-cli/prd/core-cli-prd.html"><span class="tree-ord">1</span>Core CLI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../core-cli/decision-history/core-cli-decision-history.html"><span class="tree-ord">2</span>Core CLI — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../../core-cli/design/core-cli-design.html"><span class="tree-ord">3</span>Core CLI — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../core-cli/impl-plan/core-cli-impl-plan.html"><span class="tree-ord">4</span>Core CLI — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../core-cli/test-plan/core-cli-test-plan.html"><span class="tree-ord">5</span>Core CLI — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../feature-system/design/feature-system-design.html">feature-system</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../feature-system/prd/feature-system-prd.html"><span class="tree-ord">1</span>Feature System — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../feature-system/decision-history/feature-system-decision-history.html"><span class="tree-ord">2</span>Feature System — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../../feature-system/design/feature-system-design.html"><span class="tree-ord">3</span>Feature System — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../feature-system/impl-plan/feature-system-impl-plan.html"><span class="tree-ord">4</span>Feature System — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../feature-system/test-plan/feature-system-test-plan.html"><span class="tree-ord">5</span>Feature System — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="setup-deploy-design.html">setup-deploy</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/setup-deploy-prd.html"><span class="tree-ord">1</span>Setup and Deploy — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/setup-deploy-decision-history.html"><span class="tree-ord">2</span>Setup and Deploy — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="setup-deploy-design.html" aria-current="page"><span class="tree-ord">3</span>Setup and Deploy — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/setup-deploy-impl-plan.html"><span class="tree-ord">4</span>Setup and Deploy — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/setup-deploy-test-plan.html"><span class="tree-ord">5</span>Setup and Deploy — Test Plan</a></li></ul></details></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../../../index.html">Docs</a> / <span>walter-worker</span> / <span>features</span> / <span>setup-deploy</span> / <span>design</span> / <span>Setup and Deploy — Design</span></nav>
+    <article class="doc" data-doc="walter-worker/features/setup-deploy/design/setup-deploy-design">
+      <header class="doc-head">
+        <p class="eyebrow">walter-worker</p>
+        <h1>Setup and Deploy — Design</h1>
+        <p class="source">Canonical: docs/features/walter-worker/features/setup-deploy/design/setup-deploy-design.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Setup and Deploy — Design</h2>
+<p>Requirements are in the <a href="../prd/setup-deploy-prd.html">PRD</a>. Decisions and their reasons are in the <a href="../decision-history/setup-deploy-decision-history.html">decision history</a>. Behavior below was read from the scripts at commit <code>a0f4ce0</code>; a later fix names its own commit.</p>
+<h3>Problem Statement</h3>
+<p>Copying hooks and skills onto a machine by hand drifts from the source: files go stale, renamed skills leave old copies behind, and nobody can say afterwards which files belong to walter-worker. Earlier versions of the installer made this worse in two ways. They wrote the same skill to several places, so it showed up twice in a tool&#x27;s menu. They also recorded whole directories as their own, so uninstall deleted files that belonged to the user.</p>
+<h3>Solution</h3>
+<p>Three bash scripts own the machine-side lifecycle. <code>install.sh</code> writes files and records each written path by name in the install manifest. <code>update.sh</code> refreshes the code and replays the install with the answers recorded last time. <code>uninstall.sh</code> reverses the manifest. Because the manifest names exactly what was written, every run can remove what it wrote earlier and no longer produces, and uninstall can remove exactly the installed files.</p>
+<h3>User Stories</h3>
+<p>The user stories are in the <a href="../prd/setup-deploy-prd.html#user-stories">PRD</a>. This design adds no new ones.</p>
+<h3>Implementation Decisions</h3>
+<p>The skill source of truth is a the-super-lab checkout. The installer runs <code>git pull --ff-only</code> on it and copies skills from it, but never writes files into it (<a class="id-ref" href="../decision-history/setup-deploy-decision-history.html#ARD-B">ARD-B</a>). Claude Code and Cursor get a directory copy of each skill, so files that sit next to <code>SKILL.md</code> travel with it. OpenCode gets a symlink to the source directory instead. The manifest claims paths by name, not by directory (<a class="id-ref" href="../decision-history/setup-deploy-decision-history.html#ARD-A">ARD-A</a>). A the-super-lab skill is deployed as a skill only, never also as a Claude Code command (<a class="id-ref" href="../decision-history/setup-deploy-decision-history.html#ARD-C">ARD-C</a>).</p>
+<h3>Design</h3>
+<h4 id="DSGN-A"><a class="id-ref" href="#DSGN-A">DSGN-A</a> — Install modes and destinations</h4>
+<p>The installer accepts <code>--global</code>, <code>--project &lt;path&gt;</code>, <code>--skills &quot;&lt;names&gt;&quot;</code> (a space-separated selection that skips the skill question, used by update), and <code>--help</code>. Any other argument prints an error and exits with status 1. Without <code>--global</code> or <code>--project</code> it asks which mode to use; global is the default answer. The skill source can be moved with the <code>THE_SUPER_LAB_DIR</code> environment variable; the default is <code>~/project/the-super-lab</code>.</p>
+<p>Global mode writes Claude Code commands to <code>~/.claude/commands</code> and OpenCode instructions to <code>~/.opencode/instructions</code>. Project mode writes those two to <code>&lt;path&gt;/.claude/commands</code> and <code>&lt;path&gt;/.opencode/instructions</code>. It also symlinks <code>&lt;path&gt;/AGENTS.md</code> to <code>&lt;path&gt;/CLAUDE.md</code> when that file exists, and appends eight entries (such as <code>CLAUDE.local.md</code>, <code>.env</code>, and the state directory) to <code>&lt;path&gt;/.gitignore</code>. Neither change is recorded in the manifest. Project mode still writes everything that is global: the CLAUDE.md check, the snapshot, the hooks, and the the-super-lab skill mirrors, because those tools load personal skills only from the home directory. This clause implements <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-A">PRD-A</a>.</p>
+<h4 id="DSGN-B"><a class="id-ref" href="#DSGN-B">DSGN-B</a> — Pristine snapshot and the global CLAUDE.md</h4>
+<p>On the first install on a machine, before any other change, the installer copies <code>~/.claude/settings.json</code> and <code>~/.claude/CLAUDE.md</code> into <code>~/.coworker/backups/pristine/</code>. It writes the path of each file that did not exist into <code>absent.txt</code>, and it writes a <code>.taken</code> marker file so the snapshot is never taken again. <code>uninstall.sh --restore-pristine</code> copies the two files back and deletes each path listed in <code>absent.txt</code>, because for a fresh machine the pristine state of that file is &quot;absent&quot;. The global <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> is created from the template only when it is missing. The manifest claims it when this run created it, and keeps that claim on later runs (<a class="id-ref" href="#QUES-C">QUES-C</a>). Creating it also writes the merge base <code>~/.coworker/claude-md-base.md</code>. These rules implement <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-B">PRD-B</a> and <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-C">PRD-C</a>.</p>
+<h4 id="DSGN-C"><a class="id-ref" href="#DSGN-C">DSGN-C</a> — Skill deployment</h4>
+<p>The installer deploys skills from two sources in different forms.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Source</th>
+<th>Claude Code</th>
+<th>Cursor</th>
+<th>OpenCode</th>
+</tr></thead><tbody>
+<tr>
+<td>the-super-lab <code>skills/</code></td>
+<td><code>~/.claude/skills/&lt;name&gt;/</code> (directory copy)</td>
+<td><code>~/.cursor/skills/&lt;name&gt;/</code> (directory copy)</td>
+<td><code>~/.config/opencode/skills/the-super-lab/&lt;name&gt;</code> (symlink)</td>
+</tr>
+<tr>
+<td>the-super-lab <code>personal-skills/</code></td>
+<td>same as above</td>
+<td>same as above</td>
+<td><code>~/.config/opencode/skills/the-super-lab-personal/&lt;name&gt;</code> (symlink)</td>
+</tr>
+<tr>
+<td>walter-worker bundle <code>skills/</code></td>
+<td><code>~/.claude/commands/&lt;name&gt;.md</code>, only when selected</td>
+<td>not deployed</td>
+<td><code>~/.config/opencode/skills/walter-worker/</code> (a copy of the whole bundle <code>skills/</code> directory, made on every run)</td>
+</tr>
+</tbody></table></div>
+<p>In addition, every command in the Claude Code commands directory, including commands the user wrote, is mirrored as a symlink into <code>~/.opencode/instructions/</code>, and dangling symlinks there are deleted. The script&#x27;s own comment notes that current OpenCode does not read that directory. Why the mirror is still written is UNKNOWN.</p>
+<p>A &quot;directory copy&quot; copies the files at the top level of the skill directory only; subdirectories such as <code>tests/</code> stay behind, and a file deleted from the source stays in the copy. A real directory found where the OpenCode symlink should go is deleted and replaced by the symlink.</p>
+<p>The the-super-lab skills are deployed on every run, whatever the user answered to the skill question. Only bundle skills are offered in that question, so a the-super-lab skill never also becomes a command (<a class="id-ref" href="../decision-history/setup-deploy-decision-history.html#ARD-C">ARD-C</a>). A command copy of a the-super-lab skill that an earlier release wrote is removed while it is still identical to its source; a copy that differs is kept and reported. If a destination file is the same file as its source, which happens when the destination directory is a symlink back into the-super-lab, the copy is skipped instead of failing the install. The <code>init</code> skill is always installed as a command. These rules implement <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-D">PRD-D</a> and <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-E">PRD-E</a>.</p>
+<h4 id="DSGN-D"><a class="id-ref" href="#DSGN-D">DSGN-D</a> — Hook registration</h4>
+<p>The installer adds six hook commands to <code>~/.claude/settings.json</code>: four analytics scripts under <code>~/.coworker/analytics/hooks/</code> (prompt submitted, before a tool runs, after a tool runs, session stop), the correction detector on prompt submit, and <code>on-session-end.sh</code> on session end, which runs the memory summary once per session: memory capture, a model call, then close, which folds it into the memory graph (<a href="../../../../memory-platform/design/memory-platform-design.html">memory-platform</a> ARD-H). A hook is added only when no existing entry for that event has the same command, either as its whole command or as one step of a compound command joined by <code>;</code>, <code>&amp;&amp;</code>, or <code>||</code> (<a class="id-ref" href="#QUES-A">QUES-A</a>). It also removes from Stop each hook whose every step is <code>coworker memory capture</code> or <code>coworker memory close</code>, which earlier installs added (<code>setup/install.sh:687-699</code> at <code>634adf1</code>). A compound hook with any other step is kept whole (<a class="id-ref" href="#QUES-K">QUES-K</a>). Those hooks are removed even when the user added them (<a class="id-ref" href="#QUES-J">QUES-J</a>). Other entries are never changed or removed. When the OpenCode analytics plugin directory exists in the checkout, the installer also registers it in <code>~/.config/opencode/config.json</code>; when it does not exist, nothing is registered. This implements <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-F">PRD-F</a>.</p>
+<h4 id="DSGN-E"><a class="id-ref" href="#DSGN-E">DSGN-E</a> — Install manifest</h4>
+<p>The last step writes <code>~/.coworker/install-manifest.json</code> with <code>schema_version: 2</code>. There is one manifest per machine, whichever mode wrote it. It holds the install mode, the project path, the repository path (<code>repo_root</code>), a list of claimed files, the walter-worker hook commands, a list of owned directories, and the paths this run pruned (<code>pruned</code>).</p>
+<p>The claimed files are, by full path: the selected commands and their OpenCode mirrors, every file found in the hooks directory, every file found under each the-super-lab skill&#x27;s Claude Code and Cursor destination, the OpenCode symlinks, each file of the bundle copy under <code>~/.config/opencode/skills/walter-worker</code> named from the source tree, the global <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> when this run or an earlier install created it, and <code>~/.coworker/claude-md-base.md</code> when it exists. The only owned directory is <code>~/.config/opencode/skills/walter-worker</code> (<a class="id-ref" href="#DSGN-G">DSGN-G</a>). The list does not match <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-G">PRD-G</a> exactly: some written paths are not claimed and some claimed paths were not written by this run, which is tracked as <a class="id-ref" href="#QUES-G">QUES-G</a>.</p>
+<p>Before writing, the installer compares the new list with the previous manifest. A path the previous manifest claimed, that still exists, and that this run did not claim is removed, and any directory that removal empties is removed too, but never a root such as <code>~/.claude/skills</code> itself. When the user answers &quot;None&quot; to the skill question, previously claimed paths under <code>~/.claude/commands/</code> are carried forward instead of removed, because &quot;install nothing new&quot; does not mean &quot;delete what I have&quot;; project-mode commands and OpenCode mirrors are not carried (<a class="id-ref" href="#QUES-I">QUES-I</a>).</p>
+<p>One consequence of the comparison breaks <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-H">PRD-H</a> today. A project-mode run prunes the paths the global install claimed, because both share one manifest (<a class="id-ref" href="#QUES-F">QUES-F</a>). These rules implement <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-G">PRD-G</a> and <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-H">PRD-H</a>, except where that question records a conflict.</p>
+<h4 id="DSGN-F"><a class="id-ref" href="#DSGN-F">DSGN-F</a> — Update</h4>
+<p><code>update.sh</code> fetches the default branch of the walter-worker checkout from <code>upstream</code> when that remote exists and from <code>origin</code> otherwise, and merges it. It reads the install mode and the previously selected command names from the manifest, then runs <code>install.sh</code> with <code>--skills &lt;names&gt;</code>, which skips the skill question. It then offers to pull the-super-lab; the user may decline. When the manifest records no commands, <code>--skills</code> is not passed and the installer asks the skill question again. This implements <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-I">PRD-I</a>. Declining the the-super-lab pull currently has no effect, because the installer already ran <code>git pull --ff-only</code> on the-super-lab in its step 3 before the question is asked (<a class="id-ref" href="#QUES-H">QUES-H</a>).</p>
+<h4 id="DSGN-G"><a class="id-ref" href="#DSGN-G">DSGN-G</a> — Uninstall</h4>
+<p><code>uninstall.sh</code> exits with status 1 when there is no manifest, or, before any change, when the manifest&#x27;s <code>schema_version</code> is not 2. It stops unless the user answers <code>y</code>. It copies <code>settings.json</code> to a backup, then runs four passes. First it removes each claimed file. Second it strips walter-worker&#x27;s hook commands from <code>settings.json</code>, including one added after the manifest was written. Third it removes each owned directory, but never <code>~/.coworker</code> or a folder that contains it, even when an older manifest lists one. Fourth it removes the directories its removals emptied. Last it deletes the manifest by name.</p>
+<p>This clause implements <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-J">PRD-J</a>; walter-worker PR #17 closed <a class="id-ref" href="#QUES-D">QUES-D</a> and <a class="id-ref" href="#QUES-E">QUES-E</a> (<code>setup/uninstall.sh:51,236</code> at <code>e5bfa54</code>).</p>
+<h4 id="DSGN-H"><a class="id-ref" href="#DSGN-H">DSGN-H</a> — Optional dependencies</h4>
+<p>A failed <code>git pull</code> of the-super-lab prints a warning and the install continues with the checkout as it is. When the <code>coworker</code> command is present, the installer runs <code>coworker sync</code>, which writes MCP server settings (MCP, the Model Context Protocol, is how AI tools connect to external tool servers) into each tool&#x27;s config and removes the old <code>coworker state-update</code> Stop hook (core-cli ARD-G). When the command is missing, the installer prints the <code>pipx install</code> command to run and continues. Several other steps also warn and continue on failure, and the install still exits with status 0: writing hooks, registering the OpenCode plugin, creating the analytics database, running <code>coworker sync</code>, and writing the manifest. This implements <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-K">PRD-K</a>.</p>
+<h4>Sub-problem ownership (子问题归属)</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>子问题</th>
+<th>归属</th>
+<th>依据</th>
+</tr></thead><tbody>
+<tr>
+<td>Which paths each tool loads skills from</td>
+<td>AI 查</td>
+<td><a class="id-ref" href="../decision-history/setup-deploy-decision-history.html#ARD-B">ARD-B</a>; Cursor and OpenCode layout verified on the author&#x27;s machine, 2026-11-23</td>
+</tr>
+<tr>
+<td>Whether Cursor and OpenCode should get hooks</td>
+<td>人决定</td>
+<td><a class="id-ref" href="#QUES-B">QUES-B</a></td>
+</tr>
+<tr>
+<td>Whether a hand-joined compound hook counts as present</td>
+<td>AI 查完人决定</td>
+<td><a class="id-ref" href="#QUES-A">QUES-A</a></td>
+</tr>
+<tr>
+<td>Behavior on macOS bash 3.2</td>
+<td>AI 查</td>
+<td>UNKNOWN; the scripts avoid associative arrays for it, but no CI job runs macOS</td>
+</tr>
+</tbody></table></div>
+<h3>Testing Decisions</h3>
+<p>Every requirement is covered by a bats test that runs the real script against a temporary home directory with git and the <code>coworker</code> command mocked. The cases and their order are in the <a href="../test-plan/setup-deploy-test-plan.html">test plan</a>.</p>
+<h3>Out of Scope</h3>
+<p>Installing the Python package, Cursor and OpenCode hooks, tmux presentation, and PyPI packaging are out of scope, as stated in the <a href="../prd/setup-deploy-prd.html#out-of-scope">PRD</a>.</p>
+<h3>Further Notes</h3>
+<p><code>install.sh</code> embeds Python inside double-quoted bash strings. A double quote, a backtick, or a dollar-parenthesis inside those blocks ends or rewrites the Python silently; an earlier comment containing backticks pasted CLI usage text into the code and stopped hooks from being written while the installer still reported success. The rule is to describe such characters in words.</p>
+<h3>Alternatives Considered</h3>
+<p>Symlinking every Claude Code and Cursor skill to the source was rejected, because a directory copy keeps working when the source checkout moves and lets the manifest list each file. Recording whole directories in the manifest was rejected, because uninstall then deleted the user&#x27;s own files (<a class="id-ref" href="../decision-history/setup-deploy-decision-history.html#ARD-A">ARD-A</a>). Keeping the-super-lab skills selectable as commands was rejected, because each selected skill appeared twice in the menu (<a class="id-ref" href="../decision-history/setup-deploy-decision-history.html#ARD-C">ARD-C</a>).</p>
+<h3>Drawbacks</h3>
+<p>Directory copies go stale until the next install or update; editing a skill in the-super-lab does not reach Claude Code or Cursor until then. The installer&#x27;s Python lives inside bash strings, which is fragile (see Further Notes).</p>
+<h3>Risks and Mitigations</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Risk</th>
+<th>Mitigation</th>
+</tr></thead><tbody>
+<tr>
+<td>A hook is registered twice and runs twice</td>
+<td>The check in <a class="id-ref" href="#DSGN-D">DSGN-D</a>, which also matches one step of a compound hook (<a class="id-ref" href="#QUES-A">QUES-A</a>)</td>
+</tr>
+<tr>
+<td>Uninstall deletes a user file</td>
+<td>Files are claimed by name, and uninstall never empties <code>~/.coworker</code> (<a class="id-ref" href="#QUES-D">QUES-D</a>, fixed by PR #17)</td>
+</tr>
+<tr>
+<td>A re-install deletes a file the first install created</td>
+<td>A claim on the global <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> is carried forward (<a class="id-ref" href="#QUES-C">QUES-C</a>, fixed by PR #17)</td>
+</tr>
+<tr>
+<td>An edited command copy is lost when retired</td>
+<td>Only byte-identical copies are removed (<a class="id-ref" href="#DSGN-C">DSGN-C</a>)</td>
+</tr>
+<tr>
+<td>The prune removes a skill the user still wants</td>
+<td>Only paths an earlier run claimed are pruned, and &quot;None&quot; carries commands forward (<a class="id-ref" href="#DSGN-E">DSGN-E</a>)</td>
+</tr>
+</tbody></table></div>
+<h3>Open Questions</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Question</th>
+<th>Answer so far</th>
+<th>Owner</th>
+<th>Blocking</th>
+</tr></thead><tbody>
+<tr>
+<td><strong id="QUES-A"><a class="id-ref" href="#QUES-A">QUES-A</a></strong></td>
+<td>Should a hook command that appears as one step of a hand-joined compound hook (such as <code>coworker memory capture; coworker memory close</code>) count as already present?</td>
+<td>Yes. Walter-worker PR #16 (<code>bf6683e</code>) matches a step of a <code>;</code>, <code>&amp;&amp;</code>, or `</td>
+<td></td>
+<td><code> compound (</code>setup/install.sh:646<code> at </code>bf6683e`).</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-B"><a class="id-ref" href="#QUES-B">QUES-B</a></strong></td>
+<td>Should Cursor and OpenCode receive hooks too?</td>
+<td>Deferred by the owner on 2026-11-23.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-C"><a class="id-ref" href="#QUES-C">QUES-C</a></strong></td>
+<td>Before PR #17, a second install deleted the global <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> that the first install created, losing any edits. Fix the code (claim the file whenever an earlier manifest claimed it), or change <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-H">PRD-H</a>?</td>
+<td>Reproduced by the 2026-11-24 review. Fixed in walter-worker PR #17 (<code>e5bfa54</code>): the claim is carried forward.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-D"><a class="id-ref" href="#QUES-D">QUES-D</a></strong></td>
+<td>Before PR #17, uninstall deleted everything in <code>~/.coworker</code> except <code>analytics/</code> and <code>backups/</code>, including API keys in <code>.env</code>, <code>coworker.yaml</code>, and the memory graph. Should the owned-directory pass be removed or narrowed so <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-J">PRD-J</a> holds?</td>
+<td>Reproduced by the 2026-11-24 review. Fixed in PR #17 (<code>e5bfa54</code>): uninstall never empties <code>~/.coworker</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-E"><a class="id-ref" href="#QUES-E">QUES-E</a></strong></td>
+<td>Before PR #17, for a manifest without <code>schema_version</code>, uninstall skipped the file list but still stripped hooks and emptied <code>~/.coworker</code>. Should it stop entirely?</td>
+<td>Reproduced by the 2026-11-24 review; fixed in PR #17 (<code>e5bfa54</code>): uninstall now refuses and changes nothing.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-F"><a class="id-ref" href="#QUES-F">QUES-F</a></strong></td>
+<td>One manifest serves both modes, so a project-mode install prunes the global install&#x27;s commands and mirrors. Should each mode keep its own manifest?</td>
+<td>Reproduced by the 2026-11-24 review.</td>
+<td>cicidi</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><strong id="QUES-G"><a class="id-ref" href="#QUES-G">QUES-G</a></strong></td>
+<td>The claim list misses written paths (<code>init.md</code>, the AGENTS.md symlink, <code>.gitignore</code> lines, the OpenCode plugin entry) and claims paths this run did not write (every file in the hooks directory and every file in a skill destination). Should claims be built from the write steps instead of from globs?</td>
+<td>Found by the 2026-11-24 review.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-H"><a class="id-ref" href="#QUES-H">QUES-H</a></strong></td>
+<td>Declining the the-super-lab update in <code>update.sh</code> has no effect because the installer already pulled it. Should the installer stop pulling, so the question means something?</td>
+<td>Found by the 2026-11-24 review.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-I"><a class="id-ref" href="#QUES-I">QUES-I</a></strong></td>
+<td>Answering &quot;None&quot; carries forward only global commands, so project-mode commands and all OpenCode mirrors are pruned. Should the carry cover every path class step 10 and step 11 write?</td>
+<td>Reproduced by the 2026-11-24 review.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-J"><a class="id-ref" href="#QUES-J">QUES-J</a></strong></td>
+<td>Install removes Stop hooks made only of capture and close even when the user added them, against <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-F">PRD-F</a>. Check the manifest?</td>
+<td><code>setup/install.sh:687-699</code> at <code>634adf1</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-K"><a class="id-ref" href="#QUES-K">QUES-K</a></strong></td>
+<td>A Stop hook joining capture or close with another command is kept, so capture still runs per reply. Drop only those steps?</td>
+<td><code>setup/install.sh:690-694</code> at <code>634adf1</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+</tbody></table></div>
+<h3>Reversibility</h3>
+<p>Every install is reversible through the manifest: <code>uninstall.sh</code> removes what was written, and <code>--restore-pristine</code> restores <code>settings.json</code> and <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> to their state before the first install. A single bad install can also be undone by restoring the <code>settings.json</code> backup that uninstall writes. Skill copies can be regenerated at any time by re-running the installer.</p>
+<h3>Terms</h3>
+<p>Shared terms are in the <a href="../../../design/walter-worker-design.html#glossary">parent glossary</a>; the rows below are specific to this feature.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Term</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td>Skill</td>
+<td>An instruction file (<code>SKILL.md</code>, plus files beside it) that an AI coding tool loads when a task matches its description</td>
+</tr>
+<tr>
+<td>Bundle skill</td>
+<td>A skill shipped inside the walter-worker repository&#x27;s own <code>skills/</code> directory, as opposed to one from the-super-lab</td>
+</tr>
+<tr>
+<td>Command</td>
+<td>A Claude Code slash command, a single markdown file under <code>.claude/commands/</code></td>
+</tr>
+<tr>
+<td>Mirror</td>
+<td>A copy or symlink of a skill placed where one AI tool looks for it</td>
+</tr>
+<tr>
+<td>Hook</td>
+<td>A command Claude Code runs on an event, registered in <code>~/.claude/settings.json</code></td>
+</tr>
+<tr>
+<td>Manifest</td>
+<td><code>~/.coworker/install-manifest.json</code>, the record of what the installer wrote</td>
+</tr>
+<tr>
+<td>Claim</td>
+<td>To list a path in the manifest, which makes it eligible for pruning and uninstall</td>
+</tr>
+<tr>
+<td>Prune</td>
+<td>Removing a path an earlier install claimed and this install no longer produces</td>
+</tr>
+<tr>
+<td>MCP</td>
+<td>Model Context Protocol, the way AI tools connect to external tool servers</td>
+</tr>
+<tr>
+<td>pipx</td>
+<td>A tool that installs a Python command-line program into its own isolated environment</td>
+</tr>
+<tr>
+<td>bats</td>
+<td>Bash Automated Testing System, the test runner for the shell scripts</td>
+</tr>
+</tbody></table></div>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Version</th>
+<th>Date</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td>0.1</td>
+<td>2026-11-04</td>
+<td>Draft (never committed)</td>
+</tr>
+<tr>
+<td>0.2</td>
+<td>2026-11-24</td>
+<td>Rewritten from the scripts at <code>a0f4ce0</code>; added the 13 required sections; removed the false managed-region clause (<a class="id-ref" href="../decision-history/setup-deploy-decision-history.html#ARD-D">ARD-D</a>)</td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>2026-11-24</td>
+<td>Review fixes: CLI contract, project-mode side effects, Step 6 copy, real manifest and uninstall behavior; code conflicts recorded as <a class="id-ref" href="#QUES-C">QUES-C</a> to <a class="id-ref" href="#QUES-I">QUES-I</a> (<a class="id-ref" href="../decision-history/setup-deploy-decision-history.html#ARD-E">ARD-E</a>); Terms section added</td>
+</tr>
+<tr>
+<td>0.4</td>
+<td>2026-11-24</td>
+<td><a class="id-ref" href="#QUES-A">QUES-A</a> answered by PR #16; <a class="id-ref" href="#QUES-C">QUES-C</a>, <a class="id-ref" href="#QUES-D">QUES-D</a>, and <a class="id-ref" href="#QUES-E">QUES-E</a> fixed by PR #17; merge base claimed (PR #21)</td>
+</tr>
+<tr>
+<td>0.5</td>
+<td>2026-11-24</td>
+<td><a class="id-ref" href="#DSGN-D">DSGN-D</a> after PR #22: six hooks, the summary on SessionEnd, old capture and close steps taken off Stop; <a class="id-ref" href="#QUES-J">QUES-J</a> added</td>
+</tr>
+<tr>
+<td>0.6</td>
+<td>2026-11-24</td>
+<td>Review fixes: CLAUDE.md claim carried forward; Stop removal is per hook (<a class="id-ref" href="#QUES-K">QUES-K</a>); manifest fields; parent glossary linked</td>
+</tr>
+</tbody></table></div>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../prd/setup-deploy-prd.html"><span class="label">Previous</span>Setup and Deploy — PRD</a><a class="next" href="../impl-plan/setup-deploy-impl-plan.html"><span class="label">Next</span>Setup and Deploy — Implementation Plan</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../../../assets/app.js"></script>
+</body>
+</html>

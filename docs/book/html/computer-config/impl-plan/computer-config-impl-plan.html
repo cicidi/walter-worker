@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>computer-config — Implementation Plan (Impl Plan) · impl-plan · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/computer-config-prd.html"><span class="tree-ord">1</span>computer-config — Product Requirements Document (PRD)</a></li><li class="tree-leaf"><a class="tree-link" href="../devil-advocate/2026-08-01-computer-config-spec/discussion.html">Adversarial Review — computer-config-spec.md</a></li><li class="tree-leaf"><a class="tree-link" href="../devil-advocate/2026-08-01-computer-config-spec/glm52-report.html">GLM-5.2 Independent Review Report — computer-config-spec.md</a></li><li class="tree-leaf"><a class="tree-link" href="../devil-advocate/2026-08-01-computer-config-spec/report.html">Adversarial Review Report — computer-config-spec.md</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/computer-config-spec.html">computer-config — Complete Technical Specification</a></li><li class="tree-leaf"><a class="tree-link" href="computer-config-impl-plan.html" aria-current="page"><span class="tree-ord">4</span>computer-config — Implementation Plan (Impl Plan)</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/computer-config-test-plan.html"><span class="tree-ord">5</span>computer-config — Test Plan</a></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>computer-config</span> / <span>impl-plan</span> / <span>computer-config — Implementation Plan (Impl Plan)</span></nav>
+    <article class="doc" data-doc="computer-config/impl-plan/computer-config-impl-plan">
+      <header class="doc-head">
+        <p class="eyebrow">computer-config</p>
+        <h1>computer-config — Implementation Plan (Impl Plan)</h1>
+        <p class="source">Canonical: docs/features/computer-config/impl-plan/computer-config-impl-plan.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>computer-config — Implementation Plan (Impl Plan)</h2>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Date</th>
+<th>Version</th>
+<th>Change</th>
+</tr></thead><tbody>
+<tr>
+<td>2026-08-01</td>
+<td>0.1.0</td>
+<td>Initial draft</td>
+</tr>
+<tr>
+<td>2026-08-01</td>
+<td>0.2.0</td>
+<td>Post devil-advocate review: menu → 0/1/2/3 (one-click both); component 1 adds settings.json model-field reconciliation to pro; component 2 uses marker-based inline-color detection; A4 manifest defined + missing-manifest handling</td>
+</tr>
+<tr>
+<td>2026-08-01</td>
+<td>0.3.0</td>
+<td>Post GLM-5.2 review (scope-corrected): DROP model-field reconciliation (CCR-managed, not our concern); atomic write → stdlib-only; component 2 adds legacy grey-theme migration + tmux reload note; A4 uninstall uses rm -rf + python pop statusLine; add B1.5 (walter-worker manifest excludes ~/.claude/statusline/); B2 preserves rich status_info as optional rather than deleting</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>1. Overview</h3>
+<p>This plan runs two parallel workstreams:</p>
+<ul>
+<li><strong>Workstream A</strong>: create the claude-tmux-config standalone project</li>
+<li><strong>Workstream B</strong>: strip the presentation layer out of walter-worker</li>
+</ul>
+<p>They are independent and can run in parallel.</p>
+<hr>
+<h3>2. Workstream A: claude-tmux-config project</h3>
+<h4>Step A1 — Repo skeleton</h4>
+<pre><code>mkdir ~/project/claude-tmux-config
+cd ~/project/claude-tmux-config
+git init</code></pre>
+<p>Create structure:</p>
+<pre><code>claude-tmux-config/
+├── README.md
+├── install.sh
+├── uninstall.sh
+├── assets/
+└── docs/</code></pre>
+<p><strong>Verify</strong>: <code>git status</code> clean, directory structure correct.</p>
+<h4>Step A2 — Adopt assets</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Asset</th>
+<th>From</th>
+<th>To</th>
+<th>Handling</th>
+</tr></thead><tbody>
+<tr>
+<td><code>statusline-command.sh</code></td>
+<td><code>~/.claude/</code></td>
+<td><code>assets/statusline-command.sh</code></td>
+<td>Parameterize 3 paths: <code>:150</code> turn-counter, <code>:199</code> ccusage-cache, <code>:370</code> wrap-statusline.py → <code>$HOME/.claude/statusline/</code></td>
+</tr>
+<tr>
+<td><code>wrap-statusline.py</code></td>
+<td><code>~/.claude/</code></td>
+<td><code>assets/wrap-statusline.py</code></td>
+<td>As-is</td>
+</tr>
+<tr>
+<td><code>status_info.sh</code></td>
+<td><code>~/.tmux/scripts/</code></td>
+<td><code>assets/status_info.sh</code></td>
+<td>As-is (simple version)</td>
+</tr>
+<tr>
+<td>Benjamin Blue theme</td>
+<td>inline in .tmux.conf</td>
+<td><code>assets/benjamin-blue.tmux</code></td>
+<td>Extract color block into standalone file</td>
+</tr>
+</tbody></table></div>
+<p><strong>Verify</strong>: each asset&#x27;s paths parameterized correctly; no leftover <code>~/.claude/</code> old paths (except the target dir).</p>
+<h4>Step A3 — install.sh</h4>
+<p>Implement 0/1/2/3 menu + y/N confirm (default 0, supports one-click both):</p>
+<pre><code>🎯 What to install? (default skip, non-destructive)
+  0) Skip
+  1) Claude Code statusline only (statusline + statusLine setting)
+  2) tmux theme + status bar only (Benjamin Blue + source theme file)
+  3) Both — full statusline + theme (one click)
+Choose [0]:</code></pre>
+<p>Component 1:</p>
+<ol>
+<li><code>command -v jq &amp;&amp; command -v bc &amp;&amp; command -v python3</code> check, warn if missing</li>
+<li>Deploy <code>statusline-command.sh</code> + <code>wrap-statusline.py</code> → <code>~/.claude/statusline/</code></li>
+</ol>
+<p>   <strong>unchanged</strong> (port-as-is; only the 3 hardcoded paths in §3.11 are    parameterized to <code>$HOME/.claude/statusline/</code>). Do NOT touch the    <code>settings.json</code> <code>model</code> field — it is CCR-managed.</p>
+<ol>
+<li>Inline <code>python3 -c</code> merge <code>statusLine</code> into settings.json using the</li>
+</ol>
+<p>   <strong>stdlib-only atomic write</strong> (spec §6.3: <code>shutil.copy2</code> → <code>.bak</code>, temp,    <code>os.fsync</code>, <code>os.replace</code>). NOT plain <code>json.dump</code>, NOT walter-worker&#x27;s    <code>backup.snapshot()</code> (unimportable from bash).</p>
+<p>Component 2 (per spec §6.2 detection algorithm):</p>
+<ol>
+<li>If <code>.tmux.conf</code> contains the <strong>legacy <code># walter-worker status bar</code> marker</strong> →</li>
+</ol>
+<p>   prompt &quot;Replace old grey theme with Benjamin Blue? [y/N]&quot;; on <code>y</code>, strip the    old block then do a full deploy; on <code>n</code>, deploy only <code>status_info.sh</code>.</p>
+<ol>
+<li>Else if marker <code># claude-tmux-config theme</code> OR any of the 6 Benjamin Blue</li>
+</ol>
+<p>   hexes is present → deploy only <code>status_info.sh</code>, do NOT append <code>source</code>.</p>
+<ol>
+<li>Else (fresh) → deploy <code>benjamin-blue.tmux</code> → <code>~/.tmux/conf.d/</code>, append</li>
+</ol>
+<p>   <code>source</code> line + marker comment.</p>
+<ol>
+<li>Backup <code>.tmux.conf.bak</code> before mutation.</li>
+<li>After deploy, print: *&quot;Run <code>tmux source-file ~/.tmux.conf</code> (or restart tmux)</li>
+</ol>
+<p>   to apply the theme.&quot;* (fresh machines need a reload.)</p>
+<p><strong>Verify</strong>: run <code>install.sh</code>, confirm each item; check deployed files + settings.json (statusLine present; <code>model</code> field untouched).</p>
+<h4>Step A4 — uninstall.sh</h4>
+<p>Manifest-driven (manifest at <code>~/.coworker/statusline-manifest.json</code>, per spec §6.3):</p>
+<ul>
+<li><code>settings.json</code>: inline <code>python3 -c</code> → <code>cfg.pop(&#x27;statusLine&#x27;, None)</code> → write</li>
+</ul>
+<p>  atomically (same stdlib pattern as install).</p>
+<ul>
+<li><code>~/.claude/statusline/</code>: <code>rm -rf</code> the whole directory (catches runtime cache</li>
+</ul>
+<p>  files <code>turn-counter-*.json</code>, <code>ccusage-cache.json</code> that aren&#x27;t in the manifest).</p>
+<ul>
+<li><code>~/.tmux/conf.d/benjamin-blue.tmux</code>: delete.</li>
+<li><code>~/.tmux.conf</code>: strip the line containing the marker `# claude-tmux-config</li>
+</ul>
+<p>  theme` (leave any legacy walter-worker grey block untouched — that&#x27;s walter-worker&#x27;s   responsibility; document this scope in README).</p>
+<ul>
+<li>If manifest missing → refuse to run, log warning, list files to remove manually.</li>
+<li>If manifest partial → remove only listed files, report the rest as manual.</li>
+</ul>
+<p><strong>Verify</strong>: run uninstall, confirm all traces removed (statusLine gone, dirs deleted, source line stripped).</p>
+<h4>Step A5 — README + docs/claude-tmux.md</h4>
+<p>README: purpose, install, uninstall, screenshots. docs/claude-tmux.md: claude-tmux binding docs (no binary auto-install).</p>
+<p><strong>Verify</strong>: docs cover install/uninstall/dependencies/FAQ.</p>
+<hr>
+<h3>3. Workstream B: walter-worker strip</h3>
+<h4>Step B1 — Remove install.sh Step 16</h4>
+<p>Remove Step 16 (tmux status bar deploy, ~lines 476-506) from <a href="../../../../../setup/install.sh"><code>setup/install.sh</code></a>.</p>
+<p><strong>Verify</strong>: <code>grep -n &quot;status_info\|tmux&quot; setup/install.sh</code> has no residual deploy logic.</p>
+<h4>Step B1.5 — Exclude <code>~/.claude/statusline/</code> from walter-worker&#x27;s manifest walk</h4>
+<p>walter-worker&#x27;s manifest step does <code>os.walk(~/.claude/)</code> recursively, so it would claim <code>~/.claude/statusline/*</code> (claude-tmux-config&#x27;s deployed files) and could delete them on walter-worker uninstall. Add an exclusion so the walk skips <code>~/.claude/statusline/</code> (and <code>~/.tmux/conf.d/</code>). This makes the cross-project conflict resolution bidirectional (spec §6.3).</p>
+<p><strong>Verify</strong>: after running walter-worker install, <code>~/.coworker/install-manifest.json</code> contains NO entries under <code>~/.claude/statusline/</code>.</p>
+<h4>Step B2 — Move setup/status_info.sh to claude-tmux-config (don&#x27;t delete)</h4>
+<p>The 90-line rich <code>setup/status_info.sh</code> is removed from walter-worker, but <strong>preserved</strong> as <code>claude-tmux-config/assets/status_info-rich.sh</code> (optional enhancement for users who want git/worktree/initiative info). The user&#x27;s current simple version remains the default <code>assets/status_info.sh</code>. This keeps the working code reversible rather than permanently deleting it.</p>
+<p><strong>Verify</strong>: walter-worker <code>setup/status_info.sh</code> gone; rich version lives in claude-tmux-config as optional.</p>
+<h4>Step B3 — Update affected tests</h4>
+<p>Involved: <a href="../../../../../tests/conftest.py"><code>tests/conftest.py</code></a>, <a href="../../../../../tests/setup/test_install.bats"><code>tests/setup/test_install.bats</code></a>, <a href="../../../../../tests/setup/test_update.bats"><code>tests/setup/test_update.bats</code></a>, <a href="../../../../../tests/analytics/test_install.py"><code>tests/analytics/test_install.py</code></a>, <a href="../../../../../tests/analytics/test_data.py"><code>tests/analytics/test_data.py</code></a>.</p>
+<p><strong>Verify</strong>: run full test suite, all green.</p>
+<h4>Step B4 — Docs placement + index update</h4>
+<ul>
+<li>Move this design doc to <code>docs/computer-config/spec/</code></li>
+<li>Generate <code>docs/computer-config/{prd,impl-plan,test-plan}/</code></li>
+<li>Update <a href="../../../../INDEX.md"><code>docs/INDEX.md</code></a></li>
+</ul>
+<p><strong>Verify</strong>: INDEX.md contains all computer-config initiative entries.</p>
+<hr>
+<h3>4. Dependencies &amp; Order</h3>
+<pre><code>A1 → A2 → A3 → A4 → A5
+B1 → B2 → B3 → B4
+A and B run in parallel</code></pre>
+<hr>
+<h3>5. Risks &amp; Rollback</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Risk</th>
+<th>Mitigation</th>
+</tr></thead><tbody>
+<tr>
+<td>settings.json corruption</td>
+<td>atomic write + .bak</td>
+</tr>
+<tr>
+<td>.tmux.conf pollution</td>
+<td>backup + idempotent marker</td>
+</tr>
+<tr>
+<td>test breakage</td>
+<td>run full test baseline before strip</td>
+</tr>
+</tbody></table></div>
+<p>Rollback: <code>uninstall.sh</code> (claude-tmux-config) + <code>git revert</code> (walter-worker).</p>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../spec/computer-config-spec.html"><span class="label">Previous</span>computer-config — Complete Technical Specification</a><a class="next" href="../test-plan/computer-config-test-plan.html"><span class="label">Next</span>computer-config — Test Plan</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

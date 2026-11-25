@@ -1,0 +1,739 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>computer-config — Complete Technical Specification · spec · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/computer-config-prd.html"><span class="tree-ord">1</span>computer-config — Product Requirements Document (PRD)</a></li><li class="tree-leaf"><a class="tree-link" href="../devil-advocate/2026-08-01-computer-config-spec/discussion.html">Adversarial Review — computer-config-spec.md</a></li><li class="tree-leaf"><a class="tree-link" href="../devil-advocate/2026-08-01-computer-config-spec/glm52-report.html">GLM-5.2 Independent Review Report — computer-config-spec.md</a></li><li class="tree-leaf"><a class="tree-link" href="../devil-advocate/2026-08-01-computer-config-spec/report.html">Adversarial Review Report — computer-config-spec.md</a></li><li class="tree-leaf"><a class="tree-link" href="computer-config-spec.html" aria-current="page">computer-config — Complete Technical Specification</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/computer-config-impl-plan.html"><span class="tree-ord">4</span>computer-config — Implementation Plan (Impl Plan)</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/computer-config-test-plan.html"><span class="tree-ord">5</span>computer-config — Test Plan</a></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>computer-config</span> / <span>spec</span> / <span>computer-config — Complete Technical Specification</span></nav>
+    <article class="doc" data-doc="computer-config/spec/computer-config-spec">
+      <header class="doc-head">
+        <p class="eyebrow">computer-config</p>
+        <h1>computer-config — Complete Technical Specification</h1>
+        <p class="source">Canonical: docs/features/computer-config/spec/computer-config-spec.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>computer-config — Complete Technical Specification</h2>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Date</th>
+<th>Version</th>
+<th>Change</th>
+</tr></thead><tbody>
+<tr>
+<td>2026-08-01</td>
+<td>0.1.0</td>
+<td>Initial draft — expanded from migration design doc to full configuration spec</td>
+</tr>
+<tr>
+<td>2026-08-01</td>
+<td>0.2.0</td>
+<td>Post devil-advocate review: confirm target model = DeepSeek V4 Pro; fix factual errors (.tmux.conf 36 lines, 10 top-level keys, 13 plugin entries); fix 0/1/2 menu → 0/1/2/3 (one-click both); define atomic-write mechanism, manifest schema + cross-project scoping, and inline-color detection algorithm</td>
+</tr>
+<tr>
+<td>2026-08-01</td>
+<td>0.3.0</td>
+<td>Post GLM-5.2 review (scope-corrected): reframe statusline as PORT-AS-IS (document, don&#x27;t re-audit internals); DROP invented model-field reconciliation step (CCR manages it; statusline reads transcript dynamically); fix atomic write to stdlib-only (bash can&#x27;t import walter-worker backup.py); manifest scope now includes ~/.tmux/scripts/ + bidirectional cross-project conflict (walter-worker must exclude ~/.claude/statusline/); add legacy grey-theme migration branch; fix effort table (high=red), status_info=15 lines, stale 0/1/2 refs</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>1. Overview</h3>
+<p>This specification describes the user&#x27;s complete development environment customizations: the <strong>Claude Code statusline</strong>, the <strong>tmux terminal theme</strong>, and the <strong>walter-worker role boundary</strong>. Goals:</p>
+<ol>
+<li>Consolidate the Claude + tmux presentation assets (currently scattered in the</li>
+</ol>
+<p>   home directory, under no version control) into an independent project    <code>claude-tmux-config</code>, with its own install confirmation script, zero impact    on other users.</p>
+<ol>
+<li>Strip the presentation layer out of walter-worker so it remains a pure</li>
+</ol>
+<p>   framework (context/skills/analytics/memory).</p>
+<blockquote class="callout" data-label="NOTE"><p>This document is the <strong>spec</strong> (defines &quot;what it is&quot;). Companion docs: - <code>docs/computer-config/prd/computer-config-prd.md</code> — requirements (what we want) - <code>docs/computer-config/impl-plan/computer-config-impl-plan.md</code> — implementation plan (how to build) - <code>docs/computer-config/test-plan/computer-config-test-plan.md</code> — test strategy (how to verify)</p></blockquote>
+<hr>
+<h3>2. Claude Code Complete Configuration</h3>
+<h4>2.1 Architecture Overview: CCR Proxy Routing</h4>
+<p>Claude Code natively talks only to the Anthropic API. <strong>claude-code-router (CCR)</strong> is a local proxy (<code>127.0.0.1:3456</code>) that presents an Anthropic-compatible API surface while routing requests to non-Anthropic models (DeepSeek V4 Pro).</p>
+<p><strong>Why</strong>: DeepSeek V4 Pro output costs ~<code>$0.87/1M</code> tokens vs Claude Sonnet&#x27;s <code>$15/1M</code> (~17x cheaper); DeepSeek also offers a 1M-token context window (5x Claude&#x27;s 200k). The user has a DeepSeek subscription and wants to keep Claude Code&#x27;s full feature set (thinking/tool-use/streaming) while using DeepSeek as the primary model.</p>
+<p><strong>How</strong>: Three env vars (<code>ANTHROPIC_BASE_URL</code> / <code>ANTHROPIC_API_BASE_URL</code> / <code>CLAUDE_AGENT_API_BASE_URL</code>) all point at CCR; <code>apiKeyHelper</code> points at CCR&#x27;s key helper. Claude Code sees a standard Anthropic endpoint; CCR does the internal request translation (Anthropic Messages → OpenAI-compatible → DeepSeek, and back).</p>
+<blockquote class="callout" data-label="NOTE"><p><strong>Port-as-is note</strong>: the CCR proxy + <code>settings.json</code> model/env configuration is the user&#x27;s existing, working setup. This project PORTS the statusline + tmux assets; it does NOT re-configure CCR, re-route models, or modify the <code>settings.json</code> <code>model</code> field. The statusline&#x27;s <code>compute_real_cost</code> reads the transcript&#x27;s per-message model dynamically, so it adapts to whatever model CCR routes to — no static model assumption is needed. (The <code>model</code> field is CCR-managed and changes on each <code>/model</code> switch; it is intentionally not touched by the installer.)</p></blockquote>
+<h4>2.2 settings.json Complete Fields</h4>
+<p>Main config at <code>~/.claude/settings.json</code>, 10 top-level keys:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Key</th>
+<th>Value</th>
+<th>Purpose</th>
+</tr></thead><tbody>
+<tr>
+<td><code>apiKeyHelper</code></td>
+<td><code>/home/cicidi/.claude-code-router/bin/ccr-claude-code-api-key-default-claude-code</code></td>
+<td>Routes API key requests through CCR, returns Anthropic-format keys regardless of backend model</td>
+</tr>
+<tr>
+<td><code>env.ANTHROPIC_BASE_URL</code></td>
+<td><code>http://127.0.0.1:3456</code></td>
+<td>Points at local CCR proxy</td>
+</tr>
+<tr>
+<td><code>env.ANTHROPIC_API_BASE_URL</code></td>
+<td><code>http://127.0.0.1:3456</code></td>
+<td>Same (different Claude Code internals read different vars)</td>
+</tr>
+<tr>
+<td><code>env.CLAUDE_AGENT_API_BASE_URL</code></td>
+<td><code>http://127.0.0.1:3456</code></td>
+<td>Same</td>
+</tr>
+<tr>
+<td><code>env.ANTHROPIC_MODEL</code></td>
+<td><code>DeepSeek/deepseek-v4-pro</code></td>
+<td>Actual model name CCR passes to DeepSeek API</td>
+</tr>
+<tr>
+<td><code>env.CCR_CLAUDE_CODE_MODEL</code></td>
+<td><code>DeepSeek/deepseek-v4-pro</code></td>
+<td>Same</td>
+</tr>
+<tr>
+<td><code>env.CODEXL_CLAUDE_CODE_MODEL</code></td>
+<td><code>DeepSeek/deepseek-v4-pro</code></td>
+<td>Same</td>
+</tr>
+<tr>
+<td><code>env.CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY</code></td>
+<td><code>1</code></td>
+<td>Tells Claude Code a gateway (CCR) exists; query for available model listings</td>
+</tr>
+<tr>
+<td><code>model</code></td>
+<td><code>anthropic/claude-ccr-&lt;hex-encoded-model-name&gt;[1m]</code></td>
+<td>CCR-wrapped model ID; CCR hex-encodes the real model name in the id and the <code>[1m]</code> suffix signals a 1M-token context window. <strong>CCR-managed — changes on each <code>/model</code> switch; installer does not touch it</strong></td>
+</tr>
+<tr>
+<td><code>permissions.defaultMode</code></td>
+<td><code>bypassPermissions</code></td>
+<td>Skips permission prompt system; real safety net is hook infra audit logs</td>
+</tr>
+<tr>
+<td><code>permissions.allow</code></td>
+<td><code>Bash(*)</code>, <code>Edit(*)</code>, <code>Read(*)</code>, ...</td>
+<td>Allow-list (no-op under bypass mode)</td>
+</tr>
+<tr>
+<td><code>hooks</code></td>
+<td>4 events + commands</td>
+<td>UserPromptSubmit / PreToolUse / PostToolUse / Stop</td>
+</tr>
+<tr>
+<td><code>statusLine</code></td>
+<td><code>{type: command, command: bash .../statusline-command.sh, padding: 0}</code></td>
+<td>4-line statusline rendering</td>
+</tr>
+<tr>
+<td><code>enabledPlugins</code></td>
+<td>13 entries (12 enabled + 1 disabled)</td>
+<td>superpowers/frontend-design/code-review/github/playwright/context7/feature-dev/claude-md-management/skill-creator/discord/telegram/claude-hud (enabled); semgrep (disabled)</td>
+</tr>
+<tr>
+<td><code>extraKnownMarketplaces</code></td>
+<td>claude-hud</td>
+<td>Installs claude-hud plugin from jarrodwatts/claude-hud</td>
+</tr>
+<tr>
+<td><code>alwaysThinkingEnabled</code></td>
+<td><code>true</code></td>
+<td>Forces extended thinking mode</td>
+</tr>
+<tr>
+<td><code>skipDangerousModePermissionPrompt</code></td>
+<td><code>true</code></td>
+<td>Suppresses confirmation prompt when bypassPermissions is active</td>
+</tr>
+</tbody></table></div>
+<p><strong>Key semantics</strong>: <code>bypassPermissions</code> means all file/browser/bash operations are pre-approved. The real safety model relies on hook infrastructure logging everything for audit, not the permission prompt system.</p>
+<hr>
+<h3>3. Claude Code Statusline</h3>
+<blockquote class="callout" data-label="NOTE"><p><strong>Port-as-is</strong>: this section DOCUMENTS the existing <code>statusline-command.sh</code> behavior so the spec is complete. The script is a working, in-production asset that is PORTED UNCHANGED. Its internal logic (cost calc, context detection, thresholds, pricing tables) is existing behavior — not requirements to implement or re-audit. Only the 3 hardcoded paths (§3.11) are parameterized.</p></blockquote>
+<h4>3.1 Mechanism</h4>
+<p><code>statusLine.type: command</code> → on each refresh, invokes <code>bash ~/.claude/statusline-command.sh</code>, piping session JSON to stdin. The script computes real costs (bypassing CCR&#x27;s wrong pricing), context percentage (using the actual model window, not Anthropic&#x27;s 200k), turn count, git diff stats, initiative detection, and ccusage integration. Output is piped through <code>wrap-statusline.py</code> for terminal-width-aware wrapping.</p>
+<h4>3.2 Four Output Lines</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Line</th>
+<th>Content</th>
+<th>Coloring</th>
+</tr></thead><tbody>
+<tr>
+<td>1</td>
+<td>project + initiative + tmux session + user@host + start time</td>
+<td>forest-green labels / teal values / orange initiative</td>
+</tr>
+<tr>
+<td>2</td>
+<td>model + effort + context bar <code>[████░░░]</code> + real cost + turns + elapsed + avg_api</td>
+<td>yellow labels / values color-coded by semantics</td>
+</tr>
+<tr>
+<td>3</td>
+<td>branch + claude_change (+N/-M) + github_change (+N/-M) + last commit</td>
+<td>green labels / add-del red-green</td>
+</tr>
+<tr>
+<td>4</td>
+<td>current folder path</td>
+<td>forest-green 📂</td>
+</tr>
+</tbody></table></div>
+<h4>3.3 Benjamin Blue Palette (256-color approximations)</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Color</th>
+<th>Hex</th>
+<th>256-color</th>
+<th>Role</th>
+</tr></thead><tbody>
+<tr>
+<td>Crayon Yellow</td>
+<td><code>#F2C94C</code></td>
+<td><code>38;5;220</code></td>
+<td>cursor / highlights / warnings / emphasis</td>
+</tr>
+<tr>
+<td>Forest Green</td>
+<td><code>#5F8D4E</code></td>
+<td><code>38;5;71</code></td>
+<td>success / pass / additions / confirmations</td>
+</tr>
+<tr>
+<td>Clay Orange</td>
+<td><code>#D98A3A</code></td>
+<td><code>38;5;172</code></td>
+<td>primary accent / headings / links / notices</td>
+</tr>
+<tr>
+<td>Brick Red</td>
+<td><code>#B95547</code></td>
+<td><code>38;5;131</code></td>
+<td>errors / failures / deletions / critical alerts</td>
+</tr>
+<tr>
+<td>Deep Ocean</td>
+<td><code>#102D46</code></td>
+<td><code>38;5;17</code></td>
+<td>background / calm sections</td>
+</tr>
+</tbody></table></div>
+<p>Supplementary (variable values): lavender <code>183</code>, peach <code>216</code>, mint <code>121</code>, sky <code>117</code>, rose <code>211</code>, gold <code>214</code>, coral <code>209</code>, grape <code>141</code>, teal <code>43</code>, silver <code>250</code>.</p>
+<h4>3.4 Threshold Logic</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Metric</th>
+<th>Green</th>
+<th>Yellow</th>
+<th>Red</th>
+</tr></thead><tbody>
+<tr>
+<td>Context usage</td>
+<td>&lt;50%</td>
+<td>50-80%</td>
+<td>&gt;80%</td>
+</tr>
+<tr>
+<td>Cost</td>
+<td>&lt;$1</td>
+<td>$1-3</td>
+<td>&gt;$3</td>
+</tr>
+<tr>
+<td>Effort level</td>
+<td>low</td>
+<td>medium</td>
+<td>high / max</td>
+</tr>
+<tr>
+<td>Elapsed</td>
+<td>&lt;30min</td>
+<td>30-60min</td>
+<td>&gt;1h</td>
+</tr>
+<tr>
+<td>avg_api</td>
+<td>&lt;3s</td>
+<td>3-8s</td>
+<td>&gt;8s</td>
+</tr>
+</tbody></table></div>
+<h4>3.5 Real Cost Calculation (compute_real_cost)</h4>
+<p><strong>Why</strong>: CCR wraps non-Claude models under ids it cannot price, so <code>.cost.total_cost_usd</code> is wrong by up to ~35x (CCR bills at Claude rates <code>$3/$15</code>, but actually routes DeepSeek tokens at <code>$0.87/1M</code>).</p>
+<p><strong>How</strong>:</p>
+<ol>
+<li>Read <code>.cost.total_cost_usd</code> from transcript JSONL as baseline</li>
+<li>Parse transcript, group tokens by model family (dspro/dsflash/glm5x/claude)</li>
+<li>All-Claude session → use Claude Code&#x27;s exact number</li>
+<li>Mixed/non-Claude session → multiply raw token counts × real rates</li>
+</ol>
+<p>Price table (USD/1M tokens: input / cache-write / cache-read / output):</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Family</th>
+<th>input</th>
+<th>cache-write</th>
+<th>cache-read</th>
+<th>output</th>
+</tr></thead><tbody>
+<tr>
+<td>glm5x</td>
+<td>1.40</td>
+<td>0</td>
+<td>0.26</td>
+<td>4.40</td>
+</tr>
+<tr>
+<td>dsflash</td>
+<td>0.14</td>
+<td>0.14</td>
+<td>0.0028</td>
+<td>0.28</td>
+</tr>
+<tr>
+<td>dspro</td>
+<td>0.435</td>
+<td>0.435</td>
+<td>0.003625</td>
+<td>0.87</td>
+</tr>
+<tr>
+<td>claude</td>
+<td>3.0</td>
+<td>3.75</td>
+<td>0.30</td>
+<td>15.0</td>
+</tr>
+</tbody></table></div>
+<h4>3.6 Context Window Detection</h4>
+<p><strong>Why</strong>: Claude Code always reports 200k (Anthropic&#x27;s window), but DeepSeek is 1M.</p>
+<p><strong>How</strong>: Parse <code>model_id</code>:</p>
+<ul>
+<li>Contains <code>[2m]</code>/<code>[2M]</code> → 2,097,152</li>
+<li>Contains <code>[1m]</code>/<code>[1M]</code> → 1,048,576</li>
+<li>Contains deepseek/glm/qwen → 1,048,576</li>
+<li>Contains claude → 200,000</li>
+<li>Other → 200,000 (fallback)</li>
+</ul>
+<h4>3.7 Turn Counter</h4>
+<p>Persists in <code>~/.claude/turn-counter-{session_id}.json</code> (<code>{prompt_id, count, start_time}</code>). Seeds from transcript on first run (to catch already-happened turns). Increments only when <code>prompt_id</code> changes (new user message).</p>
+<h4>3.8 ccusage Cache</h4>
+<p><code>~/.claude/ccusage-cache.json</code>, refreshed every 120s via <code>ccusage blocks --json</code>, as a secondary cost source. Avoids spawning ccusage on every statusline tick.</p>
+<h4>3.9 Initiative Detection</h4>
+<p>Searches <code>CLAUDE.local.md</code> for <code>&lt;!-- INITIATIVE:&lt;name&gt; START --&gt;</code>, walking up from workspace to project root to <code>$HOME</code>.</p>
+<h4>3.10 wrap-statusline.py</h4>
+<p>Python 3, no dependencies. Detects terminal width (<code>$COLUMNS</code> → <code>tput cols</code> → fallback 120), wraps at word boundaries preserving ANSI SGR escape sequences. Hard-breaks at width if no space found.</p>
+<h4>3.11 Hardcoded Paths (to parameterize)</h4>
+<pre><code>:150  turn_counter_file=&quot;$HOME/.claude/turn-counter-${session_id}.json&quot;
+:199  cache_file=&quot;$HOME/.claude/ccusage-cache.json&quot;
+:370  printf ... | python3 ~/.claude/wrap-statusline.py</code></pre>
+<p>Dependencies: <code>jq</code>, <code>bc</code>, <code>python3</code>, <code>git</code>, <code>tmux</code> (<code>ccusage</code> optional, degrades gracefully). Contains Linux-specific commands <code>stat -c %W</code>, <code>hostname -s</code> (macOS-incompatible).</p>
+<hr>
+<h3>4. tmux Complete Configuration</h3>
+<h4>4.1 .tmux.conf (36 lines)</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Section</th>
+<th>Config</th>
+<th>Why</th>
+</tr></thead><tbody>
+<tr>
+<td>Truecolor</td>
+<td><code>default-terminal tmux-256color</code> + <code>terminal-overrides &quot;*256col*:Tc&quot;</code> etc.</td>
+<td>Render ANSI 256-color correctly inside tmux panes</td>
+</tr>
+<tr>
+<td>Passthrough</td>
+<td><code>allow-passthrough on</code> + <code>update-environment COLORTERM</code></td>
+<td>Support truecolor passthrough</td>
+</tr>
+<tr>
+<td>claude-tmux binding</td>
+<td><code>bind-key C-c display-popup -E -w 80 -h 30 &quot;~/.cargo/bin/claude-tmux&quot;</code></td>
+<td>Ctrl+C prefix opens 80x30 Claude Code TUI popup</td>
+</tr>
+<tr>
+<td>Mouse/clipboard</td>
+<td><code>set -g mouse on</code> / <code>set-clipboard on</code></td>
+<td>Mouse support + system clipboard</td>
+</tr>
+<tr>
+<td>status-style</td>
+<td><code>bg=#102D46,fg=#EAE7DD</code></td>
+<td>Benjamin Blue deep-ocean bg + warm off-white text</td>
+</tr>
+<tr>
+<td>message-style</td>
+<td><code>bg=#F2C94C,fg=#102D46</code></td>
+<td>Yellow bg + deep-ocean text, high contrast</td>
+</tr>
+<tr>
+<td>pane-active-border</td>
+<td><code>fg=#F2C94C</code></td>
+<td>Active pane border yellow, draws the eye</td>
+</tr>
+<tr>
+<td>status-left</td>
+<td><code>#{session_name} + green ●</code></td>
+<td>Session name yellow + forest-green activity dot</td>
+</tr>
+<tr>
+<td>status-right</td>
+<td><code>📂 + $(~/.tmux/scripts/status_info.sh)</code></td>
+<td>Folder icon + dynamic status info</td>
+</tr>
+<tr>
+<td>window-status-current</td>
+<td><code>fg=#102D46,bg=#F2C94C,bold</code></td>
+<td>Current window: deep-ocean text on yellow, bold</td>
+</tr>
+<tr>
+<td>window-status</td>
+<td><code>fg=#8EA2AF,bg=#102D46</code></td>
+<td>Inactive windows: muted steel-blue text</td>
+</tr>
+<tr>
+<td>continuum</td>
+<td><code>@continuum-restore on</code> + <code>@continuum-save-interval 1</code></td>
+<td>Auto-save session every minute</td>
+</tr>
+<tr>
+<td>resurrect/continuum</td>
+<td>two <code>run-shell</code> lines</td>
+<td>Session persistence</td>
+</tr>
+</tbody></table></div>
+<h4>4.2 status_info.sh (currently-running version = simple)</h4>
+<p>15 lines, displays only the current folder path (<code>$HOME</code> shortened to <code>~</code>). Reads via <code>tmux display-message -p -F &#x27;#{pane_current_path}&#x27;</code>.</p>
+<p><strong>⚠️ Version divergence</strong>: the user currently runs the 303B simple version (folder path only). The 3KB rich version in walter-worker (session/project/worktree/ branch/ahead-behind/staged/initiative) was <strong>never deployed</strong> to this machine. The spec uses the simple version; the rich version is an optional enhancement.</p>
+<h4>4.3 git_branch.sh</h4>
+<p>Legacy file, not referenced by the current <code>.tmux.conf</code>. The rich status_info.sh already embeds git info; this file is redundant and not ported.</p>
+<h4>4.4 claude-tmux</h4>
+<p>Third-party Rust TUI (github.com/nielsgroen/claude-tmux), binary at <code>~/.cargo/bin/</code>. install.sh is bash-only with no Rust build step → <strong>does NOT auto-install the binary</strong>, only documents the binding.</p>
+<h4>4.5 Benjamin Blue Palette (tmux side)</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Use</th>
+<th>Hex</th>
+</tr></thead><tbody>
+<tr>
+<td>Status bar bg</td>
+<td><code>#102D46</code></td>
+</tr>
+<tr>
+<td>Status bar fg</td>
+<td><code>#EAE7DD</code></td>
+</tr>
+<tr>
+<td>Highlight (current window/active border/message)</td>
+<td><code>#F2C94C</code></td>
+</tr>
+<tr>
+<td>Success (status dot)</td>
+<td><code>#5F8D4E</code></td>
+</tr>
+<tr>
+<td>Inactive window text</td>
+<td><code>#8EA2AF</code></td>
+</tr>
+<tr>
+<td>Pane border</td>
+<td><code>#30506B</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>5. walter-worker Role Boundary</h3>
+<h4>5.1 Core Layer (keep)</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Module</th>
+<th>Role</th>
+</tr></thead><tbody>
+<tr>
+<td>Context Injection</td>
+<td>CLAUDE.md template generation + semantic merge</td>
+</tr>
+<tr>
+<td>Skill Deployment</td>
+<td>Deploy skills from skill-factory to Claude Code + OpenCode</td>
+</tr>
+<tr>
+<td>Analytics Hooks</td>
+<td>4 hook events → session audit log</td>
+</tr>
+<tr>
+<td>MCP Config</td>
+<td>coworker.yaml → settings.json/opencode/gemini sync</td>
+</tr>
+<tr>
+<td>Memory Graph</td>
+<td>graph.json + mem0 + curator + MCP server</td>
+</tr>
+<tr>
+<td>Wrong-History Prevention</td>
+<td>Extract anti-patterns from corrections, inject into CLAUDE.md</td>
+</tr>
+<tr>
+<td>Permission Management</td>
+<td>Declarative permission model</td>
+</tr>
+</tbody></table></div>
+<h4>5.2 Presentation Layer (strip → claude-tmux-config)</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Location</th>
+<th>Content</th>
+</tr></thead><tbody>
+<tr>
+<td><a href="../../../../../setup/install.sh"><code>setup/install.sh</code></a> Step 16</td>
+<td>tmux status bar deploy + append grey theme</td>
+</tr>
+<tr>
+<td><code>setup/status_info.sh</code></td>
+<td>tmux rich status bar script</td>
+</tr>
+<tr>
+<td><code>~/.claude/statusline-command.sh</code></td>
+<td>Claude Code statusline (scattered, no VCS)</td>
+</tr>
+<tr>
+<td><code>~/.claude/wrap-statusline.py</code></td>
+<td>ANSI wrap helper (scattered)</td>
+</tr>
+<tr>
+<td><code>~/.tmux.conf</code> + <code>~/.tmux/scripts/</code></td>
+<td>Benjamin Blue theme (scattered)</td>
+</tr>
+</tbody></table></div>
+<h4>5.3 Migration Matrix</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Asset</th>
+<th>From</th>
+<th>To</th>
+</tr></thead><tbody>
+<tr>
+<td><code>statusline-command.sh</code></td>
+<td><code>~/.claude/</code></td>
+<td><code>claude-tmux-config/statusline/</code></td>
+</tr>
+<tr>
+<td><code>wrap-statusline.py</code></td>
+<td><code>~/.claude/</code></td>
+<td><code>claude-tmux-config/statusline/</code></td>
+</tr>
+<tr>
+<td><code>status_info.sh</code> (simple)</td>
+<td><code>~/.tmux/scripts/</code></td>
+<td><code>claude-tmux-config/tmux/</code></td>
+</tr>
+<tr>
+<td>Benjamin Blue theme</td>
+<td>inline in .tmux.conf + statusline</td>
+<td><code>claude-tmux-config/theme/</code></td>
+</tr>
+<tr>
+<td><code>install.sh</code> Step 16</td>
+<td><code>walter-worker/setup/</code></td>
+<td>delete</td>
+</tr>
+<tr>
+<td><code>setup/status_info.sh</code> (rich)</td>
+<td><code>walter-worker/setup/</code></td>
+<td>delete (or fold into claude-tmux-config as optional enhancement)</td>
+</tr>
+</tbody></table></div>
+<h4>5.4 Deploy Targets (after claude-tmux-config install)</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Asset</th>
+<th>Deploy To</th>
+</tr></thead><tbody>
+<tr>
+<td><code>statusline-command.sh</code></td>
+<td><code>~/.claude/statusline/statusline-command.sh</code></td>
+</tr>
+<tr>
+<td><code>wrap-statusline.py</code></td>
+<td><code>~/.claude/statusline/wrap-statusline.py</code></td>
+</tr>
+<tr>
+<td><code>status_info.sh</code></td>
+<td><code>~/.tmux/scripts/status_info.sh</code></td>
+</tr>
+<tr>
+<td><code>benjamin-blue.tmux</code></td>
+<td><code>~/.tmux/conf.d/benjamin-blue.tmux</code></td>
+</tr>
+<tr>
+<td>settings.json <code>statusLine</code></td>
+<td><code>~/.claude/settings.json</code></td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>6. claude-tmux-config Independent Project</h3>
+<h4>6.1 Repo Structure</h4>
+<pre><code>claude-tmux-config/
+├── README.md                     # usage, install, uninstall, screenshots
+├── install.sh                    # main install script (with confirm prompts)
+├── uninstall.sh                  # uninstall (manifest-driven)
+├── assets/
+│   ├── statusline-command.sh     # Claude Code statusline (3 paths parameterized)
+│   ├── wrap-statusline.py        # ANSI wrap helper
+│   ├── status_info.sh            # tmux status bar (simple version)
+│   └── benjamin-blue.tmux        # tmux theme file
+└── docs/
+    └── claude-tmux.md            # claude-tmux binding docs</code></pre>
+<h4>6.2 Install Confirmation Mechanism</h4>
+<p>Reuses walter-worker install.sh interaction style (0/1/2/3 menu + y/N confirm, default 0). Supports one-click install of both components (satisfies PRD US-4):</p>
+<pre><code>claude-tmux-config install
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎯 What to install? (default skip, non-destructive)
+  0) Skip
+  1) Claude Code statusline only (statusline + statusLine setting)
+  2) tmux theme + status bar only (Benjamin Blue + source theme file)
+  3) Both — full statusline + theme (one click)
+Choose [0]:</code></pre>
+<p>Each selected component then asks an explicit <code>y/N</code> confirm (default N).</p>
+<p><strong>⚠️ Existing-inline-color special case</strong>: the user&#x27;s <code>.tmux.conf</code> already has Benjamin Blue inlined. If detected, install only deploys <code>status_info.sh</code> and does NOT add a duplicate <code>source</code>, avoiding pollution. Fresh users get the full theme file.</p>
+<p><strong>Detection algorithm (defined)</strong>: install checks whether <code>.tmux.conf</code> already contains a <strong>marker comment</strong> <code># claude-tmux-config theme</code> (added by a prior install&#x27;s <code>source</code> line). This is reliable and idempotent:</p>
+<ul>
+<li>If the marker exists → the theme was already sourced by this tool → deploy</li>
+</ul>
+<p>  only <code>status_info.sh</code>, do NOT re-append <code>source</code>.</p>
+<ul>
+<li>If the marker is absent → check for any of the 6 Benjamin Blue hex values</li>
+</ul>
+<p>  (<code>#102D46</code>, <code>#EAE7DD</code>, <code>#F2C94C</code>, <code>#5F8D4E</code>, <code>#8EA2AF</code>, <code>#30506B</code>) in the   file. If ANY present → user has a manual/older inline theme → deploy only   <code>status_info.sh</code>, do NOT append <code>source</code> (avoids pollution).</p>
+<ul>
+<li>If neither → fresh install → deploy <code>benjamin-blue.tmux</code> + append <code>source</code></li>
+</ul>
+<p>  line with the marker comment.</p>
+<ul>
+<li><strong>Legacy walter-worker grey-theme migration</strong>: if <code>.tmux.conf</code> contains the old</li>
+</ul>
+<p>  walter-worker marker <code># walter-worker status bar</code> (the grey <code>bg=colour236,fg=white</code>   block that walter-worker&#x27;s removed Step 16 used to append), prompt the user:   *&quot;Detected old walter-worker grey theme. Replace with Benjamin Blue? [y/N]&quot;*.   On <code>y</code>: strip the old <code># walter-worker status bar</code> block, then deploy the full   Benjamin Blue theme + <code>source</code> + marker. On <code>n</code>: deploy only <code>status_info.sh</code>.</p>
+<blockquote class="callout" data-label="NOTE"><p>Hex-matching alone was rejected as unreliable (false-positives on any dark blue). The marker comment is the primary gate; hex-matching is the fallback for pre-existing manual themes. The legacy grey-theme check is a distinct migration path for existing walter-worker users (including this user).</p></blockquote>
+<h4>6.3 Idempotency &amp; Safety</h4>
+<h5>settings.json atomic write (defined)</h5>
+<p>The install/uninstall edits <code>settings.json</code> via an inline <code>python3 -c</code> block (only stdlib is available inside bash — no walter-worker imports). Use a stdlib-only atomic write: copy to <code>.bak</code> → write temp → <code>os.replace</code> (rename is atomic on POSIX). Do NOT call walter-worker&#x27;s <code>backup.snapshot()</code> (it lives in an internal Python module a bash script cannot import) and do NOT use plain <code>json.dump(fp)</code> (non-atomic):</p>
+<pre><code># inline in install.sh / uninstall.sh — stdlib only
+import json, os, tempfile, shutil
+shutil.copy2(path, str(path) + &quot;.bak&quot;)          # .bak snapshot
+fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path), prefix=&quot;.tmp&quot;)
+with os.fdopen(fd, &quot;w&quot;) as f:
+    json.dump(cfg, f, indent=2)
+    f.flush(); os.fsync(f.fileno())
+os.replace(tmp, path)                            # atomic rename</code></pre>
+<h5>.tmux.conf mutation safety</h5>
+<ul>
+<li>Backup <code>~/.tmux.conf.bak</code> before any mutation.</li>
+<li>Marker check (<code># claude-tmux-config theme</code>) prevents duplicate appends.</li>
+</ul>
+<h5>uninstall manifest (defined)</h5>
+<p>Manifest at <code>~/.coworker/statusline-manifest.json</code> (scoped to claude-tmux-config owned paths only — <strong>NOT</strong> recursively claiming <code>~/.claude/</code>):</p>
+<pre><code>{
+  &quot;install_mode&quot;: &quot;global&quot;,
+  &quot;version&quot;: &quot;0.1.0&quot;,
+  &quot;statusline_files&quot;: [&quot;/home/user/.claude/statusline/statusline-command.sh&quot;,
+                       &quot;/home/user/.claude/statusline/wrap-statusline.py&quot;],
+  &quot;tmux_files&quot;: [&quot;/home/user/.tmux/scripts/status_info.sh&quot;,
+                 &quot;/home/user/.tmux/conf.d/benjamin-blue.tmux&quot;],
+  &quot;settings_entries&quot;: [&quot;statusLine&quot;],
+  &quot;tmux_source_line&quot;: &quot;source-file ~/.tmux/conf.d/benjamin-blue.tmux&quot;,
+  &quot;marker&quot;: &quot;# claude-tmux-config theme&quot;
+}</code></pre>
+<ul>
+<li><strong>Cross-project conflict — must be fixed in BOTH directions</strong>:</li>
+<li>*claude-tmux-config side* (solved here): this manifest scopes to</li>
+</ul>
+<p>    <code>~/.claude/statusline/</code>, <code>~/.tmux/conf.d/</code>, and <code>~/.tmux/scripts/status_info.sh</code>     ONLY. It never claims other <code>~/.claude/</code> files.   - *walter-worker side* (Workstream B requirement): walter-worker&#x27;s install.sh     currently <code>os.walk()</code>s <code>~/.claude/</code> <strong>recursively</strong> when building its own     manifest, so it would also list <code>~/.claude/statusline/*</code> and could delete     them on uninstall. The strip (impl-plan B1.5) <span class="lvl lvl--must">MUST</span> add an exclusion so     walter-worker&#x27;s manifest walk skips <code>~/.claude/statusline/</code>. Until that     exclusion lands, the conflict is only half-resolved.</p>
+<ul>
+<li><strong>Runtime cache files</strong>: <code>~/.claude/statusline/</code> also accumulates runtime</li>
+</ul>
+<p>  files (<code>turn-counter-*.json</code>, <code>ccusage-cache.json</code>) not listed in the manifest.   Uninstall therefore removes the whole <code>~/.claude/statusline/</code> directory   (<code>rm -rf</code>), not just the listed files.</p>
+<ul>
+<li><strong>Missing/partial manifest handling</strong>: <code>uninstall.sh</code> refuses to run if the</li>
+</ul>
+<p>  manifest is absent (logs a warning, lists what to remove manually); if   partial, it removes only the files listed and reports the rest as manual.</p>
+<h4>6.4 Dependency Check</h4>
+<p>Before component 1 install: <code>command -v jq &amp;&amp; command -v bc &amp;&amp; command -v python3</code>; warn + explain if missing.</p>
+<hr>
+<h3>7. Explicitly Not Done</h3>
+<ul>
+<li>❌ No auto-install of the <code>claude-tmux</code> Rust binary (third-party, documented only)</li>
+<li>❌ No porting of <code>git_branch.sh</code> (redundant)</li>
+<li>❌ No macOS adaptation (<code>stat -c %W</code> / <code>hostname -s</code> Linux-only; Linux-only stated)</li>
+<li>❌ No stripping of walter-worker core (hooks/skills/MCP/context/memory) — that is its soul</li>
+</ul>
+<hr>
+<h3>8. Risks &amp; Mitigations</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Risk</th>
+<th>Mitigation</th>
+</tr></thead><tbody>
+<tr>
+<td>statusline performance overhead</td>
+<td>ccusage cache (120s TTL), git lightweight, overall &lt;100ms</td>
+</tr>
+<tr>
+<td>Missing jq/bc/python3 silent failure</td>
+<td>install does <code>command -v</code> check + warn</td>
+</tr>
+<tr>
+<td>.tmux.conf pollution</td>
+<td>idempotent marker (<code># claude-tmux-config theme</code>) + backup <code>.bak</code> before mutation</td>
+</tr>
+<tr>
+<td>settings.json corruption on interrupt</td>
+<td>vendored <code>_write_json_atomic</code> (temp + fsync + rename + .bak), defined in §6.3</td>
+</tr>
+<tr>
+<td>Uninstall leaves orphans</td>
+<td>manifest scoped to owned paths (<code>~/.claude/statusline/</code> + <code>~/.tmux/conf.d/</code>), defined in §6.3</td>
+</tr>
+<tr>
+<td>Cross-project manifest conflict</td>
+<td>claude-tmux-config manifest scoped by directory, never claims <code>~/.claude/</code> recursively (§6.3)</td>
+</tr>
+<tr>
+<td><code>settings.json</code> model field says flash while env says pro</td>
+<td>reconcile <code>model</code> field to pro routing ID during implementation (see §2.1 note)</td>
+</tr>
+<tr>
+<td>macOS cross-platform incompatibility</td>
+<td>declare Linux-only</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>9. Acceptance Criteria</h3>
+<ol>
+<li><code>claude-tmux-config</code> repo created, assets complete, paths parameterized</li>
+<li><code>install.sh</code> runs: 0/1/2/3 menu + y/N confirm, default 0</li>
+<li>After install: <code>~/.claude/statusline/</code> two files in place, settings.json has <code>statusLine</code></li>
+<li>After install: <code>~/.tmux/conf.d/benjamin-blue.tmux</code> in place (or skipped if existing inline color)</li>
+<li><code>uninstall.sh</code> cleanly removes all traces</li>
+<li>After walter-worker strip: install.sh no longer touches tmux, core tests all green</li>
+</ol>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../devil-advocate/2026-08-01-computer-config-spec/report.html"><span class="label">Previous</span>Adversarial Review Report — computer-config-spec.md</a><a class="next" href="../impl-plan/computer-config-impl-plan.html"><span class="label">Next</span>computer-config — Implementation Plan (Impl Plan)</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

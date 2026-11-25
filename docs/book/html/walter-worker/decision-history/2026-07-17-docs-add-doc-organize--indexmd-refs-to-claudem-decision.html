@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Decision Record — 2026-07-17 · decision-history · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/walter-worker-prd.html"><span class="tree-ord">1</span>walter-worker — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-core-prd.html">Core CLI &amp; Initiative System PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-dashboard-prd.html">Dashboard PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-knowledge-skill-prd.html">Knowledge Skill PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/ai-coworker-prd.html">walter-worker PRD</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="walter-worker-decision-history.html"><span class="tree-ord">2</span>walter-worker — Decision History</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="2025-04-10-integrate-loop-engineering-framework-by-running-lo-decision.html">Decision Record — 2025-04-10</a></li><li class="tree-leaf"><a class="tree-link" href="2026-03-30-feat-initial-commit--unified-ai-coworker-dev-env-decision.html">Decision Record — 2026-03-30</a></li><li class="tree-leaf"><a class="tree-link" href="2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.html">Decision Record — 2026-05-01</a></li><li class="tree-leaf"><a class="tree-link" href="2026-05-06-feat-add-skill-meta-import-skill--import-externa-decision.html">Decision Record — 2026-05-06</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.html">Decision Record — 2026-06-11</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-12-feat-add-opencode-context-injection-initiativema-decision.html">Decision Record — 2026-06-12</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.html">Decision Record — 2026-06-16</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-23-chore-remove-self-strain-decision.html">Decision Record — 2026-06-23</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-24-chore-review-fixes--broken-refs-tests-docs-ch-decision.html">Decision Record — 2026-06-24</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-30-fix-deploy-ai-coworker-skills-to-opencode-skill-d-decision.html">Decision Record — 2026-06-30</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.html">Decision Record — 2026-07-02</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.html">Decision Record — 2026-07-07</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.html">Decision Record — 2026-07-08</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.html">Decision Record — 2026-07-10</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-13-feat-add-emoji-and-color-coded-fields-to-tmux-sta-decision.html">Decision Record — 2026-07-13</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-17-docs-add-doc-organize--indexmd-refs-to-claudem-decision.html" aria-current="page">Decision Record — 2026-07-17</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.html">Decision Record — 2026-07-24</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-25-fixdashboard-restore-original-css-420442-line-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="unknown-remove-budget-related-features-from-prd-budget-fl-decision.html">Decision Record — unknown</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../design/walter-worker-design.html"><span class="tree-ord">3</span>walter-worker — Design</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../design/ai-coworker-design.html">walter-worker Design</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-analytics-dashboard-superpowers.html">Analytics Listener + Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-analytics-listener-design.html">Analytics Listener — Design Document</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-core-architecture-design.html">Core Architecture Design</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-feature-tracker.html">Feature Tracker</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-planning-hub.html">Planning Hub</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-09-25-deletion-list.html">Deletion List — 2026-09-25</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/2026-06-12-initiative-project-level-design.html">Initiative — Global to Project-Level Design</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/ai-coworker-spec.html">walter-worker Technical Specification</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-26-decision-timeline.html">Decision Timeline — walter-worker</a></li><li class="tree-leaf"><a class="tree-link" href="../work-review/2026-06-11-analytics-dashboard/acceptance.html">Analytics Dashboard — Acceptance Review</a></li><li class="tree-leaf"><a class="tree-link" href="../work-review/2026-06-11-analytics-dashboard/report.html">Acceptance Report — Analytics Dashboard</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/walter-worker-impl-plan.html"><span class="tree-ord">4</span>walter-worker Implementation Plan</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/walter-worker-test-plan.html"><span class="tree-ord">5</span>walter-worker — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/ai-coworker-test-plan.html">walter-worker Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><span class="tree-link"><span class="tree-ord">10</span>sub-feature</span></summary><ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/analytics-dashboard/design/analytics-dashboard-design.html">analytics-dashboard</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/prd/analytics-dashboard-prd.html"><span class="tree-ord">1</span>Analytics Dashboard — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/decision-history/analytics-dashboard-decision-history.html"><span class="tree-ord">2</span>Analytics Dashboard — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/design/analytics-dashboard-design.html"><span class="tree-ord">3</span>Analytics Dashboard — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/impl-plan/analytics-dashboard-impl-plan.html"><span class="tree-ord">4</span>Analytics Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/test-plan/analytics-dashboard-test-plan.html"><span class="tree-ord">5</span>Analytics Dashboard — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/analytics-listener/design/analytics-listener-design.html">analytics-listener</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/prd/analytics-listener-prd.html"><span class="tree-ord">1</span>Analytics Listener — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/decision-history/analytics-listener-decision-history.html"><span class="tree-ord">2</span>Analytics Listener — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/design/analytics-listener-design.html"><span class="tree-ord">3</span>Analytics Listener — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/impl-plan/analytics-listener-impl-plan.html"><span class="tree-ord">4</span>Analytics Listener — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/test-plan/analytics-listener-test-plan.html"><span class="tree-ord">5</span>Analytics Listener — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/core-cli/design/core-cli-design.html">core-cli</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/prd/core-cli-prd.html"><span class="tree-ord">1</span>Core CLI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/decision-history/core-cli-decision-history.html"><span class="tree-ord">2</span>Core CLI — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/design/core-cli-design.html"><span class="tree-ord">3</span>Core CLI — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/impl-plan/core-cli-impl-plan.html"><span class="tree-ord">4</span>Core CLI — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/test-plan/core-cli-test-plan.html"><span class="tree-ord">5</span>Core CLI — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/feature-system/design/feature-system-design.html">feature-system</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/prd/feature-system-prd.html"><span class="tree-ord">1</span>Feature System — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/decision-history/feature-system-decision-history.html"><span class="tree-ord">2</span>Feature System — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/design/feature-system-design.html"><span class="tree-ord">3</span>Feature System — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/impl-plan/feature-system-impl-plan.html"><span class="tree-ord">4</span>Feature System — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/test-plan/feature-system-test-plan.html"><span class="tree-ord">5</span>Feature System — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/setup-deploy/design/setup-deploy-design.html">setup-deploy</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/prd/setup-deploy-prd.html"><span class="tree-ord">1</span>Setup and Deploy — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/decision-history/setup-deploy-decision-history.html"><span class="tree-ord">2</span>Setup and Deploy — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/design/setup-deploy-design.html"><span class="tree-ord">3</span>Setup and Deploy — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/impl-plan/setup-deploy-impl-plan.html"><span class="tree-ord">4</span>Setup and Deploy — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/test-plan/setup-deploy-test-plan.html"><span class="tree-ord">5</span>Setup and Deploy — Test Plan</a></li></ul></details></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>walter-worker</span> / <span>decision-history</span> / <span>Decision Record — 2026-07-17</span></nav>
+    <article class="doc" data-doc="walter-worker/decision-history/2026-07-17-docs-add-doc-organize--indexmd-refs-to-claudem-decision">
+      <header class="doc-head">
+        <p class="eyebrow">walter-worker</p>
+        <h1>Decision Record — 2026-07-17</h1>
+        <p class="source">Canonical: docs/features/walter-worker/decision-history/2026-07-17-docs-add-doc-organize--indexmd-refs-to-claudem-decision.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Decision Record — 2026-07-17</h2>
+<blockquote class="callout" data-label="NOTE"><p>Project: walter-worker Decisions: 17</p></blockquote>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Date</th>
+<th>Change</th>
+</tr></thead><tbody>
+<tr>
+<td>2026-07-26</td>
+<td>Auto-generated from session analysis</td>
+</tr>
+</tbody></table></div>
+<h3>Decisions</h3>
+<h4>1. docs: add doc-organize + INDEX.md refs to CLAUDE.md and global template</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-07-17T13:27:48-07:00</li>
+<li><strong>Context</strong>: git commit b6763cc5</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>b6763cc5</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>2. docs: generate INDEX.md with full paths and content summaries</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-07-17T13:25:38-07:00</li>
+<li><strong>Context</strong>: git commit 2b642990</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>2b642990</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>3. refactor: add -type suffix to all doc filenames</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-07-17T12:59:19-07:00</li>
+<li><strong>Context</strong>: git commit 73029d9c</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>73029d9c</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>4. refactor: reorganize docs/ using doc-organize conventions (9 types, no dates)</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-07-17T12:07:02-07:00</li>
+<li><strong>Context</strong>: git commit af45596b</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>af45596b</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>5. refactor: move 22 general skills to skill-factory, keep 5 core</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-07-17T09:51:05-07:00</li>
+<li><strong>Context</strong>: git commit 8656c44d</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>8656c44d</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>6. refactor: remove 4 skills already in skill-factory</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-07-17T09:50:29-07:00</li>
+<li><strong>Context</strong>: git commit cbc5c13d</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>cbc5c13d</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>7. refactor: move doc-organize to skill-factory (general-purpose skill)</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-07-17T09:49:34-07:00</li>
+<li><strong>Context</strong>: git commit 6ee30fe9</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>6ee30fe9</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>8. fix: remove residual old naming patterns and evidence folder refs</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-07-17T09:49:06-07:00</li>
+<li><strong>Context</strong>: git commit 678b485a</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>678b485a</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>9. refactor: merge why-this into decision-history (9 types)</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-07-17T09:47:33-07:00</li>
+<li><strong>Context</strong>: git commit 9729e37d</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>9729e37d</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>10. refactor: merge hld/lld into design type with .hld.md/.lld.md suffixes (10 types)</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-07-17T09:47:00-07:00</li>
+<li><strong>Context</strong>: git commit bc9f81ac</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>bc9f81ac</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>11. refactor: evidence as .evidence.md suffix, not standalone type (11 types)</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-07-17T09:46:21-07:00</li>
+<li><strong>Context</strong>: git commit b8e4bbe0</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>b8e4bbe0</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>12. refactor: merge compare into research type (12 types total)</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-07-17T09:44:41-07:00</li>
+<li><strong>Context</strong>: git commit 0906289b</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>0906289b</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>13. docs: add 4 realistic examples to doc-organize skill</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-07-17T09:43:42-07:00</li>
+<li><strong>Context</strong>: git commit a5e361c4</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>a5e361c4</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>14. fix: simplify doc naming — initiative is container, filename is specific topic</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-07-17T09:43:15-07:00</li>
+<li><strong>Context</strong>: git commit 2090b65c</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>2090b65c</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>15. chore: comprehensive cleanup and upgrade</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-07-17T09:39:49-07:00</li>
+<li><strong>Context</strong>: git commit e86741dd</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>e86741dd</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>16. feat: upgrade skill frontmatter to Claude Code + OpenCode dual format</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-07-17T09:39:30-07:00</li>
+<li><strong>Context</strong>: git commit 6055e4b9</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>6055e4b9</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>17. refactor: install skills to ~/.claude/skills/ instead of commands/</h4>
+<ul>
+<li><strong>Source</strong>: git-commit</li>
+<li><strong>Timestamp</strong>: 2026-07-17T00:39:17-07:00</li>
+<li><strong>Context</strong>: git commit b177e61f</li>
+<li><strong>Rationale</strong>: committed change</li>
+<li><strong>Commit</strong>: <code>b177e61f</code></li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="2026-07-13-feat-add-emoji-and-color-coded-fields-to-tmux-sta-decision.html"><span class="label">Previous</span>Decision Record — 2026-07-13</a><a class="next" href="2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.html"><span class="label">Next</span>Decision Record — 2026-07-24</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

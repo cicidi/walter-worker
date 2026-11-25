@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QA Autonomous Agent — Spec ⚠️ DEFERRED · spec · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/dashboard-ui-prd.html">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-29-devil-advocate-reviews-summary.html">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/auto-worker-design.html">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/dashboard-design.html">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/qa-autonomous-agent-design.html">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../INDEX.html">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/band-ai-docs.html">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-agent-README.html">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-ai-docs.html">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-README.html">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-docs.html">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-agent-README.html">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/pioneer-docs.html">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="memory-graph-spec.html">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="qa-autonomous-agent-spec.html" aria-current="page">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="self-evolving-agent-spec.html">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-29-current-state.html">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-dashboard-data-not-verified.html">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../impl-plan/self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../impl-plan/dependency-and-sequencing-impl-plan.html">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/qa-autonomous-agent-impl-plan.html">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/self-evolving-agent-test-plan.html"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/2026-07-29-test-execution-report.html">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-graph-test-plan.html">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>spec</span> / <span>QA Autonomous Agent — Spec ⚠️ DEFERRED</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/spec/qa-autonomous-agent-spec">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>QA Autonomous Agent — Spec ⚠️ DEFERRED</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/spec/qa-autonomous-agent-spec.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>QA Autonomous Agent — Spec ⚠️ DEFERRED</h2>
+<blockquote class="callout" data-label="NOTE"><p><strong>Status: DEFERRED (2026-07-25)</strong>  This document has been renamed conceptually to <strong>auto-worker</strong> — a self-discovering, self-fixing agent. It will be rewritten after the memory platform (PRD v4) is built.  This document is preserved as-is for reference. Do NOT implement from it.</p></blockquote>
+<blockquote class="callout" data-label="NOTE"><p>Initiative: self-evolving-agent | Type: spec | Status: <strong>DEFERRED</strong>  Derived from: <a href="../prd/self-evolving-agent-prd-zh.html">PRD</a> | <a href="../design/qa-autonomous-agent-design.html">Design</a></p></blockquote>
+<hr>
+<h3>§1 CLI Interface &amp; Entry Points</h3>
+<h4>1.1 Slash Command</h4>
+<pre><code>/qa-run &lt;task-name&gt; [options]
+
+Options:
+  --max-hours &lt;n&gt;        最大运行时间，默认 12，范围 1-72
+  --project &lt;name&gt;       项目名，默认从当前目录自动检测（匹配 project.yaml）
+  --dry-run              只出报告，不执行修复
+  --from-state &lt;path&gt;    从指定 state 文件恢复（默认读取最新 state）</code></pre>
+<p><strong>Behavior:</strong></p>
+<ul>
+<li>不带 <code>task-name</code> → 交互式问 task-name 和 max-hours</li>
+<li>带 <code>task-name</code> → 跳过交互，默认 max-hours=12</li>
+<li>当前目录匹配不到 project.yaml → <code>QA_E001</code> 退出</li>
+<li><code>--dry-run</code> → 执行到 gap report 即停止，不进入 fix/continuous-discovery</li>
+</ul>
+<h4>1.2 Git Push Hook</h4>
+<pre><code>{
+  &quot;hooks&quot;: {
+    &quot;PostToolUse&quot;: [
+      {
+        &quot;matcher&quot;: &quot;Bash(git push*)&quot;,
+        &quot;command&quot;: &quot;coworker qa hook-push --session-id ${SESSION_ID}&quot;
+      }
+    ]
+  }
+}</code></pre>
+<p><strong>Behavior:</strong></p>
+<ol>
+<li>Incremental index: new git-commit + git-pr entries only</li>
+<li>Mutable source hash check: detect PRD/CLAUDE.md changes</li>
+<li>Layer 1 static gap check only (no test execution, no fix)</li>
+<li>Append results to current state file</li>
+<li>Execution: sync if &lt;60s, async if &gt;60s (don&#x27;t block push)</li>
+</ol>
+<hr>
+<h3>§2 Data Schemas</h3>
+<h4>2.1 SQLite knowledge_index DDL</h4>
+<pre><code>CREATE TABLE knowledge_index (
+    id              TEXT PRIMARY KEY,  -- SHA256(project||topic||problem||source)
+    project         TEXT NOT NULL,
+    topic           TEXT NOT NULL,
+    problem         TEXT NOT NULL,
+    type            TEXT NOT NULL CHECK(type IN (&#x27;decision&#x27;,&#x27;knowledge&#x27;,&#x27;requirement&#x27;,&#x27;bug-fix&#x27;)),
+    source          TEXT NOT NULL,
+    source_type     TEXT NOT NULL CHECK(source_type IN (
+                        &#x27;session&#x27;,&#x27;git-commit&#x27;,&#x27;git-pr&#x27;,&#x27;issue&#x27;,
+                        &#x27;prd&#x27;,&#x27;claude-md&#x27;,&#x27;spec&#x27;,&#x27;state&#x27;)),
+    source_hash     TEXT NOT NULL,
+    timestamp       TEXT NOT NULL,     -- ISO 8601
+    memory_ref      TEXT NOT NULL,     -- &quot;project/&lt;name&gt;/MEMORY.md#L{line}&quot; or &quot;session:{id}&quot;
+    superseded_by   TEXT,
+    created_at      TEXT DEFAULT (datetime(&#x27;now&#x27;))
+);
+
+CREATE INDEX idx_exact ON knowledge_index(project, topic, problem);
+CREATE INDEX idx_time  ON knowledge_index(project, topic, problem, timestamp);
+CREATE INDEX idx_hash  ON knowledge_index(source_type, source_hash);</code></pre>
+<h4>2.2 MEMORY.md Entry Format (QA-skill extension; PRD §3.2 specifies only the § delimiter, not this shape)</h4>
+<pre><code>§ {2-3 sentence summary}
+  → reasoning: {why this decision was made}
+  → decision: {what was decided}
+  → evidence: {source_ref, date}</code></pre>
+<h4>2.3 Ingestion I/O</h4>
+<pre><code>collect(source_type, source_path) → {raw_text, timestamp, project}
+    │
+    ▼
+standardize(raw_text, existing_topics) → {
+  topic: str,           // reused from existing if match, else new normalized slug
+  problem: str,         // normalized slug, 30-80 chars, lowercase-hyphenated
+  type: str,            // decision|knowledge|requirement|bug-fix
+  summary: str,         // 2-3 sentences
+  key_points: [str],    // 3-5 key claims
+  evidence: str         // verbatim quote snippet
+}
+    │
+    ├──→ INSERT INTO knowledge_index (metadata only)
+    ├──→ UPSERT MEMORY.md § entry (full content)
+    └──→ embed(standardize_output) → INSERT INTO knowledge_vec (384-dim vector via fastembed)</code></pre>
+<h4>2.4 Query Output</h4>
+<pre><code>{
+  &quot;exact_matches&quot;: [
+    {
+      &quot;id&quot;: &quot;sha256(...)&quot;,
+      &quot;summary&quot;: &quot;修复 token 过期问题...&quot;,
+      &quot;key_points&quot;: [&quot;sessionStorage&quot;, &quot;5min pre-expiry&quot;],
+      &quot;timestamp&quot;: &quot;2026-07-20T14:30:00Z&quot;,
+      &quot;memory_ref&quot;: &quot;project/mfangdai/MEMORY.md#L89&quot;,
+      &quot;source&quot;: &quot;git:abc123&quot;
+    }
+  ],
+  &quot;related&quot;: [],
+  &quot;conflicts&quot;: [],
+  &quot;relevance&quot;: &quot;exact&quot;
+}</code></pre>
+<h4>2.5 Semantic Search (sqlite-vec)</h4>
+<p><strong>Backend:</strong> sqlite-vec + fastembed on <code>analytics.db</code> (Path 1b, decided 2026-07-24). Replaces the now-removed FTS5.</p>
+<pre><code>-- vec0 virtual table for KNN semantic search
+-- coexists with knowledge_index (B-tree, for exact WHERE queries)
+CREATE VIRTUAL TABLE knowledge_vec USING vec0(
+    embedding float[384]      -- BAAI/bge-small-en-v1.5 (fastembed/ONNX)
+);</code></pre>
+<p><strong>Embedding pipeline (post-ingestion):</strong></p>
+<pre><code>standardize_output → fastembed (BAAI/bge-small-en-v1.5, 384-dim, ONNX)
+    │
+    ▼
+INSERT OR REPLACE INTO knowledge_vec(rowid, embedding)
+VALUES (knowledge_index_row_id, normalized_384d_vector)</code></pre>
+<p><strong>Dual retrieval path:</strong></p>
+<pre><code>PRD item → topic/problem keywords
+    │
+    ├── SQLite exact (WHERE project=? AND topic=? AND problem=?)
+    │       → exact match → read MEMORY.md → done
+    │
+    └── no exact match?
+            └── embed(query) → vec0 KNN (L2)
+                    → candidates → LLM semantic filter → done</code></pre>
+<p><strong>Dependencies:</strong></p>
+<ul>
+<li><code>sqlite-vec</code> (Python package, in-process SQLite extension — no server)</li>
+<li><code>fastembed</code> (ONNX runtime, <code>BAAI/bge-small-en-v1.5</code>, 384-dim — first run downloads ~50MB)</li>
+<li><code>onnxruntime</code> (already in environment)</li>
+</ul>
+<p><strong>Spike validated:</strong> 2026-07-24 — 6/6 semantically matched queries returned correct #1 result on 6 knowledge entries in <code>analytics.db</code>.</p>
+<hr>
+<h3>§3 Gap Detection</h3>
+<h4>3.1 Test Plan Schema</h4>
+<pre><code>{
+  &quot;module&quot;: &quot;auth&quot;,
+  &quot;version&quot;: 1,
+  &quot;scenarios&quot;: [
+    {
+      &quot;id&quot;: &quot;auth-001&quot;,
+      &quot;name&quot;: &quot;正常登录&quot;,
+      &quot;priority&quot;: &quot;P0&quot;,
+      &quot;given&quot;: &quot;有效用户名和密码&quot;,
+      &quot;when&quot;: &quot;POST /login&quot;,
+      &quot;then&quot;: &quot;200 + token&quot;,
+      &quot;spec_ref&quot;: &quot;Spec §3.3&quot;,
+      &quot;status&quot;: &quot;pending&quot;
+    }
+  ],
+  &quot;acceptance_criteria&quot;: {
+    &quot;p0_threshold&quot;: &quot;all pass&quot;,
+    &quot;p1_threshold&quot;: &quot;80% pass&quot;
+  }
+}</code></pre>
+<p><strong>Rules:</strong></p>
+<ul>
+<li>Test plan derived from PRD + Spec (not from state)</li>
+<li>Written to <code>docs/&lt;initiative&gt;/test-plan/&lt;module&gt;-test-plan.md</code></li>
+<li>Version must match PRD version; mismatch → re-discuss</li>
+<li>P0 not all pass → don&#x27;t enter fix phase</li>
+</ul>
+<h4>3.2 Research → Discussion → Test Plan Flow</h4>
+<pre><code>PRD + Spec
+    │
+    ▼
+Research Phase
+  ├── Analyze existing tests: coverage scope, patterns, gaps
+  ├── Map PRD items to test coverage
+  ├── Search external references: official docs, similar OSS projects
+  └── Output: docs/&lt;initiative&gt;/research/&lt;module&gt;-test-research.md
+    │
+    ▼
+Discussion Phase
+  ├── Present findings: &quot;现有 15 个测试, 3 个 PRD item 未覆盖, 建议新增...&quot;
+  ├── User confirms P0/P1 prioritization + acceptance criteria
+  └── Output: docs/&lt;initiative&gt;/test-plan/&lt;module&gt;-test-plan.md
+    │
+    ▼
+State: record test plan path + progress only (not test plan content)</code></pre>
+<h4>3.3 Verification Output</h4>
+<pre><code>{
+  &quot;run_id&quot;: &quot;qa-run-2026-07-24-001&quot;,
+  &quot;prd_item&quot;: {
+    &quot;id&quot;: &quot;req-auth-03&quot;,
+    &quot;description&quot;: &quot;token auto-refresh on expiry&quot;
+  },
+  &quot;verification&quot;: {
+    &quot;layer_1_static&quot;: {
+      &quot;verdict&quot;: &quot;found&quot;,
+      &quot;evidence&quot;: [
+        {&quot;type&quot;: &quot;file&quot;, &quot;ref&quot;: &quot;src/auth/tokenRefresh.ts:42-68&quot;}
+      ],
+      &quot;confidence&quot;: &quot;high&quot;
+    },
+    &quot;layer_2_test&quot;: {
+      &quot;verdict&quot;: &quot;tested&quot;,
+      &quot;evidence&quot;: [
+        {&quot;file&quot;: &quot;tests/auth/token.test.ts&quot;, &quot;line&quot;: 89, &quot;result&quot;: &quot;pass&quot;}
+      ],
+      &quot;coverage&quot;: &quot;2/2 pass&quot;
+    },
+    &quot;layer_3_dynamic&quot;: null
+  },
+  &quot;gap&quot;: false,
+  &quot;confidence&quot;: &quot;high&quot;,
+  &quot;reasoning&quot;: &quot;实现存在 + 测试覆盖 + 全部通过&quot;
+}</code></pre>
+<p><strong>Verdict Enums:</strong></p>
+<div class="table-wrap"><table><thead><tr>
+<th>Field</th>
+<th>Values</th>
+</tr></thead><tbody>
+<tr>
+<td><code>layer_1_static.verdict</code></td>
+<td><code>found</code> / <code>not_found</code> / <code>partial</code></td>
+</tr>
+<tr>
+<td><code>layer_2_test.verdict</code></td>
+<td><code>tested</code> / <code>not_tested</code> / <code>test_failed</code></td>
+</tr>
+<tr>
+<td><code>layer_3_dynamic.verdict</code></td>
+<td><code>verified</code> / <code>not_working</code> / <code>skipped</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Confidence Rules:</strong></p>
+<ul>
+<li><code>high</code>: 3 layers verified</li>
+<li><code>medium</code>: 2 layers, or 1 layer with <code>partial</code></li>
+<li><code>low</code>: only static check, no test coverage</li>
+</ul>
+<h4>3.4 Gap Report</h4>
+<pre><code>{
+  &quot;report_id&quot;: &quot;gap-report-2026-07-24-001&quot;,
+  &quot;project&quot;: &quot;mfangdai&quot;,
+  &quot;generated_by&quot;: &quot;Claude/GLM&quot;,
+  &quot;summary&quot;: &quot;3 gap found: 1 not implemented, 2 missing tests&quot;,
+  &quot;gaps&quot;: [
+    {
+      &quot;id&quot;: &quot;G-1&quot;,
+      &quot;prd_item&quot;: &quot;token auto-refresh&quot;,
+      &quot;severity&quot;: &quot;P0&quot;,
+      &quot;verdict&quot;: &quot;not_implemented&quot;,
+      &quot;evidence&quot;: &quot;no code matching &#x27;refresh&#x27; pattern in src/auth/&quot;,
+      &quot;suggested_fix&quot;: &quot;实现 tokenRefresh.ts: sessionStorage + 5min pre-expiry timer&quot;
+    }
+  ],
+  &quot;stats&quot;: {
+    &quot;total_prd_items&quot;: 12,
+    &quot;verified&quot;: 9,
+    &quot;gaps&quot;: 3,
+    &quot;p0_gaps&quot;: 1
+  }
+}</code></pre>
+<hr>
+<h3>§4 Continuous Discovery &amp; State</h3>
+<h4>4.1 Discovery I/O</h4>
+<pre><code>// Input (all 7 dimensions share this)
+{
+  &quot;project&quot;: &quot;mfangdai&quot;,
+  &quot;dimension&quot;: &quot;external-reference&quot;,
+  &quot;context&quot;: {
+    &quot;prd_items&quot;: [&quot;...&quot;],
+    &quot;tech_stack&quot;: {&quot;framework&quot;: &quot;Next.js 14&quot;, &quot;lang&quot;: &quot;TypeScript&quot;},
+    &quot;existing_tests&quot;: [&quot;tests/auth/&quot;, &quot;tests/api/&quot;]
+  }
+}
+
+// Output (unified schema)
+{
+  &quot;findings&quot;: [
+    {
+      &quot;id&quot;: &quot;O-2026-07-24-001&quot;,
+      &quot;dimension&quot;: &quot;external-reference&quot;,
+      &quot;severity&quot;: &quot;medium&quot;,
+      &quot;title&quot;: &quot;migrate API routes to Server Actions&quot;,
+      &quot;current_state&quot;: &quot;4 mutation endpoints use API routes&quot;,
+      &quot;reference&quot;: {
+        &quot;url&quot;: &quot;https://nextjs.org/docs/...&quot;,
+        &quot;type&quot;: &quot;official_doc&quot;,
+        &quot;relevant_quote&quot;: &quot;Server Actions are the recommended way...&quot;
+      },
+      &quot;suggested_change&quot;: &quot;migrate POST/PUT/DELETE routes to Server Actions&quot;,
+      &quot;evidence&quot;: &quot;src/app/api/users/route.ts, src/app/api/orders/route.ts&quot;,
+      &quot;auto_fixable&quot;: true
+    }
+  ],
+  &quot;stats&quot;: {
+    &quot;dimensions_scanned&quot;: 7,
+    &quot;total_findings&quot;: 5,
+    &quot;by_severity&quot;: {&quot;low&quot;: 1, &quot;medium&quot;: 3, &quot;high&quot;: 1, &quot;critical&quot;: 0}
+  }
+}</code></pre>
+<h4>4.2 Severity Classification</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Severity</th>
+<th>Condition</th>
+<th>Action</th>
+</tr></thead><tbody>
+<tr>
+<td><code>critical</code></td>
+<td>Security vulnerability, CVE in dependency</td>
+<td>Fix immediately, pause other discovery</td>
+</tr>
+<tr>
+<td><code>high</code></td>
+<td>Perf regression &gt;20%, missing error handling on critical path</td>
+<td>Fix this run</td>
+</tr>
+<tr>
+<td><code>medium</code></td>
+<td>Code pattern inconsistency, missing test coverage</td>
+<td>Queue for fix</td>
+</tr>
+<tr>
+<td><code>low</code></td>
+<td>Minor dependency bump, code style</td>
+<td>Fix if time permits</td>
+</tr>
+</tbody></table></div>
+<h4>4.3 Mini Test Plan</h4>
+<pre><code>{
+  &quot;optimization_id&quot;: &quot;O-2026-07-24-001&quot;,
+  &quot;test_plan&quot;: [
+    {
+      &quot;step&quot;: &quot;before&quot;,
+      &quot;action&quot;: &quot;run existing API route tests&quot;,
+      &quot;expected&quot;: &quot;all pass&quot;,
+      &quot;result&quot;: null
+    },
+    {
+      &quot;step&quot;: &quot;after&quot;,
+      &quot;action&quot;: &quot;run same tests against migrated Server Actions&quot;,
+      &quot;expected&quot;: &quot;all pass, response time ≤ baseline + 50ms&quot;,
+      &quot;result&quot;: null
+    }
+  ],
+  &quot;rollback&quot;: &quot;git revert &lt;commit&gt; + re-run before tests&quot;
+}</code></pre>
+<p><strong>Rules:</strong></p>
+<ul>
+<li><code>before</code> and <code>after</code> must be paired — no baseline, no fix</li>
+<li><code>rollback</code> must be explicit — no unrecoverable changes</li>
+<li><code>auto_fixable: false</code> → add <code>manual_check: true</code></li>
+</ul>
+<h4>4.4 State Write (extends PRD §4)</h4>
+<pre><code>{
+  &quot;initiative&quot;: &quot;self-evolving-agent&quot;,
+  &quot;task&quot;: &quot;qa-run-mfangdai-2026-07-24&quot;,
+  &quot;phase&quot;: &quot;discovery&quot;,
+
+  &quot;what_was_done&quot;: [
+    {&quot;type&quot;: &quot;gap_found&quot;, &quot;id&quot;: &quot;G-1&quot;, &quot;detail&quot;: &quot;token refresh not implemented&quot;},
+    {&quot;type&quot;: &quot;fix_applied&quot;, &quot;id&quot;: &quot;G-1&quot;, &quot;commit&quot;: &quot;abc123&quot;},
+    {&quot;type&quot;: &quot;optimization_found&quot;, &quot;id&quot;: &quot;O-1&quot;, &quot;dimension&quot;: &quot;external-ref&quot;}
+  ],
+
+  &quot;lessons&quot;: [
+    {&quot;type&quot;: &quot;pitfall&quot;, &quot;detail&quot;: &quot;grep cannot find Server Actions — need AST search&quot;},
+    {&quot;type&quot;: &quot;pattern&quot;, &quot;detail&quot;: &quot;project has 3 different error handler styles&quot;}
+  ],
+
+  &quot;progress&quot;: {
+    &quot;test_plan&quot;: {&quot;path&quot;: &quot;docs/self-evolving-agent/test-plan/auth-module-test-plan.md&quot;, &quot;total&quot;: 10, &quot;pass&quot;: 8, &quot;pending&quot;: 2},
+    &quot;gaps&quot;: {&quot;total&quot;: 3, &quot;fixed&quot;: 1, &quot;remaining&quot;: 2},
+    &quot;optimizations&quot;: {&quot;total&quot;: 5, &quot;fixed&quot;: 1, &quot;remaining&quot;: 4},
+    &quot;time_elapsed_seconds&quot;: 23400,
+    &quot;time_remaining_seconds&quot;: 19800
+  },
+
+  &quot;next&quot;: &quot;continue discovery — external-reference done, starting code-pattern-consistency&quot;
+}</code></pre>
+<h4>4.5 Time Budget</h4>
+<pre><code>Each loop iteration start:
+
+  if elapsed_seconds &gt; max_duration_seconds:
+      → save phase: &quot;stopped_timeout&quot; → state
+      → write session post-summary (PRD §5.4)
+      → exit code 2
+
+  if remaining &lt; 600 AND phase != &quot;repair&quot;:
+      → skip discovery
+      → enter &quot;wrap_up&quot;: fix queued P0 gaps only
+      → exit code 0 when P0 gaps resolved</code></pre>
+<hr>
+<h3>§5 Hook Config &amp; Error Handling</h3>
+<h4>5.1 Git Push Hook Config</h4>
+<pre><code>{
+  &quot;hooks&quot;: {
+    &quot;PostToolUse&quot;: [
+      {
+        &quot;matcher&quot;: &quot;Bash(git push*)&quot;,
+        &quot;command&quot;: &quot;coworker qa hook-push --session-id ${SESSION_ID}&quot;
+      }
+    ]
+  }
+}</code></pre>
+<h4>5.2 Error Codes</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Code</th>
+<th>Fault</th>
+<th>Behavior</th>
+<th>Recovery</th>
+</tr></thead><tbody>
+<tr>
+<td><code>QA_E001</code></td>
+<td>Project not in catalog</td>
+<td>Exit, suggest <code>--project</code> or <code>project-add</code></td>
+<td>User fix</td>
+</tr>
+<tr>
+<td><code>QA_E002</code></td>
+<td>PRD not found</td>
+<td>Exit, prompt for PRD path</td>
+<td>User provides</td>
+</tr>
+<tr>
+<td><code>QA_E003</code></td>
+<td>MEMORY.md corrupted</td>
+<td>Degrade: vec0 KNN only, skip SQLite exact-match</td>
+<td>Next Curator run rebuilds</td>
+</tr>
+<tr>
+<td><code>QA_E004</code></td>
+<td>vec0 embedding index corrupted</td>
+<td>Rebuild from knowledge table source + fastembed re-embed</td>
+<td>Auto</td>
+</tr>
+<tr>
+<td><code>QA_E005</code></td>
+<td>LLM timeout (DeepSeek)</td>
+<td>Switch to backup provider (Gemini Flash / Claude Haiku), PRD §6.7</td>
+<td>Auto</td>
+</tr>
+<tr>
+<td><code>QA_E006</code></td>
+<td>LLM timeout (Claude/GLM)</td>
+<td>Degrade: use DeepSeek Pro for report, mark <code>degraded_report: true</code></td>
+<td>Auto degrade</td>
+</tr>
+<tr>
+<td><code>QA_E007</code></td>
+<td>Test infra error (not test failure)</td>
+<td>Skip Layer 2/3, mark <code>confidence: low</code>, continue</td>
+<td>Retry next run</td>
+</tr>
+<tr>
+<td><code>QA_E008</code></td>
+<td>Time budget exhausted mid-fix</td>
+<td>Save fix progress to state, do NOT commit half-done work</td>
+<td>Resume from state</td>
+</tr>
+<tr>
+<td><code>QA_E009</code></td>
+<td>Disk full on state write</td>
+<td>Write to <code>/tmp</code>, log to audit.log</td>
+<td>Manual cleanup then retry</td>
+</tr>
+<tr>
+<td><code>QA_E010</code></td>
+<td>Circuit breaker tripped (PRD §5.6.2)</td>
+<td>Pause all auto-fix, keep pending queue</td>
+<td>User review + <code>coworker skill resume</code></td>
+</tr>
+<tr>
+<td><code>QA_E011</code></td>
+<td>Embedding model unavailable (fastembed)</td>
+<td>Degrade: SQLite exact-match only, mark <code>confidence: low</code></td>
+<td>Next run reattempts</td>
+</tr>
+</tbody></table></div>
+<p><strong>General principles:</strong></p>
+<ul>
+<li>Degrade, don&#x27;t crash</li>
+<li>Auto-recover where possible, log to audit.log</li>
+<li>Unrecoverable → write state + notify user</li>
+<li>Never commit incomplete work</li>
+</ul>
+<hr>
+<h3>§6 Skill Contracts</h3>
+<h4>6.1 <code>qa-orchestrator</code></h4>
+<pre><code>Input:
+  task_name: str
+  max_hours: float          // default 12, range 1-72
+  project: str | None       // auto-detect
+  dry_run: bool             // default false
+  from_state: str | None
+
+Output (streamed events):
+  {&quot;event&quot;: &quot;phase_start&quot;,  &quot;phase&quot;: &quot;research&quot;}
+  {&quot;event&quot;: &quot;phase_done&quot;,   &quot;phase&quot;: &quot;research&quot;, &quot;result&quot;: {...}}
+  {&quot;event&quot;: &quot;gap_found&quot;,    &quot;gap&quot;: {...}}
+  {&quot;event&quot;: &quot;fix_applied&quot;,  &quot;gap_id&quot;: &quot;G-1&quot;, &quot;commit&quot;: &quot;abc123&quot;}
+  {&quot;event&quot;: &quot;optimization&quot;, &quot;finding&quot;: {...}}
+  {&quot;event&quot;: &quot;timeout&quot;,      &quot;reason&quot;: &quot;max_hours reached&quot;}
+  {&quot;event&quot;: &quot;done&quot;,         &quot;summary&quot;: {...}}
+
+Exit codes:
+  0 — completed (may have remaining gaps)
+  1 — error
+  2 — timeout (state saved, resumable)</code></pre>
+<h4>6.2 <code>qa-knowledge-extract</code></h4>
+<pre><code>Input:
+  sources: [{source_type, source_path, project}]
+
+Output:
+  {
+    &quot;ingested&quot;: 12,
+    &quot;skipped&quot;: 3,
+    &quot;updated&quot;: 2,
+    &quot;errors&quot;: []
+  }
+
+Model: DeepSeek Pro (two-step: classify topic → extract fields)
+Writes: SQLite knowledge_index (metadata) + MEMORY.md (full content) + knowledge_vec (384-dim embedding via fastembed)</code></pre>
+<h4>6.3 <code>qa-knowledge-search</code></h4>
+<pre><code>Input:
+  project: str
+  topic: str
+  problem: str | None
+  prd_item_description: str
+
+Output:
+  {
+    &quot;exact_matches&quot;: [{id, summary, key_points, timestamp, memory_ref, source}],
+    &quot;related&quot;: [...],
+    &quot;conflicts&quot;: [{newer, older, reason}],
+    &quot;relevance&quot;: &quot;exact&quot; | &quot;related&quot; | &quot;none&quot;
+  }
+
+Model: no model (SQLite exact + vec0 KNN) + DeepSeek Pro (semantic filter: one question per candidate)</code></pre>
+<h4>6.4 <code>qa-test-plan</code></h4>
+<pre><code>Input:
+  prd_path: str
+  spec_path: str
+  existing_test_dirs: [str]
+
+Output:
+  Phase 1 → docs/&lt;initiative&gt;/research/&lt;module&gt;-test-research.md
+  Phase 2 → docs/&lt;initiative&gt;/test-plan/&lt;module&gt;-test-plan.md
+
+Model: Claude/GLM (user discussion) + DeepSeek Pro (scenario generation)</code></pre>
+<h4>6.5 <code>qa-gap-check</code></h4>
+<pre><code>Input:
+  prd_items: [{id, description}]
+  project: str
+
+Output:
+  {
+    &quot;run_id&quot;: str,
+    &quot;items&quot;: [{prd_item, verification: {layer_1, layer_2, layer_3}, gap: bool, confidence, reasoning}],
+    &quot;stats&quot;: {total, verified, gaps, p0_gaps}
+  }
+
+Model: DeepSeek Pro (per-item yes/no) + Claude/GLM (final report)</code></pre>
+<h4>6.6 <code>qa-fix</code></h4>
+<pre><code>Input:
+  gaps_or_optimizations: [{id, title, suggested_change, evidence, auto_fixable}]
+
+Output:
+  {
+    &quot;fixes&quot;: [{id, status, commit?, mini_test_plan_result?, rollback?}],
+    &quot;stats&quot;: {attempted, fixed, skipped, failed}
+  }
+
+Constraints:
+  - auto_fixable=false → skip
+  - mini test plan must exist before fix
+  - one commit per item
+  - rollback instructions must be explicit
+
+Model: DeepSeek Flash</code></pre>
+<h4>6.7 <code>qa-continuous-discovery</code></h4>
+<pre><code>Input:
+  project: str
+  tech_stack: {framework, lang, package_manager, test_framework}
+  dimensions: [str]    // subset of 7, default: all
+  prd_items: [{id, description}]
+
+Output:
+  {
+    &quot;findings&quot;: [{id, dimension, severity, title, current_state, reference, suggested_change, evidence, auto_fixable}],
+    &quot;stats&quot;: {dimensions_scanned, total_findings, by_severity}
+  }
+
+Dimensions (parallelizable):
+  external-reference    → WebSearch + diff
+  code-pattern          → grep + AST
+  test-coverage         → coverage tool + PRD boundary analysis
+  dependency-debt       → package manager outdated/audit
+  performance           → Lighthouse / bundler / query profiler
+  security              → secret scan / auth check grep
+  error-handling        → static analysis
+
+Model: DeepSeek Pro (per-dimension) + Claude/GLM (external-reference only)</code></pre>
+<hr>
+<h3>§7 Spec Meta</h3>
+<h4>7.1 Document Relationships</h4>
+<pre><code>Global CLAUDE.md §0.5 (Autonomous Job Guardrail)
+  &quot;自主任务必须先 Research + Advocate&quot;
+       │
+       ▼
+Design §1-7
+  &quot;两层知识存储、三层验证、七维发现、模型路由&quot;
+       │
+       ▼
+Spec §1-7 (this document)
+  &quot;CLI 签名、JSON schema、错误码、skill I/O 契约&quot;</code></pre>
+<h4>7.2 Section Index</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>§</th>
+<th>Content</th>
+</tr></thead><tbody>
+<tr>
+<td>§1</td>
+<td>CLI Interface &amp; Entry Points</td>
+</tr>
+<tr>
+<td>§2</td>
+<td>Data Schemas (SQLite DDL, MEMORY.md, ingestion, query)</td>
+</tr>
+<tr>
+<td>§3</td>
+<td>Gap Detection (test plan, research flow, verification, report)</td>
+</tr>
+<tr>
+<td>§4</td>
+<td>Continuous Discovery &amp; State (I/O, severity, mini test plan, state write, time budget)</td>
+</tr>
+<tr>
+<td>§5</td>
+<td>Hook Config &amp; Error Handling (push hook, error codes)</td>
+</tr>
+<tr>
+<td>§6</td>
+<td>Skill Contracts (7 skills with I/O + model routing)</td>
+</tr>
+<tr>
+<td>§7</td>
+<td>Spec Meta (this section)</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Date</th>
+<th>Change</th>
+</tr></thead><tbody>
+<tr>
+<td>2026-07-24</td>
+<td>Initial spec — §1-§7 drafted from Design + PRD</td>
+</tr>
+<tr>
+<td>2026-07-24</td>
+<td>Path 1b / sqlite-vec (§2.5): replaced FTS5 with sqlite-vec + fastembed on analytics.db. Added embedding step to ingestion (§2.3). Updated error codes (QA_E003 vec0 KNN, QA_E004 vec0 corrupt, QA_E011 embed model unavailable). Updated §6.2-§6.3 skill contracts. Spike validated 6/6 semantic queries.</td>
+</tr>
+</tbody></table></div>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="memory-graph-spec.html"><span class="label">Previous</span>Memory Graph — Spec</a><a class="next" href="self-evolving-agent-spec.html"><span class="label">Next</span>Self-Evolving Agent — Memory Platform Spec</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

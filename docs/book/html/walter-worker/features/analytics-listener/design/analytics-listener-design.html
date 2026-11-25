@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Analytics Listener — Design · design · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../../../prd/walter-worker-prd.html"><span class="tree-ord">1</span>walter-worker — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../../prd/2026-06-11-core-prd.html">Core CLI &amp; Initiative System PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../../prd/2026-06-11-dashboard-prd.html">Dashboard PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../../prd/2026-06-11-knowledge-skill-prd.html">Knowledge Skill PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../../prd/ai-coworker-prd.html">walter-worker PRD</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../../decision-history/walter-worker-decision-history.html"><span class="tree-ord">2</span>walter-worker — Decision History</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2025-04-10-integrate-loop-engineering-framework-by-running-lo-decision.html">Decision Record — 2025-04-10</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-03-30-feat-initial-commit--unified-ai-coworker-dev-env-decision.html">Decision Record — 2026-03-30</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.html">Decision Record — 2026-05-01</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-05-06-feat-add-skill-meta-import-skill--import-externa-decision.html">Decision Record — 2026-05-06</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.html">Decision Record — 2026-06-11</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-12-feat-add-opencode-context-injection-initiativema-decision.html">Decision Record — 2026-06-12</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.html">Decision Record — 2026-06-16</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-23-chore-remove-self-strain-decision.html">Decision Record — 2026-06-23</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-24-chore-review-fixes--broken-refs-tests-docs-ch-decision.html">Decision Record — 2026-06-24</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-06-30-fix-deploy-ai-coworker-skills-to-opencode-skill-d-decision.html">Decision Record — 2026-06-30</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.html">Decision Record — 2026-07-02</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.html">Decision Record — 2026-07-07</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.html">Decision Record — 2026-07-08</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.html">Decision Record — 2026-07-10</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-13-feat-add-emoji-and-color-coded-fields-to-tmux-sta-decision.html">Decision Record — 2026-07-13</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-17-docs-add-doc-organize--indexmd-refs-to-claudem-decision.html">Decision Record — 2026-07-17</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.html">Decision Record — 2026-07-24</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../../../decision-history/unknown-remove-budget-related-features-from-prd-budget-fl-decision.html">Decision Record — unknown</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../../design/walter-worker-design.html"><span class="tree-ord">3</span>walter-worker — Design</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../../design/ai-coworker-design.html">walter-worker Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-analytics-dashboard-superpowers.html">Analytics Listener + Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-analytics-listener-design.html">Analytics Listener — Design Document</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-core-architecture-design.html">Core Architecture Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-feature-tracker.html">Feature Tracker</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-06-11-planning-hub.html">Planning Hub</a></li><li class="tree-leaf"><a class="tree-link" href="../../../plan/2026-09-25-deletion-list.html">Deletion List — 2026-09-25</a></li><li class="tree-leaf"><a class="tree-link" href="../../../spec/2026-06-12-initiative-project-level-design.html">Initiative — Global to Project-Level Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../../spec/ai-coworker-spec.html">walter-worker Technical Specification</a></li><li class="tree-leaf"><a class="tree-link" href="../../../state/2026-07-26-decision-timeline.html">Decision Timeline — walter-worker</a></li><li class="tree-leaf"><a class="tree-link" href="../../../work-review/2026-06-11-analytics-dashboard/acceptance.html">Analytics Dashboard — Acceptance Review</a></li><li class="tree-leaf"><a class="tree-link" href="../../../work-review/2026-06-11-analytics-dashboard/report.html">Acceptance Report — Analytics Dashboard</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../../../impl-plan/walter-worker-impl-plan.html"><span class="tree-ord">4</span>walter-worker Implementation Plan</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../../test-plan/walter-worker-test-plan.html"><span class="tree-ord">5</span>walter-worker — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../../test-plan/ai-coworker-test-plan.html">walter-worker Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><span class="tree-link"><span class="tree-ord">10</span>sub-feature</span></summary><ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../../analytics-dashboard/design/analytics-dashboard-design.html">analytics-dashboard</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../analytics-dashboard/prd/analytics-dashboard-prd.html"><span class="tree-ord">1</span>Analytics Dashboard — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-dashboard/decision-history/analytics-dashboard-decision-history.html"><span class="tree-ord">2</span>Analytics Dashboard — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-dashboard/design/analytics-dashboard-design.html"><span class="tree-ord">3</span>Analytics Dashboard — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-dashboard/impl-plan/analytics-dashboard-impl-plan.html"><span class="tree-ord">4</span>Analytics Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../analytics-dashboard/test-plan/analytics-dashboard-test-plan.html"><span class="tree-ord">5</span>Analytics Dashboard — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="analytics-listener-design.html">analytics-listener</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/analytics-listener-prd.html"><span class="tree-ord">1</span>Analytics Listener — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/analytics-listener-decision-history.html"><span class="tree-ord">2</span>Analytics Listener — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="analytics-listener-design.html" aria-current="page"><span class="tree-ord">3</span>Analytics Listener — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/analytics-listener-impl-plan.html"><span class="tree-ord">4</span>Analytics Listener — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/analytics-listener-test-plan.html"><span class="tree-ord">5</span>Analytics Listener — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../core-cli/design/core-cli-design.html">core-cli</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../core-cli/prd/core-cli-prd.html"><span class="tree-ord">1</span>Core CLI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../core-cli/decision-history/core-cli-decision-history.html"><span class="tree-ord">2</span>Core CLI — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../../core-cli/design/core-cli-design.html"><span class="tree-ord">3</span>Core CLI — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../core-cli/impl-plan/core-cli-impl-plan.html"><span class="tree-ord">4</span>Core CLI — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../core-cli/test-plan/core-cli-test-plan.html"><span class="tree-ord">5</span>Core CLI — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../feature-system/design/feature-system-design.html">feature-system</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../feature-system/prd/feature-system-prd.html"><span class="tree-ord">1</span>Feature System — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../feature-system/decision-history/feature-system-decision-history.html"><span class="tree-ord">2</span>Feature System — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../../feature-system/design/feature-system-design.html"><span class="tree-ord">3</span>Feature System — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../feature-system/impl-plan/feature-system-impl-plan.html"><span class="tree-ord">4</span>Feature System — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../feature-system/test-plan/feature-system-test-plan.html"><span class="tree-ord">5</span>Feature System — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../setup-deploy/design/setup-deploy-design.html">setup-deploy</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../setup-deploy/prd/setup-deploy-prd.html"><span class="tree-ord">1</span>Setup and Deploy — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../setup-deploy/decision-history/setup-deploy-decision-history.html"><span class="tree-ord">2</span>Setup and Deploy — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../../setup-deploy/design/setup-deploy-design.html"><span class="tree-ord">3</span>Setup and Deploy — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../setup-deploy/impl-plan/setup-deploy-impl-plan.html"><span class="tree-ord">4</span>Setup and Deploy — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../setup-deploy/test-plan/setup-deploy-test-plan.html"><span class="tree-ord">5</span>Setup and Deploy — Test Plan</a></li></ul></details></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../../../index.html">Docs</a> / <span>walter-worker</span> / <span>features</span> / <span>analytics-listener</span> / <span>design</span> / <span>Analytics Listener — Design</span></nav>
+    <article class="doc" data-doc="walter-worker/features/analytics-listener/design/analytics-listener-design">
+      <header class="doc-head">
+        <p class="eyebrow">walter-worker</p>
+        <h1>Analytics Listener — Design</h1>
+        <p class="source">Canonical: docs/features/walter-worker/features/analytics-listener/design/analytics-listener-design.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Analytics Listener — Design</h2>
+<p>Requirements are in the <a href="../prd/analytics-listener-prd.html">PRD</a>. Decisions are in the <a href="../decision-history/analytics-listener-decision-history.html">decision history</a>. Behavior below was read from the code at commit <code>a0f4ce0</code>, and a <code>file:line</code> citation without a commit refers to it. Text updated for walter-worker PRs #22 and #23 cites <code>634adf1</code>. Files named without a folder are under <code>src/coworker/analytics/hooks/</code>, <code>src/coworker/analytics/</code>, or <code>src/coworker/memory/</code>. Where the code does not meet a requirement, the gap is an Open Question.</p>
+<h3>Problem Statement</h3>
+<p>walter-worker wants to answer questions such as &quot;which tools do I use most&quot;, &quot;how long do sessions last&quot;, and &quot;what did I work on last week&quot;, and its <a href="../../../../memory-platform/design/memory-platform-design.html">memory platform</a> wants the raw material of past sessions. Claude Code keeps transcripts, but not in a form that is easy to query across sessions, and it does not record tool timings or which files a session touched.</p>
+<h3>Solution</h3>
+<p>Small shell hooks append one JSON line per event to plain files, which is cheap enough to run on every prompt and tool call and cannot corrupt a database if interrupted. Importers, run by the Stop hook after every reply, on demand, or by a background loop, turn those files and Claude Code&#x27;s own transcripts into rows in one SQLite database, which every reader queries.</p>
+<h3>User Stories</h3>
+<p>The user stories are in the <a href="../prd/analytics-listener-prd.html#user-stories">PRD</a>.</p>
+<h3>Implementation Decisions</h3>
+<p>Hooks are bash scripts with small Python helpers for JSON parsing; the reason is UNKNOWN (<a class="id-ref" href="../decision-history/analytics-listener-decision-history.html#ARD-B">ARD-B</a>). Claude Code transcripts are the preferred source of message text, because they contain the assistant&#x27;s replies, which the hooks never see (<a class="id-ref" href="../decision-history/analytics-listener-decision-history.html#ARD-C">ARD-C</a>). The database schema is created and migrated on every connection, so a missing or old database is never an error.</p>
+<h3>Design</h3>
+<h4 id="DSGN-A"><a class="id-ref" href="#DSGN-A">DSGN-A</a> — Hooks and the files they write</h4>
+<p>The installer copies the hook scripts to <code>~/.coworker/analytics/hooks/</code> and registers them in <code>~/.claude/settings.json</code> with no timeout set (<code>setup/install.sh:652-662</code> at <code>a0f4ce0</code>). Without a timeout of its own, a command hook gets Claude Code&#x27;s default limit, which the hooks reference read on 2026-11-24 gives as 600 seconds; SessionEnd hooks get far less (memory-platform <a class="id-ref" href="#DSGN-A">DSGN-A</a>) (<a href="https://docs.claude.com/en/docs/claude-code/hooks">Claude Code hooks reference</a>).</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Hook</th>
+<th>Claude Code event</th>
+<th>Writes</th>
+</tr></thead><tbody>
+<tr>
+<td><code>on-user-prompt.sh</code></td>
+<td><code>UserPromptSubmit</code> (prompt submitted)</td>
+<td>One line in <code>sessions/&lt;id&gt;/messages.jsonl</code> with the time, the type <code>user</code>, the sequence number, and the full prompt</td>
+</tr>
+<tr>
+<td><code>on-pre-tool.sh</code></td>
+<td><code>PreToolUse</code> (before a tool runs)</td>
+<td>One line in <code>sessions/&lt;id&gt;/tools.jsonl</code> with the phase <code>before</code>, the tool name, the call id, the sequence number, and the full tool input</td>
+</tr>
+<tr>
+<td><code>on-post-tool.sh</code></td>
+<td><code>PostToolUse</code> (after a tool runs)</td>
+<td>One line in <code>tools.jsonl</code> with the phase <code>after</code>, the tool name, the call id, the result, and the duration</td>
+</tr>
+<tr>
+<td><code>on-stop.sh</code></td>
+<td><code>Stop</code> (the assistant finished a turn)</td>
+<td>Sets or refreshes a <code>closed</code> time in <code>sessions/&lt;id&gt;/session.yaml</code>, runs <code>coworker memory curate --if-due</code>, imports the transcript (<code>coworker analytics import-session</code>, <a class="id-ref" href="#DSGN-C">DSGN-C</a>), and, after the first turn only, appends one line for the session to <code>~/.coworker/analytics/index.jsonl</code></td>
+</tr>
+<tr>
+<td><code>on-correction.py</code></td>
+<td><code>UserPromptSubmit</code> (prompt submitted)</td>
+<td>A draft trace, when the prompt reads as a correction (<a class="id-ref" href="#DSGN-D">DSGN-D</a>)</td>
+</tr>
+</tbody></table></div>
+<p>All paths above are under <code>~/.coworker/analytics/</code>. The first hook of a session creates <code>sessions/&lt;id&gt;/session.yaml</code> with the session id, creation time, the tool name <code>claude-code</code>, and the working folder. Sequence numbers come from a per-session counter file, <code>.seq</code>, which <code>record.py</code> reads and advances under a file lock (<code>record.py:42-56</code> at <code>634adf1</code>). The hooks write local times with a UTC offset. These rules implement <a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-A">PRD-A</a>.</p>
+<p>The after-record&#x27;s result is Python&#x27;s <code>str()</code> of the tool response, cut to 10,000 characters and then quoted as a JSON string (<code>record.py:34-40</code> at <code>634adf1</code>, <a class="id-ref" href="../decision-history/analytics-listener-decision-history.html#ARD-F">ARD-F</a>). A response that is a dictionary is therefore stored as Python text such as <code>{&#x27;a&#x27;: &#x27;b&#x27;}</code>, not as JSON (<a class="id-ref" href="#QUES-O">QUES-O</a>).</p>
+<p>Claude Code fires <code>Stop</code> each time the assistant finishes a turn, not only when the session ends (<a href="https://docs.claude.com/en/docs/claude-code/hooks">Claude Code hooks reference</a>); the hook&#x27;s own comment says so (<code>on-stop.sh:24</code>). Two things follow. The <code>closed</code> time is the time of the last finished turn, not a session end. The <code>index.jsonl</code> line is written once, after the first turn, so its message and tool counts describe the first turn and never change (<code>on-stop.sh:30-49</code>).</p>
+<p>The same installer step registers <code>on-session-end.sh</code> on <code>SessionEnd</code>, which runs memory capture and then close once per session (<code>setup/install.sh:700</code> at <code>634adf1</code>). It belongs to the <a href="../../../../memory-platform/design/memory-platform-design.html">memory platform</a> feature (its <a class="id-ref" href="#DSGN-A">DSGN-A</a> and ARD-H), not to this one.</p>
+<h4 id="DSGN-B"><a class="id-ref" href="#DSGN-B">DSGN-B</a> — Failure behavior</h4>
+<p>Claude Code treats a hook&#x27;s exit status as follows: 0 is success, 2 blocks the event, and any other non-zero status is reported but does not block the session. For a <code>UserPromptSubmit</code> hook that exits 0, Claude Code adds what the hook prints on standard output to the model&#x27;s context (<a href="https://docs.claude.com/en/docs/claude-code/hooks">Claude Code hooks reference</a>). No hook here exits 2 on purpose.</p>
+<p>Every write in the prompt and tool hooks ends in a step that ignores failure (<code>on-pre-tool.sh:8</code> and the same line in the other two at <code>634adf1</code>), so those hooks exit successfully even when the disk is full. This implements the &quot;exits successfully&quot; part of <a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-B">PRD-B</a> for those hooks. Two exceptions break it today: the last write in <code>on-stop.sh</code> is not guarded (<code>on-stop.sh:56-57</code> at <code>634adf1</code>), and <code>on-correction.py</code> has no error handling around its file write (<code>on-correction.py:85-102</code>) (<a class="id-ref" href="#QUES-B">QUES-B</a>). Since PR #23 the counter is advanced under a file lock, so two hooks firing together get different numbers (<a class="id-ref" href="#QUES-C">QUES-C</a>).</p>
+<p>Before PR #23, an exit status of 0 did not mean the record was valid. The tool hooks had Python print each payload field on its own line and read the fields back one line at a time (<code>on-pre-tool.sh:9-15</code>, <code>on-post-tool.sh:10-19</code>). A field that contains a newline, such as a tool call id, shifted every later field by one line, and the hook wrote a line that is not valid JSON. When the payload was not JSON at all, <code>read</code> cleared the default value, so <code>on-user-prompt.sh</code> wrote <code>&quot;content&quot;:}</code> (<code>on-user-prompt.sh:13-21</code>). When <code>duration_ms</code> was <code>null</code>, <code>on-post-tool.sh</code> wrote the Python word <code>None</code> (<code>on-post-tool.sh:18</code>). The hook-file importer, which both <code>import</code> and <code>once</code> use, skips a line it cannot parse without any warning (<code>import_data.py:162,175</code>), so those records were lost silently. The 2026-11-24 review counted, read-only on the owner&#x27;s machine, 1,596 of 8,171 before-records, 1,541 of 7,943 after-records, and 54 of 486 message lines that do not parse (<code>../raw/review/2026-11-24-spec-review-analytics-listener-gaps.md</code>). PR #23 builds each record with one <code>json.dumps</code> call (<code>record.py:53-54</code> at <code>634adf1</code>). These three cases now give valid lines, which answers <a class="id-ref" href="#QUES-J">QUES-J</a>; lines written before the fix still do not parse.</p>
+<p>Each shell hook starts two Python interpreters, not one: one in <code>common.sh:12</code> reads the session id, and <code>record.py</code> writes the record (at <code>634adf1</code>). <code>on-stop.sh</code> also runs <code>coworker memory curate --if-due</code> synchronously on every turn (<code>on-stop.sh:28</code>). Since PR #22 it also imports the transcript inline after every reply, which its comment puts at about 0.4 s for a 30 MB transcript (<code>on-stop.sh:30-36</code> at <code>634adf1</code>). When the curator is not due, that command only reads a stamp file. When it is due, the stamp is written only after a run without errors (<code>cli_memory.py:462-484</code>). So while mem0 (the memory library, see Terms) is unavailable or a run keeps failing, every turn either loads the mem0 library, which happens before the API key is checked (<code>mem0_client.py:73</code>), or reruns the whole curator. Nothing bounds this below Claude Code&#x27;s default hook limit (<a class="id-ref" href="#DSGN-A">DSGN-A</a>), so <a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-B">PRD-B</a>&#x27;s &quot;finishes quickly&quot; is not guaranteed (<a class="id-ref" href="#QUES-M">QUES-M</a>).</p>
+<p>With <code>HOME</code> unset, the shell hooks build their paths from an empty <code>$HOME</code>, so they try to write under <code>/.coworker</code>, which an ordinary user cannot create. The prompt and tool hooks print errors on standard error and exit 0, and <code>on-stop.sh</code> exits 1 because its last write is unguarded. <code>on-correction.py</code> uses Python&#x27;s <code>Path.home()</code>, which falls back to the home directory in the system&#x27;s user database, so it still writes its trace into the real home directory. These results were observed by the 2026-11-24 review (<code>../raw/review/2026-11-24-spec-review-analytics-listener-gaps.md</code>, finding I5).</p>
+<p>A prompt or tool record whose payload has no session id goes to <code>sessions/_unattributed/</code>, and those hooks write no <code>session.yaml</code> there (<code>common.sh:31-35</code>). The quarantine is not complete. When <code>on-stop.sh</code> gets no session id, it appends a <code>closed:</code> line to <code>_unattributed/session.yaml</code> and so creates that file (<code>on-stop.sh:13-19</code>), and it adds an <code>index.jsonl</code> line for the id <code>_unattributed</code>. <code>once</code> skips directory names that start with <code>_</code> (<code>auto_import.py:335</code>), but <code>import</code> skips only names that start with a dot (<code>import_data.py:294-299</code>). So <code>import</code> stores <code>_unattributed</code> as an ordinary session, and once that id is in the database the curator may delete the directory (<code>curator.py:103-109</code>). <a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-C">PRD-C</a> is met by <code>once</code> but not by <code>import</code> (<a class="id-ref" href="#QUES-L">QUES-L</a>).</p>
+<h4 id="DSGN-C"><a class="id-ref" href="#DSGN-C">DSGN-C</a> — Import into the database</h4>
+<p>The database is <code>$COWORKER_ANALYTICS_DB</code> if set, else <code>~/.coworker/analytics/analytics.db</code>. Every connection creates the parent folder, turns on write-ahead logging and foreign keys, creates any missing table, and runs the migrations, including renaming the old <code>initiative</code> column to <code>feature</code>. This implements <a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-E">PRD-E</a>. The main tables are <code>sessions</code>, <code>messages</code>, <code>tool_calls</code>, <code>file_ops</code>, <code>session_stats</code>, <code>skills</code>, <code>knowledge</code>, and <code>session_summaries</code>.</p>
+<p>The <code>coworker analytics</code> commands run the importers; none takes options.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Command</th>
+<th>Behavior</th>
+</tr></thead><tbody>
+<tr>
+<td><code>create-db</code></td>
+<td>Creates the database with its schema</td>
+</tr>
+<tr>
+<td><code>import</code></td>
+<td>Re-imports every hook session directory that has a <code>session.yaml</code>, skipping only names that start with a dot, so <code>_unattributed</code> is included (<a class="id-ref" href="#DSGN-B">DSGN-B</a>)</td>
+</tr>
+<tr>
+<td><code>once</code></td>
+<td>One pass: Claude Code transcripts under <code>~/.claude/projects/</code>, then hook directories, then OpenCode session metadata; skips any session id already in the database, so a hook directory whose id was just imported from a transcript is skipped (<code>auto_import.py:310-345</code>)</td>
+</tr>
+<tr>
+<td><code>daemon</code></td>
+<td>Runs <code>once</code> every 30 minutes, forever; nothing starts it automatically</td>
+</tr>
+<tr>
+<td><code>import-session</code></td>
+<td>Imports the one transcript named in a hook payload on standard input; quiet with exit 0 when there is none. The Stop hook runs it after every reply (<code>cli_analytics.py:49-73</code> at <code>634adf1</code>)</td>
+</tr>
+</tbody></table></div>
+<p>Importing a hook session (the path <code>import</code> uses, and <code>once</code> uses for hook directories) infers the project from the working folder, the git branch, and the active feature from the project&#x27;s <code>CLAUDE.local.md</code> or the branch prefix. It takes message text from the matching Claude Code transcript when one exists, keeping the user&#x27;s typed prompts and the assistant&#x27;s text whole (<a class="id-ref" href="../decision-history/analytics-listener-decision-history.html#ARD-F">ARD-F</a>), and falls back to the hook&#x27;s <code>messages.jsonl</code> otherwise. It pairs before and after tool records by call id and records which files Read, Write, Edit, and Glob touched. OpenCode (another AI coding tool, see Terms) sessions contribute only their id, model, and creation time, and sessions with an empty title are skipped (<code>auto_import.py:273</code>).</p>
+<p>The transcript importer, which the Stop hook and <code>once</code> run, stores less. Since PR #22 it stores a typed prompt, which Claude Code stores as a plain string, and skips strings Claude Code added itself (<code>auto_import.py:36-47</code> at <code>634adf1</code>). It sets the project to the transcript&#x27;s encoded folder name, such as <code>-home-x-project-foo</code>, leaves the branch, feature, and closed time empty, and stores tool calls with no result and no duration (<code>auto_import.py:143-147,180-184</code>). Because <code>once</code> then skips the hook directory with the same id, the hook&#x27;s tool results and durations never arrive (<a class="id-ref" href="#QUES-D">QUES-D</a>, <a class="id-ref" href="#QUES-K">QUES-K</a>). Running <code>import</code> on that directory does not fill them in, because it adds only new tool calls; reproduced in a scratch database on 2026-11-24 (<a class="id-ref" href="#QUES-I">QUES-I</a>). Every typed prompt now reaches the database at the next <code>Stop</code>, which meets the PRD&#x27;s first success metric for prompts; tool results and durations stay missing on this path (<a class="id-ref" href="#QUES-I">QUES-I</a>). A last turn the user interrupts fires no <code>Stop</code>, and <code>once</code> skips the session, so its prompt is never imported (<a class="id-ref" href="#QUES-Q">QUES-Q</a>). Transcript times are UTC with a <code>Z</code> suffix, unlike the hooks&#x27; local times.</p>
+<p>A transcript re-import updates the session row in place and adds only lines not stored before (<code>auto_import.py:208-226</code> at <code>634adf1</code>). After that, <code>import</code> writes the messages again under other sequence numbers, so prompts are stored twice (<a class="id-ref" href="#QUES-P">QUES-P</a>). A hook-directory re-import does not refresh everything. <code>import</code> replaces the session row (<code>import_data.py:80</code>), but it inserts tool calls and file operations only when they are new (<code>import_data.py:206,227</code>). A tool call first imported with only its before-record keeps an empty result and a zero duration after later imports. Skill counts also differ by importer. The hook importer adds 1 to <code>skills.total_calls</code> for each distinct skill in a session on every import (<code>import_data.py:232-253</code>), while the transcript importer adds 1 for each call it has not stored before (<code>auto_import.py:129-133,180</code> at <code>634adf1</code>). So <code>total_calls</code> means different things depending on which importer ran (<a class="id-ref" href="#QUES-E">QUES-E</a>).</p>
+<p>This implements <a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-D">PRD-D</a>, with these gaps: the transcript path stores no tool results or durations (<a class="id-ref" href="#QUES-I">QUES-I</a>); <code>once</code> skips the hook directory whenever a transcript with the same id exists (<a class="id-ref" href="#QUES-D">QUES-D</a>); hook-directory re-imports are not repeatable and leave stale tool calls (<a class="id-ref" href="#QUES-E">QUES-E</a>); and OpenCode token and cost figures are read but not stored (<a class="id-ref" href="#QUES-H">QUES-H</a>).</p>
+<h4 id="DSGN-D"><a class="id-ref" href="#DSGN-D">DSGN-D</a> — Correction detector</h4>
+<p>The detector skips empty prompts, slash commands, and one-word prompts. It gives the lowercased prompt a score from a fixed list of weighted correction phrases. An explicit correction phrase, such as &quot;you should have&quot; or &quot;I told you&quot;, is enough on its own to write a trace, and a weak word such as &quot;no&quot; or &quot;stop&quot; is not. A trace is written when the score is at least 0.8, or at least 0.9 for prompts longer than 300 characters. The phrase list and its weights are an internal detail of <code>on-correction.py:26-37</code> and may change without changing this contract.</p>
+<p>The trace is <code>~/.coworker/analytics/traces/correction-&lt;timestamp&gt;.md</code>, with a draft status, the score, the first 200 characters of the prompt, and empty sections for what was wrong, the expected behavior, and the fix. Two corrections in the same second overwrite each other, and nothing in this repository reads the traces yet. After writing, the detector prints <code>correction trace written: &lt;path&gt;</code> on standard output (<code>on-correction.py:103</code>). Because Claude Code adds a <code>UserPromptSubmit</code> hook&#x27;s standard output to the model&#x27;s context (<a class="id-ref" href="#DSGN-B">DSGN-B</a>), the model sees that line (<a class="id-ref" href="#QUES-N">QUES-N</a>). The detector finds the home directory with <code>Path.home()</code>, so with <code>HOME</code> unset it writes into the real home directory (<a class="id-ref" href="#DSGN-B">DSGN-B</a>).</p>
+<p>This implements <a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-F">PRD-F</a>. The detector&#x27;s positive case is not tested, and its tests run a file path that does not exist (<a class="id-ref" href="#QUES-G">QUES-G</a>).</p>
+<h4 id="DSGN-E"><a class="id-ref" href="#DSGN-E">DSGN-E</a> — Privacy and retention</h4>
+<p>Prompts, tool inputs, tool results up to 10,000 characters, assistant text, working folders, file paths, and branch names are stored in plain text. Nothing is redacted, which does not meet <a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-G">PRD-G</a> (<a class="id-ref" href="#QUES-A">QUES-A</a>). Nothing is sent off the machine. Messages are stored whole; tool results are cut at 10,000 characters, since the full output stays in the transcript (<a class="id-ref" href="../decision-history/analytics-listener-decision-history.html#ARD-F">ARD-F</a>).</p>
+<p>Raw session directories are deleted by the curator of the <a href="../../../../memory-platform/design/memory-platform-design.html">memory platform</a> feature (its <a class="id-ref" href="#DSGN-D">DSGN-D</a>). It deletes a directory when the directory&#x27;s session id is in the database, the directory is older than 30 days, the weekly curator run is due, and mem0 is available (<code>curator.py:95-109</code>, <code>cli_memory.py:462-479</code>). An id in the database does not mean this directory was imported. <code>once</code> puts the id there from the transcript and skips the hook directory (<code>auto_import.py:319-345</code>), so the tool results and durations in <code>tools.jsonl</code> are deleted after 30 days without ever reaching the database (<a class="id-ref" href="#QUES-K">QUES-K</a>). Since PR #22 the Stop hook puts every session&#x27;s id there after its first reply.</p>
+<p>The database, <code>index.jsonl</code>, and the traces are never pruned. <code>_unattributed/</code> is not pruned unless <code>import</code> has stored it as a session (<a class="id-ref" href="#DSGN-B">DSGN-B</a>, <a class="id-ref" href="#QUES-L">QUES-L</a>). There is no delete command, and uninstall keeps <code>~/.coworker/analytics/</code>. This implements <a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-H">PRD-H</a>, except for the data loss in <a class="id-ref" href="#QUES-K">QUES-K</a>.</p>
+<h4>Sub-problem ownership (子问题归属)</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>子问题</th>
+<th>归属</th>
+<th>依据</th>
+</tr></thead><tbody>
+<tr>
+<td>How Claude Code treats a hook that exits non-zero or prints output</td>
+<td>AI 查</td>
+<td>Answered in <a class="id-ref" href="#DSGN-B">DSGN-B</a>: exit 2 blocks, other non-zero codes do not, and <code>UserPromptSubmit</code> output reaches the model; https://docs.claude.com/en/docs/claude-code/hooks</td>
+</tr>
+<tr>
+<td>Whether <code>index.jsonl</code> is still needed</td>
+<td>人决定</td>
+<td><a class="id-ref" href="#QUES-F">QUES-F</a>; nothing reads it</td>
+</tr>
+<tr>
+<td>What to redact, and whether redaction belongs in the hooks or the importer</td>
+<td>人决定</td>
+<td><a class="id-ref" href="#QUES-A">QUES-A</a></td>
+</tr>
+<tr>
+<td>Whether to merge transcript and hook data</td>
+<td>人决定</td>
+<td><a class="id-ref" href="#QUES-I">QUES-I</a>, <a class="id-ref" href="#QUES-D">QUES-D</a>; valid hook JSON was answered by PR #23 (<a class="id-ref" href="#QUES-J">QUES-J</a>)</td>
+</tr>
+<tr>
+<td>Whether the detector&#x27;s output line should reach the model</td>
+<td>人决定</td>
+<td><a class="id-ref" href="#QUES-N">QUES-N</a></td>
+</tr>
+</tbody></table></div>
+<h3>Testing Decisions</h3>
+<p>Hooks are tested by running them with a sample payload against a temporary home directory; importers and migrations are tested against temporary databases. The cases are in the <a href="../test-plan/analytics-listener-test-plan.html">test plan</a>.</p>
+<h3>Out of Scope</h3>
+<p>The dashboard, session summaries, knowledge cards, and hook registration are specified elsewhere, as listed in the <a href="../prd/analytics-listener-prd.html#out-of-scope">PRD</a>.</p>
+<h3>Further Notes</h3>
+<p>The installer also registers an OpenCode analytics plugin when the directory <code>.opencode/coworker-analytics</code> exists in the checkout and the file <code>~/.config/opencode/config.json</code> exists (<code>setup/install.sh:712-713</code> at <code>634adf1</code>). That directory is ignored by git and its source is no longer in the repository, so on a fresh clone no plugin is registered and OpenCode sessions are known only through their metadata (<a class="id-ref" href="#DSGN-C">DSGN-C</a>).</p>
+<h3>Alternatives Considered</h3>
+<p>Writing hook events straight into SQLite was rejected; the reason is UNKNOWN, and a likely one is that a hook interrupted mid-write could leave a locked or damaged database, and every hook would need the Python package. Relying only on Claude Code transcripts was rejected because they carry no tool durations (<a class="id-ref" href="../decision-history/analytics-listener-decision-history.html#ARD-C">ARD-C</a>).</p>
+<h3>Drawbacks</h3>
+<p>Data is duplicated: once in the session files, once in the database. The Stop hook imports only the transcript, and <code>once</code> then skips the hook folder, so hook tool results reach the database only through <code>import</code> (<a class="id-ref" href="#QUES-I">QUES-I</a>, <a class="id-ref" href="#QUES-P">QUES-P</a>).</p>
+<h3>Risks and Mitigations</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Risk</th>
+<th>Mitigation</th>
+</tr></thead><tbody>
+<tr>
+<td>A hook slows or breaks the session</td>
+<td>Writes ignore failure; gaps in <a class="id-ref" href="#QUES-B">QUES-B</a></td>
+</tr>
+<tr>
+<td>The Stop hook&#x27;s curator check is slow on every turn while mem0 is unavailable or a run fails</td>
+<td>Not mitigated today; Claude Code&#x27;s default hook limit is the only bound (<a class="id-ref" href="#QUES-M">QUES-M</a>)</td>
+</tr>
+<tr>
+<td>Records are lost silently: hook data is pruned without ever being imported</td>
+<td>Not mitigated today (<a class="id-ref" href="#QUES-K">QUES-K</a>); invalid hook lines were fixed by PR #23 (<a class="id-ref" href="#QUES-J">QUES-J</a>)</td>
+</tr>
+<tr>
+<td>Secrets end up in the database</td>
+<td>Not mitigated today (<a class="id-ref" href="#QUES-A">QUES-A</a>)</td>
+</tr>
+<tr>
+<td>The disk fills with old sessions</td>
+<td>Directories whose session id is in the database and that are older than 30 days are pruned (<a class="id-ref" href="#DSGN-E">DSGN-E</a>); the database grows without limit</td>
+</tr>
+</tbody></table></div>
+<h3>Open Questions</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Question</th>
+<th>Answer so far</th>
+<th>Owner</th>
+<th>Blocking</th>
+</tr></thead><tbody>
+<tr>
+<td><strong id="QUES-A"><a class="id-ref" href="#QUES-A">QUES-A</a></strong></td>
+<td>Prompts and tool inputs, which can contain API keys and passwords, are stored unredacted. Should the hooks or the importer redact known secret patterns, as <a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-G">PRD-G</a> requires?</td>
+<td>No redaction exists; see <code>on-user-prompt.sh:14-17</code> and <code>on-pre-tool.sh:14</code> at <code>a0f4ce0</code>, now <code>record.py:27-32</code> at <code>634adf1</code>.</td>
+<td>cicidi</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><strong id="QUES-B"><a class="id-ref" href="#QUES-B">QUES-B</a></strong></td>
+<td><code>on-stop.sh</code>&#x27;s last write and <code>on-correction.py</code>&#x27;s file write are unguarded, so a write failure makes the hook exit non-zero. Guard them?</td>
+<td><code>on-stop.sh:48-49</code> and <code>on-correction.py:85-102</code> at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-C"><a class="id-ref" href="#QUES-C">QUES-C</a></strong></td>
+<td>The sequence counter had no lock, so concurrent hooks could share a number. Lock it, or accept?</td>
+<td><code>common.sh:39-45</code> at <code>a0f4ce0</code>. Fixed by PR #23 (<code>634adf1</code>): <code>record.py</code> takes the number under an operating-system file lock (<code>fcntl</code>), so only one hook at a time advances it.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-D"><a class="id-ref" href="#QUES-D">QUES-D</a></strong></td>
+<td><code>once</code> skips sessions already imported, so a session imported mid-run is never completed, and hook data is ignored when a transcript exists. Re-import open sessions and merge both sources?</td>
+<td><code>auto_import.py:310-345</code> at <code>a0f4ce0</code>. Partly fixed by walter-worker PR #22, merged as <code>a91ebbd</code>: the Stop hook re-imports the transcript after every reply. Hook data is still skipped.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-E"><a class="id-ref" href="#QUES-E">QUES-E</a></strong></td>
+<td><code>import</code> adds to <code>skills.total_calls</code> again on each run, keeps a tool call&#x27;s empty result and zero duration once stored, and counts skills per session while the transcript importer counts per call. Make re-imports repeatable and give <code>total_calls</code> one meaning?</td>
+<td><code>import_data.py:206-211,232-253</code> and <code>auto_import.py:149-154</code> at <code>a0f4ce0</code>. PR #22, merged as <code>a91ebbd</code>, has the transcript importer count each skill call once across re-imports. The hook importer reads <code>args.name</code>, but Claude Code sends <code>skill</code>, so it counts no real skill (<code>import_data.py:241</code> at <code>634adf1</code>).</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-F"><a class="id-ref" href="#QUES-F">QUES-F</a></strong></td>
+<td>Nothing reads <code>index.jsonl</code>, and its counts describe only the first turn. Remove it?</td>
+<td><code>on-stop.sh:30-49</code> at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-G"><a class="id-ref" href="#QUES-G">QUES-G</a></strong></td>
+<td>The only positive test for the correction detector is marked expected-to-fail and sends a differently shaped payload. All four detector tests also run a hook path that does not exist (<code>parents[3]</code> points one folder above the checkout), so the three negative tests pass without running the detector. Fix the tests?</td>
+<td><code>tests/python/test_correction_detector.py:10,16,29</code> at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-H"><a class="id-ref" href="#QUES-H">QUES-H</a></strong></td>
+<td>OpenCode token and cost figures are selected but not stored, and no importer fills the token columns for Claude Code sessions. Store them?</td>
+<td><code>auto_import.py:272-294</code> at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-I"><a class="id-ref" href="#QUES-I">QUES-I</a></strong></td>
+<td>The transcript importer dropped the user&#x27;s typed prompts, and it leaves branch, feature, closed time, tool results, and durations empty. <code>once</code> then skips the hook copy, and <code>import</code> cannot add results to calls already stored. Merge the hook data?</td>
+<td><code>auto_import.py:127-134,143-147,180-184,310-345</code> at <code>a0f4ce0</code>; reproduced in the <code>../raw/review/2026-11-24-spec-review-analytics-listener-gaps.md</code>, finding C1. PR #22, merged as <code>a91ebbd</code>, stores typed prompts. Since then every session is imported from its transcript first, so a hook tool result no longer reaches the database once the Stop hook has imported the session.</td>
+<td>cicidi</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><strong id="QUES-J"><a class="id-ref" href="#QUES-J">QUES-J</a></strong></td>
+<td>The hooks wrote lines that are not valid JSON when a field contained a newline, the payload was not JSON, or <code>duration_ms</code> was null, and the importer skips them silently; about 19% of tool records on the owner&#x27;s machine do not parse. Emit each whole record from one <code>json.dumps</code> call?</td>
+<td><code>on-pre-tool.sh:9-15</code>, <code>on-post-tool.sh:10-19</code>, <code>on-user-prompt.sh:13-21</code> at <code>a0f4ce0</code>; counts in the <code>../raw/review/2026-11-24-spec-review-analytics-listener-gaps.md</code>, finding C2. Fixed by PR #23 (<code>634adf1</code>): <code>record.py</code> builds each record with one <code>json.dumps</code>. Lines written before the fix still do not parse.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-K"><a class="id-ref" href="#QUES-K">QUES-K</a></strong></td>
+<td>The curator deletes a hook directory when its session id is in the database, even when only the transcript was imported, so tool results and durations that never reached the database are deleted after 30 days. Prune only directories that were imported?</td>
+<td><code>curator.py:95-109</code> with <code>auto_import.py:319-345</code> at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><strong id="QUES-L"><a class="id-ref" href="#QUES-L">QUES-L</a></strong></td>
+<td><code>on-stop.sh</code> creates <code>_unattributed/session.yaml</code>, and <code>import</code> then stores <code>_unattributed</code> as a session, after which the curator may delete it. Skip <code>_</code> names in <code>import</code> and stop creating the file?</td>
+<td><code>on-stop.sh:13-19</code>, <code>import_data.py:294-299</code>, <code>curator.py:103-109</code> at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-M"><a class="id-ref" href="#QUES-M">QUES-M</a></strong></td>
+<td>The Stop hook runs the curator check synchronously on every turn, and while mem0 is unavailable or a run has errors the stamp is never written, so each turn loads mem0 or reruns the curator. Bound or background it?</td>
+<td><code>on-stop.sh:28</code>, <code>cli_memory.py:462-484</code>, <code>mem0_client.py:73</code> at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-N"><a class="id-ref" href="#QUES-N">QUES-N</a></strong></td>
+<td>The correction detector prints <code>correction trace written: &lt;path&gt;</code>, which Claude Code adds to the model&#x27;s context. Should that line reach the model?</td>
+<td><code>on-correction.py:103</code> at <code>a0f4ce0</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-O"><a class="id-ref" href="#QUES-O">QUES-O</a></strong></td>
+<td>The after-record stores the tool response as Python <code>str()</code> text, not JSON. Store JSON instead?</td>
+<td><code>on-post-tool.sh:17</code> at <code>a0f4ce0</code>; unchanged in <code>record.py:39</code> at <code>634adf1</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-P"><a class="id-ref" href="#QUES-P">QUES-P</a></strong></td>
+<td>After the Stop hook has imported a session, <code>import</code> writes its messages again under other numbers, so prompts are stored twice. Use one numbering?</td>
+<td><code>auto_import.py:135,162</code> and <code>import_data.py:95-138</code> at <code>634adf1</code>; reproduced in <code>../raw/review/2026-11-24-spec-review-analytics-listener-pr22-gaps.md</code>, finding I1.</td>
+<td>cicidi</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><strong id="QUES-Q"><a class="id-ref" href="#QUES-Q">QUES-Q</a></strong></td>
+<td>A last turn the user interrupts fires no <code>Stop</code>, and <code>once</code> skips the session, so that prompt never reaches the database. Import on SessionEnd too?</td>
+<td>Claude Code hooks reference, read 2026-11-24; <code>auto_import.py:352</code> at <code>634adf1</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+</tbody></table></div>
+<h3>Reversibility</h3>
+<p>Removing the hook entries from <code>~/.claude/settings.json</code>, or running the uninstaller, stops recording. Recorded data stays until the user deletes <code>~/.coworker/analytics/</code>. The database can be rebuilt from the session files and transcripts that still exist.</p>
+<h3>Terms</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Term</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td>Hook</td>
+<td>A command Claude Code runs on an event, registered in <code>~/.claude/settings.json</code></td>
+</tr>
+<tr>
+<td>Hook payload</td>
+<td>The JSON object Claude Code writes to a hook&#x27;s standard input, with the session id, the transcript path, and the event&#x27;s fields</td>
+</tr>
+<tr>
+<td>JSONL</td>
+<td>A text file with one JSON object per line, appended to and never rewritten</td>
+</tr>
+<tr>
+<td>Transcript</td>
+<td>The file Claude Code itself keeps for each session under <code>~/.claude/projects/</code></td>
+</tr>
+<tr>
+<td>Turn</td>
+<td>One user prompt and the assistant&#x27;s full response to it; Claude Code fires the <code>Stop</code> event at the end of each turn</td>
+</tr>
+<tr>
+<td>Curator</td>
+<td>The weekly maintenance job of the <a href="../../../../memory-platform/design/memory-platform-design.html">memory platform</a> feature, which among other steps prunes old session directories</td>
+</tr>
+<tr>
+<td>mem0</td>
+<td>The library the memory platform uses to store and search short lessons; the curator does not run without it</td>
+</tr>
+<tr>
+<td>OpenCode</td>
+<td>Another AI coding tool in the terminal; walter-worker reads only its session metadata</td>
+</tr>
+<tr>
+<td>SessionEnd</td>
+<td>The Claude Code event fired once when a session ends; the memory platform&#x27;s summary hook runs on it</td>
+</tr>
+<tr>
+<td>Python <code>str()</code> text</td>
+<td>The way Python prints a value, for example <code>{&#x27;a&#x27;: &#x27;b&#x27;}</code> for a dictionary; it is not JSON</td>
+</tr>
+<tr>
+<td>Write-ahead logging</td>
+<td>A SQLite mode that lets readers and a writer work at the same time</td>
+</tr>
+</tbody></table></div>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Version</th>
+<th>Date</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td>0.1</td>
+<td>2026-11-04</td>
+<td>Draft (never committed)</td>
+</tr>
+<tr>
+<td>0.2</td>
+<td>2026-11-24</td>
+<td>Rewritten from the code at <code>a0f4ce0</code> with the 13 required sections; gaps recorded as <a class="id-ref" href="#QUES-A">QUES-A</a> to <a class="id-ref" href="#QUES-H">QUES-H</a> (<a class="id-ref" href="../decision-history/analytics-listener-decision-history.html#ARD-A">ARD-A</a>, <a class="id-ref" href="../decision-history/analytics-listener-decision-history.html#ARD-D">ARD-D</a>)</td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>2026-11-24</td>
+<td>Review fixes: Stop fires per turn; <a class="id-ref" href="#DSGN-B">DSGN-B</a> fallback and quarantine claims corrected; transcript importer, re-import, and pruning gaps stated; <a class="id-ref" href="#DSGN-D">DSGN-D</a> reduced to its contract; memory platform linked; <code>file:line</code> evidence added; <a class="id-ref" href="#QUES-I">QUES-I</a> to <a class="id-ref" href="#QUES-O">QUES-O</a> added (<a class="id-ref" href="../decision-history/analytics-listener-decision-history.html#ARD-D">ARD-D</a>, <a class="id-ref" href="../decision-history/analytics-listener-decision-history.html#ARD-E">ARD-E</a>)</td>
+</tr>
+<tr>
+<td>0.4</td>
+<td>2026-11-24</td>
+<td><a class="id-ref" href="#QUES-D">QUES-D</a>, <a class="id-ref" href="#QUES-E">QUES-E</a>, <a class="id-ref" href="#QUES-I">QUES-I</a>, and <a class="id-ref" href="#QUES-J">QUES-J</a> note what open PR #22 changes; master behavior unchanged</td>
+</tr>
+<tr>
+<td>0.5</td>
+<td>2026-11-24</td>
+<td>PRs #22 and #23 merged: Stop imports the transcript; <a class="id-ref" href="#QUES-C">QUES-C</a> and <a class="id-ref" href="#QUES-J">QUES-J</a> fixed; <a class="id-ref" href="#QUES-D">QUES-D</a> partly; <a class="id-ref" href="#QUES-I">QUES-I</a> keeps blocking for hook results; <a class="id-ref" href="../decision-history/analytics-listener-decision-history.html#ARD-F">ARD-F</a></td>
+</tr>
+<tr>
+<td>0.6</td>
+<td>2026-11-24</td>
+<td>Review fixes: default hook limit, <a class="id-ref" href="#QUES-P">QUES-P</a> and <a class="id-ref" href="#QUES-Q">QUES-Q</a> added, <a class="id-ref" href="#QUES-E">QUES-E</a> skill key, citations moved to <code>634adf1</code>, <a class="id-ref" href="../decision-history/analytics-listener-decision-history.html#ARD-B">ARD-B</a> reason UNKNOWN, Hook payload term</td>
+</tr>
+</tbody></table></div>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../prd/analytics-listener-prd.html"><span class="label">Previous</span>Analytics Listener — PRD</a><a class="next" href="../impl-plan/analytics-listener-impl-plan.html"><span class="label">Next</span>Analytics Listener — Implementation Plan</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../../../assets/app.js"></script>
+</body>
+</html>

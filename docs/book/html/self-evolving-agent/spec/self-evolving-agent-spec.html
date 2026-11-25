@@ -1,0 +1,1063 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Self-Evolving Agent — Memory Platform Spec · spec · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/dashboard-ui-prd.html">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-29-devil-advocate-reviews-summary.html">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/auto-worker-design.html">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/dashboard-design.html">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/qa-autonomous-agent-design.html">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../INDEX.html">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/band-ai-docs.html">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-agent-README.html">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-ai-docs.html">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-README.html">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-docs.html">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-agent-README.html">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/pioneer-docs.html">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="memory-graph-spec.html">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="qa-autonomous-agent-spec.html">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="self-evolving-agent-spec.html" aria-current="page">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-29-current-state.html">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-dashboard-data-not-verified.html">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../impl-plan/self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../impl-plan/dependency-and-sequencing-impl-plan.html">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/qa-autonomous-agent-impl-plan.html">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/self-evolving-agent-test-plan.html"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/2026-07-29-test-execution-report.html">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-graph-test-plan.html">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>spec</span> / <span>Self-Evolving Agent — Memory Platform Spec</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/spec/self-evolving-agent-spec">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>Self-Evolving Agent — Memory Platform Spec</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/spec/self-evolving-agent-spec.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Self-Evolving Agent — Memory Platform Spec</h2>
+<blockquote class="callout" data-label="NOTE"><p>Initiative: self-evolving-agent | Type: spec | Status: <strong>draft v1.2</strong>  Derived from: <a href="../prd/self-evolving-agent-prd.html">PRD v5</a> (requirements). Target PRD v6 (requirements-only).  This is the spec for the <strong>memory platform + self-evolution engine</strong> (PRD §3–§5). It is NOT the QA/auto-worker spec — that one (<a href="qa-autonomous-agent-spec.html"><code>qa-autonomous-agent-spec.md</code></a>) is <strong>DEFERRED</strong> and preserved as reference for a separate downstream product.</p></blockquote>
+<hr>
+<h3>§0 How to Read This Spec</h3>
+<h4>0.1 PRD ↔ Spec split</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Layer</th>
+<th>Lives in</th>
+<th>Contents</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>Requirements</strong> (what / why)</td>
+<td>PRD v6</td>
+<td>R1–R7, three-tier model, taxonomy, skill lifecycle *behavior*, safety *behavior*, evolution metrics *as requirements*</td>
+</tr>
+<tr>
+<td><strong>Solution</strong> (how)</td>
+<td><strong>this spec</strong></td>
+<td>mem0 config, hook wiring, Hermes loop adaptation, schemas, error codes, dual-IDE coverage</td>
+</tr>
+</tbody></table></div>
+<p>PRD v6 will be restructured to requirements-only (removing current §1.4, §6, §7, Appendix A — those move here). Until that restructure lands, this spec is the authoritative &quot;how&quot; and references PRD v5 section numbers.</p>
+<h4>0.2 The three external anchors and what we take from each</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Anchor</th>
+<th>What it is</th>
+<th>What we adopt</th>
+<th>What we reject/replace</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>mem0</strong> (<a href="https://github.com/mem0ai/mem0">github</a>)</td>
+<td>Memory layer: LLM extraction + vector store + hybrid retrieval</td>
+<td><strong>The memory substrate</strong> — store, retrieve, extract facts (Tier 3). Library mode (in-process, no server). Hybrid retrieval (semantic + BM25 + entity).</td>
+<td>Its default <code>gpt-5-mini</code> LLM and <code>text-embedding-3-small</code> embedder → swapped for DeepSeek Flash + local embedder</td>
+</tr>
+<tr>
+<td><strong>Hermes Agent</strong> (<a href="https://hermes-agent.nousresearch.com/docs/">docs</a>)</td>
+<td>Standalone self-improving agent with a closed learning loop</td>
+<td><strong>The loop patterns</strong> — skill create/patch/curator lifecycle, session-end summarization trigger, MEMORY.md/USER.md agent-curated philosophy, &quot;smart approval system&quot;. Re-hosted on Claude Code/OpenCode hooks.</td>
+<td>Its FTS5+SQLite recall layer (replaced by mem0); running Hermes itself (we are not a Hermes fork)</td>
+</tr>
+<tr>
+<td><strong>walter-worker existing infra</strong></td>
+<td>analytics.db, hooks, semantic_merge, templates, CLI</td>
+<td>analytics.db as raw capture/audit layer; semantic_merge for CLAUDE.local.md injection; CLI/templates/adapters</td>
+<td>analytics.db <code>knowledge</code> table as the memory store (mem0 owns memory now; analytics.db keeps raw session/tool capture)</td>
+</tr>
+</tbody></table></div>
+<h4>0.3 Boundary decision (mem0 vs Hermes — resolves the overlap)</h4>
+<p>Hermes and mem0 both have a &quot;cross-session memory&quot; story (Hermes = FTS5+summarization; mem0 = vector+BM25+entity). They overlap. The split:</p>
+<ul>
+<li><strong>mem0 = memory substrate.</strong> Owns Tier 3 storage, retrieval, and fact extraction. <strong>Replaces Hermes&#x27;s FTS5.</strong></li>
+<li><strong>Hermes = the self-evolution loop.</strong> Owns *when* to create/patch skills, the curator lifecycle, the session-end summarization trigger, and the agent-curated memory philosophy. Its loop is re-hosted on our hooks and <strong>reads/writes mem0 instead of FTS5.</strong></li>
+</ul>
+<hr>
+<h3>§1 Architecture Overview</h3>
+<pre><code>                    ┌─────────────────────────────────────────┐
+                    │           CLAUDE CODE / OPENCODE         │
+                    │           (the agent, doing real work)   │
+                    └───────────────────┬─────────────────────┘
+                                        │  tool calls / session lifecycle
+                    ┌───────────────────▼─────────────────────┐
+                    │        DUAL-IDE CAPTURE LAYER (§3)       │
+                    │  Claude Code: PostToolUse + SubagentStop │
+                    │               + Stop (async, stdin)      │
+                    │  OpenCode:     tool.execute.after        │
+                    │               + session.end              │
+                    │  + audit trail + reconciliation          │
+                    └───────┬──────────────────────┬───────────┘
+                            │                      │
+              per-turn (every tool call)           │  session-end (one more pass)
+                            │                      │
+                    ┌───────▼──────────────────────▼───────────┐
+                    │        SELF-EVOLUTION LOOP (§4, Hermes)   │
+                    │  • extract facts → mem0.add               │
+                    │  • assess reusable workflow → skill-create│
+                    │  • skill patch when outdated              │
+                    │  • smart approval (staged review)         │
+                    └───────┬────────────────────────────┬──────┘
+                            │                            │
+                ┌───────────▼───────────┐    ┌───────────▼────────────┐
+                │  mem0 SUBSTRATE (§2)  │    │  STATE FILES (Tier 2)  │
+                │  Tier 3 long-term     │    │  docs/&lt;init&gt;/state/    │
+                │  store + retrieve +   │    │  per-turn progress     │
+                │  extract (DeepSeek)   │    └────────────────────────┘
+                └───────────┬───────────┘
+                            │ frozen snapshot at session start
+                    ┌───────▼───────────────────────────────────┐
+                    │  CLAUDE.local.md injection (§5)            │
+                    │  &lt;!-- MEMORY:&lt;project&gt; START/END --&gt;       │
+                    └───────────────────────────────────────────┘</code></pre>
+<p><strong>LLM policy (global):</strong> Every component that needs an LLM uses <strong>DeepSeek Flash</strong> (extraction, summarization, semantic filter, skill-reuse assessment, curator decisions). Fallback chain for outages only: DeepSeek Flash → Gemini Flash → Claude Haiku (§9). Embeddings are <strong>not</strong> an LLM call → use a <strong>local embedder</strong> (fastembed, BAAI/bge-small, 384-dim) to stay offline and avoid an OpenAI dependency.</p>
+<p><strong>Cost:</strong> per-turn extraction runs one DeepSeek Flash call per tool call. DeepSeek Flash is cheap (PRD §6.6: ~$0.0004/turn off-peak); cost is not a concern.</p>
+<hr>
+<h3>§2 Memory Substrate — mem0</h3>
+<h4>2.1 Why mem0 + library mode</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>PRD requirement</th>
+<th>mem0 satisfies it how</th>
+</tr></thead><tbody>
+<tr>
+<td>R1 (IDE-agnostic)</td>
+<td>mem0 state lives in <code>~/.coworker/memory/</code>, not any IDE&#x27;s config dir. Both IDEs hit the same store.</td>
+</tr>
+<tr>
+<td>R2 (per-turn persistence, no manual save)</td>
+<td>Hooks call <code>memory.add()</code> automatically after every tool call.</td>
+</tr>
+<tr>
+<td>R3 (cross-session, exact + semantic search)</td>
+<td>mem0 hybrid retrieval = semantic (vector) + BM25 (keyword/exact) + entity matching, fused. Temporal reasoning ranks the right dated instance.</td>
+</tr>
+<tr>
+<td>R4 (agent-managed notes)</td>
+<td><code>memory.add/update/delete</code> — agent writes/patches/removes its own notes.</td>
+</tr>
+<tr>
+<td>R5 (frozen snapshot)</td>
+<td>Snapshot is read from mem0 at session start and injected via CLAUDE.local.md; mid-session mem0 writes do not refresh the active snapshot.</td>
+</tr>
+<tr>
+<td>R6 (periodic cleanup)</td>
+<td>Curator (§4.3) marks stale/archived via mem0 metadata; mem0 entries carry <code>state</code>/<code>last_used</code> fields.</td>
+</tr>
+<tr>
+<td>R7 (no background server)</td>
+<td><strong>mem0 library mode</strong> (<code>pip install mem0ai</code>, in-process vector store). No Docker, no always-on process.</td>
+</tr>
+</tbody></table></div>
+<blockquote class="callout" data-label="NOTE"><p><strong>R7 resolution:</strong> Earlier concern that mem0 implies a background server is resolved — library mode is in-process. Self-hosted server / cloud modes exist but are <strong>not used</strong>.</p></blockquote>
+<h4>2.2 Configuration</h4>
+<pre><code>from mem0 import Memory
+
+config = {
+    # Extraction + reasoning LLM = DeepSeek Flash (global policy)
+    &quot;llm&quot;: {
+        &quot;provider&quot;: &quot;openai&quot;,                      # DeepSeek API is OpenAI-compatible
+        &quot;config&quot;: {
+            &quot;model&quot;: &quot;deepseek-chat&quot;,              # &quot;DeepSeek Flash&quot; alias
+            &quot;base_url&quot;: &quot;https://api.deepseek.com&quot;,
+            &quot;api_key&quot;: &quot;env:DEEPSEEK_API_KEY&quot;,
+        },
+    },
+    # Embeddings = local, NOT an LLM, NOT OpenAI
+    &quot;embedder&quot;: {
+        &quot;provider&quot;: &quot;huggingface&quot;,                 # local ONNX via fastembed family
+        &quot;config&quot;: {
+            &quot;model&quot;: &quot;BAAI/bge-small-en-v1.5&quot;,     # 384-dim, already spiked 6/6
+        },
+    },
+    # In-process vector store (library mode — satisfies R7)
+    &quot;vector_store&quot;: {
+        &quot;provider&quot;: &quot;qdrant&quot;,                      # embedded/local mode
+        &quot;config&quot;: {&quot;path&quot;: &quot;~/.coworker/memory/vector&quot;},
+    },
+}
+
+memory = Memory.from_config(config)</code></pre>
+<blockquote class="callout" data-label="NOTE"><p><strong>Spike (Task 0 of impl):</strong> verify mem0&#x27;s exact provider/field names for (a) DeepSeek as an OpenAI-compatible <code>llm</code>, (b) local <code>embedder</code>, (c) embedded <code>vector_store</code>. The config shape above is the target; exact keys to be confirmed against the installed mem0 version and pinned in <code>how-to/mem0-setup-how-to.md</code>.</p></blockquote>
+<h4>2.3 Memory entry ↔ PRD taxonomy mapping</h4>
+<p>PRD §1.6 defines three knowledge types. mem0 stores two of them; the third is skills (not mem0):</p>
+<div class="table-wrap"><table><thead><tr>
+<th>PRD type</th>
+<th>Where it lives</th>
+<th>mem0 representation</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>SOP</strong> (怎么做, reusable procedure)</td>
+<td><code>~/.coworker/skills/&lt;name&gt;/SKILL.md</code> → promoted to skill-factory</td>
+<td><strong>Not in mem0.</strong> Skills are a separate store (§5).</td>
+</tr>
+<tr>
+<td><strong>经验总结</strong> (lessons/patterns/pitfalls)</td>
+<td><strong>mem0 Tier 3</strong></td>
+<td><code>memory.add(...)</code> entry, <code>type=lesson</code></td>
+</tr>
+<tr>
+<td><strong>State / 进度</strong> (current status)</td>
+<td>Tier 2 state files <code>docs/&lt;init&gt;/state/*.md</code></td>
+<td>mem0 entry with <code>type=state</code> (mirror, for cross-session search)</td>
+</tr>
+</tbody></table></div>
+<p><strong>mem0 entry fields</strong> (our schema, layered on mem0&#x27;s memory model):</p>
+<pre><code>{
+  &quot;memory&quot;: &quot;MCP first request always 403-times-out; retry once before failing.&quot;,
+  &quot;user_id&quot;: &quot;&lt;user&gt;&quot;,
+  &quot;agent_id&quot;: &quot;walter-worker&quot;,
+  &quot;run_id&quot;: &quot;&lt;session-id&gt;&quot;,
+  &quot;metadata&quot;: {
+    &quot;type&quot;: &quot;lesson&quot;,                       // lesson | state | convention | preference
+    &quot;project&quot;: &quot;walter-worker&quot;,
+    &quot;topic&quot;: &quot;mcp&quot;,
+    &quot;problem&quot;: &quot;first-request-403&quot;,
+    &quot;source_session&quot;: &quot;&lt;session-id&gt;&quot;,
+    &quot;provenance&quot;: &quot;agent&quot;,                  // agent | hand-written
+    &quot;state&quot;: &quot;active&quot;,                      // active | stale | archived | pinned
+    &quot;last_used&quot;: &quot;2026-07-25T10:00:00Z&quot;,
+    &quot;use_count&quot;: 0
+  }
+}</code></pre>
+<blockquote class="callout" data-label="NOTE"><p>This resolves PRD&#x27;s &quot;Tier 3 has no schema&quot; gap. <code>metadata</code> lets us do exact keyed lookup (<code>project</code>+<code>topic</code>+<code>problem</code>) <strong>and</strong> semantic search in one store — satisfying R3&#x27;s both-modes requirement natively via mem0 hybrid retrieval.</p></blockquote>
+<h4>2.4 Operations</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Operation</th>
+<th>mem0 call</th>
+<th>When</th>
+</tr></thead><tbody>
+<tr>
+<td>Add lesson (per-turn)</td>
+<td><code>memory.add(messages=[turn], user_id=, run_id=session, metadata=)</code></td>
+<td>Every PostToolUse / SubagentStop (§3)</td>
+</tr>
+<tr>
+<td>Add lesson (session-end)</td>
+<td><code>memory.add(messages=[full_transcript_summary], ...)</code></td>
+<td>Stop hook (§3) — reconciliation pass</td>
+</tr>
+<tr>
+<td>Search</td>
+<td><code>memory.search(query, filters={&quot;project&quot;:...}, top_k=)</code></td>
+<td>CLI <code>coworker memory search</code> / <code>/memory-search</code></td>
+</tr>
+<tr>
+<td>Update / dedup</td>
+<td><code>memory.update(id, ...)</code></td>
+<td>Session-end reconciliation, curator</td>
+</tr>
+<tr>
+<td>Pin / archive</td>
+<td><code>memory.update(id, metadata={&quot;state&quot;:&quot;archived&quot;})</code></td>
+<td>Curator (§4.3)</td>
+</tr>
+<tr>
+<td>Snapshot read</td>
+<td><code>memory.search(query=&quot;project context&quot;, filters={&quot;project&quot;:...}, top_k=N)</code></td>
+<td>Session start → inject into CLAUDE.local.md (§5)</td>
+</tr>
+</tbody></table></div>
+<h4>2.5 What mem0 replaces (vs prior plans)</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Prior plan (PRD v5 / QA spec)</th>
+<th>Now</th>
+</tr></thead><tbody>
+<tr>
+<td>sqlite-vec <code>knowledge_vec</code> for semantic search (QA spec §2.5)</td>
+<td><strong>mem0 hybrid retrieval</strong> (semantic + BM25 + entity)</td>
+</tr>
+<tr>
+<td>analytics.db <code>knowledge</code> table as the memory store (PRD §7.2.3)</td>
+<td><strong>mem0 store</strong>. analytics.db keeps <strong>raw</strong> session/tool capture only (the audit + analytics source).</td>
+</tr>
+<tr>
+<td>LLM-synthesis-at-query-time for semantic layer</td>
+<td>mem0&#x27;s built-in hybrid retrieval (no per-query LLM needed except optional filter)</td>
+</tr>
+<tr>
+<td>MEMORY.md as hand-rolled §-delimited file</td>
+<td>mem0 is source of truth; MEMORY.md becomes a curator-generated read-only export (§5.2)</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>§3 Dual-IDE Capture Layer</h3>
+<p>This is the reliability-critical layer. PRD R2 demands per-turn persistence; the user demands <strong>guaranteed data accuracy</strong> across both IDEs. PostToolUse alone is unreliable (9 documented failure modes) and blind to subagents — so we use a <strong>multi-trigger + audit + reconciliation</strong> design.</p>
+<h4>3.1 Claude Code hooks</h4>
+<pre><code>// ~/.claude/settings.json
+{
+  &quot;hooks&quot;: {
+    &quot;PostToolUse&quot;: [{
+      &quot;matcher&quot;: &quot;&quot;,
+      &quot;command&quot;: &quot;coworker memory sync --ide claude --trigger posttooluse&quot;,
+      &quot;async&quot;: true
+    }],
+    &quot;SubagentStop&quot;: [{
+      &quot;matcher&quot;: &quot;&quot;,
+      &quot;command&quot;: &quot;coworker memory sync --ide claude --trigger subagentstop&quot;,
+      &quot;async&quot;: true
+    }],
+    &quot;Stop&quot;: [{
+      &quot;matcher&quot;: &quot;&quot;,
+      &quot;command&quot;: &quot;coworker memory close --ide claude --trigger stop&quot;
+    }]
+  }
+}</code></pre>
+<ul>
+<li><code>async: true</code> on the per-turn hooks → extraction does not block the tool call (PRD v5 fix; carried forward).</li>
+<li><code>session_id</code> arrives via <strong>stdin JSON</strong>, not an env var — hook command reads it from stdin.</li>
+</ul>
+<blockquote class="callout" data-label="NOTE"><p><strong>What is wired today</strong> (2026-09-25). The commands above do not exist as written: <code>coworker memory sync</code> is the Graphify re-sync, and none of the three accepts <code>--ide</code> or <code>--trigger</code>, so running the lines as shown exits 2. The installed hooks are the shell scripts under <code>src/coworker/analytics/hooks/</code>, registered by <a href="../../../../../setup/install.sh"><code>setup/install.sh</code></a>:  | Event | Command | |---|---| | <code>UserPromptSubmit</code> | <code>on-user-prompt.sh</code>, <code>python3 on-correction.py</code> | | <code>PreToolUse</code> | <code>on-pre-tool.sh</code> | | <code>PostToolUse</code> | <code>on-post-tool.sh</code> | | <code>Stop</code> | <code>on-stop.sh</code>, <code>coworker memory capture</code>, <code>coworker memory close</code> |  Per-turn graph extraction (§3.1&#x27;s <code>memory sync</code>) is deliberately not wired: it costs one LLM call per tool call, and only the session-end half (<code>memory capture</code> → <code>pending/</code> → <code>memory close</code> → <code>graph.json</code>) runs. The names this spec reserved for both were taken by other commands — <code>memory sync</code> by the Graphify re-sync, <code>memory close</code> by the graph merge — which is why the capture stage is <code>memory capture</code>.</p></blockquote>
+<h4>3.2 OpenCode plugin events</h4>
+<p>Extend the existing <code>.opencode/coworker-analytics/</code> plugin:</p>
+<pre><code>tool.execute.after → spawnSync(&#x27;coworker&#x27;, [&#x27;memory&#x27;,&#x27;sync&#x27;,&#x27;--ide&#x27;,&#x27;opencode&#x27;,&#x27;--trigger&#x27;,&#x27;posttooluse&#x27;])
+session.end        → spawnSync(&#x27;coworker&#x27;, [&#x27;memory&#x27;,&#x27;close&#x27;,&#x27;--ide&#x27;,&#x27;opencode&#x27;,&#x27;--trigger&#x27;,&#x27;stop&#x27;])
+// subagent-equivalent: opencode has no first-class subagent hook — see §8 gap</code></pre>
+<h4>3.3 Reliability mechanism (how we &quot;guarantee accuracy&quot;)</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Layer</th>
+<th>Mechanism</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>Multi-trigger</strong></td>
+<td>PostToolUse (per tool) + SubagentStop (subagent results — the content-richest calls, previously invisible) + Stop (session-end reconciliation).</td>
+</tr>
+<tr>
+<td><strong>Audit trail</strong></td>
+<td>Every sync writes a timestamped record to <code>~/.coworker/memory/audit.log</code>. If a session has no records for an interval → flagged for investigation.</td>
+</tr>
+<tr>
+<td><strong>Reconciliation</strong></td>
+<td>Session-end Stop pass reads the full transcript, compares against per-turn captures, and back-fills anything missed (subagent results, dropped stdout, failed triggers). This is the &quot;one more pass&quot; the user required.</td>
+</tr>
+<tr>
+<td><strong>Source of truth</strong></td>
+<td>The raw session transcript (in analytics.db) is ground truth. mem0 entries are derived; if mem0 is corrupt, re-extract from transcript.</td>
+</tr>
+</tbody></table></div>
+<h4>3.4 per-turn vs session-end — both, complementary (per owner decision)</h4>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>per-turn (PostToolUse / SubagentStop)</th>
+<th>session-end (Stop)</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>Purpose</strong></td>
+<td><strong>Reliability</strong> — don&#x27;t lose data if the session is killed / runs long / never closes cleanly</td>
+<td><strong>Quality</strong> — full-context reconciliation, dedup, cross-task pattern extraction</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>What it does</td>
+<td>Extract lessons from this tool call → <code>memory.add</code> (exact I/O in §3.5)</td>
+<td>Re-read full transcript → back-fill misses → <code>memory.add</code> reconciliation → trigger skill-create assessment</td>
+</tr>
+<tr>
+<td>LLM cost</td>
+<td>One DeepSeek Flash call per tool call (cheap, ~$0.0004)</td>
+<td>One DeepSeek Flash call for the whole session</td>
+</tr>
+</tbody></table></div>
+<blockquote class="callout" data-label="NOTE"><p>Rationale (owner): a session may not close for a long time, or may be killed without a Stop. session-end alone cannot guarantee capture. Therefore per-turn is the reliability floor; session-end is the quality pass on top. Both are mandatory.</p></blockquote>
+<h4>3.5 Anatomy of one per-turn DeepSeek call</h4>
+<p><strong>Input</strong> (what we pass to <code>memory.add</code>):</p>
+<ul>
+<li>The current tool event: <code>{tool, input, result}</code></li>
+<li>A bounded recent window: the last ~3–5 turns (context to judge &quot;is this a lesson?&quot; — e.g. to see the error that led to a workaround)</li>
+<li>A cheap mem0 recall of related existing lessons on the same topic (retrieval, no LLM) — passed as &quot;already known&quot; so DeepSeek avoids obvious duplicates</li>
+</ul>
+<p><strong>Not</strong> passed: the full session history (session-end&#x27;s job — see &quot;history&quot; below).</p>
+<p><strong>Output</strong> (single structured DeepSeek pass):</p>
+<ul>
+<li><code>lessons</code>: 0..N extracted facts (经验总结). <strong>Most tool calls → 0</strong> (&quot;ran <code>git status</code>&quot; yields nothing). Some → 1+ facts.</li>
+<li><code>state_delta</code>: optional one-line Tier 2 progress note (做了什么 / 进度), or null if the turn doesn&#x27;t meet PRD §4.3 recording criteria.</li>
+<li>Each lesson → written to mem0; <code>state_delta</code> → appended to Tier 2 state file.</li>
+</ul>
+<p><strong>Not</strong> done per-turn: no narrative summary, no skill creation (skill-create needs ≥10 tool calls / full-task context → §4.1 threshold or session-end).</p>
+<p><strong>Concrete example:</strong></p>
+<ul>
+<li>Tool event: agent edits <code>auth.py</code>, first MCP request 403s, retries, succeeds.</li>
+<li>Input: <code>{tool: Edit, diff, result} + last 3 turns + mem0 recall(topic=mcp)</code>.</li>
+<li>Output: <code>lessons: [{type: lesson, topic: mcp, problem: first-request-403, memory: &quot;MCP first request 403-times-out; retry once before failing&quot;}], state_delta: &quot;fixed token refresh in auth.py&quot;</code>.</li>
+</ul>
+<p><strong>&quot;What about previous history?&quot;</strong> — per-turn does <strong>not</strong> reprocess history. Each turn is extracted once, when it happens. The recent window is just context for judging the current turn, not re-summarization. Full-history reconciliation, cross-turn dedup, cross-task pattern detection, and skill-reuse assessment all happen at <strong>session-end</strong> (§3.4). So nothing is lost if a session is killed mid-way — per-turn already captured each turn incrementally; session-end just cleans up and connects the dots.</p>
+<hr>
+<h3>§4 Self-Evolution Loop (Hermes patterns, re-hosted)</h3>
+<p>We adopt Hermes&#x27;s closed learning loop. Hermes is a standalone agent; we <strong>borrow its loop design</strong> and run it on our hooks + mem0, not run Hermes itself.</p>
+<h4>4.1 Skill creation</h4>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Hermes</th>
+<th>Ours</th>
+</tr></thead><tbody>
+<tr>
+<td>Trigger</td>
+<td>after 5+ tool calls</td>
+<td>after <strong>10+ tool calls</strong> (PRD §5.1: a single Claude Code task easily generates 50+; Hermes&#x27;s 5 is too low). Configurable via <code>coworker config set skill.create.threshold</code>.</td>
+</tr>
+<tr>
+<td>Standard</td>
+<td><code>SKILL.md</code>, agentskills.io</td>
+<td>Same — reuse existing <code>skill-create</code></td>
+</tr>
+<tr>
+<td>Output</td>
+<td>skill in skills dir</td>
+<td>staged to <code>~/.coworker/pending/skills/</code> (review mode, §6)</td>
+</tr>
+</tbody></table></div>
+<p>Two triggers (PRD §5.1), both invoke <code>skill-create</code> with the session transcript as context:</p>
+<ol>
+<li><strong>In-session</strong> — task completes with ≥ threshold tool calls.</li>
+<li><strong>Post-session</strong> — the Stop reconciliation pass also assesses reusable workflows (full session picture → catches cross-task patterns).</li>
+</ol>
+<h4>4.2 Skill patching</h4>
+<p>When a skill is used and found outdated/wrong → invoke <code>skill-edit</code> with surgical <code>old_string → new_string</code> (Hermes <code>patch</code> action). <code>patch_count</code> feeds the curator. Same approval model + safety gates as creation.</p>
+<h4>4.3 Curator</h4>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Hermes</th>
+<th>Ours</th>
+</tr></thead><tbody>
+<tr>
+<td>Schedule</td>
+<td>every 7 days, after 2h+ idle</td>
+<td>Same</td>
+</tr>
+<tr>
+<td>Lifecycle</td>
+<td>active → stale (30d) → archived (90d)</td>
+<td>Same</td>
+</tr>
+<tr>
+<td>Metrics</td>
+<td>view/use/patch counts</td>
+<td>+ <code>error_rate</code>, <code>patch_frequency</code>, <code>user_override_rate</code>, regression detection (PRD §5.2)</td>
+</tr>
+<tr>
+<td>Scope</td>
+<td>never touches bundled/hub</td>
+<td>never touches hand-written / skill-factory bundled</td>
+</tr>
+<tr>
+<td>Recovery</td>
+<td>—</td>
+<td><code>coworker skill/memory unarchive</code></td>
+</tr>
+</tbody></table></div>
+<h4>4.4 Smart approval system</h4>
+<p>Hermes has a &quot;smart approval system that learns safe commands over time&quot; — <strong>not</strong> <code>write_approval</code> (that pattern name in PRD v5 §5.1 is unverified and should be corrected). We adopt the *concept*: staged review by default (<code>auto_approve: false</code>), with per-domain opt-in to auto for low-risk operation types. Safety gates (circuit breaker, sandbox, rollback) per PRD §5.6.</p>
+<hr>
+<h3>§5 Context Injection &amp; Snapshot (Tier 3 → Tier 1)</h3>
+<h4>5.1 Frozen snapshot at session start</h4>
+<p>At session start, read relevant mem0 entries → inject into CLAUDE.local.md between markers. Both Claude Code and OpenCode read CLAUDE.local.md at start, so the snapshot is available with <strong>zero tool calls</strong> (R5).</p>
+<pre><code>&lt;!-- MEMORY:walter-worker START --&gt;
+## Memory Snapshot (frozen at session start)
+- Project uses ruff, E501 ignored
+- MCP first request 403-times-out — retry once
+- Prefers Chinese; prefers discussing before implementing
+&lt;!-- MEMORY:walter-worker END --&gt;</code></pre>
+<ul>
+<li><strong>Frozen:</strong> captured once at start; mid-session mem0 writes do not refresh it.</li>
+<li><strong>Replaced:</strong> old marker block is fully replaced next session start (reuse <code>templates/local_claude_md.py</code> <code>inject_initiative_into_local_md()</code> pattern, guarded by <code>semantic_merge.py</code> so human content is never corrupted).</li>
+<li><strong>Manual refresh:</strong> <code>coworker memory refresh</code> for long sessions (&gt;2h).</li>
+</ul>
+<h4>5.2 MEMORY.md role — read-only export (decision B)</h4>
+<p>mem0 is the source of truth. <strong>MEMORY.md is kept as a read-only, curator-generated human-readable mirror</strong> — for git-diffability, offline reading, and as a human-inspectable view of Tier 3. The curator (§4.3) regenerates it from mem0 on each run.</p>
+<ul>
+<li><strong>Never written directly</strong> by per-turn sync or the agent mid-session (mem0 is written; MEMORY.md is exported).</li>
+<li><strong>Format:</strong> section-delimited per project (<code>## Project: &lt;name&gt;</code> → grouped entries), regenerated wholesale each curator run (not incrementally patched).</li>
+<li><strong>PRD v5 §6.2</strong> lists <code>MEMORY.md</code> as Tier 3 storage; this spec supersedes that — mem0 owns storage, MEMORY.md is a derived export. PRD v6 §3.5/§6.2 must be updated to match.</li>
+</ul>
+<hr>
+<h3>§6 Pending Queue (simple version)</h3>
+<p>Per owner: a simple solution first. Requirements (go in PRD v6): staged skills are reviewable; the queue must not grow unbounded.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Capability</th>
+<th>Simple v1</th>
+</tr></thead><tbody>
+<tr>
+<td>Stage</td>
+<td>auto-created/patched skills → <code>~/.coworker/pending/skills/&lt;id&gt;.json</code></td>
+</tr>
+<tr>
+<td>Review</td>
+<td><code>coworker skill pending</code> lists queue; <code>coworker skill approve &lt;id&gt;</code> / <code>reject &lt;id&gt;</code></td>
+</tr>
+<tr>
+<td><strong>Batch</strong></td>
+<td><code>coworker skill pending --approve-all --type lesson</code> (batch by type)</td>
+</tr>
+<tr>
+<td><strong>Auto-expiry</strong></td>
+<td>pending items untouched for <strong>30 days → auto-rejected</strong> (not promoted silently)</td>
+</tr>
+<tr>
+<td>Quality score</td>
+<td>deferred to v2 (just <code>use_count</code> + <code>patch_count</code> for now)</td>
+</tr>
+<tr>
+<td>Persistence</td>
+<td>survives restarts (JSON files, not in-memory)</td>
+</tr>
+</tbody></table></div>
+<p>Safety gates still apply (circuit breaker &gt;3 skills/24h, sandbox dry-run before promotion, rollback) — see PRD §5.6.</p>
+<hr>
+<h3>§7 Evolution Metrics</h3>
+<p>PRD currently has only <strong>safety</strong> metrics (§5.6.5). The vision is &quot;smarter over time&quot; — we add <strong>effectiveness</strong> metrics. These become requirements in PRD v6.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Metric</th>
+<th>Signal</th>
+<th>Target</th>
+</tr></thead><tbody>
+<tr>
+<td><code>skill_reuse_rate</code></td>
+<td>fraction of sessions that invoke an auto-created skill</td>
+<td>rising over time</td>
+</tr>
+<tr>
+<td><code>user_correction_rate</code></td>
+<td>user overrides/corrects agent per task</td>
+<td>falling over time</td>
+</tr>
+<tr>
+<td><code>task_first_pass_rate</code></td>
+<td>tasks completed without rework</td>
+<td>rising over time</td>
+</tr>
+<tr>
+<td><code>memory_hit_rate</code></td>
+<td>searches that return a useful entry</td>
+<td>rising; non-zero baseline means memory is being used</td>
+</tr>
+<tr>
+<td><code>refusal_rate</code> (safety)</td>
+<td>agent refusing unsafe requests</td>
+<td>stays high</td>
+</tr>
+<tr>
+<td><code>unsafe_output_rate</code> (safety)</td>
+<td>harmful output</td>
+<td>near 0</td>
+</tr>
+<tr>
+<td><code>circuit_breaker_trips</code> (safety)</td>
+<td>runaway auto-evolution</td>
+<td>near 0</td>
+</tr>
+</tbody></table></div>
+<p>Collection: logged to analytics.db per session; surfaced in curator <code>REPORT.md</code>. Exact formulas + dashboard → impl detail, not spec.</p>
+<hr>
+<h3>§8 Dual-IDE Coverage Matrix</h3>
+<p>Per owner: PRD + spec must cover <strong>both</strong> Claude Code and OpenCode as first-class. This promotes PRD Open Question #4 (OpenCode reliability) from deferred to must-assess.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Concern</th>
+<th>Claude Code</th>
+<th>OpenCode</th>
+<th>Status / mitigation</th>
+</tr></thead><tbody>
+<tr>
+<td>Per-tool capture</td>
+<td>PostToolUse (async)</td>
+<td><code>tool.execute.after</code></td>
+<td><strong>OpenCode coverage unverified</strong> — spike needed: does it fire for all tool types incl. MCP/subprocess?</td>
+</tr>
+<tr>
+<td>Subagent capture</td>
+<td>SubagentStop</td>
+<td><strong>no first-class equivalent</strong></td>
+<td>OpenCode gap. Mitigation: session-end reconciliation back-fills from transcript.</td>
+</tr>
+<tr>
+<td>Session end</td>
+<td>Stop</td>
+<td><code>session.end</code></td>
+<td>both OK</td>
+</tr>
+<tr>
+<td>Session id source</td>
+<td>stdin JSON</td>
+<td>plugin context</td>
+<td>OK</td>
+</tr>
+<tr>
+<td>stdout injection</td>
+<td>dropped (by design)</td>
+<td>TBD</td>
+<td>sync writes to disk, not context (both)</td>
+</tr>
+<tr>
+<td>Settings location</td>
+<td><code>~/.claude/settings.json</code></td>
+<td><code>.opencode/coworker-analytics/</code> plugin</td>
+<td>OK</td>
+</tr>
+</tbody></table></div>
+<p><strong>Spec requirement:</strong> before declaring dual-IDE production-ready, run the OpenCode coverage spike. Until then OpenCode memory is best-effort with audit-trail verification (PRD §6.5 stance, now a work item not a footnote).</p>
+<hr>
+<h3>§9 Error Handling &amp; Degraded Mode</h3>
+<p>Adapted from QA spec §5.2 error philosophy (degrade, don&#x27;t crash). LLM provider fallback applies to <strong>all</strong> DeepSeek Flash calls:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Component</th>
+<th>Failure</th>
+<th>Degraded behavior</th>
+</tr></thead><tbody>
+<tr>
+<td>DeepSeek Flash (any LLM call)</td>
+<td>rate-limited / down</td>
+<td>→ Gemini Flash → Claude Haiku. All three down → defer to next cycle; raw transcript preserved (no data loss).</td>
+</tr>
+<tr>
+<td>mem0 store</td>
+<td>corrupt / unreadable</td>
+<td>rebuild from raw session transcripts (analytics.db) via re-extraction. Log event.</td>
+</tr>
+<tr>
+<td>mem0 vector index</td>
+<td>corrupt</td>
+<td>mem0 re-index from memory entries.</td>
+</tr>
+<tr>
+<td>PostToolUse hook</td>
+<td>fails to fire</td>
+<td>SubagentStop + Stop reconciliation back-fill; audit trail records the gap.</td>
+</tr>
+<tr>
+<td>SubagentStop hook</td>
+<td>not configured / fails</td>
+<td>session-end Stop reads full transcript (subagent results are in transcript).</td>
+</tr>
+<tr>
+<td>CLAUDE.local.md lock</td>
+<td>concurrent sessions</td>
+<td>file lock (fcntl); second session queues 3× w/ 1s backoff, then conflict file for later merge.</td>
+</tr>
+<tr>
+<td>Curator</td>
+<td>fails mid-run</td>
+<td>partial results persisted; resumes from checkpoint next run.</td>
+</tr>
+<tr>
+<td>Skill <code>.usage.json</code></td>
+<td>corrupt</td>
+<td>rebuild from skill dir listing; counts reset to 0 (lossy, non-blocking).</td>
+</tr>
+<tr>
+<td>Circuit breaker</td>
+<td>&gt;3 skills/24h</td>
+<td>halt auto-evolution, keep pending queue, notify user, <code>coworker skill resume</code> to re-enable.</td>
+</tr>
+</tbody></table></div>
+<p>Error codes: reuse the QA <code>E0xx</code> style registry, namespaced <code>MEM_E0xx</code> (mem0/extraction), <code>SYNC_E0xx</code> (capture), <code>SKILL_E0xx</code> (lifecycle). Exact table → impl.</p>
+<hr>
+<h3>§10 Open Questions</h3>
+<ol>
+<li><strong>mem0 exact config shape</strong> — provider/field names for DeepSeek-as-LLM, local embedder, embedded vector store. Task-0 spike.</li>
+<li><strong>OpenCode coverage</strong> — does <code>tool.execute.after</code> fire for all tool types? §8 spike.</li>
+<li><strong>mem0 extraction quality</strong> — DeepSeek Flash on session content: accuracy of lesson extraction to be validated on real sessions (feeds evolution metrics baseline).</li>
+<li><strong>GEPA/DSPy prompt evolution</strong> — deferred to v2 (out of MVP scope, per PRD §8).</li>
+</ol>
+<hr>
+<h3>§11 Dashboard API &amp; Data Layer</h3>
+<p>This section specifies the <strong>how</strong> for PRD §5.8 (R8–R15). The Evolution page is a new tab in the existing analytics dashboard, served by the same FastAPI app (<a href="../../../../../src/coworker/dashboard/app.py"><code>src/coworker/dashboard/app.py</code></a>) and matching the existing vanilla JS + CSS patterns.</p>
+<h4>11.1 API Endpoints</h4>
+<p>New endpoints added to <code>app.py</code>:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Returns</th>
+<th>Satisfies</th>
+</tr></thead><tbody>
+<tr>
+<td><code>/api/evolution/overview</code></td>
+<td>GET</td>
+<td>Stat card data</td>
+<td>R14 (evolution score)</td>
+</tr>
+<tr>
+<td><code>/api/evolution/skills</code></td>
+<td>GET</td>
+<td>Skills list, filtered</td>
+<td>R8, R10, R12, R15</td>
+</tr>
+<tr>
+<td><code>/api/evolution/skills/{id}</code></td>
+<td>GET</td>
+<td>Single skill detail + session trace</td>
+<td>R10</td>
+</tr>
+<tr>
+<td><code>/api/evolution/experiences</code></td>
+<td>GET</td>
+<td>Experiences list, filtered</td>
+<td>R9, R11, R12, R15</td>
+</tr>
+<tr>
+<td><code>/api/evolution/experiences/{id}</code></td>
+<td>GET</td>
+<td>Single experience detail + retrieval history</td>
+<td>R11</td>
+</tr>
+<tr>
+<td><code>/api/evolution/pending</code></td>
+<td>GET</td>
+<td>Pending queue items</td>
+<td>R13</td>
+</tr>
+<tr>
+<td><code>/api/evolution/approve/{id}</code></td>
+<td>POST</td>
+<td>Approve pending item</td>
+<td>R13</td>
+</tr>
+<tr>
+<td><code>/api/evolution/reject/{id}</code></td>
+<td>POST</td>
+<td>Reject pending item</td>
+<td>R13</td>
+</tr>
+</tbody></table></div>
+<h4>11.2 Data Sources</h4>
+<p>The Evolution page reads from three stores — unified in the API layer, not in a separate DB:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Data</th>
+<th>Source</th>
+<th>Query pattern</th>
+</tr></thead><tbody>
+<tr>
+<td>Skills (auto-train flag, status, created)</td>
+<td>Skill store <code>~/.coworker/skills/&lt;name&gt;/SKILL.md</code> + <code>usage.json</code> sidecar</td>
+<td>Filesystem scan + JSON parse</td>
+</tr>
+<tr>
+<td>Skills (session trace, call count)</td>
+<td>analytics.db <code>tool_calls</code> table: <code>WHERE tool=&#x27;Skill&#x27; AND detail LIKE &#x27;%&lt;skill_name&gt;%&#x27;</code></td>
+<td>SQL join on session_id</td>
+</tr>
+<tr>
+<td>Experiences (memory text, metadata)</td>
+<td>mem0: <code>memory.search()</code> with filters</td>
+<td>mem0 Python API, no SQL</td>
+</tr>
+<tr>
+<td>Experiences (retrieval count, last retrieved)</td>
+<td>mem0 metadata: <code>use_count</code>, <code>last_used</code></td>
+<td>Read from mem0 entry metadata</td>
+</tr>
+<tr>
+<td>Pending queue</td>
+<td><code>~/.coworker/pending/skills/&lt;id&gt;.json</code></td>
+<td>Filesystem scan</td>
+</tr>
+</tbody></table></div>
+<h4>11.3 Query: Evolution Overview</h4>
+<pre><code>def query_evolution_overview() -&gt; dict:
+    &quot;&quot;&quot;Stat cards for the Evolution page.&quot;&quot;&quot;
+    skills = list_skills(provenance=&quot;agent&quot;)        # filesystem scan
+    experiences = mem0.search(filters={&quot;metadata.provenance&quot;: &quot;agent&quot;})
+    total_sessions = db.count(&quot;sessions&quot;)
+    sessions_with_auto_skill = db.count_sessions_using_skill(provenance=&quot;agent&quot;)
+
+    return {
+        &quot;auto_trained_skills&quot;: len(skills),
+        &quot;auto_trained_experiences&quot;: len(experiences),
+        &quot;pending_review&quot;: len(list_pending()),
+        &quot;skill_reuse_rate&quot;: sessions_with_auto_skill / max(total_sessions, 1),
+        &quot;evolution_score&quot;: compute_evolution_score(skills, experiences, total_sessions),
+    }</code></pre>
+<h4>11.4 Query: Skills with Trace</h4>
+<pre><code>def query_skills(auto_train_only=True, project=None, status=&quot;active&quot;) -&gt; list[dict]:
+    &quot;&quot;&quot;Skills list for the Evolution page table.&quot;&quot;&quot;
+    skills = []
+    for skill in list_skills():
+        if auto_train_only and skill.provenance != &quot;agent&quot;:
+            continue
+        if project and skill.project != project:
+            continue
+        if status != &quot;all&quot; and skill.state != status:
+            continue
+
+        # Session trace from analytics.db
+        sessions = db.query(&quot;&quot;&quot;
+            SELECT DISTINCT session_id
+            FROM tool_calls
+            WHERE tool = &#x27;Skill&#x27; AND detail LIKE ?
+        &quot;&quot;&quot;, (f&quot;%{skill.name}%&quot;,))
+
+        skills.append({
+            &quot;name&quot;: skill.name,
+            &quot;provenance&quot;: skill.provenance,
+            &quot;status&quot;: skill.state,
+            &quot;created_at&quot;: skill.created_at,
+            &quot;sessions_invoked&quot;: len(sessions),
+            &quot;total_calls&quot;: skill.usage.total_calls,
+            &quot;last_used&quot;: skill.usage.last_used,
+            &quot;reuse_rate&quot;: len(sessions) / max(total_sessions, 1),
+            &quot;session_ids&quot;: [s[0] for s in sessions],
+        })
+    return skills</code></pre>
+<h4>11.5 Query: Experiences with Trace</h4>
+<pre><code>def query_experiences(auto_train_only=True, project=None, status=&quot;active&quot;) -&gt; list[dict]:
+    &quot;&quot;&quot;Experiences list for the Evolution page table.&quot;&quot;&quot;
+    results = mem0.search(
+        query=&quot;&quot;,  # empty = return all, filtered by metadata
+        filters=build_filters(auto_train_only, project, status),
+        top_k=200,
+    )
+    return [
+        {
+            &quot;id&quot;: r.id,
+            &quot;memory&quot;: r.memory,
+            &quot;provenance&quot;: r.metadata.get(&quot;provenance&quot;),
+            &quot;topic&quot;: r.metadata.get(&quot;topic&quot;),
+            &quot;project&quot;: r.metadata.get(&quot;project&quot;),
+            &quot;source_session&quot;: r.metadata.get(&quot;source_session&quot;),
+            &quot;use_count&quot;: r.metadata.get(&quot;use_count&quot;, 0),
+            &quot;last_used&quot;: r.metadata.get(&quot;last_used&quot;),
+            &quot;state&quot;: r.metadata.get(&quot;state&quot;),
+        }
+        for r in results
+    ]</code></pre>
+<h4>11.6 Provenance Determination</h4>
+<pre><code>def get_skill_provenance(skill_name: str) -&gt; str:
+    &quot;&quot;&quot;Determine skill origin.&quot;&quot;&quot;
+    path = Path(f&quot;~/.coworker/skills/{skill_name}/SKILL.md&quot;).expanduser()
+    if not path.exists():
+        return &quot;unknown&quot;
+    # Check usage.json sidecar
+    usage = read_usage_json(skill_name)
+    if usage.get(&quot;provenance&quot;) == &quot;agent&quot;:
+        return &quot;agent&quot;        # 🟢 Auto-Train
+    if usage.get(&quot;source&quot;) in (&quot;skill-factory&quot;, &quot;bundled&quot;):
+        return &quot;bundled&quot;      # 🔵 Bundled
+    return &quot;manual&quot;           # ⚪ Manual (default for hand-written)</code></pre>
+<h4>11.7 Frontend Integration</h4>
+<p>The Evolution page is a new SPA view in the existing dashboard:</p>
+<ul>
+<li><strong>Sidebar:</strong> Add <code>{id:&#x27;evolution&#x27;, label:&#x27;Evolution&#x27;, icon:&#x27;◉&#x27;, section:&#x27;Monitoring&#x27;}</code> to the <code>views</code> array in <code>dashboard.js</code></li>
+<li><strong>Loader:</strong> <code>loadEvolution()</code> function following the existing pattern (<code>loadSkills</code>, <code>loadKnowledge</code>)</li>
+<li><strong>HTML:</strong> No new page — rendered dynamically via <code>innerHTML</code> like all other views</li>
+<li><strong>CSS:</strong> Reuse existing <code>.tag-auto</code>, <code>.tag-manual</code>, <code>.tag-bundled</code>, <code>.tag-pending</code>, <code>.tag-stale</code>, <code>.tag-active</code>, <code>.tag-archived</code> classes (add to <code>dashboard.css</code>)</li>
+<li><strong>Expand:</strong> Click-to-expand rows for session trace using the <code>expand-row</code> pattern</li>
+</ul>
+<hr>
+<h3>§12 Auto-Worker Loop</h3>
+<p>This section specifies the <strong>how</strong> for the auto-worker (design: <a href="../design/auto-worker-design.html">auto-worker-design.md</a>). The auto-worker is a CLI-driven SDK-mode agent that audits project state against declared intent and self-executes improvements.</p>
+<h4>12.1 Entry Point</h4>
+<pre><code>coworker run --loop --skill auto-worker [--max-hours 12] [--project walter-worker]</code></pre>
+<p>Runs on the same infrastructure as the implicit evolution loop — same mem0 store, same state files, same capture hooks. The difference: SDK mode (explicit loop) vs hook-embedded (implicit).</p>
+<h4>12.2 Loop State Machine</h4>
+<pre><code>                  ┌──────────┐
+                  │   INIT    │
+                  │ load context│
+                  └─────┬─────┘
+                        │
+                        ▼
+                  ┌──────────┐     nothing to check
+                  │  CHECK    │──────────────────▶ STOP
+                  │ gap detection│
+                  └─────┬─────┘
+                        │ findings
+                        ▼
+                  ┌──────────┐
+                  │ DECIDE    │
+                  │ per finding│
+                  └─────┬─────┘
+                        │
+              ┌─────────┼──────────┐
+              ▼         ▼          ▼
+         ┌────────┐ ┌────────┐ ┌────────┐
+         │  FIX   │ │  ASK   │ │  SKIP  │
+         │ execute│ │ user   │ │ note it│
+         └───┬────┘ └───┬────┘ └───┬────┘
+             │          │          │
+             ▼          ▼          │
+         ┌────────┐ ┌────────┐     │
+         │ VERIFY │ │ WAIT   │     │
+         │ test   │ │ answer │     │
+         └───┬────┘ └───┬────┘     │
+             │          │          │
+             └──────────┼──────────┘
+                        │
+                        ▼
+                  ┌──────────┐
+                  │  NOTE    │
+                  │ state file│
+                  └─────┬─────┘
+                        │
+                        ▼
+                  ┌──────────┐
+                  │ LOOP     │
+                  │ back to   │
+                  │ CHECK     │
+                  └──────────┘</code></pre>
+<h4>12.3 Rule Implementation</h4>
+<p>8 rules from the design doc, mapped to implementation:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Rule</th>
+<th>Implementation</th>
+</tr></thead><tbody>
+<tr>
+<td>R1: Validate against raw data</td>
+<td><code>GapCheck.verify()</code> reads analytics.db raw tables, runs <code>grep</code> on codebase, executes tests fresh. Never reads derived tables or mem0 summaries as truth.</td>
+</tr>
+<tr>
+<td>R2: Dead code detection</td>
+<td><code>DeadCodeDetector</code> class: scans skill <code>usage.json</code> for zero-call skills, scans session transcripts for tool-call-less sessions, scans config keys against codebase grep.</td>
+</tr>
+<tr>
+<td>R3: Three-layer attribution</td>
+<td><code>RequirementAuditor.audit()</code> → per PRD/spec item: Layer 1 (grep for code) → Layer 2 (run tests) → Layer 3 (semantic comparison of intent vs implementation). Each layer is a separate method.</td>
+</tr>
+<tr>
+<td>R4: Working Notes</td>
+<td><code>StateFile.has_been_checked(item_id)</code> → skip. <code>StateFile.mark_checked(item_id, verdict)</code> after each check. Before any work, consult state file.</td>
+</tr>
+<tr>
+<td>R5: Vision Check</td>
+<td><code>VisionCheck.evaluate(change)</code> → prompt: &quot;Self-evolving agent 的愿景是让 agent 越来越聪明。这个改动是否靠近此愿景？&quot; → `{verdict: proceed\</td>
+<td>skip, reason}`.</td>
+</tr>
+<tr>
+<td>R6: Research → Advocate</td>
+<td><code>ResearchAdvisor.advise(change)</code> → 1. WebSearch for similar solutions → 2. Invoke <code>contrarian-review</code> skill on proposed change → 3. Return `{action: fix\</td>
+<td>ask\</td>
+<td>skip, rationale}`.</td>
+</tr>
+<tr>
+<td>R7: Context-Aware Input</td>
+<td><code>ContextLoader.load()</code> → reads PRD items, spec sections, design decisions, Open Questions, devil&#x27;s advocate findings, prior state files. Cross-references for contradictions.</td>
+</tr>
+<tr>
+<td>R8: Ask, Don&#x27;t Block</td>
+<td><code>UserGate.ask(question)</code> → sends Telegram notification → writes to State File Open Questions → returns <code>ASK_PENDING</code>. Next loop: <code>UserGate.check_pending()</code> → answered? → process. Still unanswered? → skip again.</td>
+</tr>
+</tbody></table></div>
+<h4>12.4 Training Pipeline (Batch Extraction)</h4>
+<p>Before the auto-worker runs its first loop, a batch pass extracts initial knowledge from historical sessions:</p>
+<pre><code>coworker memory train --sessions all --target 10-skills 10-experiences</code></pre>
+<p><strong>Implementation:</strong></p>
+<ol>
+<li>Read <strong>all</strong> past sessions from analytics.db (<code>sessions</code> + <code>tool_calls</code> + <code>messages</code> tables). No limit — every session is training data.</li>
+<li>For each session: pass full transcript through DeepSeek Flash</li>
+<li>Output per session: <code>{lessons: [...], skill_candidates: [...]}</code></li>
+<li>Aggregate across sessions: merge similar lessons, deduplicate, identify recurring patterns</li>
+<li>Write top 10 skills to <code>~/.coworker/pending/skills/</code> (staged, not auto-approved)</li>
+<li>Write top 10 experiences to mem0 via <code>memory.add()</code></li>
+<li>Generate training report: <code>~/.coworker/memory/training-report-{date}.md</code> — includes total sessions processed, lessons extracted, skills identified</li>
+</ol>
+<p><strong>Selection criteria for top 10:</strong></p>
+<ul>
+<li>Skills: highest pattern frequency across sessions (same task pattern appearing ≥3 times)</li>
+<li>Experiences: highest retrieval likelihood (lessons that would have helped in the most past sessions)</li>
+</ul>
+<h4>12.5 Claude SDK Validation Harness</h4>
+<p>After training, validate that knowledge is useful:</p>
+<pre><code>coworker memory validate --task &lt;task-definition&gt; --compare-baseline</code></pre>
+<p><strong>Implementation:</strong></p>
+<ol>
+<li>Define a task (e.g., &quot;Add a <code>coworker stats</code> CLI command&quot;) — task definition is in <code>docs/self-evolving-agent/test-plan/</code></li>
+<li>Spawn <strong>Agent A</strong> (baseline): Claude SDK session, no CLAUDE.local.md snapshot, no mem0</li>
+<li>Spawn <strong>Agent B</strong> (with memory): Claude SDK session, CLAUDE.local.md snapshot injected, mem0 accessible</li>
+<li>Both agents run the same task</li>
+<li>Compare transcripts:</li>
+</ol>
+<pre><code>def compare_runs(baseline: RunResult, with_memory: RunResult) -&gt; ComparisonReport:
+    return {
+        &quot;baseline_tool_calls&quot;: baseline.tool_call_count,
+        &quot;memory_tool_calls&quot;: with_memory.tool_call_count,
+        &quot;tool_call_reduction&quot;: baseline.tool_call_count - with_memory.tool_call_count,
+        &quot;baseline_incorrect_assumptions&quot;: count_incorrect(baseline.transcript),
+        &quot;memory_incorrect_assumptions&quot;: count_incorrect(with_memory.transcript),
+        &quot;memory_skills_invoked&quot;: extract_skill_calls(with_memory.transcript),
+        &quot;memory_experiences_retrieved&quot;: extract_memory_searches(with_memory.transcript),
+        &quot;verdict&quot;: &quot;improved&quot; if with_memory.tool_call_count &lt; baseline.tool_call_count else &quot;no_change&quot;,
+    }</code></pre>
+<h4>12.6 Model Routing</h4>
+<pre><code>MODEL_ROUTING = {
+    &quot;gap_detection&quot;: &quot;deepseek-flash&quot;,       # per-item yes/no, mechanical
+    &quot;numerical_validation&quot;: None,            # SQL queries, no LLM
+    &quot;dead_code_detection&quot;: None,             # grep + analytics.db, no LLM
+    &quot;investigation&quot;: &quot;deepseek-pro&quot;,         # git history + multi-source synthesis
+    &quot;vision_check&quot;: &quot;deepseek-pro&quot;,          # subjective, needs judgment
+    &quot;research_web&quot;: None,                    # WebSearch tool, no LLM reasoning
+    &quot;advocate_review&quot;: &quot;claude&quot;,             # safety-critical, strongest model
+    &quot;code_fix&quot;: &quot;deepseek-flash&quot;,            # mechanical, cheap
+    &quot;report&quot;: &quot;deepseek-pro&quot;,                # narrative quality
+    &quot;extraction&quot;: &quot;deepseek-flash&quot;,          # lesson extraction from transcript
+}</code></pre>
+<h4>12.7 State File Format</h4>
+<p>The auto-worker writes to <code>docs/self-evolving-agent/state/auto-worker-YYYY-MM-DD-state.md</code>:</p>
+<pre><code># Auto-Worker Run State
+
+**Started:** 2026-07-25T10:00:00Z
+**Status:** in_progress
+**Max Duration:** 12h (elapsed: 2h15m, remaining: 9h45m)
+**Current Phase:** gap_detection (round 1)
+
+## Open Questions
+| ID | Question | Asked At | Status |
+|----|----------|----------|--------|
+| Q-1 | Is ruff E501 intentionally ignored project-wide? | 2026-07-25T10:30:00Z | pending |
+| Q-2 | Should skill-create threshold be 10 or 15? | 2026-07-25T11:00:00Z | answered: 10 |
+
+## Checked (Round 1)
+| ID | What | Source | Verdict | Date |
+|----|------|--------|---------|------|
+| C-1 | R3 semantic search (PRD §3.1) | grep + mem0 test | NOT DONE | 2026-07-25 |
+| C-2 | PostToolUse async:true (PRD §5.1) | settings.json | DONE RIGHT | 2026-07-25 |
+| C-3 | skill &quot;session-memory&quot; usage count | analytics.db vs usage.json | MISMATCH (3 vs 7) | 2026-07-25 |
+
+## Fixed (Round 1)
+| ID | What | Action | Date |
+|----|------|--------|------|
+
+## Skipped (Round 1)
+| ID | What | Reason | Date |
+|----|------|--------|------|
+| S-1 | E501 line-length rule | Deliberate project choice (git log: abc123) | 2026-07-25 |</code></pre>
+<hr>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Date</th>
+<th>Change</th>
+</tr></thead><tbody>
+<tr>
+<td>2026-07-25</td>
+<td>v1: New spec for memory platform + self-evolution engine. mem0 substrate (library mode, DeepSeek Flash extraction, local embedder). Hermes loop patterns re-hosted on dual-IDE hooks (PostToolUse/SubagentStop/Stop + OpenCode tool.execute.after/session.end). per-turn + session-end capture (both). Simple pending queue. Evolution metrics. Supersedes the storage/search portions of <a href="qa-autonomous-agent-spec.html"><code>qa-autonomous-agent-spec.md</code></a> (which remains as deferred auto-worker reference).</td>
+</tr>
+<tr>
+<td>2026-07-25</td>
+<td>v1.2: Added §11 Dashboard API &amp; Data Layer (8 endpoints, 3 data source integration patterns, query specs for overview/skills/experiences, provenance determination, frontend integration). Added §12 Auto-Worker Loop (state machine, 8-rule implementation, training pipeline, Claude SDK validation harness with comparison metrics, model routing, state file format). Satisfies PRD v7 §5.8 (R8–R15) and auto-worker design.</td>
+</tr>
+<tr>
+<td>2026-07-25</td>
+<td>v1.1: Closed 2 open questions — MEMORY.md = read-only curator export (decision B); per-turn DeepSeek cost accepted (no tuning knobs). Added §3.5: anatomy of one per-turn DeepSeek call (input = tool event + bounded recent window + mem0 recall; output = lessons 0..N + optional state_delta; history reprocessing is session-end only).</td>
+</tr>
+</tbody></table></div>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="qa-autonomous-agent-spec.html"><span class="label">Previous</span>QA Autonomous Agent — Spec ⚠️ DEFERRED</a><a class="next" href="../state/2026-07-29-current-state.html"><span class="label">Next</span>Self-Evolving Agent — Current State</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

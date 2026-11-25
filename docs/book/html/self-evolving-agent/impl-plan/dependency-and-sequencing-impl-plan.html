@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine · impl-plan · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/dashboard-ui-prd.html">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-29-devil-advocate-reviews-summary.html">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/auto-worker-design.html">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/dashboard-design.html">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/qa-autonomous-agent-design.html">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../INDEX.html">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/band-ai-docs.html">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-agent-README.html">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-ai-docs.html">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-README.html">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-docs.html">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-agent-README.html">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/pioneer-docs.html">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/memory-graph-spec.html">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/qa-autonomous-agent-spec.html">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/self-evolving-agent-spec.html">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-29-current-state.html">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-dashboard-data-not-verified.html">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="dependency-and-sequencing-impl-plan.html" aria-current="page">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="qa-autonomous-agent-impl-plan.html">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/self-evolving-agent-test-plan.html"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/2026-07-29-test-execution-report.html">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-graph-test-plan.html">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>impl-plan</span> / <span>Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/impl-plan/dependency-and-sequencing-impl-plan">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/impl-plan/dependency-and-sequencing-impl-plan.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</h2>
+<blockquote class="callout" data-label="NOTE"><p>Initiative: self-evolving-agent | Type: decision doc | Status: <strong>pending user decision</strong>  Companion to: <a href="../decision-history/2026-07-29-devil-advocate-reviews-summary.html">advocate review</a> (Round 2 — the 2026-07-24 review; the raw directory was consolidated into this entry)  Question this answers: the QA-agent skill (design/spec/impl-plan) declares dependencies on PRD platform features that <strong>do not exist yet</strong>. How do we resolve this — build the engine first, or make the skill self-contained?</p></blockquote>
+<hr>
+<h3>The Core Problem</h3>
+<p>The QA-agent docs claim to be &quot;built on&quot; the self-evolution platform. Verified against the codebase on 2026-07-24:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Platform feature the QA skill claims</th>
+<th>Claimed in</th>
+<th>Actually built?</th>
+</tr></thead><tbody>
+<tr>
+<td>MEMORY.md store (<code>memory_store.py</code>)</td>
+<td>design:6, spec §2.2, impl-plan:5</td>
+<td>❌ greenfield</td>
+</tr>
+<tr>
+<td>FTS5 index (<code>fts5_index.py</code>)</td>
+<td>design:6, design §1, impl-plan:31</td>
+<td>❌ greenfield</td>
+</tr>
+<tr>
+<td>State Engine (§4)</td>
+<td>design:6, spec §4, impl-plan</td>
+<td>⚠️ partial — <code>coworker state-update</code> runs on Stop hook, but the state-file convention + recording criteria are not implemented</td>
+</tr>
+<tr>
+<td>Self-Evolution Engine (§5: auto skill create/patch)</td>
+<td>design:6, design §5</td>
+<td>❌ greenfield</td>
+</tr>
+<tr>
+<td><code>coworker run --loop</code> SDK driver (§2.2)</td>
+<td>design:29, impl-plan</td>
+<td>❌ greenfield</td>
+</tr>
+<tr>
+<td><code>SessionStop</code> hook</td>
+<td>design:21,31</td>
+<td>❌ <strong>not a real hook name</strong> (real: <code>SessionEnd</code>; see review §1.2)</td>
+</tr>
+<tr>
+<td><code>/memory-search</code>, <code>/memory-add</code> skills</td>
+<td>design §1</td>
+<td>❌ do not exist as skills</td>
+</tr>
+</tbody></table></div>
+<p><strong>A skill cannot extend infrastructure that does not exist.</strong> This is the central dependency conflict to resolve before writing more code.</p>
+<h4>Additional inconsistency: impl-plan v2 silently switched backends</h4>
+<p>The impl-plan (<a href="qa-autonomous-agent-impl-plan.html"><code>qa-autonomous-agent-impl-plan.md</code></a>, header &quot;v2 — Guild OSS + Jam.dev MCP&quot;) diverges from BOTH the design and the spec:</p>
+<ul>
+<li><strong>design + spec</strong> agree: two-tier <code>MEMORY.md</code> + SQLite <code>knowledge_index</code> (+ FTS5).</li>
+<li><strong>impl-plan v2</strong> replaces FTS5 with <strong>Guild OSS Lore</strong> (BM25+vector), state files with <strong>Guild Quests/Briefs</strong>, and adds <strong>Jam.dev MCP</strong>.</li>
+</ul>
+<p><strong>Note on Appendix A (corrected):</strong> PRD Appendix A did <strong>not</strong> reject Guild wholesale. It rejected Guild only as a *wholesale replacement for the memory architecture* (R2/R7 + no self-evolution features), while explicitly endorsing Guild as a <strong>complementary v2 candidate</strong>, including &quot;evaluating as an alternative to FTS5 for v2.&quot; The impl-plan v2&#x27;s use of Guild (Lore for search, Quests/Briefs for task tracking) is therefore <strong>aligned with Appendix A&#x27;s v2 guidance</strong>, not a contradiction — using Guild for the QA skill is a legitimate option.</p>
+<p>The accurate concerns are: (a) <strong>design ↔ impl-plan disagree</strong> — the design doc still describes the no-Guild <code>MEMORY.md + SQLite + FTS5</code> architecture and was not updated when the impl-plan pivoted to Guild; (b) <strong>R2/R7 are context-dependent</strong> — they fail the PRD&#x27;s *implicit auto-capture* requirement, but the QA skill runs in SDK mode (deliberate invocation), where a background MCP server and orchestrated writes are acceptable, so they likely don&#x27;t block the QA skill; (c) <strong>new external dependencies</strong> — Guild Go binary + Jam.dev MCP add install/maintenance burden. Reconcile the design↔impl-plan substrate choice alongside the Path 1/2 decision.</p>
+<hr>
+<h3>What DOES Exist (verified, reusable now)</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Asset</th>
+<th>Location</th>
+<th>Usable for QA skill?</th>
+</tr></thead><tbody>
+<tr>
+<td>Analytics DB</td>
+<td><code>analytics/db.py</code> — 8 tables incl. <code>knowledge</code> (title/type/session_id/project/skills/summary/evidence), <code>session_summaries</code>, <code>tool_calls</code></td>
+<td>✅ extend the existing <code>knowledge</code> table instead of a parallel DB</td>
+</tr>
+<tr>
+<td>Working DeepSeek client</td>
+<td><code>analytics/knowledge.py._ask_llm_is_duplicate</code></td>
+<td>✅ reuse instead of a new <code>_call_llm</code></td>
+</tr>
+<tr>
+<td>Live hooks</td>
+<td><code>~/.claude/settings.json</code> — PostToolUse + Stop firing; Stop calls <code>coworker state-update</code></td>
+<td>✅ extend hook commands</td>
+</tr>
+<tr>
+<td>CLI / templates / adapters / semantic_merge</td>
+<td><code>cli.py</code>, <code>templates/local_claude_md.py</code>, <code>adapters/</code>, <code>semantic_merge.py</code></td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Existing skills</td>
+<td><code>session-memory</code>, <code>self-analyze</code>, <code>self-heal</code> (in <code>skills/</code> + <code>~/.claude/skills/</code>)</td>
+<td>✅ reference/adapt</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>The Fork — Two Build Paths</h3>
+<h4>Path 1 — Self-contained QA skill (ship now)</h4>
+<p>Strip the 5 platform dependencies. The QA skill uses only existing walter-worker infra:</p>
+<ul>
+<li>Knowledge storage → extend <code>analytics.db</code>&#x27;s <code>knowledge</code> table (not a parallel <code>qa/knowledge.db</code>).</li>
+<li>LLM calls → reuse <code>analytics/knowledge.py</code>&#x27;s DeepSeek client (not a new <code>_call_llm</code>).</li>
+<li>Hooks → wire into the existing PostToolUse/Stop commands (with correct <code>SessionEnd</code> + <code>async</code>).</li>
+<li>No MEMORY.md / FTS5 / State-Engine-convention / auto-evolution dependency.</li>
+</ul>
+<p><strong>Tradeoffs</strong></p>
+<ul>
+<li>➕ Buildable <strong>today</strong>; delivers a working QA tool; unblocked by the engine.</li>
+<li>➕ Dogfooding a real skill produces the data that tells you what the engine actually needs.</li>
+<li>➖ Does not participate in self-evolution (no shared memory/skill lifecycle with the platform).</li>
+<li>➖ Later migration cost onto the engine when it exists.</li>
+</ul>
+<h4>Path 2 — Engine-first (build the platform, then the skill)</h4>
+<p>Build the PRD&#x27;s greenfield modules first: <code>memory_store.py</code>, <code>fts5_index.py</code>, <code>sync.py</code>, <code>curator.py</code>, <code>lifecycle.py</code>, <code>pending.py</code>, post-session summarization, the corrected hook layer, <code>coworker run --loop</code>. The QA skill then consumes them as originally designed.</p>
+<p><strong>Tradeoffs</strong></p>
+<ul>
+<li>➕ QA skill becomes part of the evolving system from day one (shared memory/skills).</li>
+<li>➕ Directly serves the stated goal (&quot;daily self-evolution, better over time&quot;).</li>
+<li>➖ Much larger work (~1,840 greenfield lines + hook rebuild + safety hardening).</li>
+<li>➖ QA tool delayed until the platform lands.</li>
+<li>➖ The platform is where the hardest unsolved problems live (subagent capture, safety, competence metrics).</li>
+</ul>
+<hr>
+<h3>Recommendation</h3>
+<p><strong>Path 1 for the QA skill now; run the self-evolution engine as a separate workstream.</strong></p>
+<p>Rationale:</p>
+<ol>
+<li>The user stated the QA agent is <strong>&quot;a supplement to walter-worker.&quot;</strong> A supplement should not block on the platform.</li>
+<li>The impl-plan already exists as scaffolding; converting it to self-contained (reuse <code>analytics.db</code> + <code>knowledge.py</code>, drop the platform claims) is smaller than building the engine.</li>
+<li>A working QA skill gives <strong>real dogfooding signal</strong> that de-risks the engine design.</li>
+<li>The engine is the bigger, riskier bet and deserves its own focused initiative — including fixing the hook architecture (review §1.2) and adding safety/competence gates (review §3) <strong>before</strong> relying on it for autonomous self-modification.</li>
+</ol>
+<p>When the engine exists, migrate the QA skill onto it (swap <code>analytics.db knowledge</code> reads for MEMORY.md+FTS5, swap manual skill calls for auto-evolution triggers).</p>
+<hr>
+<h3>Fix Classification</h3>
+<h4>Path-independent fixes (APPLIED this session — correct regardless of path)</h4>
+<ol>
+<li>spec §7.1 + impl-plan :19,:133 — fabricated <code>PRD §5.7</code> → real source (global <code>CLAUDE.md §0.5</code>).</li>
+<li>design :236 — <code>§2.1.2</code> → <code>§2.2.2</code>.</li>
+<li>design :29 — Core Loop <code>extends §2.1</code> → <code>§2.2</code>.</li>
+<li>spec :80 — MEMORY.md format overclaim corrected.</li>
+<li>Deleted orphan empty templates <code>docs/initiatives/self-evolving-agent/{plan,spec}.md</code>.</li>
+<li>en PRD :84 — duplicate <code>§1.4 Knowledge Taxonomy</code> → <code>§1.6</code> (matches zh).</li>
+<li>design :6 — added ⚠️ marker flagging the platform features as unbuilt, pointing here.</li>
+</ol>
+<h4>Path-dependent fixes (DECIDE PATH FIRST)</h4>
+<ul>
+<li>design:6 &quot;Infrastructure used: MEMORY.md + FTS5…&quot; — reword to &quot;target dependencies&quot; (Path 2) or remove and list existing-infra replacements (Path 1).</li>
+<li>All references to <code>/memory-search</code>, <code>/memory-add</code>, <code>SessionStop</code>, State Engine §4 convention — rewrite per chosen path.</li>
+<li>MEMORY.md 4-field format (spec §2.2) — ratify into PRD §3.2 (Path 2) or mark as QA-local (Path 1).</li>
+<li>impl-plan&#x27;s parallel <code>qa/knowledge.db</code> — switch to <code>analytics.db</code> extension (Path 1) or wait for engine (Path 2).</li>
+</ul>
+<h4>Separate workstream (NOT in scope here — see review)</h4>
+<ul>
+<li>Hook architecture correction (real hook names, <code>async</code>, stdin session_id, <code>SubagentStop</code>).</li>
+<li>Engine greenfield modules + safety + competence gate + budget cap.</li>
+</ul>
+<hr>
+<h3>Decision Needed</h3>
+<p><strong>Pick Path 1 or Path 2.</strong> Until then, treat the QA skill&#x27;s platform dependencies as aspirational, not available.</p>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="self-evolving-agent-impl-plan.html"><span class="label">Previous</span>Self-Evolving Agent — Implementation Plan</a><a class="next" href="qa-autonomous-agent-impl-plan.html"><span class="label">Next</span>QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

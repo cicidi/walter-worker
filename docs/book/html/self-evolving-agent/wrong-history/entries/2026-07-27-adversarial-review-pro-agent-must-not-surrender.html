@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug · entries · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../../prd/self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../prd/dashboard-ui-prd.html">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../../prd/self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../../decision-history/2026-07-29-devil-advocate-reviews-summary.html">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../../design/auto-worker-design.html">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../design/dashboard-design.html">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../design/memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../../design/qa-autonomous-agent-design.html">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../../INDEX.html">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="../../reference/actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../../reference/band-ai-docs.html">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../../reference/guild-agent-README.html">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="../../reference/guild-ai-docs.html">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../../reference/hermes-agent-README.html">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="../../reference/hermes-agent-docs.html">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../../reference/jam-agent-README.html">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="../../reference/jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../../reference/pioneer-docs.html">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../../reference/senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../../spec/memory-graph-spec.html">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../../spec/qa-autonomous-agent-spec.html">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../../spec/self-evolving-agent-spec.html">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../../state/2026-07-29-current-state.html">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="../INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-27-adversarial-review-pro-agent-must-not-surrender.html" aria-current="page">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-27-dashboard-data-not-verified.html">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../impl-plan/self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../impl-plan/dependency-and-sequencing-impl-plan.html">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="../../impl-plan/qa-autonomous-agent-impl-plan.html">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../../test-plan/self-evolving-agent-test-plan.html"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../test-plan/2026-07-29-test-execution-report.html">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="../../test-plan/memory-graph-test-plan.html">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../../test-plan/memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>wrong-history</span> / <span>entries</span> / <span>Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</h2>
+<p><strong>What happened:</strong> The v1 devil-advocate review of <a href="../../spec/memory-graph-spec.html"><code>memory-graph-spec.md</code></a> (2026-07-27, prior model) ran a 3-agent CON/PRO/JUDGE debate. The PRO agent accepted all 12 CON findings unconditionally — <strong>zero refutes, zero &quot;partial&quot;</strong>. With no dispute to adjudicate, the JUDGE rubber-stamped CON and declared the spec &quot;ready for implementation&quot; after marking 5 items &quot;fixed.&quot;</p>
+<p><strong>Root cause:</strong> The PRO agent was never made to internalize that its job is to *find counter-evidence and argue* — not to concede. A PRO that defaults to ACCEPT collapses a 3-agent debate into a 1-agent monologue: CON asserts, PRO agrees, JUDGE has nothing to rule on. The adversarial structure delivered zero adversarial value.</p>
+<p><strong>How it was discovered:</strong> Independent v2 re-review (new model, same day). The v2 PRO was explicitly forced to verify CON&#x27;s evidence (re-run the Python string compares, re-check codebase files) and to attempt REFUTE before ACCEPT. It then:</p>
+<ul>
+<li><strong>Caught a real HIGH bug v1 missed entirely</strong> — §3.1</li>
+</ul>
+<p>  <code>if edge[&quot;confidence&quot;] &lt; &quot;EXTRACTED&quot;:</code> is a string-compare bug (<code>&#x27;INFERRED&#x27; &gt; &#x27;EXTRACTED&#x27;</code>   lexicographically) that reinforces only AMBIGUOUS edges — the opposite of intent.</p>
+<ul>
+<li><strong>Found 3 of v1&#x27;s own &quot;fixes&quot; were defective</strong>: <code>verify_finding</code> had zero</li>
+</ul>
+<p>  callers (dead code → decay never fires); the write-ahead queue (§8.3)   contradicted the dedup code (§4.3) that v1 itself added; §4.0 &quot;capture.py   supports both IDEs&quot; was a false premise neither side verified against the codebase.</p>
+<ul>
+<li><strong>Killed 2 false positives</strong> v1 would have over-fixed: #9 ID-collision (refuted</li>
+</ul>
+<p>  — <code>type</code>+<code>provenance</code> set at creation disambiguate) and #6 baseline (narrowed   — §9.5 is honest, historical data exists).</p>
+<p><strong>Impact:</strong> v1 declared &quot;implementation-ready&quot; a spec with 4 HIGH blocking flaws. Had implementation proceeded on v1&#x27;s verdict, the reinforcement core mechanic would have been inverted (string-compare bug) and the self-cleaning property would have been dead code (no verify caller). Recovery required a full re-review.</p>
+<p><strong>Fix:</strong> v2 forced PRO to verify evidence and banned unconditional surrender (&quot;default to ACCEPT only when you truly cannot mount a defense AFTER searching&quot;). This produced <strong>both</strong> more findings (caught #2) <strong>and</strong> fewer false positives (refuted #9, narrowed #6).</p>
+<p><strong>Prevention rule:</strong> In any adversarial review (devil-advocate, con/pro/judge), the PRO/defender agent <span class="lvl lvl--must">MUST</span> be instructed to genuinely search for counter-evidence and attempt to REFUTE each finding, accepting only when a defense truly cannot be mounted. <strong>A PRO that never argues is a broken reviewer, not an agreeable one.</strong> Genuine adversarial review is bidirectional: it catches real flaws the critic sees AND kills bad criticisms the defender rebuts.</p>
+<p><strong>Anti-pattern:</strong> &quot;PRO accepts everything = thorough, rigorous review.&quot; Wrong — unconditional acceptance means the defender role contributed nothing. A 12/12 (or N/N) surrender rate is the signature of a broken debate, not a rigorous one. If PRO agrees with every CON finding, something is wrong with PRO, not right with the review.</p>
+<p><strong>Related entries:</strong> v2 re-review — <code>docs/self-evolving-agent/devil-advocate/2026-07-27-memory-graph-v2/report.md</code></p>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="2026-07-25-dashboard-init-call-lost.html"><span class="label">Previous</span>Dashboard INIT call overwritten during Edit insertion</a><a class="next" href="2026-07-27-dashboard-data-not-verified.html"><span class="label">Next</span>Dashboard data was present but WRONG — never validated against source of truth</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../../assets/app.js"></script>
+</body>
+</html>

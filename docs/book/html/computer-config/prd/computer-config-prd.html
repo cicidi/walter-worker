@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>computer-config — Product Requirements Document (PRD) · prd · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-leaf"><a class="tree-link" href="computer-config-prd.html" aria-current="page"><span class="tree-ord">1</span>computer-config — Product Requirements Document (PRD)</a></li><li class="tree-leaf"><a class="tree-link" href="../devil-advocate/2026-08-01-computer-config-spec/discussion.html">Adversarial Review — computer-config-spec.md</a></li><li class="tree-leaf"><a class="tree-link" href="../devil-advocate/2026-08-01-computer-config-spec/glm52-report.html">GLM-5.2 Independent Review Report — computer-config-spec.md</a></li><li class="tree-leaf"><a class="tree-link" href="../devil-advocate/2026-08-01-computer-config-spec/report.html">Adversarial Review Report — computer-config-spec.md</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/computer-config-spec.html">computer-config — Complete Technical Specification</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/computer-config-impl-plan.html"><span class="tree-ord">4</span>computer-config — Implementation Plan (Impl Plan)</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/computer-config-test-plan.html"><span class="tree-ord">5</span>computer-config — Test Plan</a></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>computer-config</span> / <span>prd</span> / <span>computer-config — Product Requirements Document (PRD)</span></nav>
+    <article class="doc" data-doc="computer-config/prd/computer-config-prd">
+      <header class="doc-head">
+        <p class="eyebrow">computer-config</p>
+        <h1>computer-config — Product Requirements Document (PRD)</h1>
+        <p class="source">Canonical: docs/features/computer-config/prd/computer-config-prd.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>computer-config — Product Requirements Document (PRD)</h2>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Date</th>
+<th>Version</th>
+<th>Change</th>
+</tr></thead><tbody>
+<tr>
+<td>2026-08-01</td>
+<td>0.1.0</td>
+<td>Initial draft</td>
+</tr>
+<tr>
+<td>2026-08-01</td>
+<td>0.2.0</td>
+<td>Post devil-advocate review: US-4 &quot;one-click install&quot; satisfied via menu option &quot;3) Both&quot; in spec; target model confirmed DeepSeek V4 Pro</td>
+</tr>
+<tr>
+<td>2026-08-01</td>
+<td>0.3.0</td>
+<td>Post GLM-5.2 review (scope-corrected): add US-6 (legacy grey-theme migration), FR-12 (grey-theme detection), FR-13 (walter-worker manifest excludes ~/.claude/statusline/); fix stale 0/1/2 menu refs to 0/1/2/3; US-4 reworded to &quot;single-run&quot;</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>1. Background &amp; Goals</h3>
+<p>The user has a highly customized development environment: a Claude Code statusline (4-line colored dashboard) + a tmux Benjamin Blue theme + the walter-worker framework. These assets are <strong>scattered in the home directory, under no version control</strong>, and walter-worker&#x27;s install script deploys a simple tmux theme to ALL users who install it (pollution).</p>
+<p><strong>Goals</strong>:</p>
+<ol>
+<li>Create an independent <code>claude-tmux-config</code> project that consolidates all</li>
+</ol>
+<p>   personal Claude + tmux presentation assets, with its own install-confirmation    script, zero impact on other users.</p>
+<ol>
+<li>Strip the presentation layer out of walter-worker so it becomes a pure</li>
+</ol>
+<p>   framework, never touching any user&#x27;s terminal skin.</p>
+<p><strong>Non-goals</strong>:</p>
+<ul>
+<li>❌ Do NOT strip walter-worker core (hooks/skills/MCP/context/memory)</li>
+<li>❌ Do NOT auto-install the claude-tmux Rust binary</li>
+<li>❌ Do NOT do macOS adaptation (Linux-only)</li>
+</ul>
+<hr>
+<h3>2. User Stories</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>As a...</th>
+<th>I want...</th>
+<th>So that...</th>
+</tr></thead><tbody>
+<tr>
+<td>US-1</td>
+<td>environment maintainer</td>
+<td>all Claude/tmux assets versioned &amp; consolidated</td>
+<td>trackable, reversible, shareable</td>
+</tr>
+<tr>
+<td>US-2</td>
+<td>environment maintainer</td>
+<td>explicit confirmation on install</td>
+<td>no accidental installs, no damage to existing config</td>
+</tr>
+<tr>
+<td>US-3</td>
+<td>walter-worker user</td>
+<td>installing walter-worker doesn&#x27;t force my personal theme</td>
+<td>my terminal skin is my choice</td>
+</tr>
+<tr>
+<td>US-4</td>
+<td>new user</td>
+<td>single-run install of the full statusline+theme</td>
+<td>quickly get the same experience</td>
+</tr>
+<tr>
+<td>US-5</td>
+<td>environment maintainer</td>
+<td>one-command clean uninstall</td>
+<td>no orphaned files</td>
+</tr>
+<tr>
+<td>US-6</td>
+<td>existing walter-worker user</td>
+<td>claude-tmux-config to detect my old grey tmux theme and offer a one-step migration to Benjamin Blue</td>
+<td>so I don&#x27;t manually edit .tmux.conf</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>3. Requirements</h3>
+<h4>3.1 Functional Requirements</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Requirement</th>
+<th>Priority</th>
+</tr></thead><tbody>
+<tr>
+<td>FR-1</td>
+<td>Create claude-tmux-config repo with install.sh / uninstall.sh / assets/</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>FR-2</td>
+<td>Adopt statusline-command.sh, parameterize 3 hardcoded paths</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>FR-3</td>
+<td>Adopt wrap-statusline.py</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>FR-4</td>
+<td>Adopt status_info.sh (simple version)</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>FR-5</td>
+<td>Extract Benjamin Blue theme into a standalone file</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>FR-6</td>
+<td>install.sh 0/1/2/3 menu + y/N confirm, default 0 (option 3 = both, one click)</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>FR-7</td>
+<td>Deploy statusline to <code>~/.claude/statusline/</code> + write statusLine to settings.json</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>FR-8</td>
+<td>Deploy tmux theme + status_info.sh (idempotent, with backup)</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>FR-9</td>
+<td>uninstall.sh manifest-driven clean removal</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>FR-10</td>
+<td>Remove Step 16 + setup/status_info.sh from walter-worker</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>FR-11</td>
+<td>walter-worker core tests stay green</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>FR-12</td>
+<td>Detect legacy walter-worker grey theme (<code># walter-worker status bar</code>) and offer one-step migration to Benjamin Blue</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>FR-13</td>
+<td>walter-worker manifest walk excludes <code>~/.claude/statusline/</code> (no cross-project deletion risk)</td>
+<td>P0</td>
+</tr>
+</tbody></table></div>
+<h4>3.2 Non-functional Requirements</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Requirement</th>
+</tr></thead><tbody>
+<tr>
+<td>NFR-1</td>
+<td>Idempotent: repeated installs produce no side effects</td>
+</tr>
+<tr>
+<td>NFR-2</td>
+<td>Safe: backup before mutation, atomic writes</td>
+</tr>
+<tr>
+<td>NFR-3</td>
+<td>Performance: statusline refresh &lt;100ms</td>
+</tr>
+<tr>
+<td>NFR-4</td>
+<td>Portable: parameterized paths, no machine-specific values</td>
+</tr>
+<tr>
+<td>NFR-5</td>
+<td>Fully isolated from walter-worker, no interference</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>4. Scope</h3>
+<p><strong>In scope</strong>: claude-tmux-config project creation, adoption of 4 assets, install confirmation, walter-worker strip of Step 16 + status_info.sh.</p>
+<p><strong>Out of scope</strong>: claude-tmux binary install, macOS support, rich status_info.sh deployment (optional enhancement), walter-worker dashboard extraction (future, separate effort).</p>
+<hr>
+<h3>5. Acceptance Criteria</h3>
+<ol>
+<li><code>claude-tmux-config</code> repo created, assets complete, paths parameterized</li>
+<li><code>install.sh</code> runs: 0/1/2/3 menu + y/N confirm, default 0</li>
+<li>After install: <code>~/.claude/statusline/</code> two files in place, settings.json has <code>statusLine</code></li>
+<li>After install: <code>~/.tmux/conf.d/benjamin-blue.tmux</code> in place (or skipped if existing inline color)</li>
+<li><code>uninstall.sh</code> cleanly removes all traces</li>
+<li>After walter-worker strip: install.sh no longer touches tmux, core tests all green</li>
+</ol>
+<hr>
+<h3>6. Milestones</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Milestone</th>
+<th>Content</th>
+<th>Depends on</th>
+</tr></thead><tbody>
+<tr>
+<td>M1</td>
+<td>claude-tmux-config repo + asset adoption</td>
+<td>—</td>
+</tr>
+<tr>
+<td>M2</td>
+<td>install.sh + uninstall.sh + confirmation mechanism</td>
+<td>M1</td>
+</tr>
+<tr>
+<td>M3</td>
+<td>walter-worker strip + test updates</td>
+<td>M1</td>
+</tr>
+<tr>
+<td>M4</td>
+<td>Doc suite complete + index update</td>
+<td>M1-M3</td>
+</tr>
+</tbody></table></div>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><span></span><a class="next" href="../devil-advocate/2026-08-01-computer-config-spec/discussion.html"><span class="label">Next</span>Adversarial Review — computer-config-spec.md</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

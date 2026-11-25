@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Core Architecture Design · plan · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/walter-worker-prd.html"><span class="tree-ord">1</span>walter-worker — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-core-prd.html">Core CLI &amp; Initiative System PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-dashboard-prd.html">Dashboard PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-knowledge-skill-prd.html">Knowledge Skill PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/ai-coworker-prd.html">walter-worker PRD</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../decision-history/walter-worker-decision-history.html"><span class="tree-ord">2</span>walter-worker — Decision History</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../decision-history/2025-04-10-integrate-loop-engineering-framework-by-running-lo-decision.html">Decision Record — 2025-04-10</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-03-30-feat-initial-commit--unified-ai-coworker-dev-env-decision.html">Decision Record — 2026-03-30</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.html">Decision Record — 2026-05-01</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-05-06-feat-add-skill-meta-import-skill--import-externa-decision.html">Decision Record — 2026-05-06</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.html">Decision Record — 2026-06-11</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-12-feat-add-opencode-context-injection-initiativema-decision.html">Decision Record — 2026-06-12</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.html">Decision Record — 2026-06-16</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-23-chore-remove-self-strain-decision.html">Decision Record — 2026-06-23</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-24-chore-review-fixes--broken-refs-tests-docs-ch-decision.html">Decision Record — 2026-06-24</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-30-fix-deploy-ai-coworker-skills-to-opencode-skill-d-decision.html">Decision Record — 2026-06-30</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.html">Decision Record — 2026-07-02</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.html">Decision Record — 2026-07-07</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.html">Decision Record — 2026-07-08</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.html">Decision Record — 2026-07-10</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-13-feat-add-emoji-and-color-coded-fields-to-tmux-sta-decision.html">Decision Record — 2026-07-13</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-17-docs-add-doc-organize--indexmd-refs-to-claudem-decision.html">Decision Record — 2026-07-17</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.html">Decision Record — 2026-07-24</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/unknown-remove-budget-related-features-from-prd-budget-fl-decision.html">Decision Record — unknown</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../design/walter-worker-design.html"><span class="tree-ord">3</span>walter-worker — Design</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../design/ai-coworker-design.html">walter-worker Design</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-11-analytics-dashboard-superpowers.html">Analytics Listener + Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-11-analytics-listener-design.html">Analytics Listener — Design Document</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-11-core-architecture-design.html" aria-current="page">Core Architecture Design</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-11-feature-tracker.html">Feature Tracker</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-11-planning-hub.html">Planning Hub</a></li><li class="tree-leaf"><a class="tree-link" href="2026-09-25-deletion-list.html">Deletion List — 2026-09-25</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/2026-06-12-initiative-project-level-design.html">Initiative — Global to Project-Level Design</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/ai-coworker-spec.html">walter-worker Technical Specification</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-26-decision-timeline.html">Decision Timeline — walter-worker</a></li><li class="tree-leaf"><a class="tree-link" href="../work-review/2026-06-11-analytics-dashboard/acceptance.html">Analytics Dashboard — Acceptance Review</a></li><li class="tree-leaf"><a class="tree-link" href="../work-review/2026-06-11-analytics-dashboard/report.html">Acceptance Report — Analytics Dashboard</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/walter-worker-impl-plan.html"><span class="tree-ord">4</span>walter-worker Implementation Plan</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/walter-worker-test-plan.html"><span class="tree-ord">5</span>walter-worker — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/ai-coworker-test-plan.html">walter-worker Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><span class="tree-link"><span class="tree-ord">10</span>sub-feature</span></summary><ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/analytics-dashboard/design/analytics-dashboard-design.html">analytics-dashboard</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/prd/analytics-dashboard-prd.html"><span class="tree-ord">1</span>Analytics Dashboard — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/decision-history/analytics-dashboard-decision-history.html"><span class="tree-ord">2</span>Analytics Dashboard — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/design/analytics-dashboard-design.html"><span class="tree-ord">3</span>Analytics Dashboard — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/impl-plan/analytics-dashboard-impl-plan.html"><span class="tree-ord">4</span>Analytics Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/test-plan/analytics-dashboard-test-plan.html"><span class="tree-ord">5</span>Analytics Dashboard — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/analytics-listener/design/analytics-listener-design.html">analytics-listener</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/prd/analytics-listener-prd.html"><span class="tree-ord">1</span>Analytics Listener — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/decision-history/analytics-listener-decision-history.html"><span class="tree-ord">2</span>Analytics Listener — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/design/analytics-listener-design.html"><span class="tree-ord">3</span>Analytics Listener — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/impl-plan/analytics-listener-impl-plan.html"><span class="tree-ord">4</span>Analytics Listener — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/test-plan/analytics-listener-test-plan.html"><span class="tree-ord">5</span>Analytics Listener — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/core-cli/design/core-cli-design.html">core-cli</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/prd/core-cli-prd.html"><span class="tree-ord">1</span>Core CLI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/decision-history/core-cli-decision-history.html"><span class="tree-ord">2</span>Core CLI — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/design/core-cli-design.html"><span class="tree-ord">3</span>Core CLI — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/impl-plan/core-cli-impl-plan.html"><span class="tree-ord">4</span>Core CLI — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/test-plan/core-cli-test-plan.html"><span class="tree-ord">5</span>Core CLI — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/feature-system/design/feature-system-design.html">feature-system</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/prd/feature-system-prd.html"><span class="tree-ord">1</span>Feature System — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/decision-history/feature-system-decision-history.html"><span class="tree-ord">2</span>Feature System — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/design/feature-system-design.html"><span class="tree-ord">3</span>Feature System — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/impl-plan/feature-system-impl-plan.html"><span class="tree-ord">4</span>Feature System — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/test-plan/feature-system-test-plan.html"><span class="tree-ord">5</span>Feature System — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/setup-deploy/design/setup-deploy-design.html">setup-deploy</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/prd/setup-deploy-prd.html"><span class="tree-ord">1</span>Setup and Deploy — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/decision-history/setup-deploy-decision-history.html"><span class="tree-ord">2</span>Setup and Deploy — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/design/setup-deploy-design.html"><span class="tree-ord">3</span>Setup and Deploy — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/impl-plan/setup-deploy-impl-plan.html"><span class="tree-ord">4</span>Setup and Deploy — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/test-plan/setup-deploy-test-plan.html"><span class="tree-ord">5</span>Setup and Deploy — Test Plan</a></li></ul></details></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>walter-worker</span> / <span>plan</span> / <span>Core Architecture Design</span></nav>
+    <article class="doc" data-doc="walter-worker/plan/2026-06-11-core-architecture-design">
+      <header class="doc-head">
+        <p class="eyebrow">walter-worker</p>
+        <h1>Core Architecture Design</h1>
+        <p class="source">Canonical: docs/features/walter-worker/plan/2026-06-11-core-architecture-design.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Core Architecture Design</h2>
+<p>&lt;!-- PROTECTED --&gt; Project: walter-worker Last Updated: 2026-06-11 &lt;!-- END PROTECTED --&gt;</p>
+<h3>Architecture Overview</h3>
+<pre><code>[coworker CLI] → [Config Manager] → [IDE Adapters]
+                      ↓                    ↓
+              [coworker.yaml]      [Context Injection]
+              [.mcp.json]               ↓
+              [project.yaml]     [CLAUDE.md / instructions.md]
+              [initiatives/&lt;name&gt;.yaml]
+                      ↓
+              [Claude Code / OpenCode / Gemini / Cursor]</code></pre>
+<p>Single Python CLI that reads YAML config and propagates skills, MCP servers, permissions, and initiative context to target IDEs.</p>
+<h3>Tech Stack</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Layer</th>
+<th>Technology</th>
+<th>Reason</th>
+</tr></thead><tbody>
+<tr>
+<td>CLI framework</td>
+<td>Click</td>
+<td>Rich terminal UI, composable commands</td>
+</tr>
+<tr>
+<td>Data models</td>
+<td>Pydantic 2</td>
+<td>Strict schema validation for YAML config</td>
+</tr>
+<tr>
+<td>Config format</td>
+<td>YAML</td>
+<td>Human-readable, existing ecosystem</td>
+</tr>
+<tr>
+<td>Output formatting</td>
+<td>Rich</td>
+<td>Tables, panels, progress bars</td>
+</tr>
+<tr>
+<td>Package manager</td>
+<td>setuptools/pyproject.toml</td>
+<td>Python standard</td>
+</tr>
+</tbody></table></div>
+<h3>Data Model</h3>
+<p><strong>coworker.yaml</strong> — source of truth for:</p>
+<ul>
+<li>MCP servers (name, command, args, env)</li>
+<li>Skills (name, source path, triggers)</li>
+<li>Permissions (tool allow/deny rules)</li>
+<li>Tool overrides (custom configurations per IDE)</li>
+</ul>
+<p><strong>Project Catalog</strong> (<code>~/.coworker/project.yaml</code>):</p>
+<ul>
+<li>List of all projects with paths, upstream/downstream relationships, knowledge pools</li>
+</ul>
+<p><strong>Initiatives</strong> (<code>~/.coworker/initiatives/&lt;name&gt;.yaml</code>):</p>
+<ul>
+<li>Per-workstream config: branches, decisions, links, reference docs</li>
+</ul>
+<h3>Context Injection API</h3>
+<p>Static context (project catalog) and dynamic initiative context are injected into IDE instruction files via HTML comment markers:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Function</th>
+<th>Target</th>
+<th>Block Type</th>
+</tr></thead><tbody>
+<tr>
+<td><code>inject_static_context(catalog)</code></td>
+<td>CLAUDE.md, instructions.md</td>
+<td><code>&lt;!-- COWORKER:STATIC START/END --&gt;</code></td>
+</tr>
+<tr>
+<td><code>inject_initiative(config)</code></td>
+<td>CLAUDE.md, instructions.md</td>
+<td><code>&lt;!-- INITIATIVE:&lt;name&gt; START/END --&gt;</code></td>
+</tr>
+<tr>
+<td><code>remove_initiative()</code></td>
+<td>CLAUDE.md, instructions.md</td>
+<td>Removes all initiative blocks</td>
+</tr>
+</tbody></table></div>
+<p><strong>InitiativeManager</strong> (<code>src/coworker/initiatives/manager.py</code>) orchestrates CRUD and activation:</p>
+<ul>
+<li><code>create(name, description)</code> — validates kebab-case, creates YAML</li>
+<li><code>edit(name, **updates)</code> — partial update of any field</li>
+<li><code>activate(name)</code> / <code>deactivate()</code> — injects/removes context from both Claude and OpenCode</li>
+<li><code>inject_static_context()</code> — writes project catalog to all IDE instruction files</li>
+</ul>
+<p>See <a href="../../../../../tests/python/test_injection.py"><code>tests/python/test_injection.py</code></a> for test coverage.</p>
+<h3>IDE Adapters</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Adapter</th>
+<th>Targets</th>
+<th>Key Behavior</th>
+</tr></thead><tbody>
+<tr>
+<td><code>adapters/claude.py</code></td>
+<td><code>~/.claude/commands/</code>, <code>settings.local.json</code></td>
+<td>Context injection via HTML comments in CLAUDE.md</td>
+</tr>
+<tr>
+<td><code>adapters/opencode.py</code></td>
+<td><code>~/.opencode/instructions/</code></td>
+<td>Config sync + context injection in instructions.md</td>
+</tr>
+<tr>
+<td><code>adapters/gemini.py</code></td>
+<td><code>~/.gemini/</code></td>
+<td>Config sync</td>
+</tr>
+<tr>
+<td><code>adapters/cursor.py</code></td>
+<td><code>.cursor/rules/</code></td>
+<td>Symlinks from Claude</td>
+</tr>
+</tbody></table></div>
+<h3>Security Design</h3>
+<ul>
+<li>No auth — single developer, local machine</li>
+<li>Secrets in env vars only (<code>coworker.yaml</code> references <code>$ENV_VAR</code>)</li>
+<li><code>.local_config.yaml</code> gitignored (identity, project name)</li>
+<li><code>.env</code> gitignored</li>
+<li>No network calls in core sync (all local file operations)</li>
+</ul>
+<h3>Open Questions</h3>
+<ul>
+<li>[ ] Docker/devcontainer support for portable setup</li>
+</ul>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="2026-06-11-analytics-listener-design.html"><span class="label">Previous</span>Analytics Listener — Design Document</a><a class="next" href="2026-06-11-feature-tracker.html"><span class="label">Next</span>Feature Tracker</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,2288 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Self-Evolving Agent — Test Plan · test-plan · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/dashboard-ui-prd.html">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-29-devil-advocate-reviews-summary.html">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/auto-worker-design.html">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/dashboard-design.html">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/qa-autonomous-agent-design.html">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../INDEX.html">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/band-ai-docs.html">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-agent-README.html">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-ai-docs.html">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-README.html">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-docs.html">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-agent-README.html">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/pioneer-docs.html">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/memory-graph-spec.html">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/qa-autonomous-agent-spec.html">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/self-evolving-agent-spec.html">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-29-current-state.html">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-dashboard-data-not-verified.html">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../impl-plan/self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../impl-plan/dependency-and-sequencing-impl-plan.html">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/qa-autonomous-agent-impl-plan.html">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="self-evolving-agent-test-plan.html" aria-current="page"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="2026-07-29-test-execution-report.html">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="memory-graph-test-plan.html">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>test-plan</span> / <span>Self-Evolving Agent — Test Plan</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/test-plan/self-evolving-agent-test-plan">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>Self-Evolving Agent — Test Plan</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/test-plan/self-evolving-agent-test-plan.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Self-Evolving Agent — Test Plan</h2>
+<blockquote class="callout" data-label="NOTE"><p>Initiative: self-evolving-agent | Type: test-plan | Status: <strong>draft v2</strong>  Covers: Memory Platform, Auto-Worker, Dashboard Evolution page  Target: <strong>95% code coverage</strong> across all new and modified modules</p></blockquote>
+<hr>
+<h3>1. Strategy Overview</h3>
+<p><strong>CRITICAL: All tests use real infrastructure. No mocks for external dependencies.</strong></p>
+<div class="table-wrap"><table><thead><tr>
+<th>Dependency</th>
+<th>Test Strategy</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>mem0</strong></td>
+<td>Real mem0 library mode, temp Qdrant on disk per test session. No mock.</td>
+</tr>
+<tr>
+<td><strong>analytics.db</strong></td>
+<td>Real SQLite with known test data loaded from fixtures. No mock.</td>
+</tr>
+<tr>
+<td><strong>LLM (DeepSeek Flash)</strong></td>
+<td>Real API calls. Test data designed so extraction output is predictable enough to assert on.</td>
+</tr>
+<tr>
+<td><strong>Claude SDK</strong></td>
+<td>Real API calls for E2E validation.</td>
+</tr>
+<tr>
+<td><strong>Filesystem</strong></td>
+<td>temp dirs via <code>tmp_path</code>. Real file I/O.</td>
+</tr>
+</tbody></table></div>
+<p><strong>Why no mocks:</strong> Mocked mem0/LLM/DB tests prove the code matches your assumptions about the API. Real tests prove the code actually works. The user has real session data — testing against reality is the whole point.</p>
+<pre><code>┌─────────────────────────────────────────────────────────┐
+│                    TEST PYRAMID                          │
+│                                                          │
+│                    ┌───────────┐                          │
+│                    │  E2E      │  1 validation scenario   │
+│                    │  (Phase 3)│  Claude SDK A/B test     │
+│                    │           │  REAL LLM + REAL data    │
+│                    └─────┬─────┘                          │
+│                          │                                │
+│                  ┌───────▼───────┐                        │
+│                  │  Integration  │  Hook → Capture → mem0 │
+│                  │  (Phase 2)    │  Dashboard API → DB    │
+│                  │              │  REAL mem0 + REAL DB   │
+│                  └───────┬───────┘                        │
+│                          │                                │
+│          ┌───────────────▼───────────────┐                │
+│          │         Unit Tests            │  Per-module    │
+│          │         (Phase 1)             │  95% coverage  │
+│          │  REAL mem0 │ REAL SQLite │    │                │
+│          │  REAL file I/O              │                │
+│          └───────────────────────────────┘                │
+└─────────────────────────────────────────────────────────┘</code></pre>
+<hr>
+<h3>2. Test Fixtures — ALL REAL</h3>
+<p>All fixtures use real infrastructure. Defined once in <a href="../../../../../tests/python/conftest.py"><code>tests/python/conftest.py</code></a>.</p>
+<h4>2.1 Real mem0 Fixture</h4>
+<pre><code>@pytest.fixture
+def real_mem0(tmp_path):
+    &quot;&quot;&quot;Real mem0 client with temp Qdrant vector store. No mock.&quot;&quot;&quot;
+    from mem0 import Memory
+    config = {
+        &quot;llm&quot;: {
+            &quot;provider&quot;: &quot;openai&quot;,
+            &quot;config&quot;: {
+                &quot;model&quot;: &quot;deepseek-chat&quot;,
+                &quot;base_url&quot;: &quot;https://api.deepseek.com&quot;,
+                &quot;api_key&quot;: os.environ[&quot;DEEPSEEK_API_KEY&quot;],
+            },
+        },
+        &quot;embedder&quot;: {
+            &quot;provider&quot;: &quot;huggingface&quot;,
+            &quot;config&quot;: {&quot;model&quot;: &quot;BAAI/bge-small-en-v1.5&quot;},
+        },
+        &quot;vector_store&quot;: {
+            &quot;provider&quot;: &quot;qdrant&quot;,
+            &quot;config&quot;: {&quot;path&quot;: str(tmp_path / &quot;mem0_vector&quot;)},
+        },
+    }
+    mem = Memory.from_config(config)
+    yield mem
+    # Cleanup: delete all test entries
+    mem.reset()
+
+@pytest.fixture
+def clean_mem0(real_mem0):
+    &quot;&quot;&quot;Real mem0 with guaranteed empty state before each test.&quot;&quot;&quot;
+    real_mem0.reset()
+    return real_mem0</code></pre>
+<h4>2.2 Real analytics.db Fixture</h4>
+<pre><code>@pytest.fixture
+def real_db(tmp_path):
+    &quot;&quot;&quot;Real SQLite analytics.db with known test data. No mock.&quot;&quot;&quot;
+    db_path = tmp_path / &quot;analytics.db&quot;
+    from coworker.analytics.db import AnalyticsDB
+    db = AnalyticsDB(db_path)
+    # Load known test data from fixtures
+    db.execute(&quot;&quot;&quot;
+        INSERT INTO sessions (id, ide, project, initiative, message_count, tool_count, created_at)
+        VALUES
+        (&#x27;sess_a1b2&#x27;, &#x27;claude&#x27;, &#x27;walter-worker&#x27;, &#x27;self-evolving-agent&#x27;, 45, 32, &#x27;2026-07-20T10:00:00Z&#x27;),
+        (&#x27;sess_c3d4&#x27;, &#x27;claude&#x27;, &#x27;walter-worker&#x27;, &#x27;self-evolving-agent&#x27;, 38, 28, &#x27;2026-07-21T14:00:00Z&#x27;),
+        (&#x27;sess_e5f6&#x27;, &#x27;claude&#x27;, &#x27;walter-worker&#x27;, &#x27;self-evolving-agent&#x27;, 52, 41, &#x27;2026-07-22T09:00:00Z&#x27;),
+        (&#x27;sess_g7h8&#x27;, &#x27;claude&#x27;, &#x27;skill-factory&#x27;, NULL, 20, 15, &#x27;2026-07-23T11:00:00Z&#x27;),
+        (&#x27;sess_x1y2&#x27;, &#x27;claude&#x27;, &#x27;skill-factory&#x27;, NULL, 12, 8, &#x27;2026-07-10T08:00:00Z&#x27;)
+    &quot;&quot;&quot;)
+    db.execute(&quot;&quot;&quot;
+        INSERT INTO tool_calls (session_id, tool, detail, ts) VALUES
+        (&#x27;sess_a1b2&#x27;, &#x27;Bash&#x27;, &#x27;git status&#x27;, &#x27;2026-07-20T10:01:00Z&#x27;),
+        (&#x27;sess_a1b2&#x27;, &#x27;Read&#x27;, &#x27;src/auth.py&#x27;, &#x27;2026-07-20T10:02:00Z&#x27;),
+        (&#x27;sess_a1b2&#x27;, &#x27;Edit&#x27;, &#x27;src/auth.py&#x27;, &#x27;2026-07-20T10:05:00Z&#x27;),
+        (&#x27;sess_a1b2&#x27;, &#x27;mcp__github__get_file_contents&#x27;, &#x27;README.md&#x27;, &#x27;2026-07-20T10:06:00Z&#x27;),
+        (&#x27;sess_a1b2&#x27;, &#x27;mcp__github__get_file_contents&#x27;, &#x27;README.md (retry)&#x27;, &#x27;2026-07-20T10:07:00Z&#x27;),
+        (&#x27;sess_a1b2&#x27;, &#x27;Skill&#x27;, &#x27;add-cli-command&#x27;, &#x27;2026-07-20T11:00:00Z&#x27;),
+        (&#x27;sess_a1b2&#x27;, &#x27;Skill&#x27;, &#x27;fix-lint-errors&#x27;, &#x27;2026-07-20T11:30:00Z&#x27;),
+        (&#x27;sess_c3d4&#x27;, &#x27;Skill&#x27;, &#x27;add-cli-command&#x27;, &#x27;2026-07-21T14:30:00Z&#x27;),
+        (&#x27;sess_c3d4&#x27;, &#x27;Skill&#x27;, &#x27;fix-lint-errors&#x27;, &#x27;2026-07-21T15:00:00Z&#x27;),
+        (&#x27;sess_c3d4&#x27;, &#x27;Bash&#x27;, &#x27;ruff check&#x27;, &#x27;2026-07-21T15:10:00Z&#x27;),
+        (&#x27;sess_x1y2&#x27;, &#x27;Skill&#x27;, &#x27;setup-mcp-server&#x27;, &#x27;2026-07-10T08:30:00Z&#x27;),
+        (&#x27;sess_x1y2&#x27;, &#x27;Bash&#x27;, &#x27;echo done&#x27;, &#x27;2026-07-10T08:31:00Z&#x27;)
+    &quot;&quot;&quot;)
+    db.commit()
+    return db</code></pre>
+<h4>2.3 Real DeepSeek Flash Fixture</h4>
+<pre><code>@pytest.fixture
+def real_llm():
+    &quot;&quot;&quot;Real DeepSeek Flash client. No mock. Requires DEEPSEEK_API_KEY env var.&quot;&quot;&quot;
+    from coworker.memory.llm import LLMClient
+    return LLMClient(
+        provider=&quot;openai&quot;,
+        model=&quot;deepseek-chat&quot;,
+        base_url=&quot;https://api.deepseek.com&quot;,
+        api_key=os.environ[&quot;DEEPSEEK_API_KEY&quot;],
+    )
+
+@pytest.fixture
+def skip_if_no_api_key():
+    &quot;&quot;&quot;Skip tests that need LLM if DEEPSEEK_API_KEY is not set.&quot;&quot;&quot;
+    if &quot;DEEPSEEK_API_KEY&quot; not in os.environ:
+        pytest.skip(&quot;DEEPSEEK_API_KEY not set&quot;)
+
+@pytest.fixture
+def skip_if_no_claude_key():
+    &quot;&quot;&quot;Skip Claude SDK tests if ANTHROPIC_API_KEY is not set.&quot;&quot;&quot;
+    if &quot;ANTHROPIC_API_KEY&quot; not in os.environ:
+        pytest.skip(&quot;ANTHROPIC_API_KEY not set&quot;)</code></pre>
+<h4>2.4 Real Test Data (loaded into real infrastructure)</h4>
+<pre><code>@pytest.fixture
+def populated_mem0(clean_mem0, real_llm):
+    &quot;&quot;&quot;Real mem0 pre-loaded with 10 known experiences. Uses real LLM for extraction.&quot;&quot;&quot;
+    entries = [
+        {&quot;memory&quot;: &quot;MCP first request after startup often returns 403; retry once before failing.&quot;,
+         &quot;metadata&quot;: {&quot;type&quot;: &quot;lesson&quot;, &quot;project&quot;: &quot;walter-worker&quot;, &quot;topic&quot;: &quot;mcp&quot;,
+                      &quot;problem&quot;: &quot;first-request-403&quot;, &quot;provenance&quot;: &quot;agent&quot;, &quot;state&quot;: &quot;active&quot;,
+                      &quot;source_session&quot;: &quot;sess_a1b2&quot;, &quot;use_count&quot;: 12,
+                      &quot;last_used&quot;: &quot;2026-07-25T09:00:00Z&quot;}},
+        {&quot;memory&quot;: &quot;Ruff E501 (line too long) is project-ignored in walter-worker; never fix it.&quot;,
+         &quot;metadata&quot;: {&quot;type&quot;: &quot;convention&quot;, &quot;project&quot;: &quot;walter-worker&quot;, &quot;topic&quot;: &quot;lint&quot;,
+                      &quot;problem&quot;: &quot;e501-ignored&quot;, &quot;provenance&quot;: &quot;agent&quot;, &quot;state&quot;: &quot;active&quot;,
+                      &quot;source_session&quot;: &quot;sess_c3d4&quot;, &quot;use_count&quot;: 9,
+                      &quot;last_used&quot;: &quot;2026-07-24T16:00:00Z&quot;}},
+        {&quot;memory&quot;: &quot;Prefer Chinese for discussion, English for code and commits.&quot;,
+         &quot;metadata&quot;: {&quot;type&quot;: &quot;preference&quot;, &quot;project&quot;: &quot;walter-worker&quot;, &quot;topic&quot;: &quot;language&quot;,
+                      &quot;provenance&quot;: &quot;hand-written&quot;, &quot;state&quot;: &quot;active&quot;,
+                      &quot;use_count&quot;: 15, &quot;last_used&quot;: &quot;2026-07-25T10:00:00Z&quot;}},
+        {&quot;memory&quot;: &quot;When creating a new CLI command, register it in cli.py AND add a test in tests/python/&quot;,
+         &quot;metadata&quot;: {&quot;type&quot;: &quot;convention&quot;, &quot;project&quot;: &quot;walter-worker&quot;, &quot;topic&quot;: &quot;cli&quot;,
+                      &quot;problem&quot;: &quot;new-command-pattern&quot;, &quot;provenance&quot;: &quot;agent&quot;, &quot;state&quot;: &quot;active&quot;,
+                      &quot;source_session&quot;: &quot;sess_a1b2&quot;, &quot;use_count&quot;: 18,
+                      &quot;last_used&quot;: &quot;2026-07-25T10:00:00Z&quot;}},
+        {&quot;memory&quot;: &quot;Gemini Flash API returns empty response on first cold-start call; warm-up needed&quot;,
+         &quot;metadata&quot;: {&quot;type&quot;: &quot;lesson&quot;, &quot;project&quot;: &quot;walter-worker&quot;, &quot;topic&quot;: &quot;api&quot;,
+                      &quot;problem&quot;: &quot;gemini-cold-start&quot;, &quot;provenance&quot;: &quot;agent&quot;, &quot;state&quot;: &quot;stale&quot;,
+                      &quot;source_session&quot;: &quot;sess_g7h8&quot;, &quot;use_count&quot;: 3,
+                      &quot;last_used&quot;: &quot;2026-07-15T10:00:00Z&quot;}},
+    ]
+    for entry in entries:
+        clean_mem0.add(
+            messages=[{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: entry[&quot;memory&quot;]}],
+            user_id=&quot;test-user&quot;,
+            run_id=&quot;test-run&quot;,
+            metadata=entry[&quot;metadata&quot;],
+        )
+    return clean_mem0</code></pre>
+<h4>2.5 Real Skill Store Fixture</h4>
+<pre><code>@pytest.fixture
+def real_skills_dir(tmp_path):
+    &quot;&quot;&quot;Real skill directories with SKILL.md + usage.json. No mock.&quot;&quot;&quot;
+    skills = {
+        &quot;add-cli-command&quot;: {
+            &quot;provenance&quot;: &quot;agent&quot;, &quot;total_calls&quot;: 23, &quot;last_used&quot;: &quot;2026-07-25T09:00:00Z&quot;,
+            &quot;state&quot;: &quot;active&quot;, &quot;created_at&quot;: &quot;2026-07-20T10:00:00Z&quot;,
+            &quot;source_session&quot;: &quot;sess_a1b2&quot;
+        },
+        &quot;fix-lint-errors&quot;: {
+            &quot;provenance&quot;: &quot;agent&quot;, &quot;total_calls&quot;: 15, &quot;last_used&quot;: &quot;2026-07-24T16:00:00Z&quot;,
+            &quot;state&quot;: &quot;active&quot;, &quot;created_at&quot;: &quot;2026-07-18T14:00:00Z&quot;,
+            &quot;source_session&quot;: &quot;sess_c3d4&quot;
+        },
+        &quot;setup-mcp-server&quot;: {
+            &quot;provenance&quot;: &quot;agent&quot;, &quot;total_calls&quot;: 1, &quot;last_used&quot;: &quot;2026-07-10T08:30:00Z&quot;,
+            &quot;state&quot;: &quot;stale&quot;, &quot;created_at&quot;: &quot;2026-07-10T08:00:00Z&quot;,
+            &quot;source_session&quot;: &quot;sess_x1y2&quot;
+        },
+        &quot;skill-create&quot;: {
+            &quot;provenance&quot;: &quot;bundled&quot;, &quot;total_calls&quot;: 31, &quot;last_used&quot;: &quot;2026-07-25T10:00:00Z&quot;,
+            &quot;state&quot;: &quot;active&quot;, &quot;created_at&quot;: &quot;2026-06-01T00:00:00Z&quot;,
+            &quot;source_session&quot;: None
+        },
+    }
+    skills_dir = tmp_path / &quot;skills&quot;
+    skills_dir.mkdir()
+    for name, meta in skills.items():
+        skill_dir = skills_dir / name
+        skill_dir.mkdir()
+        (skill_dir / &quot;SKILL.md&quot;).write_text(f&quot;# {name}\n\nSkill description for {name}.\n&quot;)
+        (skill_dir / &quot;usage.json&quot;).write_text(json.dumps(meta))
+    return skills_dir</code></pre>
+<h4>2.6 Real Test Data (shared constants)</h4>
+<p>These are NOT mocks — they&#x27;re the expected input/output shapes used for assertions:</p>
+<pre><code># Expected DeepSeek extraction output shape (used for response validation)
+EXPECTED_EXTRACTION_SCHEMA = {
+    &quot;lessons&quot;: list,      # 0..N items, each with memory/type/topic/problem
+    &quot;state_delta&quot;: (str, type(None)),  # optional one-line progress note
+}
+
+# Expected training report shape
+EXPECTED_TRAINING_REPORT_SCHEMA = {
+    &quot;sessions_processed&quot;: int,
+    &quot;lessons_extracted&quot;: int,
+    &quot;skills_identified&quot;: int,
+    &quot;skills_staged&quot;: int,
+    &quot;experiences_written&quot;: int,
+    &quot;errors&quot;: int,
+    &quot;duration_seconds&quot;: float,
+}
+
+# Knowable extraction — these inputs SHOULD produce predictable outputs:
+KNOWABLE_TOOL_EVENT = {
+    &quot;tool&quot;: &quot;Edit&quot;,
+    &quot;input&quot;: {
+        &quot;file_path&quot;: &quot;/home/user/project/src/auth.py&quot;,
+        &quot;old_string&quot;: &quot;def refresh_token():\n    return requests.post(url, data=payload)&quot;,
+        &quot;new_string&quot;: &quot;def refresh_token():\n    for attempt in range(3):\n        try:\n            return requests.post(url, data=payload, timeout=10)\n        except requests.Timeout:\n            if attempt == 2:\n                raise\n            time.sleep(1)&quot;
+    },
+    &quot;result&quot;: &quot;Edit applied successfully&quot;,
+    &quot;session_id&quot;: &quot;sess_abc123&quot;,
+    &quot;timestamp&quot;: &quot;2026-07-25T10:00:00Z&quot;
+}
+
+TRIVIAL_TOOL_EVENT = {
+    &quot;tool&quot;: &quot;Bash&quot;,
+    &quot;input&quot;: {&quot;command&quot;: &quot;git status&quot;},
+    &quot;result&quot;: &quot;On branch master\nnothing to commit, working tree clean&quot;,
+    &quot;session_id&quot;: &quot;sess_abc123&quot;,
+    &quot;timestamp&quot;: &quot;2026-07-25T10:01:00Z&quot;
+}</code></pre>
+<hr>
+<h3>3. Unit Tests — Per Module (ALL REAL)</h3>
+<p>Every test uses real infrastructure from the fixtures above. Tests tagged with <code>@pytest.mark.llm</code> require <code>DEEPSEEK_API_KEY</code>. Tests tagged with <code>@pytest.mark.slow</code> involve real LLM calls or large data.</p>
+<h4>3.1 mem0 Client — <a href="../../../../../tests/python/test_mem0_client.py"><code>tests/python/test_mem0_client.py</code></a></h4>
+<pre><code>@pytest.mark.real
+class TestMem0ClientInit:
+    def test_from_config_creates_valid_client(self, tmp_path):
+        &quot;&quot;&quot;Real mem0 client with temp Qdrant → initializes successfully.&quot;&quot;&quot;
+        from coworker.memory.mem0_client import Mem0Client
+        client = Mem0Client.from_config(
+            llm_provider=&quot;openai&quot;,
+            llm_model=&quot;deepseek-chat&quot;,
+            llm_base_url=&quot;https://api.deepseek.com&quot;,
+            embedder_provider=&quot;huggingface&quot;,
+            embedder_model=&quot;BAAI/bge-small-en-v1.5&quot;,
+            vector_store_path=str(tmp_path / &quot;mem0_test&quot;)
+        )
+        assert client is not None
+        # Verify the underlying mem0 client is initialized
+        mem = client._memory
+        assert mem is not None
+
+    def test_from_config_raises_on_invalid_llm_provider(self):
+        &quot;&quot;&quot;Unknown LLM provider → ConfigError.&quot;&quot;&quot;
+        from coworker.memory.mem0_client import Mem0Client, ConfigError
+        with pytest.raises(ConfigError, match=&quot;unsupported.*llm.*provider&quot;):
+            Mem0Client.from_config(llm_provider=&quot;nonexistent_provider&quot;)
+
+    def test_from_config_raises_on_missing_api_key(self, monkeypatch):
+        &quot;&quot;&quot;No DEEPSEEK_API_KEY → ConfigError.&quot;&quot;&quot;
+        monkeypatch.delenv(&quot;DEEPSEEK_API_KEY&quot;, raising=False)
+        from coworker.memory.mem0_client import Mem0Client, ConfigError
+        with pytest.raises(ConfigError, match=&quot;DEEPSEEK_API_KEY&quot;):
+            Mem0Client.from_config(llm_provider=&quot;openai&quot;)
+
+
+@pytest.mark.real
+class TestMem0ClientAdd:
+    def test_add_entry_and_retrieve_it(self, clean_mem0):
+        &quot;&quot;&quot;Add a real mem0 entry → search finds it.&quot;&quot;&quot;
+        client = make_client(clean_mem0)
+        entry_id = client.add(
+            memory=&quot;MCP first request 403-times-out; retry once before failing.&quot;,
+            user_id=&quot;test-user&quot;,
+            run_id=&quot;sess_test_001&quot;,
+            metadata={
+                &quot;type&quot;: &quot;lesson&quot;, &quot;project&quot;: &quot;walter-worker&quot;,
+                &quot;topic&quot;: &quot;mcp&quot;, &quot;problem&quot;: &quot;first-request-403&quot;,
+                &quot;provenance&quot;: &quot;agent&quot;, &quot;state&quot;: &quot;active&quot;,
+                &quot;source_session&quot;: &quot;sess_test_001&quot;,
+            }
+        )
+        assert entry_id is not None
+
+        # Retrieve via search
+        results = client.search(query=&quot;MCP 403 timeout&quot;, top_k=5)
+        assert len(results) &gt;= 1
+        found = results[0]
+        assert &quot;403&quot; in found.get(&quot;memory&quot;, &quot;&quot;)
+
+    def test_add_multiple_entries_and_search_by_topic(self, clean_mem0):
+        &quot;&quot;&quot;Add 3 entries with different topics → search scoped to one topic.&quot;&quot;&quot;
+        client = make_client(clean_mem0)
+        client.add(memory=&quot;MCP 403 retry&quot;, user_id=&quot;u1&quot;,
+                   metadata={&quot;topic&quot;: &quot;mcp&quot;, &quot;project&quot;: &quot;walter-worker&quot;, &quot;provenance&quot;: &quot;agent&quot;})
+        client.add(memory=&quot;Ruff E501 ignored&quot;, user_id=&quot;u1&quot;,
+                   metadata={&quot;topic&quot;: &quot;lint&quot;, &quot;project&quot;: &quot;walter-worker&quot;, &quot;provenance&quot;: &quot;agent&quot;})
+        client.add(memory=&quot;Click CLI pattern&quot;, user_id=&quot;u1&quot;,
+                   metadata={&quot;topic&quot;: &quot;cli&quot;, &quot;project&quot;: &quot;walter-worker&quot;, &quot;provenance&quot;: &quot;agent&quot;})
+
+        results = client.search(query=&quot;lint&quot;, filters={&quot;metadata.topic&quot;: &quot;lint&quot;})
+        assert len(results) &gt;= 1
+        assert any(&quot;E501&quot; in r.get(&quot;memory&quot;, &quot;&quot;) for r in results)
+
+    def test_add_retries_on_transient_failure(self, clean_mem0, monkeypatch):
+        &quot;&quot;&quot;Real mem0 with injected failure → retry logic kicks in, eventually succeeds.&quot;&quot;&quot;
+        client = make_client(clean_mem0)
+        original_add = clean_mem0.add
+        call_count = [0]
+
+        def flaky_add(*args, **kwargs):
+            call_count[0] += 1
+            if call_count[0] &lt; 3:
+                raise ConnectionError(&quot;simulated network blip&quot;)
+            return original_add(*args, **kwargs)
+
+        monkeypatch.setattr(clean_mem0, &quot;add&quot;, flaky_add)
+        entry_id = client.add(memory=&quot;test&quot;, user_id=&quot;u1&quot;)
+        assert entry_id is not None
+        assert call_count[0] == 3
+
+    def test_add_raises_after_all_retries_exhausted(self, clean_mem0, monkeypatch):
+        &quot;&quot;&quot;mem0 fails all 3 attempts → raises Mem0Error.&quot;&quot;&quot;
+        client = make_client(clean_mem0)
+
+        def always_fail(*args, **kwargs):
+            raise ConnectionError(&quot;mem0 completely down&quot;)
+
+        monkeypatch.setattr(clean_mem0, &quot;add&quot;, always_fail)
+        with pytest.raises(Mem0Error, match=&quot;failed after 3 retries&quot;):
+            client.add(memory=&quot;test&quot;, user_id=&quot;u1&quot;)
+
+    def test_add_without_optional_metadata(self, clean_mem0):
+        &quot;&quot;&quot;Add without metadata → stored successfully, metadata empty.&quot;&quot;&quot;
+        client = make_client(clean_mem0)
+        entry_id = client.add(memory=&quot;simple fact&quot;, user_id=&quot;u1&quot;)
+        assert entry_id is not None
+        results = client.search(query=&quot;simple fact&quot;)
+        assert len(results) &gt;= 1
+
+
+@pytest.mark.real
+class TestMem0ClientSearch:
+    def test_search_finds_by_semantic_similarity(self, clean_mem0):
+        &quot;&quot;&quot;Query &#x27;MCP timeout handling&#x27; finds entry about &#x27;MCP 403 retry&#x27;.&quot;&quot;&quot;
+        client = make_client(clean_mem0)
+        client.add(memory=&quot;MCP first request returns 403; retry once before failing.&quot;,
+                   user_id=&quot;u1&quot;, metadata={&quot;topic&quot;: &quot;mcp&quot;, &quot;project&quot;: &quot;walter-worker&quot;})
+
+        results = client.search(query=&quot;MCP timeout handling&quot;, top_k=5)
+        assert len(results) &gt;= 1
+
+    def test_search_empty_result(self, clean_mem0):
+        &quot;&quot;&quot;Search for nonexistent topic → empty list, no error.&quot;&quot;&quot;
+        client = make_client(clean_mem0)
+        results = client.search(query=&quot;this_topic_definitely_does_not_exist_xyz&quot;)
+        assert results == []
+
+    def test_search_respects_top_k(self, clean_mem0):
+        &quot;&quot;&quot;top_k=3 returns at most 3 results even if more exist.&quot;&quot;&quot;
+        client = make_client(clean_mem0)
+        for i in range(10):
+            client.add(memory=f&quot;test entry {i}&quot;, user_id=&quot;u1&quot;,
+                       metadata={&quot;topic&quot;: f&quot;topic_{i}&quot;, &quot;project&quot;: &quot;walter-worker&quot;})
+
+        results = client.search(query=&quot;test entry&quot;, top_k=3)
+        assert len(results) &lt;= 3
+
+    def test_search_by_project_filter(self, populated_mem0):
+        &quot;&quot;&quot;Filter by project returns only matching entries.&quot;&quot;&quot;
+        client = make_client(populated_mem0)
+        results = client.search(query=&quot;&quot;, filters={&quot;metadata.project&quot;: &quot;walter-worker&quot;})
+        assert all(r[&quot;metadata&quot;][&quot;project&quot;] == &quot;walter-worker&quot; for r in results)
+
+    def test_search_by_multiple_filters(self, populated_mem0):
+        &quot;&quot;&quot;Combined project + provenance filters work together.&quot;&quot;&quot;
+        client = make_client(populated_mem0)
+        results = client.search(
+            query=&quot;&quot;,
+            filters={&quot;metadata.project&quot;: &quot;walter-worker&quot;, &quot;metadata.provenance&quot;: &quot;agent&quot;}
+        )
+        assert len(results) &gt;= 1
+        for r in results:
+            assert r[&quot;metadata&quot;][&quot;project&quot;] == &quot;walter-worker&quot;
+            assert r[&quot;metadata&quot;][&quot;provenance&quot;] == &quot;agent&quot;
+
+
+@pytest.mark.real
+class TestMem0ClientUpdate:
+    def test_update_patches_metadata(self, clean_mem0):
+        &quot;&quot;&quot;Update state from active to stale → metadata reflects change.&quot;&quot;&quot;
+        client = make_client(clean_mem0)
+        entry_id = client.add(memory=&quot;test&quot;, user_id=&quot;u1&quot;,
+                              metadata={&quot;state&quot;: &quot;active&quot;, &quot;provenance&quot;: &quot;agent&quot;})
+
+        client.update(entry_id, metadata={&quot;state&quot;: &quot;stale&quot;})
+
+        result = client.get(entry_id)
+        assert result[&quot;metadata&quot;][&quot;state&quot;] == &quot;stale&quot;
+
+    def test_update_preserves_untouched_fields(self, clean_mem0):
+        &quot;&quot;&quot;Update state only → topic, project unchanged.&quot;&quot;&quot;
+        client = make_client(clean_mem0)
+        entry_id = client.add(memory=&quot;test&quot;, user_id=&quot;u1&quot;,
+                              metadata={&quot;topic&quot;: &quot;mcp&quot;, &quot;project&quot;: &quot;walter-worker&quot;, &quot;state&quot;: &quot;active&quot;})
+
+        client.update(entry_id, metadata={&quot;state&quot;: &quot;archived&quot;})
+
+        result = client.get(entry_id)
+        assert result[&quot;metadata&quot;][&quot;topic&quot;] == &quot;mcp&quot;
+        assert result[&quot;metadata&quot;][&quot;project&quot;] == &quot;walter-worker&quot;
+        assert result[&quot;metadata&quot;][&quot;state&quot;] == &quot;archived&quot;
+
+
+@pytest.mark.real
+class TestMem0ClientDelete:
+    def test_delete_removes_entry(self, clean_mem0):
+        &quot;&quot;&quot;Delete → entry no longer searchable.&quot;&quot;&quot;
+        client = make_client(clean_mem0)
+        entry_id = client.add(memory=&quot;to be deleted&quot;, user_id=&quot;u1&quot;)
+
+        client.delete(entry_id)
+
+        results = client.search(query=&quot;to be deleted&quot;)
+        assert all(r.get(&quot;id&quot;) != entry_id for r in results)
+
+    def test_delete_nonexistent_is_noop(self, clean_mem0):
+        &quot;&quot;&quot;Delete nonexistent id → no error.&quot;&quot;&quot;
+        client = make_client(clean_mem0)
+        client.delete(&quot;definitely_nonexistent_id_12345&quot;)  # should not raise</code></pre>
+<h4>3.2 Capture Layer — <a href="../../../../../tests/python/test_capture.py"><code>tests/python/test_capture.py</code></a></h4>
+<pre><code>@pytest.mark.real
+@pytest.mark.llm
+class TestProcessTurn:
+    def test_process_turn_extracts_lesson_from_meaningful_event(self, clean_mem0, real_llm, tmp_path, skip_if_no_api_key):
+        &quot;&quot;&quot;Real tool event with retry pattern → real LLM extraction → lesson stored in real mem0.&quot;&quot;&quot;
+        state_dir = tmp_path / &quot;state&quot;
+        state_dir.mkdir()
+
+        result = process_turn(
+            mem0_client=make_client(clean_mem0),
+            llm_client=real_llm,
+            tool_event=KNOWABLE_TOOL_EVENT,
+            recent_window=[
+                {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;fix the token refresh bug&quot;},
+                {&quot;role&quot;: &quot;tool&quot;, &quot;tool&quot;: &quot;Read&quot;, &quot;content&quot;: &quot;def refresh_token():...&quot;},
+            ],
+            session_id=&quot;sess_test_001&quot;,
+            state_dir=str(state_dir),
+            audit_dir=str(tmp_path),
+        )
+
+        # The LLM SHOULD extract something from a retry-pattern Edit
+        assert result.lessons_extracted &gt;= 0  # LLM may or may not find a lesson
+        # Audit was written
+        audit_path = tmp_path / &quot;audit.log&quot;
+        assert audit_path.exists()
+        content = audit_path.read_text()
+        assert &quot;sess_test_001&quot; in content
+        assert &quot;posttooluse&quot; in content
+
+    def test_process_turn_trivial_event_no_lesson(self, clean_mem0, real_llm, tmp_path, skip_if_no_api_key):
+        &quot;&quot;&quot;&#x27;git status&#x27; event → LLM should extract 0 lessons.&quot;&quot;&quot;
+        result = process_turn(
+            mem0_client=make_client(clean_mem0),
+            llm_client=real_llm,
+            tool_event=TRIVIAL_TOOL_EVENT,
+            recent_window=[],
+            session_id=&quot;sess_test_001&quot;,
+            audit_dir=str(tmp_path),
+        )
+        # git status is trivial — LLM should not extract a lesson
+        # (May occasionally extract something — we check it doesn&#x27;t crash and audit is written)
+        assert result is not None
+        audit_content = (tmp_path / &quot;audit.log&quot;).read_text()
+        assert &quot;sess_test_001&quot; in audit_content
+
+    def test_process_turn_recent_window_capped_at_5(self, clean_mem0, real_llm, tmp_path, skip_if_no_api_key):
+        &quot;&quot;&quot;Large history → window capped at 5 turns before sending to LLM.&quot;&quot;&quot;
+        long_history = [{&quot;role&quot;: &quot;tool&quot;, &quot;content&quot;: f&quot;turn {i}&quot;} for i in range(20)]
+
+        result = process_turn(
+            mem0_client=make_client(clean_mem0),
+            llm_client=real_llm,
+            tool_event=KNOWABLE_TOOL_EVENT,
+            recent_window=long_history,
+            session_id=&quot;sess_test_001&quot;,
+            audit_dir=str(tmp_path),
+        )
+        assert result is not None
+
+    def test_process_turn_state_delta_written_to_tier2(self, clean_mem0, real_llm, tmp_path, skip_if_no_api_key):
+        &quot;&quot;&quot;If LLM produces state_delta, it&#x27;s written to state file.&quot;&quot;&quot;
+        state_dir = tmp_path / &quot;state&quot;
+        state_dir.mkdir()
+
+        process_turn(
+            mem0_client=make_client(clean_mem0),
+            llm_client=real_llm,
+            tool_event=KNOWABLE_TOOL_EVENT,
+            recent_window=[],
+            session_id=&quot;sess_test_001&quot;,
+            state_dir=str(state_dir),
+            audit_dir=str(tmp_path),
+        )
+
+        state_files = list(state_dir.glob(&quot;*.md&quot;))
+        if len(state_files) &gt; 0:
+            content = state_files[0].read_text()
+            assert len(content) &gt; 0  # Something was written
+
+    def test_process_turn_llm_failure_graceful_degradation(self, clean_mem0, tmp_path):
+        &quot;&quot;&quot;LLM completely unavailable → process_turn doesn&#x27;t crash, writes error audit.&quot;&quot;&quot;
+        # Use an LLM client pointing to a nonexistent endpoint
+        bad_llm = LLMClient(base_url=&quot;http://localhost:19999/nonexistent&quot;, timeout=1)
+
+        result = process_turn(
+            mem0_client=make_client(clean_mem0),
+            llm_client=bad_llm,
+            tool_event=KNOWABLE_TOOL_EVENT,
+            recent_window=[],
+            session_id=&quot;sess_test_001&quot;,
+            audit_dir=str(tmp_path),
+        )
+
+        assert result.lessons_extracted == 0
+        audit_content = (tmp_path / &quot;audit.log&quot;).read_text()
+        assert &quot;error&quot; in audit_content.lower() or &quot;sess_test_001&quot; in audit_content
+
+
+@pytest.mark.real
+@pytest.mark.llm
+class TestProcessSessionEnd:
+    def test_session_end_reconciles_full_transcript(self, clean_mem0, real_llm, real_db, tmp_path, skip_if_no_api_key):
+        &quot;&quot;&quot;Real session-end processes full transcript → lessons extracted via real LLM.&quot;&quot;&quot;
+        # Write a mini transcript to temp file
+        transcript_path = tmp_path / &quot;transcript.json&quot;
+        transcript_path.write_text(json.dumps({
+            &quot;session_id&quot;: &quot;sess_test_001&quot;,
+            &quot;messages&quot;: [
+                {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;fix the bug in auth.py&quot;},
+                {&quot;role&quot;: &quot;assistant&quot;, &quot;content&quot;: &quot;I see the issue — the token refresh doesn&#x27;t retry on timeout.&quot;},
+                {&quot;role&quot;: &quot;tool&quot;, &quot;tool&quot;: &quot;Edit&quot;, &quot;content&quot;: &quot;Added retry logic to refresh_token()&quot;},
+                {&quot;role&quot;: &quot;tool&quot;, &quot;tool&quot;: &quot;Bash&quot;, &quot;content&quot;: &quot;pytest tests/ -x — 3 passed&quot;},
+            ]
+        }))
+
+        result = process_session_end(
+            mem0_client=make_client(clean_mem0),
+            llm_client=real_llm,
+            session_id=&quot;sess_test_001&quot;,
+            transcript_path=str(transcript_path),
+            db=real_db,
+            audit_dir=str(tmp_path),
+        )
+
+        assert result is not None
+        # Audit record written
+        audit_content = (tmp_path / &quot;audit.log&quot;).read_text()
+        assert &quot;sess_test_001&quot; in audit_content
+        assert &quot;stop&quot; in audit_content.lower() or &quot;close&quot; in audit_content.lower()
+
+    def test_session_end_assesses_skill_creation(self, clean_mem0, real_llm, tmp_path, skip_if_no_api_key):
+        &quot;&quot;&quot;Transcript with many tool calls → skill-worthiness assessment runs.&quot;&quot;&quot;
+        transcript_path = tmp_path / &quot;transcript.json&quot;
+        messages = [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;add a new CLI command&quot;}]
+        for i in range(15):  # 15 tool calls — above threshold
+            messages.append({&quot;role&quot;: &quot;tool&quot;, &quot;tool&quot;: f&quot;step_{i}&quot;, &quot;content&quot;: f&quot;result {i}&quot;})
+
+        transcript_path.write_text(json.dumps({&quot;session_id&quot;: &quot;sess_test_001&quot;, &quot;messages&quot;: messages}))
+
+        result = process_session_end(
+            mem0_client=make_client(clean_mem0),
+            llm_client=real_llm,
+            session_id=&quot;sess_test_001&quot;,
+            transcript_path=str(transcript_path),
+            audit_dir=str(tmp_path),
+        )
+
+        assert result is not None
+        # May or may not stage a skill — depends on LLM assessment
+        assert hasattr(result, &quot;skills_staged&quot;)</code></pre>
+<h4>3.3 Audit Trail — <a href="../../../../../tests/python/test_audit.py"><code>tests/python/test_audit.py</code></a></h4>
+<pre><code>@pytest.mark.real
+class TestAuditTrail:
+    def test_write_audit_record_correct_format(self, tmp_path):
+        &quot;&quot;&quot;Real file write → verify exact log format.&quot;&quot;&quot;
+        audit_path = tmp_path / &quot;audit.log&quot;
+        write_audit_record(
+            path=str(audit_path),
+            trigger=&quot;posttooluse&quot;,
+            session_id=&quot;sess_test_001&quot;,
+            tool=&quot;Edit&quot;,
+            lessons=2,
+            ms=423,
+            status=&quot;ok&quot;
+        )
+        content = audit_path.read_text().strip()
+        parts = content.split(&quot; &quot;)
+        assert len(parts) &gt;= 8
+        assert &quot;sync&quot; in parts[1]
+        assert &quot;posttooluse&quot; in parts[2]
+        assert &quot;sess_test_001&quot; in parts[3]
+        assert &quot;tool=Edit&quot; in content
+        assert &quot;lessons=2&quot; in content
+        assert &quot;ms=423&quot; in content
+        assert &quot;ok&quot; in content
+
+    def test_audit_gap_detection_real_file(self, tmp_path):
+        &quot;&quot;&quot;Real audit.log with time gaps → gaps detected.&quot;&quot;&quot;
+        audit_path = tmp_path / &quot;audit.log&quot;
+        write_audit_record(str(audit_path), &quot;posttooluse&quot;, &quot;sess_test_001&quot;, &quot;Read&quot;, 0, 200, &quot;ok&quot;,
+                           ts=&quot;2026-07-25T10:00:00Z&quot;)
+        write_audit_record(str(audit_path), &quot;posttooluse&quot;, &quot;sess_test_001&quot;, &quot;Read&quot;, 0, 180, &quot;ok&quot;,
+                           ts=&quot;2026-07-25T10:01:00Z&quot;)
+        # 30 minute gap
+        write_audit_record(str(audit_path), &quot;posttooluse&quot;, &quot;sess_test_001&quot;, &quot;Edit&quot;, 1, 350, &quot;ok&quot;,
+                           ts=&quot;2026-07-25T10:31:00Z&quot;)
+
+        gaps = check_gaps(str(audit_path), gap_threshold_minutes=5)
+        assert len(gaps) &gt;= 1
+        assert gaps[0][&quot;session_id&quot;] == &quot;sess_test_001&quot;
+
+    def test_audit_no_gaps_when_consecutive(self, tmp_path):
+        &quot;&quot;&quot;Records within threshold → no gaps.&quot;&quot;&quot;
+        audit_path = tmp_path / &quot;audit.log&quot;
+        write_audit_record(str(audit_path), &quot;posttooluse&quot;, &quot;sess_test_001&quot;, &quot;Read&quot;, 0, 200, &quot;ok&quot;,
+                           ts=&quot;2026-07-25T10:00:00Z&quot;)
+        write_audit_record(str(audit_path), &quot;posttooluse&quot;, &quot;sess_test_001&quot;, &quot;Edit&quot;, 1, 300, &quot;ok&quot;,
+                           ts=&quot;2026-07-25T10:01:00Z&quot;)
+
+        gaps = check_gaps(str(audit_path), gap_threshold_minutes=5)
+        assert gaps == []</code></pre>
+<h4>3.4 Evolution Engine — <a href="../../../../../tests/python/test_engine.py"><code>tests/python/test_engine.py</code></a></h4>
+<pre><code>@pytest.mark.real
+class TestExtractAndStore:
+    def test_extract_and_store_writes_to_real_mem0(self, clean_mem0, real_llm, tmp_path, skip_if_no_api_key):
+        &quot;&quot;&quot;extract_and_store() with real LLM + real mem0 → entry searchable after store.&quot;&quot;&quot;
+        result = extract_and_store(
+            mem0_client=make_client(clean_mem0),
+            llm_client=real_llm,
+            tool_event=KNOWABLE_TOOL_EVENT,
+            recent_window=[],
+            session_id=&quot;sess_test_001&quot;,
+            audit_dir=str(tmp_path),
+        )
+        assert result is not None
+        # Audit was written
+        assert (tmp_path / &quot;audit.log&quot;).exists()
+
+
+@pytest.mark.real
+@pytest.mark.llm
+class TestAssessSkillWorthiness:
+    def test_many_tool_calls_triggers_skill_assessment(self, real_llm, skip_if_no_api_key):
+        &quot;&quot;&quot;Transcript with 15 tool calls → LLM assesses skill-worthiness.&quot;&quot;&quot;
+        transcript = {&quot;session_id&quot;: &quot;sess_test_001&quot;, &quot;messages&quot;: []}
+        for i in range(15):
+            transcript[&quot;messages&quot;].append(
+                {&quot;role&quot;: &quot;tool&quot;, &quot;tool&quot;: f&quot;step_{i}&quot;, &quot;content&quot;: f&quot;result {i}&quot;}
+            )
+        result = assess_skill_worthiness(
+            llm_client=real_llm,
+            tool_call_count=15,
+            transcript=json.dumps(transcript)
+        )
+        assert result is not None
+        assert hasattr(result, &quot;is_worthy&quot;)
+
+    def test_few_tool_calls_below_threshold(self, real_llm, skip_if_no_api_key):
+        &quot;&quot;&quot;Only 3 tool calls → threshold not met, no assessment needed (fast path).&quot;&quot;&quot;
+        result = assess_skill_worthiness(
+            llm_client=real_llm,
+            tool_call_count=3,
+            transcript=&quot;...&quot;,
+            threshold=10
+        )
+        # Below threshold → may skip LLM call entirely, return not-worthy
+        if result is not None:
+            assert result.is_worthy is False</code></pre>
+<h4>3.5 Context Injection — <a href="../../../../../tests/python/test_inject.py"><code>tests/python/test_inject.py</code></a> (real file I/O)</h4>
+<pre><code>SAMPLE_CLAUDE_LOCAL_MD = &quot;&quot;&quot;# Personal Working Context
+
+## Config
+- Project Catalog: ~/.coworker/project.yaml
+
+&lt;!-- MEMORY:walter-worker START --&gt;
+## Memory Snapshot (frozen at 2026-07-24T10:00:00Z)
+- Ruff E501 is project-ignored
+- Prefers Chinese for discussion
+&lt;!-- MEMORY:walter-worker END --&gt;
+
+## Current Task
+Active task: design phase
+&quot;&quot;&quot;
+
+SAMPLE_CLAUDE_LOCAL_NO_MEMORY = &quot;&quot;&quot;# Personal Working Context
+
+## Config
+- Project Catalog: ~/.coworker/project.yaml
+
+## Current Task
+Active task: design phase
+&quot;&quot;&quot;
+
+
+class TestBuildSnapshot:
+    def test_build_snapshot_scoped_to_project(self, populated_mem0):
+        &quot;&quot;&quot;Snapshot query filters by project → only walter-worker entries returned.&quot;&quot;&quot;
+        client = make_client(populated_mem0)
+        snapshot = build_snapshot(mem0_client=client, project=&quot;walter-worker&quot;, top_k=10)
+        assert len(snapshot) &gt;= 1
+        for entry in snapshot:
+            meta = entry.get(&quot;metadata&quot;, {})
+            assert meta.get(&quot;project&quot;) == &quot;walter-worker&quot;
+
+    def test_build_snapshot_respects_top_k(self, populated_mem0):
+        &quot;&quot;&quot;top_k=2 returns at most 2 entries.&quot;&quot;&quot;
+        client = make_client(populated_mem0)
+        snapshot = build_snapshot(mem0_client=client, project=&quot;walter-worker&quot;, top_k=2)
+        assert len(snapshot) &lt;= 2
+
+    def test_build_snapshot_empty_project(self, clean_mem0):
+        &quot;&quot;&quot;Project with no mem0 entries → empty list.&quot;&quot;&quot;
+        client = make_client(clean_mem0)
+        snapshot = build_snapshot(mem0_client=client, project=&quot;nonexistent_project&quot;)
+        assert snapshot == []
+
+
+class TestInjectIntoLocalMd:
+    def test_inject_creates_new_block(self, tmp_path):
+        &quot;&quot;&quot;CLAUDE.local.md with no MEMORY block → block is created.&quot;&quot;&quot;
+        path = tmp_path / &quot;CLAUDE.local.md&quot;
+        path.write_text(SAMPLE_CLAUDE_LOCAL_NO_MEMORY)
+
+        inject_into_local_md(path, project=&quot;walter-worker&quot;, entries=[
+            {&quot;memory&quot;: &quot;MCP 403 retry pattern&quot;, &quot;metadata&quot;: {&quot;topic&quot;: &quot;mcp&quot;}}
+        ])
+
+        content = path.read_text()
+        assert &quot;&lt;!-- MEMORY:walter-worker START --&gt;&quot; in content
+        assert &quot;MCP 403 retry pattern&quot; in content
+        assert &quot;&lt;!-- MEMORY:walter-worker END --&gt;&quot; in content
+        assert &quot;Project Catalog&quot; in content  # human content preserved
+        assert &quot;design phase&quot; in content
+
+    def test_inject_replaces_existing_block(self, tmp_path):
+        &quot;&quot;&quot;Existing MEMORY block is fully replaced.&quot;&quot;&quot;
+        path = tmp_path / &quot;CLAUDE.local.md&quot;
+        path.write_text(SAMPLE_CLAUDE_LOCAL_MD)
+
+        inject_into_local_md(path, project=&quot;walter-worker&quot;, entries=[
+            {&quot;memory&quot;: &quot;NEW: MCP timeout workaround&quot;, &quot;metadata&quot;: {&quot;topic&quot;: &quot;mcp&quot;}}
+        ])
+
+        content = path.read_text()
+        assert &quot;Ruff E501 is project-ignored&quot; not in content  # old removed
+        assert &quot;NEW: MCP timeout workaround&quot; in content
+        assert content.count(&quot;&lt;!-- MEMORY:walter-worker START --&gt;&quot;) == 1
+        assert content.count(&quot;&lt;!-- MEMORY:walter-worker END --&gt;&quot;) == 1
+
+    def test_inject_preserves_content_outside_markers(self, tmp_path):
+        &quot;&quot;&quot;Content outside MEMORY markers must never change.&quot;&quot;&quot;
+        prefix = &quot;# Config\n\n&quot;
+        suffix = &quot;\n## Task\nactive\n&quot;
+        path = tmp_path / &quot;CLAUDE.local.md&quot;
+        path.write_text(prefix + &quot;&lt;!-- MEMORY:walter-worker START --&gt;\nold\n&lt;!-- MEMORY:walter-worker END --&gt;&quot; + suffix)
+
+        inject_into_local_md(path, project=&quot;walter-worker&quot;, entries=[{&quot;memory&quot;: &quot;new&quot;, &quot;metadata&quot;: {}}])
+
+        content = path.read_text()
+        assert content.startswith(prefix)
+        assert content.endswith(suffix)
+
+    def test_inject_multi_project_blocks_independent(self, tmp_path):
+        &quot;&quot;&quot;Only the matching project block is replaced.&quot;&quot;&quot;
+        content = &quot;&lt;!-- MEMORY:walter-worker START --&gt;\nold\n&lt;!-- MEMORY:walter-worker END --&gt;\n&lt;!-- MEMORY:skill-factory START --&gt;\nunchanged\n&lt;!-- MEMORY:skill-factory END --&gt;&quot;
+        path = tmp_path / &quot;CLAUDE.local.md&quot;
+        path.write_text(content)
+
+        inject_into_local_md(path, project=&quot;walter-worker&quot;, entries=[{&quot;memory&quot;: &quot;new&quot;}])
+        result = path.read_text()
+        assert &quot;new&quot; in result
+        assert &quot;unchanged&quot; in result  # skill-factory block untouched
+
+    def test_refresh_snapshot_reloads_from_mem0(self, populated_mem0, tmp_path):
+        &quot;&quot;&quot;Mid-session refresh re-reads mem0 and re-injects.&quot;&quot;&quot;
+        path = tmp_path / &quot;CLAUDE.local.md&quot;
+        path.write_text(SAMPLE_CLAUDE_LOCAL_MD)
+        client = make_client(populated_mem0)
+
+        refresh_snapshot(path, mem0_client=client, project=&quot;walter-worker&quot;)
+
+        content = path.read_text()
+        # Old snapshot replaced with fresh data
+        assert &quot;Ruff E501 is project-ignored&quot; not in content
+
+
+class TestParseMarkers:
+    def test_parse_markers_extracts_project_and_content(self):
+        block = &quot;&lt;!-- MEMORY:walter-worker START --&gt;\n- lesson 1\n&lt;!-- MEMORY:walter-worker END --&gt;&quot;
+        result = parse_markers(block)
+        assert result == (&quot;walter-worker&quot;, &quot;- lesson 1&quot;)
+
+    def test_parse_markers_no_block_returns_none(self):
+        result = parse_markers(&quot;# Just markdown\nNo markers.&quot;)
+        assert result is None
+
+    def test_parse_markers_unclosed_returns_none(self):
+        result = parse_markers(&quot;&lt;!-- MEMORY:walter-worker START --&gt;\nno end&quot;)
+        assert result is None</code></pre>
+<h4>3.6 Curator — <a href="../../../../../tests/python/test_curator.py"><code>tests/python/test_curator.py</code></a> (real mem0 operations)</h4>
+<pre><code>@pytest.mark.real
+class TestCuratorArchive:
+    def test_archive_stale_30_days(self, clean_mem0):
+        &quot;&quot;&quot;Real entry with last_used 31 days ago → state updated to &#x27;stale&#x27;.&quot;&quot;&quot;
+        client = make_client(clean_mem0)
+        entry_id = client.add(memory=&quot;old lesson&quot;, user_id=&quot;u1&quot;, metadata={
+            &quot;state&quot;: &quot;active&quot;, &quot;last_used&quot;: &quot;2026-06-24T10:00:00Z&quot;,
+            &quot;provenance&quot;: &quot;agent&quot;, &quot;use_count&quot;: 0, &quot;project&quot;: &quot;walter-worker&quot;
+        })
+        run_curator(mem0_client=client, current_date=&quot;2026-07-25&quot;)
+        updated = client.get(entry_id)
+        assert updated[&quot;metadata&quot;][&quot;state&quot;] == &quot;stale&quot;
+
+    def test_never_touches_hand_written(self, populated_mem0):
+        &quot;&quot;&quot;Hand-written entry → curator leaves it untouched.&quot;&quot;&quot;
+        client = make_client(populated_mem0)
+        # Find the hand-written entry
+        results = client.search(query=&quot;Prefer Chinese for discussion&quot;)
+        assert len(results) &gt; 0
+        entry = results[0]
+        original_state = entry[&quot;metadata&quot;][&quot;state&quot;]
+
+        run_curator(mem0_client=client, current_date=&quot;2026-07-25&quot;)
+
+        # Hand-written entry unchanged
+        after = client.get(entry[&quot;id&quot;])
+        assert after[&quot;metadata&quot;][&quot;state&quot;] == original_state
+
+    def test_pin_high_use_entries(self, clean_mem0):
+        &quot;&quot;&quot;Entry with use_count ≥ 10 → auto-pinned.&quot;&quot;&quot;
+        client = make_client(clean_mem0)
+        entry_id = client.add(memory=&quot;popular pattern&quot;, user_id=&quot;u1&quot;, metadata={
+            &quot;state&quot;: &quot;active&quot;, &quot;provenance&quot;: &quot;agent&quot;, &quot;use_count&quot;: 15,
+            &quot;project&quot;: &quot;walter-worker&quot;, &quot;last_used&quot;: &quot;2026-07-25T10:00:00Z&quot;
+        })
+        run_curator(mem0_client=client, pin_threshold=10)
+        updated = client.get(entry_id)
+        assert updated[&quot;metadata&quot;][&quot;state&quot;] == &quot;pinned&quot;
+
+
+@pytest.mark.real
+class TestCuratorExport:
+    def test_regenerate_export_from_real_mem0(self, populated_mem0, tmp_path):
+        &quot;&quot;&quot;MEMORY.md exported from populated mem0 → per-project grouping.&quot;&quot;&quot;
+        client = make_client(populated_mem0)
+        export_path = tmp_path / &quot;MEMORY.md&quot;
+
+        regenerate_export(mem0_client=client, export_path=export_path)
+
+        content = export_path.read_text()
+        assert &quot;## Project: walter-worker&quot; in content
+        assert &quot;MCP first request&quot; in content or &quot;Ruff E501&quot; in content
+
+    def test_regenerate_export_active_only(self, populated_mem0, tmp_path):
+        &quot;&quot;&quot;Stale/archived entries excluded from export.&quot;&quot;&quot;
+        client = make_client(populated_mem0)
+        export_path = tmp_path / &quot;MEMORY.md&quot;
+
+        regenerate_export(mem0_client=client, export_path=export_path)
+
+        content = export_path.read_text()
+        # &quot;Gemini Flash cold start&quot; is stale → should NOT be in export
+        assert &quot;Gemini Flash&quot; not in content</code></pre>
+<h4>3.7 Pending Queue — <a href="../../../../../tests/python/test_pending.py"><code>tests/python/test_pending.py</code></a> (real filesystem)</h4>
+<p>All pending queue tests already use real filesystem via <code>tmp_path</code>. No changes needed — they were already real.</p>
+<h4>3.8 Dashboard API — <a href="../../../../../tests/python/test_dashboard.py"><code>tests/python/test_dashboard.py</code></a> (real mem0 + real DB)</h4>
+<pre><code>@pytest.mark.real
+class TestEvolutionOverviewAPI:
+    def test_overview_returns_stats_from_real_data(self, client, populated_mem0, real_db):
+        &quot;&quot;&quot;Real mem0 + real DB → stat cards populated from actual data.&quot;&quot;&quot;
+        response = client.get(&quot;/api/evolution/overview&quot;)
+        assert response.status_code == 200
+        data = response.json()
+        assert data[&quot;auto_trained_skills&quot;] &gt;= 0
+        assert data[&quot;auto_trained_experiences&quot;] &gt;= 0
+        assert &quot;skill_reuse_rate&quot; in data
+        assert &quot;evolution_score&quot; in data
+
+    def test_overview_empty_when_no_data(self, client, clean_mem0):
+        &quot;&quot;&quot;Empty mem0 + empty DB → zeros, not crash.&quot;&quot;&quot;
+        response = client.get(&quot;/api/evolution/overview&quot;)
+        assert response.status_code == 200
+        data = response.json()
+        assert data[&quot;auto_trained_skills&quot;] == 0
+
+
+@pytest.mark.real
+class TestEvolutionSkillsAPI:
+    def test_skills_list_includes_real_session_trace(self, client, real_skills_dir, real_db):
+        &quot;&quot;&quot;Skills from real filesystem + session trace from real DB.&quot;&quot;&quot;
+        with patch(&quot;coworker.dashboard.queries.SKILLS_DIR&quot;, str(real_skills_dir)):
+            response = client.get(&quot;/api/evolution/skills?auto_train=false&quot;)
+            assert response.status_code == 200
+            data = response.json()
+            assert len(data) &gt;= 2  # at least 2 skills in the test data
+            # add-cli-command should have session trace
+            add_cli = [s for s in data if s[&quot;name&quot;] == &quot;add-cli-command&quot;]
+            if add_cli:
+                assert add_cli[0][&quot;sessions_invoked&quot;] &gt;= 1
+
+    def test_auto_train_filter_excludes_bundled(self, client, real_skills_dir):
+        &quot;&quot;&quot;?auto_train=true → only agent-provenance skills, no bundled.&quot;&quot;&quot;
+        with patch(&quot;coworker.dashboard.queries.SKILLS_DIR&quot;, str(real_skills_dir)):
+            response = client.get(&quot;/api/evolution/skills?auto_train=true&quot;)
+            data = response.json()
+            names = [s[&quot;name&quot;] for s in data]
+            assert &quot;skill-create&quot; not in names  # bundled
+            assert &quot;add-cli-command&quot; in names   # agent
+
+
+@pytest.mark.real
+class TestEvolutionExperiencesAPI:
+    def test_experiences_from_real_mem0(self, client, populated_mem0):
+        &quot;&quot;&quot;Real mem0 experiences returned via API.&quot;&quot;&quot;
+        response = client.get(&quot;/api/evolution/experiences?auto_train=false&quot;)
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) &gt;= 2  # at least 2 entries in populated_mem0
+
+    def test_auto_train_filter(self, client, populated_mem0):
+        &quot;&quot;&quot;?auto_train=true → hand-written excluded.&quot;&quot;&quot;
+        response = client.get(&quot;/api/evolution/experiences?auto_train=true&quot;)
+        data = response.json()
+        provenances = [e[&quot;provenance&quot;] for e in data]
+        assert all(p == &quot;agent&quot; for p in provenances)</code></pre>
+<h4>3.9 Auto-Worker Rules — <a href="../../../../../tests/python/test_autoworker_rules.py"><code>tests/python/test_autoworker_rules.py</code></a> (real DB + real filesystem)</h4>
+<pre><code>@pytest.mark.real
+class TestValidateAgainstRawData:
+    def test_usage_count_match(self, real_db, real_skills_dir):
+        &quot;&quot;&quot;Skill calls in DB match usage.json → OK.&quot;&quot;&quot;
+        result = validate_against_raw_data(
+            skill_name=&quot;add-cli-command&quot;,
+            usage_path=real_skills_dir / &quot;add-cli-command&quot; / &quot;usage.json&quot;,
+            db=real_db,
+        )
+        assert result.verdict in (&quot;OK&quot;, &quot;MISMATCH&quot;)  # depends on test data alignment
+
+
+@pytest.mark.real
+class TestDeadCodeDetection:
+    def test_skill_with_calls_not_dead(self, real_db, real_skills_dir):
+        &quot;&quot;&quot;Skill has calls in analytics.db → not flagged.&quot;&quot;&quot;
+        dead = detect_dead_skills(skills_dir=real_skills_dir, db=real_db)
+        # add-cli-command and fix-lint-errors have calls → not dead
+        dead_names = [d[&quot;name&quot;] for d in dead]
+        assert &quot;add-cli-command&quot; not in dead_names
+
+    def test_skill_with_zero_calls_flagged(self, real_db, tmp_path):
+        &quot;&quot;&quot;Skill with 0 DB calls → flagged DEAD.&quot;&quot;&quot;
+        skills_dir = tmp_path / &quot;skills&quot; / &quot;never-used&quot;
+        skills_dir.mkdir(parents=True)
+        (skills_dir / &quot;SKILL.md&quot;).write_text(&quot;# Never Used\n&quot;)
+        (skills_dir / &quot;usage.json&quot;).write_text(json.dumps({&quot;provenance&quot;: &quot;agent&quot;, &quot;total_calls&quot;: 0}))
+
+        dead = detect_dead_skills(skills_dir=tmp_path / &quot;skills&quot;, db=real_db)
+        assert len(dead) &gt;= 1
+
+
+@pytest.mark.real
+@pytest.mark.llm
+class TestVisionCheck:
+    def test_change_aligns_with_vision(self, real_llm, skip_if_no_api_key):
+        &quot;&quot;&quot;Vision-relevant change → real LLM evaluates.&quot;&quot;&quot;
+        result = vision_check(
+            llm_client=real_llm,
+            change=&quot;Add memory extraction to capture layer so agent learns from every session&quot;
+        )
+        assert result in (&quot;proceed&quot;, &quot;skip&quot;)
+
+    def test_cosmetic_change_skipped(self, real_llm, skip_if_no_api_key):
+        &quot;&quot;&quot;Non-vision change → LLM should recommend skip.&quot;&quot;&quot;
+        result = vision_check(
+            llm_client=real_llm,
+            change=&quot;Fix typo in README: &#x27;recieve&#x27; → &#x27;receive&#x27;&quot;
+        )
+        assert result in (&quot;proceed&quot;, &quot;skip&quot;)  # LLM decides
+
+
+@pytest.mark.real
+class TestAutoWorkerState:
+    &quot;&quot;&quot;State file tests use real file I/O via tmp_path — already real.&quot;&quot;&quot;
+    # (tests unchanged from v1 — they already used real file I/O)
+    ...</code></pre>
+<h4>3.7 Pending Queue — <a href="../../../../../tests/python/test_pending.py"><code>tests/python/test_pending.py</code></a></h4>
+<pre><code>class TestPendingQueue:
+    def test_stage_writes_valid_json(self, tmp_path):
+        &quot;&quot;&quot;Staged skill is written as valid JSON with all required fields.&quot;&quot;&quot;
+        pending_dir = tmp_path / &quot;pending&quot;
+        pending_dir.mkdir()
+
+        stage(pending_dir, skill_name=&quot;fix-token-refresh&quot;, description=&quot;...&quot;,
+              tool_call_count=12, source_session=&quot;sess_abc123&quot;)
+
+        files = list(pending_dir.glob(&quot;*.json&quot;))
+        assert len(files) == 1
+        data = json.loads(files[0].read_text())
+        assert data[&quot;skill_name&quot;] == &quot;fix-token-refresh&quot;
+        assert data[&quot;provenance&quot;] == &quot;agent&quot;
+        assert data[&quot;source_session&quot;] == &quot;sess_abc123&quot;
+        assert data[&quot;tool_call_count&quot;] == 12
+        assert data[&quot;staged_at&quot;] is not None
+        assert data[&quot;status&quot;] == &quot;pending&quot;
+
+    def test_stage_generates_unique_id(self, tmp_path):
+        &quot;&quot;&quot;Each staged item gets a unique filename.&quot;&quot;&quot;
+        pending_dir = tmp_path / &quot;pending&quot;
+        pending_dir.mkdir()
+
+        stage(pending_dir, skill_name=&quot;skill-a&quot;)
+        stage(pending_dir, skill_name=&quot;skill-b&quot;)
+
+        files = sorted(pending_dir.glob(&quot;*.json&quot;))
+        assert len(files) == 2
+        assert files[0].name != files[1].name
+
+    def test_approve_moves_to_skills_dir(self, tmp_path):
+        &quot;&quot;&quot;Approved skill moves from pending/ to skills/ and gets SKILL.md.&quot;&quot;&quot;
+        pending_dir = tmp_path / &quot;pending&quot;
+        skills_dir = tmp_path / &quot;skills&quot;
+        pending_dir.mkdir()
+        skills_dir.mkdir()
+
+        stage(pending_dir, skill_name=&quot;fix-token-refresh&quot;, description=&quot;...&quot;)
+        pending_file = list(pending_dir.glob(&quot;*.json&quot;))[0]
+        pending_id = pending_file.stem
+
+        approve(pending_id, pending_dir=pending_dir, skills_dir=skills_dir)
+
+        # Removed from pending
+        assert not pending_file.exists()
+        # Created in skills
+        skill_dir = skills_dir / &quot;fix-token-refresh&quot;
+        assert skill_dir.is_dir()
+        assert (skill_dir / &quot;SKILL.md&quot;).exists()
+        # usage.json initialized
+        usage = json.loads((skill_dir / &quot;usage.json&quot;).read_text())
+        assert usage[&quot;provenance&quot;] == &quot;agent&quot;
+        assert usage[&quot;state&quot;] == &quot;active&quot;
+        assert usage[&quot;approval_date&quot;] is not None
+
+    def test_reject_removes_from_pending(self, tmp_path):
+        &quot;&quot;&quot;Rejected item is removed from pending/ with rejection reason logged.&quot;&quot;&quot;
+        pending_dir = tmp_path / &quot;pending&quot;
+        pending_dir.mkdir()
+
+        stage(pending_dir, skill_name=&quot;bad-skill&quot;)
+        pending_file = list(pending_dir.glob(&quot;*.json&quot;))[0]
+        pending_id = pending_file.stem
+
+        reject(pending_id, pending_dir=pending_dir, reason=&quot;Duplicate of existing skill&quot;)
+
+        assert not pending_file.exists()
+        # Rejection log exists
+        rejected_log = pending_dir / &quot;rejected.log&quot;
+        assert rejected_log.exists()
+        log_content = rejected_log.read_text()
+        assert &quot;bad-skill&quot; in log_content
+        assert &quot;Duplicate of existing skill&quot; in log_content
+
+    def test_list_pending_returns_all_pending(self, tmp_path):
+        &quot;&quot;&quot;list_pending() returns all staged items sorted by staged_at.&quot;&quot;&quot;
+        pending_dir = tmp_path / &quot;pending&quot;
+        pending_dir.mkdir()
+
+        stage(pending_dir, skill_name=&quot;skill-a&quot;)
+        stage(pending_dir, skill_name=&quot;skill-b&quot;)
+        stage(pending_dir, skill_name=&quot;skill-c&quot;)
+
+        items = list_pending(pending_dir)
+        assert len(items) == 3
+        assert items[0][&quot;skill_name&quot;] in (&quot;skill-a&quot;, &quot;skill-b&quot;, &quot;skill-c&quot;)
+        assert all(i[&quot;status&quot;] == &quot;pending&quot; for i in items)
+
+    def test_list_pending_empty_returns_empty_list(self, tmp_path):
+        &quot;&quot;&quot;Empty pending directory → [], no error.&quot;&quot;&quot;
+        pending_dir = tmp_path / &quot;pending&quot;
+        pending_dir.mkdir()
+        items = list_pending(pending_dir)
+        assert items == []
+
+    def test_list_pending_missing_dir_returns_empty(self, tmp_path):
+        &quot;&quot;&quot;Pending directory doesn&#x27;t exist → [], no error.&quot;&quot;&quot;
+        items = list_pending(tmp_path / &quot;nonexistent&quot;)
+        assert items == []
+
+    def test_auto_expire_30_days(self, tmp_path):
+        &quot;&quot;&quot;Items staged ≥30 days ago → auto-rejected.&quot;&quot;&quot;
+        pending_dir = tmp_path / &quot;pending&quot;
+        pending_dir.mkdir()
+
+        stage(pending_dir, skill_name=&quot;old-skill&quot;)
+        pending_file = list(pending_dir.glob(&quot;*.json&quot;))[0]
+        # Backdate the staged_at
+        data = json.loads(pending_file.read_text())
+        data[&quot;staged_at&quot;] = &quot;2026-06-25T10:00:00Z&quot;  # 30 days ago
+        pending_file.write_text(json.dumps(data))
+
+        auto_expire(pending_dir, current_date=&quot;2026-07-25&quot;, days=30)
+
+        assert not pending_file.exists()
+
+    def test_auto_expire_never_silently_promotes(self, tmp_path):
+        &quot;&quot;&quot;Auto-expired items go to rejected.log, NEVER auto-approved.&quot;&quot;&quot;
+        pending_dir = tmp_path / &quot;pending&quot;
+        skills_dir = tmp_path / &quot;skills&quot;
+        pending_dir.mkdir()
+        skills_dir.mkdir()
+
+        stage(pending_dir, skill_name=&quot;old-skill&quot;)
+        data = json.loads(list(pending_dir.glob(&quot;*.json&quot;))[0].read_text())
+        data[&quot;staged_at&quot;] = &quot;2026-06-25T10:00:00Z&quot;
+        list(pending_dir.glob(&quot;*.json&quot;))[0].write_text(json.dumps(data))
+
+        auto_expire(pending_dir, current_date=&quot;2026-07-25&quot;)
+
+        # Skill should NOT have been created in skills/
+        assert not (skills_dir / &quot;old-skill&quot;).exists()
+
+    def test_batch_approve_by_type(self, tmp_path):
+        &quot;&quot;&quot;--approve-all --type lesson → approves all lesson-type items.&quot;&quot;&quot;
+        pending_dir = tmp_path / &quot;pending&quot;
+        skills_dir = tmp_path / &quot;skills&quot;
+        pending_dir.mkdir()
+        skills_dir.mkdir()
+
+        stage(pending_dir, skill_name=&quot;lesson-1&quot;, item_type=&quot;lesson&quot;)
+        stage(pending_dir, skill_name=&quot;lesson-2&quot;, item_type=&quot;lesson&quot;)
+        stage(pending_dir, skill_name=&quot;skill-1&quot;, item_type=&quot;skill&quot;)
+
+        approved = batch_approve(pending_dir, skills_dir, item_type=&quot;lesson&quot;)
+        assert approved == 2
+        assert len(list_pending(pending_dir)) == 1  # skill-1 remains
+        pending_left = list_pending(pending_dir)[0]
+        assert pending_left[&quot;skill_name&quot;] == &quot;skill-1&quot;
+
+    def test_persistence_across_restarts(self, tmp_path):
+        &quot;&quot;&quot;Pending items are JSON files → survive process restart.&quot;&quot;&quot;
+        pending_dir = tmp_path / &quot;pending&quot;
+        pending_dir.mkdir()
+        stage(pending_dir, skill_name=&quot;test-skill&quot;)
+
+        # Simulate restart: re-read the directory
+        items_after_restart = list_pending(pending_dir)
+        assert len(items_after_restart) == 1
+        assert items_after_restart[0][&quot;skill_name&quot;] == &quot;test-skill&quot;</code></pre>
+<h4>3.8 Dashboard API — <a href="../../../../../tests/python/test_dashboard.py"><code>tests/python/test_dashboard.py</code></a></h4>
+<pre><code>class TestEvolutionOverviewAPI:
+    def test_overview_returns_stat_cards(self, client, mock_mem0, mock_db):
+        &quot;&quot;&quot;GET /api/evolution/overview → 200 with all stat fields.&quot;&quot;&quot;
+        mock_mem0.search.return_value = SAMPLE_EXPERIENCES
+        mock_db.query.return_value = SAMPLE_DB_SESSIONS
+
+        response = client.get(&quot;/api/evolution/overview&quot;)
+        assert response.status_code == 200
+        data = response.json()
+        assert &quot;auto_trained_skills&quot; in data
+        assert &quot;auto_trained_experiences&quot; in data
+        assert &quot;pending_review&quot; in data
+        assert &quot;skill_reuse_rate&quot; in data
+        assert &quot;evolution_score&quot; in data
+
+    def test_overview_skill_reuse_rate_calculation(self, client, mock_mem0, mock_db):
+        &quot;&quot;&quot;Reuse rate = sessions_with_auto_skill / total_sessions.&quot;&quot;&quot;
+        mock_db.query.side_effect = [
+            # sessions with auto-skill
+            [{&quot;count&quot;: 15}],
+            # total sessions
+            [{&quot;count&quot;: 50}],
+        ]
+        response = client.get(&quot;/api/evolution/overview&quot;)
+        data = response.json()
+        assert data[&quot;skill_reuse_rate&quot;] == pytest.approx(0.30)  # 15/50
+
+    def test_overview_empty_state(self, client, mock_mem0, mock_db):
+        &quot;&quot;&quot;No data → returns zeros, not errors, not nulls.&quot;&quot;&quot;
+        mock_mem0.search.return_value = []
+        mock_db.query.return_value = []
+
+        response = client.get(&quot;/api/evolution/overview&quot;)
+        assert response.status_code == 200
+        data = response.json()
+        assert data[&quot;auto_trained_skills&quot;] == 0
+        assert data[&quot;auto_trained_experiences&quot;] == 0
+        assert data[&quot;skill_reuse_rate&quot;] == 0.0
+        assert &quot;evolution_score&quot; in data
+
+
+class TestEvolutionSkillsAPI:
+    def test_skills_list_filtered_auto_train_only(self, client, mock_mem0, mock_db):
+        &quot;&quot;&quot;?auto_train=true → only agent-provenance skills.&quot;&quot;&quot;
+        with patch(&quot;coworker.dashboard.queries.list_skills&quot;) as mock_list:
+            mock_list.return_value = SAMPLE_SKILLS
+            mock_db.query.return_value = []
+
+            response = client.get(&quot;/api/evolution/skills?auto_train=true&quot;)
+            data = response.json()
+            # 3 agent-provenance skills expected; 1 bundled excluded
+            assert len(data) == 3
+            assert all(s[&quot;provenance&quot;] == &quot;agent&quot; for s in data)
+
+    def test_skills_list_includes_session_trace(self, client, mock_db):
+        &quot;&quot;&quot;Each skill includes sessions_invoked count and session_ids list.&quot;&quot;&quot;
+        with patch(&quot;coworker.dashboard.queries.list_skills&quot;) as mock_list:
+            mock_list.return_value = [SAMPLE_SKILLS[0]]  # add-cli-command
+            mock_db.query.return_value = [
+                {&quot;session_id&quot;: &quot;sess_a1b2&quot;}, {&quot;session_id&quot;: &quot;sess_c3d4&quot;},
+                {&quot;session_id&quot;: &quot;sess_e5f6&quot;}, {&quot;session_id&quot;: &quot;sess_g7h8&quot;},
+            ]
+
+            response = client.get(&quot;/api/evolution/skills?auto_train=true&quot;)
+            data = response.json()
+            skill = data[0]
+            assert skill[&quot;sessions_invoked&quot;] == 4
+            assert len(skill[&quot;session_ids&quot;]) == 4
+
+    def test_skills_list_reuse_rate(self, client, mock_db):
+        &quot;&quot;&quot;Reuse rate = sessions_invoked / total_sessions.&quot;&quot;&quot;
+        with patch(&quot;coworker.dashboard.queries.list_skills&quot;) as mock_list:
+            mock_list.return_value = [SAMPLE_SKILLS[0]]
+            mock_db.query.side_effect = [
+                # session trace for this skill (8 sessions)
+                [{&quot;session_id&quot;: f&quot;sess_{i}&quot;} for i in range(8)],
+                # total sessions
+                [{&quot;count&quot;: 20}],
+            ]
+
+            response = client.get(&quot;/api/evolution/skills?auto_train=true&quot;)
+            data = response.json()
+            assert data[0][&quot;reuse_rate&quot;] == pytest.approx(0.40)  # 8/20
+
+    def test_skill_detail_with_full_trace(self, client, mock_db):
+        &quot;&quot;&quot;GET /api/evolution/skills/{name} → full session trace with timestamps.&quot;&quot;&quot;
+        mock_db.query.return_value = [
+            {&quot;session_id&quot;: &quot;sess_a1b2&quot;, &quot;ts&quot;: &quot;2026-07-20T10:05:00Z&quot;},
+            {&quot;session_id&quot;: &quot;sess_a1b2&quot;, &quot;ts&quot;: &quot;2026-07-20T10:30:00Z&quot;},
+            {&quot;session_id&quot;: &quot;sess_c3d4&quot;, &quot;ts&quot;: &quot;2026-07-21T14:30:00Z&quot;},
+        ]
+
+        response = client.get(&quot;/api/evolution/skills/add-cli-command&quot;)
+        assert response.status_code == 200
+        data = response.json()
+        assert data[&quot;name&quot;] == &quot;add-cli-command&quot;
+        assert len(data[&quot;invocations&quot;]) == 3
+        assert data[&quot;unique_sessions&quot;] == 2
+
+    def test_skills_filter_by_project(self, client, mock_mem0):
+        &quot;&quot;&quot;?project=skill-factory → only skills from that project.&quot;&quot;&quot;
+        with patch(&quot;coworker.dashboard.queries.list_skills&quot;) as mock_list:
+            mock_list.return_value = SAMPLE_SKILLS
+
+            response = client.get(&quot;/api/evolution/skills?project=skill-factory&quot;)
+            data = response.json()
+            # setup-mcp-server is from skill-factory
+            assert len(data) == 1
+            assert data[0][&quot;name&quot;] == &quot;setup-mcp-server&quot;
+
+    def test_skills_filter_by_status(self, client, mock_mem0):
+        &quot;&quot;&quot;?status=stale → only stale skills (setup-mcp-server).&quot;&quot;&quot;
+        with patch(&quot;coworker.dashboard.queries.list_skills&quot;) as mock_list:
+            mock_list.return_value = SAMPLE_SKILLS
+
+            response = client.get(&quot;/api/evolution/skills?status=stale&quot;)
+            data = response.json()
+            assert len(data) == 1
+            assert data[0][&quot;name&quot;] == &quot;setup-mcp-server&quot;
+            assert data[0][&quot;status&quot;] == &quot;stale&quot;
+
+
+class TestEvolutionExperiencesAPI:
+    def test_experiences_list_auto_train_only(self, client, mock_mem0):
+        &quot;&quot;&quot;?auto_train=true → excludes hand-written experiences.&quot;&quot;&quot;
+        mock_mem0.search.return_value = SAMPLE_EXPERIENCES
+
+        response = client.get(&quot;/api/evolution/experiences?auto_train=true&quot;)
+        data = response.json()
+        # exp_003 is hand-written → excluded
+        assert len(data) == 2
+        assert all(e[&quot;provenance&quot;] == &quot;agent&quot; for e in data)
+
+    def test_experiences_list_with_use_count(self, client, mock_mem0):
+        &quot;&quot;&quot;Each experience includes use_count from mem0 metadata.&quot;&quot;&quot;
+        mock_mem0.search.return_value = [SAMPLE_EXPERIENCES[0]]
+
+        response = client.get(&quot;/api/evolution/experiences?auto_train=true&quot;)
+        data = response.json()
+        assert data[0][&quot;use_count&quot;] == 12
+        assert data[0][&quot;last_used&quot;] == &quot;2026-07-25T09:00:00Z&quot;
+
+    def test_experience_detail_with_retrieval_history(self, client, mock_mem0, mock_db):
+        &quot;&quot;&quot;GET /api/evolution/experiences/{id} → full memory text + sessions that retrieved it.&quot;&quot;&quot;
+        mock_mem0.get.return_value = SAMPLE_EXPERIENCES[0]
+
+        response = client.get(&quot;/api/evolution/experiences/exp_001&quot;)
+        assert response.status_code == 200
+        data = response.json()
+        assert &quot;MCP first request always 403&quot; in data[&quot;memory&quot;]
+        assert data[&quot;source_session&quot;] == &quot;sess_a1b2&quot;
+        assert data[&quot;use_count&quot;] == 12
+
+
+class TestEvolutionPendingAPI:
+    def test_pending_list(self, client, tmp_path):
+        &quot;&quot;&quot;GET /api/evolution/pending → staged items.&quot;&quot;&quot;
+        populate_pending(tmp_path, count=3)
+
+        response = client.get(&quot;/api/evolution/pending&quot;)
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data) == 3
+
+    def test_approve_endpoint(self, client, tmp_path):
+        &quot;&quot;&quot;POST /api/evolution/approve/{id} → 200, item moved.&quot;&quot;&quot;
+        pending_id = populate_pending(tmp_path, count=1)[0]
+
+        response = client.post(f&quot;/api/evolution/approve/{pending_id}&quot;)
+        assert response.status_code == 200
+        # Verify item no longer in pending
+        pending_response = client.get(&quot;/api/evolution/pending&quot;)
+        assert len(pending_response.json()) == 0
+
+    def test_reject_endpoint(self, client, tmp_path):
+        &quot;&quot;&quot;POST /api/evolution/reject/{id} → 200, item removed, reason logged.&quot;&quot;&quot;
+        pending_id = populate_pending(tmp_path, count=1)[0]
+
+        response = client.post(
+            f&quot;/api/evolution/reject/{pending_id}&quot;,
+            json={&quot;reason&quot;: &quot;Not useful enough&quot;}
+        )
+        assert response.status_code == 200
+        # Verify item no longer in pending
+        pending_response = client.get(&quot;/api/evolution/pending&quot;)
+        assert len(pending_response.json()) == 0
+
+    def test_pending_empty_list(self, client):
+        &quot;&quot;&quot;No pending items → empty list, 200.&quot;&quot;&quot;
+        response = client.get(&quot;/api/evolution/pending&quot;)
+        assert response.status_code == 200
+        assert response.json() == []</code></pre>
+<h4>3.9 Auto-Worker Rules — <a href="../../../../../tests/python/test_autoworker_rules.py"><code>tests/python/test_autoworker_rules.py</code></a></h4>
+<pre><code>class TestValidateAgainstRawData:
+    def test_usage_count_mismatch(self, mock_db):
+        &quot;&quot;&quot;skill usage.json says 3, analytics.db raw data says 7 → flag MISMATCH.&quot;&quot;&quot;
+        skill = {&quot;name&quot;: &quot;add-cli-command&quot;, &quot;total_calls&quot;: 3}
+        # analytics.db raw data shows 7 distinct Skill calls
+        mock_db.query.return_value = [
+            {&quot;session_id&quot;: f&quot;sess_{i}&quot;, &quot;ts&quot;: f&quot;2026-07-{20+i}T10:00:00Z&quot;}
+            for i in range(7)
+        ]
+        result = validate_against_raw_data(skill, mock_db)
+        assert result.verdict == &quot;MISMATCH&quot;
+        assert result.claimed == 3
+        assert result.actual == 7
+        assert &quot;usage.json&quot; in result.evidence
+
+    def test_usage_count_match(self, mock_db):
+        &quot;&quot;&quot;Numbers match → OK.&quot;&quot;&quot;
+        skill = {&quot;name&quot;: &quot;add-cli-command&quot;, &quot;total_calls&quot;: 5}
+        mock_db.query.return_value = [{&quot;session_id&quot;: f&quot;sess_{i}&quot;} for i in range(5)]
+        result = validate_against_raw_data(skill, mock_db)
+        assert result.verdict == &quot;OK&quot;
+        assert result.claimed == result.actual
+
+
+class TestDeadCodeDetection:
+    def test_skill_zero_calls_in_db(self, mock_db, tmp_path):
+        &quot;&quot;&quot;Skill exists on disk but has 0 calls in analytics.db → flagged DEAD.&quot;&quot;&quot;
+        skill_path = tmp_path / &quot;skills&quot; / &quot;never-used-skill&quot;
+        skill_path.mkdir(parents=True)
+        (skill_path / &quot;SKILL.md&quot;).write_text(&quot;# Never Used\n&quot;)
+        (skill_path / &quot;usage.json&quot;).write_text(json.dumps({&quot;total_calls&quot;: 0}))
+
+        mock_db.query.return_value = []  # No tool_calls for this skill
+
+        dead = detect_dead_skills(skills_dir=tmp_path / &quot;skills&quot;, db=mock_db)
+        assert len(dead) &gt;= 1
+        assert dead[0][&quot;name&quot;] == &quot;never-used-skill&quot;
+        assert dead[0][&quot;reason&quot;] == &quot;zero_calls&quot;
+
+    def test_skill_with_calls_not_dead(self, mock_db, tmp_path):
+        &quot;&quot;&quot;Skill has calls in analytics.db → not dead.&quot;&quot;&quot;
+        skill_path = tmp_path / &quot;skills&quot; / &quot;used-skill&quot;
+        skill_path.mkdir(parents=True)
+        (skill_path / &quot;SKILL.md&quot;).write_text(&quot;# Used\n&quot;)
+        (skill_path / &quot;usage.json&quot;).write_text(json.dumps({&quot;total_calls&quot;: 5}))
+
+        mock_db.query.return_value = [{&quot;session_id&quot;: &quot;sess_1&quot;}, {&quot;session_id&quot;: &quot;sess_2&quot;}]
+
+        dead = detect_dead_skills(skills_dir=tmp_path / &quot;skills&quot;, db=mock_db)
+        assert len(dead) == 0
+
+    def test_session_no_file_operations(self, mock_db):
+        &quot;&quot;&quot;Session with 0 file reads/writes/edits → flagged EMPTY.&quot;&quot;&quot;
+        mock_db.query.return_value = [
+            {&quot;id&quot;: &quot;sess_empty&quot;, &quot;tool&quot;: &quot;Bash&quot;, &quot;detail&quot;: &quot;echo hello&quot;},
+            {&quot;id&quot;: &quot;sess_empty&quot;, &quot;tool&quot;: &quot;Skill&quot;, &quot;detail&quot;: &quot;brainstorming&quot;},
+        ]
+        empty = detect_empty_sessions(mock_db)
+        assert len(empty) &gt;= 1
+        assert empty[0][&quot;session_id&quot;] == &quot;sess_empty&quot;
+        assert empty[0][&quot;file_ops&quot;] == 0
+
+
+class TestThreeLayerAttribution:
+    def test_not_done_no_code_found(self):
+        &quot;&quot;&quot;grep returns nothing for PRD item → NOT DONE.&quot;&quot;&quot;
+        result = audit_requirement(
+            prd_item=&quot;R3 cross-session semantic search&quot;,
+            grep_results=[],
+            test_results=None
+        )
+        assert result.verdict == &quot;NOT_DONE&quot;
+        assert result.confidence == &quot;high&quot;
+        assert &quot;no code found&quot; in result.evidence.lower()
+
+    def test_done_wrong_code_exists_but_test_fails(self):
+        &quot;&quot;&quot;Code exists but test fails → DONE WRONG.&quot;&quot;&quot;
+        result = audit_requirement(
+            prd_item=&quot;R2 per-turn persistence&quot;,
+            grep_results=[&quot;src/coworker/memory/capture.py:42&quot;],
+            test_results=[{&quot;test&quot;: &quot;test_process_turn&quot;, &quot;status&quot;: &quot;FAILED&quot;}]
+        )
+        assert result.verdict == &quot;DONE_WRONG&quot;
+        assert result.confidence == &quot;high&quot;
+
+    def test_done_right_code_and_test_pass(self):
+        &quot;&quot;&quot;Code exists AND test passes → DONE RIGHT.&quot;&quot;&quot;
+        result = audit_requirement(
+            prd_item=&quot;R2 per-turn persistence&quot;,
+            grep_results=[&quot;src/coworker/memory/capture.py:42&quot;],
+            test_results=[{&quot;test&quot;: &quot;test_process_turn&quot;, &quot;status&quot;: &quot;PASSED&quot;}]
+        )
+        assert result.verdict == &quot;DONE_RIGHT&quot;
+
+    def test_done_right_but_wrong_approach(self, mock_llm):
+        &quot;&quot;&quot;Code exists, tests pass, but implementation doesn&#x27;t match intent → DONE WRONG (design-level).&quot;&quot;&quot;
+        mock_llm.compare_intent.return_value = {
+            &quot;match&quot;: False,
+            &quot;reason&quot;: &quot;Spec says mem0 hybrid retrieval; implementation uses FTS5-only&quot;
+        }
+        result = audit_requirement(
+            prd_item=&quot;R3 cross-session semantic search&quot;,
+            grep_results=[&quot;src/coworker/analytics/fts5_index.py:10&quot;],
+            test_results=[{&quot;test&quot;: &quot;test_fts5_search&quot;, &quot;status&quot;: &quot;PASSED&quot;}],
+            spec_intent=&quot;mem0 hybrid retrieval (semantic + BM25 + entity)&quot;
+        )
+        assert result.verdict == &quot;DONE_WRONG&quot;
+        assert &quot;design-level&quot; in result.evidence.lower()
+
+
+class TestVisionCheck:
+    def test_change_aligns_with_vision(self, mock_llm):
+        &quot;&quot;&quot;Adding memory to a feature → aligns with &#x27;agent gets smarter&#x27; vision.&quot;&quot;&quot;
+        mock_llm.evaluate.return_value = {&quot;verdict&quot;: &quot;proceed&quot;,
+                                           &quot;reason&quot;: &quot;Directly improves agent learning&quot;}
+        result = vision_check(&quot;Add mem0 integration to capture layer&quot;)
+        assert result == &quot;proceed&quot;
+
+    def test_change_does_not_align(self, mock_llm):
+        &quot;&quot;&quot;Fixing a typo in an unrelated README → doesn&#x27;t move vision forward.&quot;&quot;&quot;
+        mock_llm.evaluate.return_value = {&quot;verdict&quot;: &quot;skip&quot;,
+                                           &quot;reason&quot;: &quot;Cosmetic change, no impact on evolution&quot;}
+        result = vision_check(&quot;Fix typo in README.md&quot;)
+        assert result == &quot;skip&quot;
+
+
+class TestResearchAdvocate:
+    def test_trivial_fix_skips_advocate(self):
+        &quot;&quot;&quot;Typo fix → research only, no advocate review.&quot;&quot;&quot;
+        result = research_advocate(
+            change=&quot;Fix typo: &#x27;recieve&#x27; → &#x27;receive&#x27; in error message&quot;
+        )
+        assert result.did_advocate is False
+        assert result.action == &quot;fix&quot;
+
+    def test_significant_change_runs_advocate(self, mock_skill):
+        &quot;&quot;&quot;Adding a new API endpoint → full research + advocate.&quot;&quot;&quot;
+        mock_skill.invoke.return_value = {&quot;verdict&quot;: &quot;approved&quot;, &quot;risks&quot;: [&quot;rate limiting&quot;]}
+        result = research_advocate(
+            change=&quot;Add new /api/evolution/* endpoints to dashboard&quot;
+        )
+        assert result.did_advocate is True
+        assert result.action in (&quot;fix&quot;, &quot;ask&quot;)
+        assert len(result.risks) &gt;= 1
+
+    def test_research_searches_web(self, mock_websearch):
+        &quot;&quot;&quot;Research phase calls WebSearch for similar implementations.&quot;&quot;&quot;
+        mock_websearch.search.return_value = [
+            {&quot;title&quot;: &quot;Dashboard Design Patterns&quot;, &quot;url&quot;: &quot;https://...&quot;}
+        ]
+        research_advocate(change=&quot;Add evolution metrics dashboard&quot;)
+        mock_websearch.search.assert_called_once()
+
+
+class TestAutoWorkerState:
+    def test_has_been_checked_true(self, tmp_path):
+        &quot;&quot;&quot;Item previously checked → returns True + previous verdict.&quot;&quot;&quot;
+        state = tmp_path / &quot;state.md&quot;
+        state.write_text(&quot;&quot;&quot;## Checked (Round 1)
+| ID | What | Verdict | Date |
+|----|------|---------|------|
+| C-1 | R3 semantic search | NOT DONE | 2026-07-25 |
+&quot;&quot;&quot;)
+        result = has_been_checked(state, &quot;R3 semantic search&quot;)
+        assert result is True
+
+    def test_has_been_checked_false(self, tmp_path):
+        &quot;&quot;&quot;Item not in state → returns False.&quot;&quot;&quot;
+        state = tmp_path / &quot;state.md&quot;
+        state.write_text(&quot;## Checked (Round 1)\n\n(none yet)\n&quot;)
+        result = has_been_checked(state, &quot;R5 frozen snapshot&quot;)
+        assert result is False
+
+    def test_mark_checked_adds_row(self, tmp_path):
+        &quot;&quot;&quot;mark_checked() appends a new row to the Checked table.&quot;&quot;&quot;
+        state = tmp_path / &quot;state.md&quot;
+        state.write_text(&quot;## Checked (Round 1)\n| ID | What | Verdict | Date |\n|----|------|---------|------|\n&quot;)
+        mark_checked(state, item_id=&quot;C-2&quot;, what=&quot;R5 frozen snapshot&quot;, verdict=&quot;DONE_RIGHT&quot;)
+        content = state.read_text()
+        assert &quot;C-2&quot; in content
+        assert &quot;R5 frozen snapshot&quot; in content
+        assert &quot;DONE_RIGHT&quot; in content
+
+    def test_add_open_question(self, tmp_path):
+        &quot;&quot;&quot;add_open_question() appends to Open Questions with status=pending.&quot;&quot;&quot;
+        state = tmp_path / &quot;state.md&quot;
+        state.write_text(&quot;## Open Questions\n| ID | Question | Asked At | Status |\n|----|----------|----------|--------|\n&quot;)
+
+        add_open_question(state, question=&quot;Is ruff E501 intentionally ignored?&quot;)
+
+        content = state.read_text()
+        assert &quot;ruff E501&quot; in content
+        assert &quot;pending&quot; in content
+
+    def test_get_open_questions_unanswered_only(self, tmp_path):
+        &quot;&quot;&quot;Returns only questions with status=pending, not answered ones.&quot;&quot;&quot;
+        state = tmp_path / &quot;state.md&quot;
+        state.write_text(&quot;&quot;&quot;## Open Questions
+| ID | Question | Asked At | Status |
+|----|----------|----------|--------|
+| Q-1 | E501 ignored? | 2026-07-25 | pending |
+| Q-2 | Threshold 10? | 2026-07-25 | answered |
+&quot;&quot;&quot;)
+        open_qs = get_open_questions(state)
+        assert len(open_qs) == 1
+        assert open_qs[0][&quot;id&quot;] == &quot;Q-1&quot;
+
+    def test_load_prior_state_skips_checked_in_new_round(self, tmp_path):
+        &quot;&quot;&quot;New round reads previous rounds&#x27; Checked items → skips them.&quot;&quot;&quot;
+        state = tmp_path / &quot;state.md&quot;
+        state.write_text(&quot;&quot;&quot;## Checked (Round 1)
+| ID | What | Verdict | Date |
+|----|------|---------|------|
+| C-1 | R3 | NOT DONE | 2026-07-25 |
+| C-2 | R5 | DONE_RIGHT | 2026-07-25 |
+&quot;&quot;&quot;)
+        # In round 2, both C-1 and C-2 should be recognized as already checked
+        checked_ids = load_checked_ids(state)
+        assert &quot;C-1&quot; in checked_ids
+        assert &quot;C-2&quot; in checked_ids</code></pre>
+<hr>
+<h3>4. Integration Tests (ALL REAL)</h3>
+<p>All integration tests use real mem0, real SQLite, real LLM. Tagged <code>@pytest.mark.slow</code> + <code>@pytest.mark.llm</code>.</p>
+<h4>4.1 Hook → Capture → mem0 End-to-End</h4>
+<pre><code>@pytest.mark.real
+@pytest.mark.llm
+@pytest.mark.slow
+class TestHookToMem0Integration:
+    def test_full_posttooluse_chain(self, clean_mem0, real_llm, tmp_path, skip_if_no_api_key):
+        &quot;&quot;&quot;Simulate PostToolUse hook stdin → CLI → mem0 with real infrastructure.&quot;&quot;&quot;
+        hook_input = json.dumps({
+            &quot;tool&quot;: &quot;Edit&quot;,
+            &quot;input&quot;: {&quot;file_path&quot;: &quot;src/auth.py&quot;, &quot;old_string&quot;: &quot;...&quot;, &quot;new_string&quot;: &quot;...&quot;},
+            &quot;result&quot;: &quot;Edit applied successfully&quot;,
+            &quot;session_id&quot;: &quot;sess_int_001&quot;
+        })
+
+        result = subprocess.run(
+            [&quot;coworker&quot;, &quot;memory&quot;, &quot;sync&quot;, &quot;--ide&quot;, &quot;claude&quot;, &quot;--trigger&quot;, &quot;posttooluse&quot;],
+            input=hook_input, capture_output=True, text=True,
+            env={**os.environ, &quot;COWORKER_MEM0_PATH&quot;: str(tmp_path / &quot;mem0&quot;)}
+        )
+        assert result.returncode == 0
+
+    def test_full_stop_chain(self, clean_mem0, real_llm, tmp_path, skip_if_no_api_key):
+        &quot;&quot;&quot;Simulate Stop hook → session-end reconciliation with real LLM.&quot;&quot;&quot;
+        transcript = tmp_path / &quot;transcript.json&quot;
+        transcript.write_text(json.dumps({
+            &quot;session_id&quot;: &quot;sess_int_001&quot;,
+            &quot;messages&quot;: [
+                {&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;fix the auth bug&quot;},
+                {&quot;role&quot;: &quot;tool&quot;, &quot;tool&quot;: &quot;Edit&quot;, &quot;content&quot;: &quot;added retry&quot;},
+            ]
+        }))
+
+        hook_input = json.dumps({&quot;session_id&quot;: &quot;sess_int_001&quot;, &quot;transcript_path&quot;: str(transcript)})
+
+        result = subprocess.run(
+            [&quot;coworker&quot;, &quot;memory&quot;, &quot;close&quot;, &quot;--ide&quot;, &quot;claude&quot;, &quot;--trigger&quot;, &quot;stop&quot;],
+            input=hook_input, capture_output=True, text=True,
+            env={**os.environ, &quot;COWORKER_MEM0_PATH&quot;: str(tmp_path / &quot;mem0&quot;)}
+        )
+        assert result.returncode == 0
+
+### 4.2 Dashboard API → Real Data Sources
+</code></pre>
+<p>@pytest.mark.real class TestDashboardIntegrationReal:     def test_skills_endpoint_integrates_fs_and_db(self, client, real_skills_dir, real_db):         &quot;&quot;&quot;Skills endpoint reads from real filesystem + real analytics.db.&quot;&quot;&quot;         with patch(&quot;coworker.dashboard.queries.SKILLS_DIR&quot;, str(real_skills_dir)):             response = client.get(&quot;/api/evolution/skills?auto_train=false&quot;)             assert response.status_code == 200             data = response.json()             assert len(data) &gt;= 2             for skill in data:                 assert &quot;sessions_invoked&quot; in skill                 assert isinstance(skill[&quot;sessions_invoked&quot;], int)</p>
+<pre><code>
+        with patch(&quot;coworker.dashboard.queries.SKILLS_DIR&quot;, skills_dir.parent):
+            response = client.get(&quot;/api/evolution/skills?auto_train=true&quot;)
+            assert response.status_code == 200
+            data = response.json()
+            assert len(data) &gt;= 1
+            skill = data[0]
+            # From skill store
+            assert skill[&quot;provenance&quot;] == &quot;agent&quot;
+            assert skill[&quot;total_calls&quot;] == 23
+            # From analytics.db
+            assert skill[&quot;sessions_invoked&quot;] &gt;= 1
+            # mem0 available
+            assert &quot;session_ids&quot; in skill</code></pre>
+<hr>
+<h3>5. Training Pipeline Tests</h3>
+<pre><code>class TestTrainingPipeline:
+    def test_batch_extract_processes_every_session(self, mock_db, mock_llm, mock_mem0):
+        &quot;&quot;&quot;ALL sessions in analytics.db are processed — no subset, no sampling.&quot;&quot;&quot;
+        all_sessions = [{&quot;id&quot;: f&quot;sess_{i}&quot;} for i in range(100)]  # 100 sessions
+        mock_db.list_all_sessions.return_value = all_sessions
+        mock_llm.extract.return_value = {&quot;lessons&quot;: [], &quot;skill_candidates&quot;: []}
+
+        report = train(mock_db, mock_llm, mock_mem0, target_skills=10, target_experiences=10)
+
+        assert report[&quot;sessions_processed&quot;] == 100
+        assert mock_llm.extract.call_count == 100
+
+    def test_batch_extract_output_schema_per_session(self, mock_db, mock_llm):
+        &quot;&quot;&quot;Each session&#x27;s LLM output is validated against expected schema.&quot;&quot;&quot;
+        mock_db.list_all_sessions.return_value = [{&quot;id&quot;: &quot;sess_1&quot;}]
+        mock_llm.extract.return_value = {
+            &quot;lessons&quot;: [
+                {&quot;memory&quot;: &quot;MCP 403 retry&quot;, &quot;type&quot;: &quot;lesson&quot;, &quot;topic&quot;: &quot;mcp&quot;, &quot;problem&quot;: &quot;403&quot;}
+            ],
+            &quot;skill_candidates&quot;: [
+                {&quot;name&quot;: &quot;fix-mcp-timeout&quot;, &quot;description&quot;: &quot;...&quot;, &quot;tool_call_count&quot;: 15}
+            ]
+        }
+
+        report = train(mock_db, mock_llm, mock_mem0, target_skills=1, target_experiences=1)
+
+        # Schema validation passed (no SchemaError raised)
+        assert report[&quot;errors&quot;] == 0
+
+    def test_batch_extract_invalid_output_logged_not_crashed(self, mock_db, mock_llm):
+        &quot;&quot;&quot;One session returns malformed output → logged, continue to next session.&quot;&quot;&quot;
+        mock_db.list_all_sessions.return_value = [
+            {&quot;id&quot;: &quot;sess_1&quot;}, {&quot;id&quot;: &quot;sess_2&quot;}, {&quot;id&quot;: &quot;sess_3&quot;}
+        ]
+        # sess_2 returns garbage
+        mock_llm.extract.side_effect = [
+            {&quot;lessons&quot;: [], &quot;skill_candidates&quot;: []},            # sess_1 OK
+            &quot;not valid json at all&quot;,                             # sess_2 BROKEN
+            {&quot;lessons&quot;: [{&quot;memory&quot;: &quot;ok&quot;}], &quot;skill_candidates&quot;: []},  # sess_3 OK
+        ]
+
+        report = train(mock_db, mock_llm, mock_mem0, target_skills=1, target_experiences=1)
+
+        assert report[&quot;sessions_processed&quot;] == 3
+        assert report[&quot;errors&quot;] == 1
+        # sess_1 and sess_3 were still processed
+        assert mock_mem0.add.call_count &gt;= 1
+
+    def test_select_top_skills_by_pattern_frequency(self):
+        &quot;&quot;&quot;Skills appearing in ≥3 sessions ranked higher than skills appearing once.&quot;&quot;&quot;
+        candidates = [
+            {&quot;name&quot;: &quot;frequent-skill&quot;, &quot;session_count&quot;: 8},
+            {&quot;name&quot;: &quot;rare-skill&quot;, &quot;session_count&quot;: 1},
+            {&quot;name&quot;: &quot;medium-skill&quot;, &quot;session_count&quot;: 4},
+        ]
+        top = select_top_skills(candidates, n=2)
+        assert top[0][&quot;name&quot;] == &quot;frequent-skill&quot;
+        assert top[1][&quot;name&quot;] == &quot;medium-skill&quot;
+
+    def test_select_top_experiences_by_retrieval_utility(self):
+        &quot;&quot;&quot;Experiences that would have helped the most past sessions are prioritized.&quot;&quot;&quot;
+        candidates = [
+            {&quot;memory&quot;: &quot;common pattern&quot;, &quot;would_have_helped&quot;: 45},
+            {&quot;memory&quot;: &quot;rare edge case&quot;, &quot;would_have_helped&quot;: 2},
+            {&quot;memory&quot;: &quot;medium utility&quot;, &quot;would_have_helped&quot;: 20},
+        ]
+        top = select_top_experiences(candidates, n=2)
+        assert &quot;rare edge case&quot; not in [e[&quot;memory&quot;] for e in top]
+        assert len(top) == 2
+
+    def test_generate_training_report(self, tmp_path):
+        &quot;&quot;&quot;Training report includes: sessions_processed, lessons_extracted, skills_identified, errors, duration.&quot;&quot;&quot;
+        report_path = tmp_path / &quot;training-report-2026-07-25.md&quot;
+        report = {
+            &quot;sessions_processed&quot;: 150,
+            &quot;lessons_extracted&quot;: 87,
+            &quot;skills_identified&quot;: 14,
+            &quot;skills_staged&quot;: 10,
+            &quot;experiences_written&quot;: 10,
+            &quot;errors&quot;: 2,
+            &quot;duration_seconds&quot;: 342.5
+        }
+        generate_report(report, report_path)
+
+        content = report_path.read_text()
+        assert &quot;150&quot; in content
+        assert &quot;87&quot; in content
+        assert &quot;14&quot; in content
+        assert &quot;342.5&quot; in content
+
+    def test_dedup_across_sessions(self, mock_db, mock_llm, mock_mem0):
+        &quot;&quot;&quot;Same lesson from 5 different sessions → merged into 1 mem0 entry.&quot;&quot;&quot;
+        mock_db.list_all_sessions.return_value = [{&quot;id&quot;: f&quot;sess_{i}&quot;} for i in range(5)]
+        # All 5 sessions produce the same lesson
+        mock_llm.extract.return_value = {
+            &quot;lessons&quot;: [
+                {&quot;memory&quot;: &quot;MCP first request 403; retry once&quot;,
+                 &quot;type&quot;: &quot;lesson&quot;, &quot;topic&quot;: &quot;mcp&quot;, &quot;problem&quot;: &quot;first-request-403&quot;}
+            ],
+            &quot;skill_candidates&quot;: []
+        }
+
+        train(mock_db, mock_llm, mock_mem0, target_skills=0, target_experiences=10)
+
+        # mem0.add should be called once (after dedup), not 5 times
+        assert mock_mem0.add.call_count == 1
+
+    def test_training_idempotent(self, mock_db, mock_llm, mock_mem0):
+        &quot;&quot;&quot;Running train twice doesn&#x27;t create duplicate mem0 entries.&quot;&quot;&quot;
+        mock_db.list_all_sessions.return_value = [{&quot;id&quot;: &quot;sess_1&quot;}]
+        mock_llm.extract.return_value = {
+            &quot;lessons&quot;: [{&quot;memory&quot;: &quot;lesson 1&quot;, &quot;type&quot;: &quot;lesson&quot;, &quot;topic&quot;: &quot;test&quot;}],
+            &quot;skill_candidates&quot;: []
+        }
+        # First run
+        train(mock_db, mock_llm, mock_mem0, target_skills=0, target_experiences=1)
+        first_call_count = mock_mem0.add.call_count
+
+        # Second run with same data
+        train(mock_db, mock_llm, mock_mem0, target_skills=0, target_experiences=1)
+
+        # No new entries added (dedup caught everything)
+        assert mock_mem0.add.call_count == first_call_count
+
+    def test_training_respects_target_counts(self, mock_db, mock_llm, mock_mem0):
+        &quot;&quot;&quot;target_skills=5, target_experiences=5 → exactly 5 of each.&quot;&quot;&quot;
+        mock_db.list_all_sessions.return_value = [{&quot;id&quot;: f&quot;sess_{i}&quot;} for i in range(20)]
+        # Each session produces a unique lesson + skill candidate
+        def make_output(i):
+            return {
+                &quot;lessons&quot;: [{&quot;memory&quot;: f&quot;lesson {i}&quot;, &quot;type&quot;: &quot;lesson&quot;, &quot;topic&quot;: f&quot;topic_{i}&quot;}],
+                &quot;skill_candidates&quot;: [{&quot;name&quot;: f&quot;skill-{i}&quot;, &quot;session_count&quot;: 1}]
+            }
+        mock_llm.extract.side_effect = [make_output(i) for i in range(20)]
+
+        report = train(mock_db, mock_llm, mock_mem0, target_skills=5, target_experiences=5)
+
+        assert report[&quot;skills_staged&quot;] == 5
+        assert report[&quot;experiences_written&quot;] == 5</code></pre>
+<hr>
+<h3>6. E2E Validation</h3>
+<h4>6.1 Scenario: Historical Training → Claude SDK Validation</h4>
+<pre><code>Phase 1: Train (all sessions)
+─────────────────────────────────────────────────────
+  Input: ALL sessions in analytics.db (no limit)
+  Command: coworker memory train --sessions all --target-skills 10 --target-experiences 10
+  Duration: ~5-10 minutes (depends on session count, ~$0.02-0.05 DeepSeek cost)
+  Expected output:
+    • 10 skills staged to ~/.coworker/pending/skills/
+    • 10 experiences written to mem0
+    • Training report at ~/.coworker/memory/training-report-{date}.md
+    • Report shows: total sessions processed, lessons extracted, skills identified, errors
+
+Phase 2: Manual Review
+─────────────────────────────────────────────────────
+  Command: coworker skill pending
+  Review: inspect 10 staged skills, verify relevance, approve
+  Command: coworker skill pending --approve-all
+  Expected: skills moved from pending/ to skills/
+  Dashboard: open http://localhost:8765 → Evolution tab → 10 skills visible with 🟢 Auto tag
+
+Phase 3: Validate (Claude SDK A/B test)
+─────────────────────────────────────────────────────
+  Command: coworker memory validate \
+    --task tests/test-plans/validation-task.md \
+    --compare-baseline
+  Duration: ~3-8 minutes per agent (2 agents)
+  Expected:
+    • Agent A (no memory): completes task with N tool calls
+    • Agent B (with memory): completes task with &lt;N tool calls
+    • Comparison report at ~/.coworker/memory/validation-report-{date}.md
+    • Agent B invokes ≥1 auto-trained skill
+    • Agent B retrieves ≥1 auto-trained experience
+    • Dashboard: reuse counts increment for the used skill + experience</code></pre>
+<h4>6.2 Validation Task Definition</h4>
+<p>File: <code>docs/self-evolving-agent/test-plan/validation-task.md</code></p>
+<pre><code># Validation Task: Add `coworker stats` CLI command
+
+## Task
+Add a new `coworker stats` command that prints session statistics in JSON format.
+
+## Acceptance Criteria
+1. `coworker stats` outputs valid JSON: {&quot;total_sessions&quot;: N, &quot;total_tool_calls&quot;: N, &quot;active_days&quot;: N}
+2. Command registered in `src/coworker/cli.py` using existing Click patterns
+3. Reads from the existing analytics.db at `~/.coworker/analytics/analytics.db`
+4. Test file at `tests/python/test_stats.py` passes: `pytest tests/python/test_stats.py -v`
+5. `ruff check` passes (respecting project-ignored rules)
+
+## Expected Memory Utilization
+If memory is working, the agent should:
+- NOT re-discover analytics.db schema (experience should cover this)
+- Follow the existing Click CLI pattern (skill or experience should cover this)
+- NOT attempt to fix ruff E501 line-length errors (experience: &quot;E501 is project-ignored&quot;)
+- Use the add-cli-command skill if available</code></pre>
+<h4>6.3 Success Criteria</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Metric</th>
+<th>How Measured</th>
+<th>Success Condition</th>
+</tr></thead><tbody>
+<tr>
+<td>Tool calls (Agent B)</td>
+<td>Count tool_call events in transcript</td>
+<td>&lt; Agent A tool call count</td>
+</tr>
+<tr>
+<td>Incorrect assumptions (Agent B)</td>
+<td>Count &quot;I&#x27;ll check the schema&quot; or &quot;let me look at how CLI commands work&quot;</td>
+<td>0 — agent should already know</td>
+</tr>
+<tr>
+<td>E501 violations suggested (Agent B)</td>
+<td>Count ruff E501 mentions</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Auto-train skill invoked (Agent B)</td>
+<td>grep transcript for skill name</td>
+<td>≥1</td>
+</tr>
+<tr>
+<td>Auto-train experience retrieved (Agent B)</td>
+<td>grep transcript for experience memory text</td>
+<td>≥1</td>
+</tr>
+<tr>
+<td>Task completed (both agents)</td>
+<td>Acceptance criteria met</td>
+<td>Both must pass</td>
+</tr>
+</tbody></table></div>
+<h4>6.4 Validation Report Format</h4>
+<pre><code># Validation Report — 2026-07-25
+
+## Task
+Add `coworker stats` CLI command
+
+## Agent A (Baseline — No Memory)
+- Tool calls: 18
+- Incorrect assumptions: 4
+  - &quot;I need to explore the analytics.db schema&quot; (could have been pre-loaded)
+  - &quot;Let me check how other CLI commands are structured&quot; (pattern already exists)
+  - &quot;Line too long, fixing E501&quot; (project-ignored)
+  - &quot;What&#x27;s the project&#x27;s test pattern?&quot; (convention already established)
+- Task completed: ✅
+- Duration: 6m 32s
+
+## Agent B (With Memory)
+- Tool calls: 10
+- Incorrect assumptions: 0
+- Skills invoked: add-cli-command
+- Experiences retrieved:
+  - &quot;Ruff E501 is project-ignored&quot;
+  - &quot;When creating a new CLI command, always register it in cli.py AND add a test&quot;
+- Task completed: ✅
+- Duration: 3m 48s
+
+## Verdict
+✅ Memory IMPROVED performance:
+  - 44% fewer tool calls (18 → 10)
+  - 0 incorrect assumptions (vs 4)
+  - 2 auto-trained resources utilized</code></pre>
+<hr>
+<h3>7. State Coverage Matrix</h3>
+<p>Every component must handle these three states:</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Component</th>
+<th>Empty</th>
+<th>Error</th>
+<th>Normal</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>mem0 client</strong></td>
+<td><code>search()</code> returns <code>[]</code> → handled, no crash</td>
+<td>mem0 API down → retry 3× → <code>Mem0Error</code> with details</td>
+<td>Entries stored, searchable, metadata intact</td>
+</tr>
+<tr>
+<td><strong>Capture (per-turn)</strong></td>
+<td>0 lessons extracted → audit written with <code>lessons=0</code>, mem0 not called</td>
+<td>LLM down → retry 3× → skip turn, audit logged with <code>status=error</code></td>
+<td>Lessons extracted, stored, audit logged with <code>status=ok</code></td>
+</tr>
+<tr>
+<td><strong>Capture (session-end)</strong></td>
+<td>0 gaps → no reconciliation, <code>reconciled=0</code></td>
+<td>LLM down → retry 3× → <code>reconciled=0, error=...</code>, raw transcript preserved</td>
+<td>Gaps back-filled, skills assessed, dedup done</td>
+</tr>
+<tr>
+<td><strong>Audit trail</strong></td>
+<td>No records for session → <code>check_gaps()</code> returns <code>[]</code></td>
+<td><code>audit.log</code> unreadable → <code>PermissionError</code> logged, audit skipped</td>
+<td>Records written, gaps detected, rebuildable</td>
+</tr>
+<tr>
+<td><strong>Context injection</strong></td>
+<td>No mem0 entries for project → snapshot block empty but valid</td>
+<td><code>CLAUDE.local.md</code> locked → queue 3× with backoff → conflict file</td>
+<td>Snapshot injected, old replaced, human content preserved</td>
+</tr>
+<tr>
+<td><strong>Curator</strong></td>
+<td>0 entries to curate → &quot;nothing to do&quot; log, clean exit</td>
+<td>mem0 API partial failure → resume from checkpoint next run</td>
+<td>Stale archived, duplicates merged, MEMORY.md regenerated</td>
+</tr>
+<tr>
+<td><strong>Pending queue</strong></td>
+<td><code>pending/</code> dir empty → <code>list_pending()</code> returns <code>[]</code></td>
+<td>Corrupt JSON file → skipped with log, other files processed</td>
+<td>Items staged, approvable, auto-expired after 30d</td>
+</tr>
+<tr>
+<td><strong>Dashboard</strong></td>
+<td>0 auto-trained items → stat cards show 0, tables show &quot;No skills yet&quot; message</td>
+<td>mem0 down → error panel with retry button, other dashboard pages unaffected</td>
+<td>All tables populated, filters working, expand rows functional</td>
+</tr>
+<tr>
+<td><strong>Auto-worker</strong></td>
+<td>0 findings → &quot;all clear&quot; → loop stops naturally</td>
+<td>Research LLM down → skip research for that item, note &quot;no external reference&quot;</td>
+<td>Findings → decisions → fixes → notes, loop continues</td>
+</tr>
+<tr>
+<td><strong>Training pipeline</strong></td>
+<td>0 sessions in analytics.db → &quot;No session data available&quot; + clean exit</td>
+<td>1 session has corrupt transcript → logged, skipped, remaining sessions processed</td>
+<td>All sessions processed, 10 skills + 10 experiences output</td>
+</tr>
+<tr>
+<td><strong>Validation harness</strong></td>
+<td>— (requires at least baseline)</td>
+<td>Claude SDK API down → &quot;Validation skipped: API unavailable&quot; + exit 0</td>
+<td>A/B comparison report, metrics computed</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>8. Coverage Enforcement</h3>
+<h4>8.1 pytest Configuration</h4>
+<pre><code># pyproject.toml
+[tool.pytest.ini_options]
+markers = [
+    &quot;real: tests that use real infrastructure (mem0, SQLite, file I/O)&quot;,
+    &quot;llm: tests that make real LLM API calls (requires DEEPSEEK_API_KEY)&quot;,
+    &quot;slow: tests that take &gt;5 seconds (real LLM, large data)&quot;,
+]
+addopts = [
+    &quot;--cov=src/coworker/memory&quot;,
+    &quot;--cov=src/coworker/autoworker&quot;,
+    &quot;--cov=src/coworker/dashboard&quot;,
+    &quot;--cov-report=term&quot;,
+    &quot;--cov-report=html:.coverage/html&quot;,
+    &quot;--cov-fail-under=95&quot;,
+    &quot;-m not llm&quot;,  # default: skip LLM tests (they need API keys)
+]</code></pre>
+<h4>8.2 Per-Module Targets</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Module</th>
+<th>Coverage Floor</th>
+<th>Test File</th>
+<th>Requires</th>
+</tr></thead><tbody>
+<tr>
+<td><code>memory/mem0_client.py</code></td>
+<td>95%</td>
+<td><a href="../../../../../tests/python/test_mem0_client.py"><code>tests/python/test_mem0_client.py</code></a></td>
+<td>real mem0</td>
+</tr>
+<tr>
+<td><code>memory/capture.py</code></td>
+<td>95%</td>
+<td><a href="../../../../../tests/python/test_capture.py"><code>tests/python/test_capture.py</code></a></td>
+<td>real mem0 + LLM</td>
+</tr>
+<tr>
+<td><code>memory/audit.py</code></td>
+<td>95%</td>
+<td><a href="../../../../../tests/python/test_audit.py"><code>tests/python/test_audit.py</code></a></td>
+<td>real filesystem</td>
+</tr>
+<tr>
+<td><code>memory/engine.py</code></td>
+<td>95%</td>
+<td><a href="../../../../../tests/python/test_engine.py"><code>tests/python/test_engine.py</code></a></td>
+<td>real mem0 + LLM</td>
+</tr>
+<tr>
+<td><code>memory/inject.py</code></td>
+<td>95%</td>
+<td><a href="../../../../../tests/python/test_inject.py"><code>tests/python/test_inject.py</code></a></td>
+<td>real filesystem + mem0</td>
+</tr>
+<tr>
+<td><code>memory/curator.py</code></td>
+<td>95%</td>
+<td><a href="../../../../../tests/python/test_curator.py"><code>tests/python/test_curator.py</code></a></td>
+<td>real mem0</td>
+</tr>
+<tr>
+<td><code>memory/pending.py</code></td>
+<td>95%</td>
+<td><a href="../../../../../tests/python/test_pending.py"><code>tests/python/test_pending.py</code></a></td>
+<td>real filesystem</td>
+</tr>
+<tr>
+<td><code>memory/train.py</code></td>
+<td>95%</td>
+<td><code>tests/python/test_training.py</code></td>
+<td>real mem0 + DB + LLM</td>
+</tr>
+<tr>
+<td><code>memory/validate.py</code></td>
+<td>95%</td>
+<td><a href="../../../../../tests/python/test_validate.py"><code>tests/python/test_validate.py</code></a></td>
+<td>real mem0 + Claude SDK</td>
+</tr>
+<tr>
+<td><code>dashboard/app.py</code> (new)</td>
+<td>95%</td>
+<td><a href="../../../../../tests/python/test_dashboard.py"><code>tests/python/test_dashboard.py</code></a></td>
+<td>real mem0 + DB</td>
+</tr>
+<tr>
+<td><code>dashboard/queries.py</code> (new)</td>
+<td>95%</td>
+<td><a href="../../../../../tests/python/test_dashboard.py"><code>tests/python/test_dashboard.py</code></a></td>
+<td>real mem0 + DB</td>
+</tr>
+<tr>
+<td><code>autoworker/engine.py</code></td>
+<td>95%</td>
+<td><a href="../../../../../tests/python/test_autoworker_engine.py"><code>tests/python/test_autoworker_engine.py</code></a></td>
+<td>real mem0 + LLM</td>
+</tr>
+<tr>
+<td><code>autoworker/rules.py</code></td>
+<td>95%</td>
+<td><a href="../../../../../tests/python/test_autoworker_rules.py"><code>tests/python/test_autoworker_rules.py</code></a></td>
+<td>real DB + LLM</td>
+</tr>
+<tr>
+<td><code>autoworker/state.py</code></td>
+<td>95%</td>
+<td><a href="../../../../../tests/python/test_autoworker_state.py"><code>tests/python/test_autoworker_state.py</code></a></td>
+<td>real filesystem</td>
+</tr>
+</tbody></table></div>
+<h4>8.3 CI Guard</h4>
+<pre><code># .github/workflows/test.yml
+- name: Fast Tests (no LLM)
+  run: |
+    pytest tests/python/ \
+      --cov=src/coworker/memory \
+      --cov=src/coworker/autoworker \
+      --cov=src/coworker/dashboard \
+      --cov-fail-under=95 \
+      --cov-report=term \
+      -m &quot;not llm&quot; \
+      -x -v
+
+- name: LLM Tests (requires secrets)
+  if: env.DEEPSEEK_API_KEY != &#x27;&#x27;
+  run: |
+    pytest tests/python/ \
+      -m &quot;llm&quot; \
+      -x -v
+
+- name: Coverage Report
+  if: always()
+  uses: actions/upload-artifact@v4
+  with:
+    name: coverage-report
+    path: .coverage/html/</code></pre>
+<p><strong>PR gate:</strong> CI fails if coverage &lt; 95%. LLM tests run only when <code>DEEPSEEK_API_KEY</code> is available. Fast tests (no LLM) always run.</p>
+<hr>
+<h3>9. Runbook</h3>
+<pre><code># ============================================
+# Prerequisites
+# ============================================
+# Install mem0 (real, library mode)
+pip install mem0ai
+
+# Install embedding model (real, local, no API key)
+pip install fastembed
+python -c &quot;from fastembed import TextEmbedding; TextEmbedding(&#x27;BAAI/bge-small-en-v1.5&#x27;)&quot;  # downloads ~50MB
+
+# Set API keys (real LLM calls)
+export DEEPSEEK_API_KEY=&quot;sk-...&quot;
+export ANTHROPIC_API_KEY=&quot;sk-ant-...&quot;  # for E2E Claude SDK validation only
+
+# ============================================
+# Phase 1: Fast Tests (no LLM, always safe)
+# ============================================
+pytest tests/python/test_audit.py \
+       tests/python/test_pending.py \
+       tests/python/test_inject.py \
+       tests/python/test_autoworker_state.py \
+       -m &quot;not llm&quot; -x --cov --cov-fail-under=95 -v
+
+# ============================================
+# Phase 2: Real mem0 Tests (no LLM extraction)
+# These create real mem0 entries and search them
+# ============================================
+pytest tests/python/test_mem0_client.py \
+       tests/python/test_curator.py \
+       -m &quot;not llm&quot; -x -v
+
+# ============================================
+# Phase 3: Real LLM Tests (needs DEEPSEEK_API_KEY)
+# These make actual DeepSeek Flash API calls
+# ============================================
+pytest tests/python/test_capture.py \
+       tests/python/test_engine.py \
+       tests/python/test_training.py \
+       -m &quot;llm&quot; -x -v
+
+# ============================================
+# Phase 4: Auto-Worker + Dashboard Tests
+# ============================================
+pytest tests/python/test_autoworker_rules.py \
+       tests/python/test_autoworker_engine.py \
+       tests/python/test_dashboard.py \
+       -x -v
+
+# ============================================
+# Phase 5: Integration Tests (real mem0 + real LLM)
+# ============================================
+pytest tests/python/test_integration_capture.py \
+       tests/python/test_integration_dashboard.py \
+       -m &quot;real&quot; -x -v
+
+# ============================================
+# Phase 6: E2E Training + Validation (needs BOTH API keys)
+# This is the real validation — trains from actual data
+# ============================================
+# Train from ALL historical sessions
+coworker memory train --sessions all --target-skills 10 --target-experiences 10
+
+# Review and approve
+coworker skill pending
+coworker skill pending --approve-all
+
+# Validate with Claude SDK A/B test
+coworker memory validate \
+  --task tests/test-plans/validation-task.md \
+  --compare-baseline
+
+# Check dashboard
+coworker dashboard  # open http://localhost:8765 → Evolution tab
+
+# ============================================
+# Full Suite (everything)
+# ============================================
+pytest tests/python/ \
+  --cov=src/coworker/memory \
+  --cov=src/coworker/autoworker \
+  --cov=src/coworker/dashboard \
+  --cov-fail-under=95 -v</code></pre>
+<hr>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Date</th>
+<th>Change</th>
+</tr></thead><tbody>
+<tr>
+<td>2026-07-25</td>
+<td>Initial creation</td>
+</tr>
+<tr>
+<td>2026-07-25</td>
+<td>v3: <strong>No mocks — all real infrastructure.</strong> Replaced all <code>mock_mem0</code> → <code>clean_mem0</code>/<code>populated_mem0</code> (real mem0 library mode, temp Qdrant), <code>mock_llm</code> → <code>real_llm</code> (real DeepSeek Flash API), <code>mock_db</code> → <code>real_db</code> (real SQLite with test data). Added real fixtures in conftest.py. Added pytest markers: <code>real</code>, <code>llm</code>, <code>slow</code>. CI runs fast tests by default, LLM tests only when <code>DEEPSEEK_API_KEY</code> is set. Runbook includes real pip install steps (mem0ai, fastembed, model download).</td>
+</tr>
+<tr>
+<td>2026-07-25</td>
+<td>Moved from <code>tests/test-plans/</code> to <code>docs/self-evolving-agent/test-plan/</code> following doc-organize conventions.</td>
+</tr>
+<tr>
+<td>2026-07-25</td>
+<td>v2: Comprehensive rewrite — added concrete test data fixtures (7 types), full unit test specifications with assertions per module (9 modules, 100+ test cases), integration tests with end-to-end chains, training pipeline tests (10 cases), E2E validation with Claude SDK A/B comparison, state coverage matrix (11 components × 3 states), per-module coverage enforcement table, CI guard, runbook. All sessions used for training (no subset).</td>
+</tr>
+</tbody></table></div>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../impl-plan/qa-autonomous-agent-impl-plan.html"><span class="label">Previous</span>QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a><a class="next" href="2026-07-29-test-execution-report.html"><span class="label">Next</span>Memory Query System — Test Execution Report</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

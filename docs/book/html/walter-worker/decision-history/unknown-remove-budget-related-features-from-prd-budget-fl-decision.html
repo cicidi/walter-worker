@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Decision Record — unknown · decision-history · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/walter-worker-prd.html"><span class="tree-ord">1</span>walter-worker — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-core-prd.html">Core CLI &amp; Initiative System PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-dashboard-prd.html">Dashboard PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-knowledge-skill-prd.html">Knowledge Skill PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/ai-coworker-prd.html">walter-worker PRD</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="walter-worker-decision-history.html"><span class="tree-ord">2</span>walter-worker — Decision History</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="2025-04-10-integrate-loop-engineering-framework-by-running-lo-decision.html">Decision Record — 2025-04-10</a></li><li class="tree-leaf"><a class="tree-link" href="2026-03-30-feat-initial-commit--unified-ai-coworker-dev-env-decision.html">Decision Record — 2026-03-30</a></li><li class="tree-leaf"><a class="tree-link" href="2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.html">Decision Record — 2026-05-01</a></li><li class="tree-leaf"><a class="tree-link" href="2026-05-06-feat-add-skill-meta-import-skill--import-externa-decision.html">Decision Record — 2026-05-06</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.html">Decision Record — 2026-06-11</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-12-feat-add-opencode-context-injection-initiativema-decision.html">Decision Record — 2026-06-12</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.html">Decision Record — 2026-06-16</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-23-chore-remove-self-strain-decision.html">Decision Record — 2026-06-23</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-24-chore-review-fixes--broken-refs-tests-docs-ch-decision.html">Decision Record — 2026-06-24</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-30-fix-deploy-ai-coworker-skills-to-opencode-skill-d-decision.html">Decision Record — 2026-06-30</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.html">Decision Record — 2026-07-02</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.html">Decision Record — 2026-07-07</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.html">Decision Record — 2026-07-08</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.html">Decision Record — 2026-07-10</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-13-feat-add-emoji-and-color-coded-fields-to-tmux-sta-decision.html">Decision Record — 2026-07-13</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-17-docs-add-doc-organize--indexmd-refs-to-claudem-decision.html">Decision Record — 2026-07-17</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.html">Decision Record — 2026-07-24</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="2026-07-25-fixdashboard-restore-original-css-420442-line-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="unknown-remove-budget-related-features-from-prd-budget-fl-decision.html" aria-current="page">Decision Record — unknown</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../design/walter-worker-design.html"><span class="tree-ord">3</span>walter-worker — Design</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../design/ai-coworker-design.html">walter-worker Design</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-analytics-dashboard-superpowers.html">Analytics Listener + Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-analytics-listener-design.html">Analytics Listener — Design Document</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-core-architecture-design.html">Core Architecture Design</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-feature-tracker.html">Feature Tracker</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-planning-hub.html">Planning Hub</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-09-25-deletion-list.html">Deletion List — 2026-09-25</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/2026-06-12-initiative-project-level-design.html">Initiative — Global to Project-Level Design</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/ai-coworker-spec.html">walter-worker Technical Specification</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-26-decision-timeline.html">Decision Timeline — walter-worker</a></li><li class="tree-leaf"><a class="tree-link" href="../work-review/2026-06-11-analytics-dashboard/acceptance.html">Analytics Dashboard — Acceptance Review</a></li><li class="tree-leaf"><a class="tree-link" href="../work-review/2026-06-11-analytics-dashboard/report.html">Acceptance Report — Analytics Dashboard</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/walter-worker-impl-plan.html"><span class="tree-ord">4</span>walter-worker Implementation Plan</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/walter-worker-test-plan.html"><span class="tree-ord">5</span>walter-worker — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/ai-coworker-test-plan.html">walter-worker Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><span class="tree-link"><span class="tree-ord">10</span>sub-feature</span></summary><ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/analytics-dashboard/design/analytics-dashboard-design.html">analytics-dashboard</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/prd/analytics-dashboard-prd.html"><span class="tree-ord">1</span>Analytics Dashboard — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/decision-history/analytics-dashboard-decision-history.html"><span class="tree-ord">2</span>Analytics Dashboard — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/design/analytics-dashboard-design.html"><span class="tree-ord">3</span>Analytics Dashboard — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/impl-plan/analytics-dashboard-impl-plan.html"><span class="tree-ord">4</span>Analytics Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/test-plan/analytics-dashboard-test-plan.html"><span class="tree-ord">5</span>Analytics Dashboard — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/analytics-listener/design/analytics-listener-design.html">analytics-listener</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/prd/analytics-listener-prd.html"><span class="tree-ord">1</span>Analytics Listener — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/decision-history/analytics-listener-decision-history.html"><span class="tree-ord">2</span>Analytics Listener — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/design/analytics-listener-design.html"><span class="tree-ord">3</span>Analytics Listener — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/impl-plan/analytics-listener-impl-plan.html"><span class="tree-ord">4</span>Analytics Listener — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/test-plan/analytics-listener-test-plan.html"><span class="tree-ord">5</span>Analytics Listener — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/core-cli/design/core-cli-design.html">core-cli</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/prd/core-cli-prd.html"><span class="tree-ord">1</span>Core CLI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/decision-history/core-cli-decision-history.html"><span class="tree-ord">2</span>Core CLI — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/design/core-cli-design.html"><span class="tree-ord">3</span>Core CLI — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/impl-plan/core-cli-impl-plan.html"><span class="tree-ord">4</span>Core CLI — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/test-plan/core-cli-test-plan.html"><span class="tree-ord">5</span>Core CLI — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/feature-system/design/feature-system-design.html">feature-system</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/prd/feature-system-prd.html"><span class="tree-ord">1</span>Feature System — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/decision-history/feature-system-decision-history.html"><span class="tree-ord">2</span>Feature System — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/design/feature-system-design.html"><span class="tree-ord">3</span>Feature System — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/impl-plan/feature-system-impl-plan.html"><span class="tree-ord">4</span>Feature System — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/test-plan/feature-system-test-plan.html"><span class="tree-ord">5</span>Feature System — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/setup-deploy/design/setup-deploy-design.html">setup-deploy</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/prd/setup-deploy-prd.html"><span class="tree-ord">1</span>Setup and Deploy — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/decision-history/setup-deploy-decision-history.html"><span class="tree-ord">2</span>Setup and Deploy — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/design/setup-deploy-design.html"><span class="tree-ord">3</span>Setup and Deploy — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/impl-plan/setup-deploy-impl-plan.html"><span class="tree-ord">4</span>Setup and Deploy — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/test-plan/setup-deploy-test-plan.html"><span class="tree-ord">5</span>Setup and Deploy — Test Plan</a></li></ul></details></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>walter-worker</span> / <span>decision-history</span> / <span>Decision Record — unknown</span></nav>
+    <article class="doc" data-doc="walter-worker/decision-history/unknown-remove-budget-related-features-from-prd-budget-fl-decision">
+      <header class="doc-head">
+        <p class="eyebrow">walter-worker</p>
+        <h1>Decision Record — unknown</h1>
+        <p class="source">Canonical: docs/features/walter-worker/decision-history/unknown-remove-budget-related-features-from-prd-budget-fl-decision.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Decision Record — unknown</h2>
+<blockquote class="callout" data-label="NOTE"><p>Project: walter-worker Decisions: 30</p></blockquote>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Date</th>
+<th>Change</th>
+</tr></thead><tbody>
+<tr>
+<td>2026-07-26</td>
+<td>Auto-generated from session analysis</td>
+</tr>
+</tbody></table></div>
+<h3>Decisions</h3>
+<h4>1. Remove budget-related features from PRD (budget flags, budget guards, cost model, &#x27;Budget exhausted&#x27;</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: During PRD refinement, user likely indicated budget constraints were not needed or too complex</li>
+<li><strong>Rationale</strong>: Simplify the PRD and reduce implementation complexity; focus on time-based termination (12h default) instead</li>
+<li><strong>Alternatives rejected</strong>: Keeping budget as a secondary mechanism, Implementing both budget and time limits</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>2. Replace complex Cost Model section with a simplified version</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: During budget removal, the detailed cost model became irrelevant</li>
+<li><strong>Rationale</strong>: Avoid unnecessary detail and maintenance burden; keep documentation lean</li>
+<li><strong>Alternatives rejected</strong>: Keeping detailed cost tables, Moving cost model to separate appendix</li>
+<li><strong>Confidence</strong>: medium</li>
+</ul>
+<h4>3. Perform comprehensive infrastructure reuse analysis before writing new code</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: Need to determine which existing walter-worker components can be reused for self-evolving agent</li>
+<li><strong>Rationale</strong>: Avoid reinventing the wheel; hooks, analytics DB, knowledge dedup, CLI framework, config adapter, semantic merge, backup mechanisms are all production-ready and can be directly reused</li>
+<li><strong>Alternatives rejected</strong>: Building all components from scratch, Ignoring existing infrastructure</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>4. Update all PRD secondary documents (zh.md, en.html, zh.html, design doc) in parallel using workflows</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: After v3 PRD .md was complete, need to synchronize all derived docs</li>
+<li><strong>Rationale</strong>: Efficiency through parallel updates; ensure consistency across all formats and languages</li>
+<li><strong>Alternatives rejected</strong>: Updating one by one sequentially, Only updating the main .md and ignoring others</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>5. Update memory file to mark previously blocked issues as resolved after v3 PRD updates</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: Three blocking issues were identified earlier and have been addressed in v3</li>
+<li><strong>Rationale</strong>: Maintain accurate project state for future sessions and coordination</li>
+<li><strong>Alternatives rejected</strong>: Leaving memory file unchanged, Creating new memory file instead of updating</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>6. Add cal-NqnUgwDcAfKNXHN to EXTRA_CALENDARS seed list in luma-event-scout skill</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: User asked to include Robotics Reading Club event calendar which was not in existing seed list because it is isolated from Bond AI ecosystem</li>
+<li><strong>Rationale</strong>: To improve event discovery coverage by adding independent calendars that are not cross-linked with existing seed calendars</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>7. Install zsh-syntax-highlighting and zsh-completions plugins</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: User requested completion of terminal plugins; oh-my-zsh, zsh-autosuggestions already present, but syntax highlighting and enhanced completions missing.</li>
+<li><strong>Rationale</strong>: Improve terminal usability with command highlighting and better tab completion.</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>8. Use --dangerously-skip-permissions flag in all Claude proxy commands</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: User rejected the settings.json bypassPermissions approach, explicitly requesting the command-line flag instead.</li>
+<li><strong>Rationale</strong>: User preference for fully automatic mode; ensures all Claude sessions skip permission prompts without relying on config file.</li>
+<li><strong>Alternatives rejected</strong>: Setting permissions.defaultMode to bypassPermissions in .claude/settings.json</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>9. Replace Guild with sqlite-vec + fastembed for vector storage and embedding</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: Advocate review revealed 3 blocking issues in PRD v3 (zero safety guardrails, undefined loop termination, fragile PostToolUse hook layer) which were linked to Guild dependency. A spike (6/6 queries) validated sqlite-vec as a drop-in replacement.</li>
+<li><strong>Rationale</strong>: Guild introduced fragility and unresolved issues; sqlite-vec is simpler, already integrated via sqlite-vec Python package, and works with existing analytics.db. Reduces complexity and risk.</li>
+<li><strong>Alternatives rejected</strong>: Guild v2 (rejected due to unresolved blocking issues and fragility), FTS5 (replaced, not suitable for semantic search)</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>10. Update spec to include sqlite-vec schema and semantic search section</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: Spec previously referenced FTS5 and Guild; needed alignment with new backend.</li>
+<li><strong>Rationale</strong>: Maintain coherence across docs; new §2.5 describes vec0 DDL, embedding pipeline, and dual retrieval path.</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>11. Update design to replace all Guild/Lore/Quest references with sqlite-vec equivalents</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: Design had 14+ Guild references including v2 Backend section and architecture diagram.</li>
+<li><strong>Rationale</strong>: Required for consistency; kept one &#x27;Why not Guild&#x27; explanation for historical context.</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>12. Update impl-plan to use sqlite-vec Python API and fastembed instead of mcp__guild__* commands</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: Implementation plan still referenced Guild CLI and MCP tools.</li>
+<li><strong>Rationale</strong>: Align with actual implementation; changed header, architecture diagram, Task 0 (pip install), and all task references.</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>13. Keep &#x27;Why not Guild OSS&#x27; rationale in design as historical documentation</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: Design contained a section explaining the rejection of Guild; assistant decided to preserve it.</li>
+<li><strong>Rationale</strong>: Provides context for future readers on architectural decision rationale.</li>
+<li><strong>Confidence</strong>: medium</li>
+</ul>
+<h4>14. Restore original dashboard CSS (420 lines) and JS (531 lines), then merge new styles/functions incre</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: Investigation revealed that the CSS and JS were accidentally overwritten in commit 6d3a3dc when using Write tool instead of Edit, causing loss of .lexpand, .tab-bar, .tbtn, expRow(), toggleExp(), goBack(), startAR() and other features</li>
+<li><strong>Rationale</strong>: Direct restoration from original git history (e86741d) preserves all existing functionality; merging new additions on top avoids silent regressions. Using Edit ensures incremental, safe changes.</li>
+<li><strong>Alternatives rejected</strong>: Reverting the entire commit and reapplying only new features (would lose other unrelated changes), Continuing with broken files and fixing individually (would leave root cause unaddressed)</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>15. Create a new &#x27;wrong-history&#x27; skill that records past mistakes and injects critical rules into CLAUDE</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: After discovering the root cause (Write instead of Edit), the user requested a mechanism to track and prevent similar errors in the future</li>
+<li><strong>Rationale</strong>: Formalizing lessons learned as a skill ensures they are not forgotten; injection into CLAUDE.local.md makes rules visible every session without manual recall</li>
+<li><strong>Alternatives rejected</strong>: Only adding a lesson file (would be passive and easily ignored), Modifying auto-worker rules only (would not cover non-auto-worker sessions)</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>16. Add two new checks to auto-worker: git diff --stat for &gt;50% line count reduction, and JS function co</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: The existing auto-worker only tested backend and missed front-end CSS/JS regressions; the overwrite went undetected</li>
+<li><strong>Rationale</strong>: These automated checks will catch accidental overwrites before commit, preventing front-end degradation without requiring visual inspection</li>
+<li><strong>Alternatives rejected</strong>: Adding full E2E/integration tests for front-end (too heavy, not available), Manual CSS review checklist (would require human attention every commit)</li>
+<li><strong>Confidence</strong>: medium</li>
+</ul>
+<h4>17. Identify root cause: Claude Code uses 200K token default context window for all models, but DeepSeek</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: User reported context percentage bar hitting 100% quickly when using DeepSeek API in Claude Code</li>
+<li><strong>Rationale</strong>: Different models have different context window sizes; Claude Code&#x27;s default assumption of 200K leads to incorrect percentage calculation for models with larger windows</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>18. Use <code>[1M]</code> suffix on model name in ANTHROPIC_MODEL environment variable to override context window s</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: After identifying root cause, assistant suggested adding <code>[1M]</code> suffix to model name in user&#x27;s shell configuration</li>
+<li><strong>Rationale</strong>: Claude Code documentation indicates that appending <code>[1M]</code> (camelCase) to model ID tells the tool to use 1M token context window; the suffix is stripped from API requests</li>
+<li><strong>Alternatives rejected</strong>: Using settings.json env config (found less flexible)</li>
+<li><strong>Confidence</strong>: medium</li>
+</ul>
+<h4>19. Correct suffix from <code>[1M]</code> to <code>[1m]</code> (lowercase) after observing it didn&#x27;t work</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: After restarting Claude Code with <code>[1M]</code> suffix, debug log showed context window was still 200K; further research revealed Claude Code requires lowercase <code>[1m]</code></li>
+<li><strong>Rationale</strong>: Official Claude Code documentation specifies <code>[1m]</code> (lowercase) for context window override; uppercase is not recognized</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>20. Apply <code>[1m]</code> suffix to all third-party models: GLM-5.2, DeepSeek V4 Pro, DeepSeek V4 Flash, Gemini 2</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: User has multiple models and wants consistent context bar behavior</li>
+<li><strong>Rationale</strong>: All these models have 1M token context windows (confirmed via web search), so applying the same suffix ensures correct percentage calculation across all models</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>21. Set default export ANTHROPIC_MODEL in .zshrc to ensure consistent value when no alias is used</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: User has default export ANTHROPIC_MODEL at top of .zshrc that was not updated; this could cause issues if command doesn&#x27;t go through proxy function</li>
+<li><strong>Rationale</strong>: Ensure any invocation of claude command uses the correct model with suffix, avoiding inconsistent context window behavior</li>
+<li><strong>Alternatives rejected</strong>: Leaving default export unchanged (would cause inconsistency)</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>22. Temporarily add debug logging to statusline-command.sh to verify context window size, then remove af</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: To diagnose why <code>[1M]</code> didn&#x27;t work, assistant added debug log to capture actual context_window_size sent by Claude Code</li>
+<li><strong>Rationale</strong>: Debug logging provided concrete evidence that context window was still 200K, leading to discovery of case sensitivity issue</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>23. Use systematic debugging skill to find root cause instead of guessing</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: User reported evolution dashboard empty; prior attempts may have been incomplete</li>
+<li><strong>Rationale</strong>: Systematic debugging ensures root cause identification before any fix, preventing symptom fixes</li>
+<li><strong>Alternatives rejected</strong>: Attempting to refill data directly, Guessing at missing configuration</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>24. Investigate analytics database and knowledge extraction pipeline</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: Need to understand why evolution data is missing</li>
+<li><strong>Rationale</strong>: Evolution dashboard queries multiple data sources (mem0, knowledge table, pending skills); checking each reveals the pipeline state</li>
+<li><strong>Alternatives rejected</strong>: Only checking one source (e.g., mem0), Assuming permission issues</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>25. Identify that phase 2 (knowledge extraction) was never executed at scale</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: Found 568 sessions imported but only 25 session summaries and 0 mem0 entries</li>
+<li><strong>Rationale</strong>: The <code>coworker memory train</code> command implements the full extraction but was never invoked manually, leaving all data sources empty</li>
+<li><strong>Alternatives rejected</strong>: Assuming bug in dashboard queries, Assuming data import failed</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>26. Offer to run <code>coworker memory train</code> to fill evolution data</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: After root cause identified, next logical step given user needs</li>
+<li><strong>Rationale</strong>: Running the command will populate mem0, knowledge table, and pending skills, making evolution dashboard functional</li>
+<li><strong>Alternatives rejected</strong>: Manual data entry, Rewriting dashboard queries to ignore missing data</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>27. Change auto_approve default from true to false</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: Devil&#x27;s advocate review revealed high unsafe rate (65.5%) for auto-created skills and security risks in self-evolving agents.</li>
+<li><strong>Rationale</strong>: Defaults should protect non-technical users; auto_approve: true would automatically activate potentially dangerous skills. Changing to false adds a pending queue and review step while still allowing automation.</li>
+<li><strong>Alternatives rejected</strong>: Keep auto_approve: true (exposes users to risk), Remove auto-approval entirely (rejected because it would break workflow for advanced users)</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>28. Replace CLAUDE.md with CLAUDE.local.md in core loop and state machine descriptions</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: PRD was inconsistent: Section 3.6 correctly referenced CLAUDE.local.md for memory snapshots, but diagrams and Section 2.1 incorrectly referenced CLAUDE.md as auto-update target.</li>
+<li><strong>Rationale</strong>: CLAUDE.md is a team-shared file that should not be automatically modified by the agent. Only the personal CLAUDE.local.md should be auto-updated. This is a safety and clarity fix.</li>
+<li><strong>Alternatives rejected</strong>: Keep CLAUDE.md and add a note to commit changes (rejected because team files should not be auto-modified), Use a separate memory file entirely (rejected because CLAUDE.local.md is already established)</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+<h4>29. Add post-session skill creation trigger at SessionStop hook</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: User insight that the session summary already runs a full-context LLM call, which can also identify reusable workflows to create as skills.</li>
+<li><strong>Rationale</strong>: Zero additional cost (piggybacks on existing summary), accesses full session context for better pattern recognition, complements existing in-session trigger which only sees individual tasks.</li>
+<li><strong>Alternatives rejected</strong>: Only use in-session trigger (misses cross-task patterns), Add a separate dedicated skill discovery step (costly and redundant)</li>
+<li><strong>Confidence</strong>: medium</li>
+</ul>
+<h4>30. Add new shell function claude-deepseek-flash using deepseek-v4-flash model</h4>
+<ul>
+<li><strong>Source</strong>: claude-code</li>
+<li><strong>Context</strong>: User requested adding a deepseek flash v4 model option to claude code in zshrc</li>
+<li><strong>Rationale</strong>: Follows existing naming and configuration pattern for model aliases (e.g., claude-deepseek for deepseek-v4-pro), minimal change to satisfy user request</li>
+<li><strong>Confidence</strong>: high</li>
+</ul>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="2026-07-25-fixdashboard-restore-original-css-420442-line-decision.html"><span class="label">Previous</span>Decision Record — 2026-07-25</a><a class="next" href="../design/walter-worker-design.html"><span class="label">Next</span>walter-worker — Design</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

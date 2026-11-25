@@ -168,3 +168,108 @@ vendored slide toolkit. Still on disk, out of version control._
 
 ### work-review
 
+## Walter Worker
+
+### decision-history
+
+- [walter-worker — Decision History](features/walter-worker/decision-history/walter-worker-decision-history.md)
+
+### design
+
+- [walter-worker — Design](features/walter-worker/design/walter-worker-design.md)
+
+### impl-plan
+
+- [walter-worker Implementation Plan](features/walter-worker/impl-plan/walter-worker-impl-plan.md)
+
+### prd
+
+- [walter-worker — PRD](features/walter-worker/prd/walter-worker-prd.md)
+
+### test-plan
+
+- [walter-worker — Test Plan](features/walter-worker/test-plan/walter-worker-test-plan.md)
+
+### setup-deploy
+
+- [Setup and Deploy — Decision History](features/walter-worker/features/setup-deploy/decision-history/setup-deploy-decision-history.md)
+- [Setup and Deploy — Design](features/walter-worker/features/setup-deploy/design/setup-deploy-design.md)
+- [Setup and Deploy — Implementation Plan](features/walter-worker/features/setup-deploy/impl-plan/setup-deploy-impl-plan.md)
+- [Setup and Deploy — PRD](features/walter-worker/features/setup-deploy/prd/setup-deploy-prd.md)
+- [Setup and Deploy — Test Plan](features/walter-worker/features/setup-deploy/test-plan/setup-deploy-test-plan.md)
+
+### core-cli
+
+- [Core CLI — Decision History](features/walter-worker/features/core-cli/decision-history/core-cli-decision-history.md)
+- [Core CLI — Design](features/walter-worker/features/core-cli/design/core-cli-design.md)
+- [Core CLI — Implementation Plan](features/walter-worker/features/core-cli/impl-plan/core-cli-impl-plan.md)
+- [Core CLI — PRD](features/walter-worker/features/core-cli/prd/core-cli-prd.md)
+- [Core CLI — Test Plan](features/walter-worker/features/core-cli/test-plan/core-cli-test-plan.md)
+
+### feature-system
+
+- [Feature System — Decision History](features/walter-worker/features/feature-system/decision-history/feature-system-decision-history.md)
+- [Feature System — Design](features/walter-worker/features/feature-system/design/feature-system-design.md)
+- [Feature System — Implementation Plan](features/walter-worker/features/feature-system/impl-plan/feature-system-impl-plan.md)
+- [Feature System — PRD](features/walter-worker/features/feature-system/prd/feature-system-prd.md)
+- [Feature System — Test Plan](features/walter-worker/features/feature-system/test-plan/feature-system-test-plan.md)
+
+### analytics-listener
+
+- [Analytics Listener — Decision History](features/walter-worker/features/analytics-listener/decision-history/analytics-listener-decision-history.md)
+- [Analytics Listener — Design](features/walter-worker/features/analytics-listener/design/analytics-listener-design.md)
+- [Analytics Listener — Implementation Plan](features/walter-worker/features/analytics-listener/impl-plan/analytics-listener-impl-plan.md)
+- [Analytics Listener — PRD](features/walter-worker/features/analytics-listener/prd/analytics-listener-prd.md)
+- [Analytics Listener — Test Plan](features/walter-worker/features/analytics-listener/test-plan/analytics-listener-test-plan.md)
+
+### analytics-dashboard
+
+- [Analytics Dashboard — Decision History](features/walter-worker/features/analytics-dashboard/decision-history/analytics-dashboard-decision-history.md)
+- [Analytics Dashboard — Design](features/walter-worker/features/analytics-dashboard/design/analytics-dashboard-design.md)
+- [Analytics Dashboard — Implementation Plan](features/walter-worker/features/analytics-dashboard/impl-plan/analytics-dashboard-impl-plan.md)
+- [Analytics Dashboard — PRD](features/walter-worker/features/analytics-dashboard/prd/analytics-dashboard-prd.md)
+- [Analytics Dashboard — Test Plan](features/walter-worker/features/analytics-dashboard/test-plan/analytics-dashboard-test-plan.md)
+
+## Autoworker
+
+### decision-history
+
+- [Auto-worker — Decision History](features/autoworker/decision-history/autoworker-decision-history.md)
+
+### design
+
+- [Auto-worker — Design](features/autoworker/design/autoworker-design.md)
+
+### impl-plan
+
+- [Auto-worker — Implementation Plan](features/autoworker/impl-plan/autoworker-impl-plan.md)
+
+### prd
+
+- [Auto-worker — PRD](features/autoworker/prd/autoworker-prd.md)
+
+### test-plan
+
+- [Auto-worker — Test Plan](features/autoworker/test-plan/autoworker-test-plan.md)
+
+## Memory Platform
+
+### decision-history
+
+- [Memory Platform — Decision History](features/memory-platform/decision-history/memory-platform-decision-history.md)
+
+### design
+
+- [Memory Platform — Design](features/memory-platform/design/memory-platform-design.md)
+
+### impl-plan
+
+- [Memory Platform — Implementation Plan](features/memory-platform/impl-plan/memory-platform-impl-plan.md)
+
+### prd
+
+- [Memory Platform — PRD](features/memory-platform/prd/memory-platform-prd.md)
+
+### test-plan
+
+- [Memory Platform — Test Plan](features/memory-platform/test-plan/memory-platform-test-plan.md)

@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adversarial Review — computer-config-spec.md · 2026-08-01-computer-config-spec · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../../prd/computer-config-prd.html"><span class="tree-ord">1</span>computer-config — Product Requirements Document (PRD)</a></li><li class="tree-leaf"><a class="tree-link" href="discussion.html" aria-current="page">Adversarial Review — computer-config-spec.md</a></li><li class="tree-leaf"><a class="tree-link" href="glm52-report.html">GLM-5.2 Independent Review Report — computer-config-spec.md</a></li><li class="tree-leaf"><a class="tree-link" href="report.html">Adversarial Review Report — computer-config-spec.md</a></li><li class="tree-leaf"><a class="tree-link" href="../../spec/computer-config-spec.html">computer-config — Complete Technical Specification</a></li><li class="tree-leaf"><a class="tree-link" href="../../impl-plan/computer-config-impl-plan.html"><span class="tree-ord">4</span>computer-config — Implementation Plan (Impl Plan)</a></li><li class="tree-leaf"><a class="tree-link" href="../../test-plan/computer-config-test-plan.html"><span class="tree-ord">5</span>computer-config — Test Plan</a></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../../index.html">Docs</a> / <span>computer-config</span> / <span>devil-advocate</span> / <span>2026-08-01-computer-config-spec</span> / <span>Adversarial Review — computer-config-spec.md</span></nav>
+    <article class="doc" data-doc="computer-config/devil-advocate/2026-08-01-computer-config-spec/discussion">
+      <header class="doc-head">
+        <p class="eyebrow">computer-config</p>
+        <h1>Adversarial Review — computer-config-spec.md</h1>
+        <p class="source">Canonical: docs/features/computer-config/devil-advocate/2026-08-01-computer-config-spec/discussion.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Adversarial Review — computer-config-spec.md</h2>
+<ul>
+<li><strong>Date</strong>: 2026-08-01</li>
+<li><strong>Document under review</strong>: <code>docs/computer-config/spec/computer-config-spec.md</code></li>
+<li><strong>Review type</strong>: devil-advocate (con/pro/judge debate, max 5 rounds)</li>
+<li><strong>Status</strong>: complete (1 round, then manual verification)</li>
+</ul>
+<h3>Metadata</h3>
+<ul>
+<li>Reviewer: walter-worker-devil-advocate skill</li>
+<li>Model: DeepSeek/deepseek-v4-pro (via CCR)</li>
+<li>Round limit: 5</li>
+</ul>
+<h3>Round Log</h3>
+<h4>Round 1 (2026-08-01)</h4>
+<p>Con → Pro → Judge. Judge rulings: 9 total, 8 con-wins, 1 pro-wins, 0 deferred.</p>
+<p><strong>Consensus findings:</strong></p>
+<ol>
+<li><strong>Model ID contradiction</strong> — settings.json <code>model</code> field hex-decodes to</li>
+</ol>
+<p>   <code>DeepSeek/deepseek-v4-flash</code>, but 3 env vars say <code>deepseek-v4-pro</code>. Spec    claims v4-pro throughout. Independently VERIFIED by reviewer (see below).</p>
+<ol>
+<li>Spec section 2.2 says 11 top-level keys, actual is 10.</li>
+<li>Spec section 4.1 says .tmux.conf 34 lines, actual is 36.</li>
+<li>Spec section 2.2 says 12 plugins, actual is 13 (12 enabled + 1 disabled semgrep).</li>
+<li><code>_write_json_atomic</code> name-dropped 3× with no mechanism specified.</li>
+<li>Manifest format for uninstall unspecified (word appears 8×, zero schema).</li>
+<li>Inline Benjamin Blue detection algorithm undefined.</li>
+<li>0/1/2 single-choice menu contradicts PRD US-4 &quot;one-click install&quot;.</li>
+</ol>
+<p><strong>Rulings:</strong></p>
+<div class="table-wrap"><table><thead><tr>
+<th>Claim</th>
+<th>Ruling</th>
+<th>Reason</th>
+</tr></thead><tbody>
+<tr>
+<td>DeepSeek 1M context, 5x Claude</td>
+<td>pro-wins</td>
+<td>Math correct, matches live statusline detection code</td>
+</tr>
+<tr>
+<td>Cost ~17x cheaper</td>
+<td>con-wins</td>
+<td>Model ID suggests flash ($0.28), making it ~53x; ambiguity unresolved</td>
+</tr>
+<tr>
+<td>12 plugins</td>
+<td>con-wins</td>
+<td>Live has 13 (12 enabled + 1 disabled)</td>
+</tr>
+<tr>
+<td>.tmux.conf 34 lines</td>
+<td>con-wins</td>
+<td>Actual 36</td>
+</tr>
+<tr>
+<td>Atomic writes via _write_json_atomic</td>
+<td>con-wins</td>
+<td>Pattern undefined; json.dump non-atomic</td>
+</tr>
+<tr>
+<td>Uninstall manifest-driven safe</td>
+<td>con-wins</td>
+<td>No schema; cross-project manifest conflict with walter-worker</td>
+</tr>
+<tr>
+<td>Inline color detection</td>
+<td>con-wins</td>
+<td>Algorithm undefined; safety gate unimplementable</td>
+</tr>
+<tr>
+<td>0/1/2 menu</td>
+<td>con-wins</td>
+<td>Contradicts PRD US-4</td>
+</tr>
+</tbody></table></div>
+<p><strong>Unresolved (deferred):</strong></p>
+<ul>
+<li>Which model actually routes through CCR (flash vs pro)? — cascades into cost/context claims</li>
+<li>Cross-project manifest conflict (walter-worker walks ~/.claude/ recursively)</li>
+<li>Impl-plan Step B1 &quot;remove tmux tracking&quot; may be a phantom task</li>
+<li>Statusline behavior when CCR is down</li>
+<li>Test plan gaps (rollback, missing deps at runtime, non-BB colors, concurrent installs)</li>
+</ul>
+<h4>Reviewer verification (post-round)</h4>
+<p>Independently verified the most impactful finding:</p>
+<ul>
+<li><code>model</code> field hex-decode → <code>DeepSeek/deepseek-v4-flash</code> ✅ CONFIRMED</li>
+<li><code>env.ANTHROPIC_MODEL</code> → <code>DeepSeek/deepseek-v4-pro</code> ✅ CONFIRMED (contradiction real)</li>
+<li>Top-level keys = 10 (not 11) ✅ CONFIRMED</li>
+<li>enabledPlugins = 13 (not 12) ✅ CONFIRMED</li>
+<li>.tmux.conf = 36 lines (not 34) ✅ CONFIRMED</li>
+</ul>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../../prd/computer-config-prd.html"><span class="label">Previous</span>computer-config — Product Requirements Document (PRD)</a><a class="next" href="glm52-report.html"><span class="label">Next</span>GLM-5.2 Independent Review Report — computer-config-spec.md</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../../assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memory Platform — Decision History · decision-history · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/memory-platform-prd.html"><span class="tree-ord">1</span>Memory Platform — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="memory-platform-decision-history.html" aria-current="page"><span class="tree-ord">2</span>Memory Platform — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/memory-platform-design.html"><span class="tree-ord">3</span>Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/memory-platform-impl-plan.html"><span class="tree-ord">4</span>Memory Platform — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-platform-test-plan.html"><span class="tree-ord">5</span>Memory Platform — Test Plan</a></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>memory-platform</span> / <span>decision-history</span> / <span>Memory Platform — Decision History</span></nav>
+    <article class="doc" data-doc="memory-platform/decision-history/memory-platform-decision-history">
+      <header class="doc-head">
+        <p class="eyebrow">memory-platform</p>
+        <h1>Memory Platform — Decision History</h1>
+        <p class="source">Canonical: docs/features/memory-platform/decision-history/memory-platform-decision-history.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Memory Platform — Decision History</h2>
+<p>Decisions about memory capture, storage, and curation. Newest first. Each decision has an entry in the Evidence Appendix with its reason and the options it rejected.</p>
+<h3>Decision Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Date</th>
+<th>Decision</th>
+</tr></thead><tbody>
+<tr>
+<td><strong><a class="id-ref" href="#ARD-H">ARD-H</a></strong></td>
+<td>2026-11-24</td>
+<td>The session summary (memory capture, then close) runs once per session from a detached SessionEnd hook; the Stop hook no longer runs capture or close.</td>
+</tr>
+<tr>
+<td><strong><a class="id-ref" href="#ARD-G">ARD-G</a></strong></td>
+<td>2026-11-24</td>
+<td>This feature&#x27;s documents describe the memory code as it behaves at <code>a0f4ce0</code> and are the authority for current behavior; the older memory design and memory-graph-spec.md under docs/features/self-evolving-agent/ remain as design history and are not edited here.</td>
+</tr>
+<tr>
+<td><strong><a class="id-ref" href="#ARD-F">ARD-F</a></strong></td>
+<td>2026-11-24</td>
+<td>The review-fix pass for this backfill is applied as edits larger than the 10-line/200-character limit, authorized by the owner&#x27;s 2026-11-24 instruction to decide the approach (&quot;你自己看着弄&quot;).</td>
+</tr>
+<tr>
+<td><strong><a class="id-ref" href="#ARD-D">ARD-D</a></strong></td>
+<td>2026-11-24</td>
+<td>Where the code does not meet a requirement, the PRD keeps the requirement, the design states what the code does today, and the gap is a design Open Question for the owner to decide.</td>
+</tr>
+<tr>
+<td><strong><a class="id-ref" href="#ARD-A">ARD-A</a></strong></td>
+<td>2026-11-24</td>
+<td>The uncommitted 2026-11-04 drafts are rewritten whole in their first commit. Their IDs were never published, so no old-to-new table is kept.</td>
+</tr>
+<tr>
+<td><strong><a class="id-ref" href="#ARD-C">ARD-C</a></strong></td>
+<td>2026-07-27</td>
+<td>Capture writes graph facts to a pending dump; a separate merge step folds dumps into <code>graph.json</code> with atomic writes.</td>
+</tr>
+<tr>
+<td><strong><a class="id-ref" href="#ARD-E">ARD-E</a></strong></td>
+<td>2026-07-25</td>
+<td>Skill staging is limited to three per 24 hours by a circuit breaker, and promotion needs human approval.</td>
+</tr>
+<tr>
+<td><strong><a class="id-ref" href="#ARD-B">ARD-B</a></strong></td>
+<td>2026-07-25</td>
+<td>Lessons are stored in mem0 over a local vector database with local embeddings; language-model calls go to DeepSeek, with Gemini as fallback.</td>
+</tr>
+</tbody></table></div>
+<h3>Evidence Appendix</h3>
+<h4 id="ARD-H"><a class="id-ref" href="#ARD-H">ARD-H</a></h4>
+<p>The owner decided on 2026-11-24: &quot;stop hook 只记录chat history 不做summary&quot;. The owner then chose to run the summary once per session (&quot;run once&quot;). The code states why: Stop fires after every reply, so capture made one 15-20 s model call per reply (<code>on-session-end.sh:4-7</code> at <code>a91ebbd</code>). The hook detaches the run because, as its comment says, Claude Code cancels a SessionEnd hook after 1.5 s (<code>on-session-end.sh:9-12</code>); newer Claude Code releases may differ. Rejected: keeping capture and close on Stop. Evidence: walter-worker PR #22, merged as <code>a91ebbd</code>; the owner&#x27;s words of 2026-11-24.</p>
+<h4 id="ARD-G"><a class="id-ref" href="#ARD-G">ARD-G</a></h4>
+<p>The 2026-11-24 review found a second, older design for the same subsystem: the <a href="../../self-evolving-agent/design/memory-platform-design.html">older memory design</a> and the <a href="../../self-evolving-agent/spec/memory-graph-spec.html">memory graph spec</a>. The code still cites the second one as its specification, in <a href="../../../../../src/coworker/memory/graph.py"><code>src/coworker/memory/graph.py</code></a> line 3 at <code>a0f4ce0</code>. The two disagree with this feature on facts; for example, the older design&#x27;s overview figure puts <code>coworker memory sync</code> in the capture layer on its per-turn path, while in the code <code>memory sync</code> imports Graphify output. One fact needs one home, so this feature&#x27;s documents state current behavior and the older ones are kept only as history. Rejected: editing the older documents in this pass, because that is outside this pass&#x27;s scope, and retiring them now, which would go through doc-organize and needs the owner. Evidence: <code>raw/review/2026-11-24-spec-review-memory-platform-gaps.md</code>, finding I3.</p>
+<h4 id="ARD-F"><a class="id-ref" href="#ARD-F">ARD-F</a></h4>
+<p>The review listed 16 findings rated 3 or more, and most of them change several paragraphs and tables at once. Applying them under the 10-line and 200-character limit would take many dozens of edits that cannot be reviewed apart from each other. The owner told the agent on 2026-11-24 to decide the approach (&quot;你自己看着弄&quot;). Rejected: splitting the pass into edits within the limit. Evidence: <code>raw/review/2026-11-24-spec-review-memory-platform-gaps.md</code>; the owner&#x27;s instruction of 2026-11-24.</p>
+<h4 id="ARD-D"><a class="id-ref" href="#ARD-D">ARD-D</a></h4>
+<p>The 2026-11-24 fact pass found eight gaps (<a class="id-ref" href="../design/memory-platform-design.html#QUES-A">QUES-A</a> to <a class="id-ref" href="../design/memory-platform-design.html#QUES-H">QUES-H</a>), two of which can block or lose graph updates. The spec standard&#x27;s conflict rule is to report and ask, never to pick a side silently. Rejected: lowering the requirements to match the code. Evidence: the design&#x27;s Open Questions, each citing the code at <code>a0f4ce0</code>.</p>
+<h4 id="ARD-A"><a class="id-ref" href="#ARD-A">ARD-A</a></h4>
+<p>The drafts omitted the whole graph pipeline, claimed safety gates on every destructive write and an audit log of every memory change, and said keys could come from <code>~/.coworker/.env</code>; the code does none of these. Rejected: correcting them in many small edits. Evidence: the drafts in the shared checkout at <code>docs/features/memory-platform/</code>; <code>src/coworker/memory/</code> at <code>a0f4ce0</code>.</p>
+<h4 id="ARD-C"><a class="id-ref" href="#ARD-C">ARD-C</a></h4>
+<p>Merging into the graph means loading, deduplicating, and saving the whole file; doing that inside the capture hook would lengthen every session&#x27;s end, and a crash mid-write could damage the graph. A pending file per session decouples the two, and writing through a temporary file and a rename keeps the graph whole. Rejected: merging in the capture hook. Evidence: walter-worker commit <code>c6cacd5</code>.</p>
+<h4 id="ARD-E"><a class="id-ref" href="#ARD-E">ARD-E</a></h4>
+<p>An unattended loop that writes skills could flood the user&#x27;s skill list. A small daily cap and a human approval step keep that bounded. Rejected: automatic promotion. Evidence: walter-worker commit <code>bde0ac9</code>.</p>
+<h4 id="ARD-B"><a class="id-ref" href="#ARD-B">ARD-B</a></h4>
+<p>Local embeddings keep stored vectors on the machine and cost nothing per call; the language model is needed only for extraction. DeepSeek was chosen as the primary provider for cost. Rejected: a hosted vector service. Evidence: walter-worker commits <code>fb7018b</code> and <code>3eab5b8</code>.</p>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Version</th>
+<th>Date</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td>0.1</td>
+<td>2026-11-24</td>
+<td>Created with <a class="id-ref" href="#ARD-A">ARD-A</a> to <a class="id-ref" href="#ARD-E">ARD-E</a></td>
+</tr>
+<tr>
+<td>0.2</td>
+<td>2026-11-24</td>
+<td>Review fixes: <a class="id-ref" href="#ARD-F">ARD-F</a> (edit-size authorization for the review-fix pass) and <a class="id-ref" href="#ARD-G">ARD-G</a> (this feature is the authority for current behavior) added</td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>2026-11-24</td>
+<td><a class="id-ref" href="#ARD-H">ARD-H</a> added: the summary runs once per session from a SessionEnd hook; the 1.5 s limit attributed to the hook&#x27;s comment</td>
+</tr>
+</tbody></table></div>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../prd/memory-platform-prd.html"><span class="label">Previous</span>Memory Platform — PRD</a><a class="next" href="../design/memory-platform-design.html"><span class="label">Next</span>Memory Platform — Design</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

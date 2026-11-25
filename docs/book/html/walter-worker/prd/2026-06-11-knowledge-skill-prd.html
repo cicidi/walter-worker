@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Knowledge Skill PRD · prd · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="walter-worker-prd.html"><span class="tree-ord">1</span>walter-worker — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="2026-06-11-core-prd.html">Core CLI &amp; Initiative System PRD</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-11-dashboard-prd.html">Dashboard PRD</a></li><li class="tree-leaf"><a class="tree-link" href="2026-06-11-knowledge-skill-prd.html" aria-current="page">Knowledge Skill PRD</a></li><li class="tree-leaf"><a class="tree-link" href="ai-coworker-prd.html">walter-worker PRD</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../decision-history/walter-worker-decision-history.html"><span class="tree-ord">2</span>walter-worker — Decision History</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../decision-history/2025-04-10-integrate-loop-engineering-framework-by-running-lo-decision.html">Decision Record — 2025-04-10</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-03-30-feat-initial-commit--unified-ai-coworker-dev-env-decision.html">Decision Record — 2026-03-30</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.html">Decision Record — 2026-05-01</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-05-06-feat-add-skill-meta-import-skill--import-externa-decision.html">Decision Record — 2026-05-06</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.html">Decision Record — 2026-06-11</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-12-feat-add-opencode-context-injection-initiativema-decision.html">Decision Record — 2026-06-12</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.html">Decision Record — 2026-06-16</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-23-chore-remove-self-strain-decision.html">Decision Record — 2026-06-23</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-24-chore-review-fixes--broken-refs-tests-docs-ch-decision.html">Decision Record — 2026-06-24</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-30-fix-deploy-ai-coworker-skills-to-opencode-skill-d-decision.html">Decision Record — 2026-06-30</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.html">Decision Record — 2026-07-02</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.html">Decision Record — 2026-07-07</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.html">Decision Record — 2026-07-08</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.html">Decision Record — 2026-07-10</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-13-feat-add-emoji-and-color-coded-fields-to-tmux-sta-decision.html">Decision Record — 2026-07-13</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-17-docs-add-doc-organize--indexmd-refs-to-claudem-decision.html">Decision Record — 2026-07-17</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.html">Decision Record — 2026-07-24</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/unknown-remove-budget-related-features-from-prd-budget-fl-decision.html">Decision Record — unknown</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../design/walter-worker-design.html"><span class="tree-ord">3</span>walter-worker — Design</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../design/ai-coworker-design.html">walter-worker Design</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-analytics-dashboard-superpowers.html">Analytics Listener + Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-analytics-listener-design.html">Analytics Listener — Design Document</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-core-architecture-design.html">Core Architecture Design</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-feature-tracker.html">Feature Tracker</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-planning-hub.html">Planning Hub</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-09-25-deletion-list.html">Deletion List — 2026-09-25</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/2026-06-12-initiative-project-level-design.html">Initiative — Global to Project-Level Design</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/ai-coworker-spec.html">walter-worker Technical Specification</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-26-decision-timeline.html">Decision Timeline — walter-worker</a></li><li class="tree-leaf"><a class="tree-link" href="../work-review/2026-06-11-analytics-dashboard/acceptance.html">Analytics Dashboard — Acceptance Review</a></li><li class="tree-leaf"><a class="tree-link" href="../work-review/2026-06-11-analytics-dashboard/report.html">Acceptance Report — Analytics Dashboard</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/walter-worker-impl-plan.html"><span class="tree-ord">4</span>walter-worker Implementation Plan</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/walter-worker-test-plan.html"><span class="tree-ord">5</span>walter-worker — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/ai-coworker-test-plan.html">walter-worker Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><span class="tree-link"><span class="tree-ord">10</span>sub-feature</span></summary><ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/analytics-dashboard/design/analytics-dashboard-design.html">analytics-dashboard</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/prd/analytics-dashboard-prd.html"><span class="tree-ord">1</span>Analytics Dashboard — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/decision-history/analytics-dashboard-decision-history.html"><span class="tree-ord">2</span>Analytics Dashboard — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/design/analytics-dashboard-design.html"><span class="tree-ord">3</span>Analytics Dashboard — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/impl-plan/analytics-dashboard-impl-plan.html"><span class="tree-ord">4</span>Analytics Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/test-plan/analytics-dashboard-test-plan.html"><span class="tree-ord">5</span>Analytics Dashboard — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/analytics-listener/design/analytics-listener-design.html">analytics-listener</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/prd/analytics-listener-prd.html"><span class="tree-ord">1</span>Analytics Listener — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/decision-history/analytics-listener-decision-history.html"><span class="tree-ord">2</span>Analytics Listener — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/design/analytics-listener-design.html"><span class="tree-ord">3</span>Analytics Listener — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/impl-plan/analytics-listener-impl-plan.html"><span class="tree-ord">4</span>Analytics Listener — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/test-plan/analytics-listener-test-plan.html"><span class="tree-ord">5</span>Analytics Listener — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/core-cli/design/core-cli-design.html">core-cli</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/prd/core-cli-prd.html"><span class="tree-ord">1</span>Core CLI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/decision-history/core-cli-decision-history.html"><span class="tree-ord">2</span>Core CLI — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/design/core-cli-design.html"><span class="tree-ord">3</span>Core CLI — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/impl-plan/core-cli-impl-plan.html"><span class="tree-ord">4</span>Core CLI — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/test-plan/core-cli-test-plan.html"><span class="tree-ord">5</span>Core CLI — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/feature-system/design/feature-system-design.html">feature-system</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/prd/feature-system-prd.html"><span class="tree-ord">1</span>Feature System — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/decision-history/feature-system-decision-history.html"><span class="tree-ord">2</span>Feature System — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/design/feature-system-design.html"><span class="tree-ord">3</span>Feature System — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/impl-plan/feature-system-impl-plan.html"><span class="tree-ord">4</span>Feature System — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/test-plan/feature-system-test-plan.html"><span class="tree-ord">5</span>Feature System — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/setup-deploy/design/setup-deploy-design.html">setup-deploy</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/prd/setup-deploy-prd.html"><span class="tree-ord">1</span>Setup and Deploy — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/decision-history/setup-deploy-decision-history.html"><span class="tree-ord">2</span>Setup and Deploy — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/design/setup-deploy-design.html"><span class="tree-ord">3</span>Setup and Deploy — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/impl-plan/setup-deploy-impl-plan.html"><span class="tree-ord">4</span>Setup and Deploy — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/test-plan/setup-deploy-test-plan.html"><span class="tree-ord">5</span>Setup and Deploy — Test Plan</a></li></ul></details></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>walter-worker</span> / <span>prd</span> / <span>Knowledge Skill PRD</span></nav>
+    <article class="doc" data-doc="walter-worker/prd/2026-06-11-knowledge-skill-prd">
+      <header class="doc-head">
+        <p class="eyebrow">walter-worker</p>
+        <h1>Knowledge Skill PRD</h1>
+        <p class="source">Canonical: docs/features/walter-worker/prd/2026-06-11-knowledge-skill-prd.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Knowledge Skill PRD</h2>
+<p>&lt;!-- PROTECTED --&gt; Project: walter-worker Owner: cicidi Last Updated: 2026-06-11 Status: PLANNED &lt;!-- END PROTECTED --&gt;</p>
+<h3>Overview</h3>
+<p>An LLM-driven offline analysis skill that reads session data from SQLite and produces structured insights. Runs periodically (per-session or daily batch), writes results back to SQLite. Dashboard reads and displays — Knowledge Skill is the brain, Dashboard is the eyes.</p>
+<h3>Architecture</h3>
+<pre><code>Session DB (SQLite) → Knowledge Skill (LLM) → Insights DB (SQLite) → Dashboard</code></pre>
+<p>Knowledge Skill reads raw session events, feeds them to an LLM with structured prompts, and writes back structured results.</p>
+<h3>Goals</h3>
+<ol>
+<li>Extract reusable knowledge from session traces (traps, best practices, patterns)</li>
+<li>Detect recurring failure modes and generate self-healing rules</li>
+<li>Evaluate per-session efficiency and surface improvement areas</li>
+<li>Identify useful vs useless actions within each session</li>
+<li>Estimate ROI via surviving-lines-per-cost analysis</li>
+</ol>
+<h3>Outputs</h3>
+<h4>1. Session Summary (per-session)</h4>
+<p>For each completed session, produce a structured summary stored in the session data.</p>
+<p><strong>What to capture:</strong></p>
+<ul>
+<li><strong>SOP / Workflows:</strong> Reusable step sequences discovered or validated in this session (e.g. &quot;create worktree → install deps → run tests → start development&quot;)</li>
+<li><strong>Context to remember:</strong> Project state, branch status, unfinished work, decisions pending — things the next session needs to know</li>
+<li><strong>Effective operations:</strong> Specific tool invocations or approaches that worked well</li>
+<li><strong>Command line:</strong> Useful CLI commands, flags, or patterns discovered or validated</li>
+<li><strong>Documentation insights:</strong> Which docs were useful, what they helped solve, gaps identified</li>
+<li><strong>Pitfalls &amp; fixes:</strong> Things that failed repeatedly, what was tried, and the final working solution — the &quot;after hours of struggle, how it was finally resolved&quot; story</li>
+<li><strong>Wasted actions:</strong> Loops, unnecessary reads, dead-end explorations that led nowhere</li>
+<li><strong>Bottlenecks:</strong> Longest think times, most repetitive tool calls, user wait time</li>
+<li><strong>Efficiency tip:</strong> One actionable suggestion for next similar session</li>
+</ul>
+<p><strong>Dashboard display:</strong> Per-session panel in Session Compare / Session Replay views.</p>
+<h4>2. Knowledge Cards (cross-session)</h4>
+<p>Extracted patterns recurring across multiple sessions.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Category</th>
+<th>Example</th>
+</tr></thead><tbody>
+<tr>
+<td>⚠️ Trap</td>
+<td>&quot;pytest not found in worktree — use python3 instead&quot;</td>
+</tr>
+<tr>
+<td>✅ Best Practice</td>
+<td>&quot;Always brainstorm before new features — 95% doc completion rate&quot;</td>
+</tr>
+<tr>
+<td>📋 Pattern</td>
+<td>&quot;brainstorming → writing-plans → executing-plans is optimal path&quot;</td>
+</tr>
+<tr>
+<td>📝 Decision</td>
+<td>&quot;Dashboard uses FastAPI + vanilla JS — deliberate simplicity&quot;</td>
+</tr>
+<tr>
+<td>🔧 Constraint</td>
+<td>&quot;OpenCode --workdir more reliable than cd&quot;</td>
+</tr>
+<tr>
+<td>⚡ Command</td>
+<td>&quot;pytest --co -q to collect tests before full run&quot;</td>
+</tr>
+</tbody></table></div>
+<p><strong>Dashboard display:</strong> Knowledge Base view (View 9).</p>
+<h4>3. Self-Healing Rules (cross-session)</h4>
+<p>When the same user correction pattern appears ≥2 times, generate a rule.</p>
+<p><strong>Format:</strong></p>
+<ul>
+<li>Trigger: user correction text</li>
+<li>Action: behavioral change to apply</li>
+<li>Source sessions: which sessions triggered this</li>
+<li>Impact: measured improvement after rule applied</li>
+</ul>
+<p><strong>Dashboard display:</strong> Self-Healing section in Knowledge Base view.</p>
+<h4>4. Session Efficiency Score (per-session)</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Metric</th>
+<th>Calculation</th>
+</tr></thead><tbody>
+<tr>
+<td>think/action ratio</td>
+<td>think time / tool call time</td>
+</tr>
+<tr>
+<td>edit redundancy</td>
+<td>average edits per file</td>
+</tr>
+<tr>
+<td>unnecessary reads</td>
+<td>files read but never written</td>
+</tr>
+<tr>
+<td>loop count</td>
+<td>repeated identical tool calls</td>
+</tr>
+<tr>
+<td>user wait time</td>
+<td>time spent waiting for question answers</td>
+</tr>
+<tr>
+<td>vs. similar sessions</td>
+<td>compare to past sessions on same feature</td>
+</tr>
+</tbody></table></div>
+<p><strong>Dashboard display:</strong> Efficiency panel in Session Compare view.</p>
+<h4>5. ROI Estimate (per-session, TODO)</h4>
+<ul>
+<li>surviving_lines per session via git blame</li>
+<li>estimated cost per session</li>
+<li>roi = surviving_lines / cost</li>
+<li>decay over time as later sessions overwrite lines</li>
+</ul>
+<p><strong>Dashboard display:</strong> ROI panel in Knowledge Base view.</p>
+<h3>Non-Goals</h3>
+<ul>
+<li>No real-time analysis — runs offline, not during active sessions</li>
+<li>No automated code quality scoring — requires test integration that doesn&#x27;t exist</li>
+<li>No workflow stage detection — CLI doesn&#x27;t emit stage labels</li>
+</ul>
+<h3>Implementation</h3>
+<h4>Runtime: OpenCode SDK</h4>
+<p>OpenCode provides full programmatic control via <code>@opencode-ai/sdk</code>:</p>
+<pre><code>import { createOpencode } from &quot;@opencode-ai/sdk&quot;
+
+// Create headless OpenCode instance
+const { client } = await createOpencode({ port: 4096 })
+
+// Create a session for analysis
+const session = await client.session.create({
+  body: { title: &quot;Knowledge Skill — Session Summary&quot; }
+})
+
+// Feed session data + prompt for structured analysis
+const result = await client.session.prompt({
+  path: { id: session.id },
+  body: {
+    parts: [{
+      type: &quot;text&quot;,
+      text: `Analyze this session data and return a structured summary:
+      &lt;session_data&gt;${JSON.stringify(sessionEvents)}&lt;/session_data&gt;`
+    }],
+    format: {
+      type: &quot;json_schema&quot;,
+      schema: {
+        type: &quot;object&quot;,
+        properties: {
+          sop_workflows: { type: &quot;array&quot;, items: { type: &quot;string&quot; } },
+          context_to_remember: { type: &quot;string&quot; },
+          effective_operations: { type: &quot;array&quot;, items: { type: &quot;string&quot; } },
+          command_line: { type: &quot;array&quot;, items: { type: &quot;string&quot; } },
+          documentation_insights: { type: &quot;string&quot; },
+          pitfalls_and_fixes: { type: &quot;array&quot;, items: { type: &quot;object&quot;, properties: { problem: { type: &quot;string&quot; }, attempts: { type: &quot;array&quot;, items: { type: &quot;string&quot; } }, solution: { type: &quot;string&quot; } } } },
+          wasted_actions: { type: &quot;array&quot;, items: { type: &quot;string&quot; } },
+          bottlenecks: { type: &quot;array&quot;, items: { type: &quot;string&quot; } },
+          efficiency_tip: { type: &quot;string&quot; }
+        }
+      }
+    }
+  }
+})
+
+// Write result back to SQLite
+const summary = result.data.info.structured_output
+writeToSessionDB(sessionId, summary)</code></pre>
+<p>Alternatively, use CLI non-interactive mode:</p>
+<pre><code>opencode run --format json &quot;Analyze this session data from ~/.coworker/sessions/session-123.jsonl ...&quot;</code></pre>
+<h4>Skill Definition</h4>
+<p>Knowledge Skill is a standard <code>.opencode/skills/knowledge-skill/SKILL.md</code> file with triggers like:</p>
+<ul>
+<li>&quot;analyze this session&quot;</li>
+<li>&quot;summarize what I did&quot;</li>
+<li>&quot;generate knowledge cards from today&#x27;s sessions&quot;</li>
+</ul>
+<p>The skill reads session data from SQLite, calls the LLM for analysis, and writes structured results back.</p>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="2026-06-11-dashboard-prd.html"><span class="label">Previous</span>Dashboard PRD</a><a class="next" href="ai-coworker-prd.html"><span class="label">Next</span>walter-worker PRD</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

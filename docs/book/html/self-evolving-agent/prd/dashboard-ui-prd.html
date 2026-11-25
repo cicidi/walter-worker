@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard UI — PRD · prd · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="dashboard-ui-prd.html" aria-current="page">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-29-devil-advocate-reviews-summary.html">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/auto-worker-design.html">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/dashboard-design.html">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/qa-autonomous-agent-design.html">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../INDEX.html">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/band-ai-docs.html">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-agent-README.html">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-ai-docs.html">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-README.html">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-docs.html">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-agent-README.html">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/pioneer-docs.html">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/memory-graph-spec.html">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/qa-autonomous-agent-spec.html">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/self-evolving-agent-spec.html">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-29-current-state.html">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-dashboard-data-not-verified.html">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../impl-plan/self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../impl-plan/dependency-and-sequencing-impl-plan.html">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/qa-autonomous-agent-impl-plan.html">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/self-evolving-agent-test-plan.html"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/2026-07-29-test-execution-report.html">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-graph-test-plan.html">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>prd</span> / <span>Dashboard UI — PRD</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/prd/dashboard-ui-prd">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>Dashboard UI — PRD</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/prd/dashboard-ui-prd.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Dashboard UI — PRD</h2>
+<blockquote class="callout" data-label="NOTE"><p>Initiative: self-evolving-agent | Type: PRD | Status: draft v1.0 | Date: 2026-07-28</p></blockquote>
+<h3>1. Overview</h3>
+<p>Analytics dashboard for walter-worker. Displays session data, skill usage, tool metrics, cost analytics, memory health, and self-evolution metrics.</p>
+<p><strong>Current state:</strong> v2 redesign deployed (3-tab nav), partially complete.</p>
+<hr>
+<h3>2. Requirements</h3>
+<h4>R1: Information Architecture — 3-Tab Top Nav</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Tab</th>
+<th>Sub-nav items</th>
+</tr></thead><tbody>
+<tr>
+<td>Activity</td>
+<td>Summary, Sessions, Files (with Hotspots toggle)</td>
+</tr>
+<tr>
+<td>Insights</td>
+<td>Usage (Skills+Tools+Models), Cost, Quality, Knowledge</td>
+</tr>
+<tr>
+<td>System</td>
+<td>Health, Errors, Evolution (lazy load)</td>
+</tr>
+</tbody></table></div>
+<p><strong>Status:</strong></p>
+<ul>
+<li>[x] 3-tab bar renders</li>
+<li>[x] Sub-nav switches per tab</li>
+<li>[x] &quot;FilesHotspots&quot; display bug — fixed (shows &quot;📁 Files ↻&quot; with toggle hint)</li>
+<li>[x] Tab bar visual distinction — fixed (gap 8px, border-bottom, larger padding)</li>
+<li>[ ] Evolution lazy loading (mem0 dependency isolation)</li>
+</ul>
+<h4>R2: Info Tooltips — Every Number Explained</h4>
+<p>Every stat card value and table header must have a clickable ℹ icon. Clicking shows a tooltip card with:</p>
+<ul>
+<li><strong>Name</strong>: What is this metric?</li>
+<li><strong>Description</strong>: What does it mean?</li>
+<li><strong>Source</strong>: Which API endpoint / DB table / SQL query produces it?</li>
+<li><strong>Purpose</strong>: Why is this shown? What action should the user take?</li>
+</ul>
+<p><strong>Status:</strong></p>
+<ul>
+<li>[x] ℹ icons render on Summary stat cards</li>
+<li>[x] INFO_MAP dictionary exists</li>
+<li>[x] INFO_MAP expanded to cover summary, sessions, projects, health, errors, cost, quality</li>
+<li>[x] Table headers have ℹ icons (via enrichContent)</li>
+<li>[x] Tooltip fallback shows human-readable text instead of raw keys</li>
+<li>[ ] Tooltip positioning: below-right preferred, flip to above-left near viewport edge</li>
+<li>[ ] Click-away dismissal</li>
+<li>[ ] Some pages still use fallback (add more entries to INFO_MAP)</li>
+</ul>
+<h4>R3: Skill Detail Page — Content + Review</h4>
+<p>When clicking a skill in Evolution, show:</p>
+<ul>
+<li>Skill metadata (source, status, calls, sessions, reuse rate)</li>
+<li>Full SKILL.md content rendered as <strong>markdown preview</strong> (not monospace)</li>
+<li>Description and When-to-Use extracted from frontmatter</li>
+<li>If status is &quot;pending&quot;: Approve / Reject buttons</li>
+<li>Session IDs where skill was invoked</li>
+</ul>
+<p><strong>Status:</strong></p>
+<ul>
+<li>[x] SKILL.md content displayed</li>
+<li>[x] Markdown preview renderer (renderMd)</li>
+<li>[x] Approve/Reject buttons for pending skills</li>
+<li>[ ] Description and When-to-Use sometimes empty (frontmatter key format mismatch: <code>when_to_use</code> vs <code>when-to-use</code>)</li>
+<li>[ ] Approve/Reject buttons don&#x27;t show for pending skills that were auto-promoted (state was &quot;active&quot; not &quot;pending&quot; before fix)</li>
+</ul>
+<h4>R4: Data Correctness — No Broken Pages</h4>
+<p>All pages must display correct data. Zero tolerance for field name mismatches.</p>
+<p><strong>Bugs found and fixed:</strong></p>
+<ul>
+<li>[x] Projects page: 6 field name mismatches (project→project_name, sessions→session_count, etc.)</li>
+<li>[x] Errors page: API returned flat array, JS expected <code>d.tool_errors</code></li>
+<li>[x] Memory page: JS expected mem0 fields, API returned skills/knowledge/summaries counts</li>
+<li>[x] Hotspots page: File column empty (f.file_path→f.path), missing columns added</li>
+<li>[x] Sessions count: hardcoded limit 500, DB had 569 (→2000)</li>
+</ul>
+<p><strong>Ongoing concerns:</strong></p>
+<ul>
+<li>[ ] Models page uses <code>model_group</code> but Cost page uses <code>model</code> — same concept, different field name</li>
+<li>[ ] Skills page <code>last_invoked</code> vs Evolution page <code>last_used</code> — same concept</li>
+<li>[ ] <code>total_sessions</code> vs <code>session_count</code> vs <code>sessions</code> — three names for same concept across APIs</li>
+<li>[ ] <code>active_sessions</code> means different things in <code>/api/overview</code> vs <code>/api/activity</code></li>
+</ul>
+<h4>R5: No Duplicate Data Display</h4>
+<p><strong>Duplications to eliminate:</strong></p>
+<ul>
+<li>[ ] Skills stats appear on both Skills page and Evolution page → single source in Insights &gt; Usage</li>
+<li>[ ] File operations appear on both Files page and Hotspots page → merge as Files page with Hotspots toggle</li>
+<li>[ ] Project coverage on Overview + Data Quality → move coverage to Data Quality only</li>
+<li>[ ] <code>/api/tools</code> + <code>/api/tool-detail</code> → <code>/api/tool-detail</code> is superset, merge</li>
+</ul>
+<p><strong>API merges pending (from data audit):</strong></p>
+<ul>
+<li>[x] <code>/api/errors</code> + <code>/api/session-errors</code> → merged</li>
+<li>[ ] <code>/api/skills</code> + <code>/api/evolution/skills</code> → unify</li>
+<li>[ ] <code>/api/tools</code> + <code>/api/tool-detail</code> → unify</li>
+<li>[ ] <code>/api/hotspots</code> + <code>/api/top-files</code> + <code>/api/file-stats</code> → <code>/api/files/stats</code></li>
+<li>[ ] <code>/api/cost-analytics</code> + <code>/api/models</code> + <code>/api/model-usage</code> → unified <code>/api/models</code></li>
+<li>[ ] <code>/api/memory-stats</code> + <code>/api/data-quality</code> → <code>/api/quality</code></li>
+<li>[ ] <code>/api/daily-sessions</code> merge into <code>/api/overview</code></li>
+</ul>
+<h4>R6: Panel-Level Resilience</h4>
+<p>Each panel loads independently. One panel failure must not break other panels.</p>
+<p><strong>Status:</strong></p>
+<ul>
+<li>[ ] Panel Dispatcher not implemented — pages still use single try/catch</li>
+<li>[ ] Skeleton loading: ✅ renders on navigate, but not per-panel</li>
+<li>[ ] Per-panel retry button: ❌ not implemented</li>
+<li>[ ] Per-panel timeout (10s): ❌ not implemented</li>
+</ul>
+<h4>R7: Database Integrity</h4>
+<p>Tables that use <code>INSERT OR IGNORE</code> must have UNIQUE constraints.</p>
+<p><strong>Status:</strong></p>
+<ul>
+<li>[x] file_ops: UNIQUE on (session_id, call_id, op, path)</li>
+<li>[x] messages: UNIQUE on (session_id, seq)</li>
+<li>[x] tool_calls: UNIQUE on (session_id, call_id)</li>
+<li>[x] Duplicate data cleaned: 55,204 rows removed across 3 tables</li>
+<li>[x] file_ops import: DELETE before re-import</li>
+<li>[ ] messages/tool_calls import: still use INSERT OR IGNORE without cleanup (safer but needs monitoring)</li>
+</ul>
+<h4>R8: Skill Installation</h4>
+<p>Project skills in <code>skills/</code> directory must be installed to <code>.claude/commands/</code>.</p>
+<p><strong>Status:</strong></p>
+<ul>
+<li>[x] 30 missing skills installed to <code>.claude/commands/</code></li>
+<li>[x] <code>coworker init</code> auto-discovers and installs project skills</li>
+<li>[x] <code>walter-worker-upgrade</code> Phase 4 includes skill installation step</li>
+<li>[x] <code>_promote_to_active()</code> installs to <code>~/.claude/commands/</code></li>
+</ul>
+<h4>R9: Wrong-History Auto-Creation</h4>
+<p>Auto-worker must create wrong-history entries when fixing bugs.</p>
+<p><strong>Status:</strong></p>
+<ul>
+<li>[x] <code>record_entry()</code> function in wrong_history.py</li>
+<li>[x] <code>coworker memory wrong-history record</code> CLI command</li>
+<li>[x] Engine agents instructed to record after fixes</li>
+<li>[x] INDEX.md auto-rebuilt after new entries</li>
+<li>[x] 5 total entries (2 auto-created this session)</li>
+</ul>
+<h4>R10: Responsive Design</h4>
+<p>Dashboard must work at 1024px+.</p>
+<p><strong>Status:</strong></p>
+<ul>
+<li>[ ] No responsive breakpoints implemented</li>
+<li>[ ] Sidebar doesn&#x27;t collapse at smaller widths</li>
+<li>[ ] Tables don&#x27;t have horizontal scroll at narrow widths</li>
+<li>[ ] Stat grid doesn&#x27;t adapt column count</li>
+</ul>
+<hr>
+<h3>3. Current Issues (from Audit)</h3>
+<h4>Visual</h4>
+<ol>
+<li><strong>&quot;FilesHotspots&quot; mashed together</strong> — sub-nav item needs separator or toggle indicator</li>
+<li><strong>Tab bar visual</strong> — &quot;◉ Activity◎ Insights⚙ System&quot; runs together, needs spacing/separators</li>
+<li><strong>Tab bar uses radio-button style</strong> — should look like tabs with bottom border indicator</li>
+<li><strong>Stat card tooltips show raw keys</strong> — e.g. &quot;overview.total_sessions&quot; instead of &quot;Total Sessions&quot;</li>
+<li><strong>No page subtitle</strong> on some pages — inconsistent metadata display</li>
+</ol>
+<h4>Functional</h4>
+<ol>
+<li><strong>Evolution page hangs</strong> when mem0 is unreachable (blocks entire page)</li>
+<li><strong>No breadcrumb</strong> — can&#x27;t see where you are in drill-down hierarchy</li>
+<li><strong>Session detail shows &quot;0 events&quot;</strong> for sessions without timeline data — should show message count at minimum</li>
+<li><strong>No search/filter</strong> on Skills, Tools, Knowledge pages</li>
+<li><strong>Auto-refresh only on Summary</strong> — other pages don&#x27;t auto-refresh</li>
+</ol>
+<h4>Data Quality</h4>
+<ol>
+<li><strong>Skills: 35 disk vs 28 DB</strong> — project-local skills not in DB (by design but unclear)</li>
+<li><strong>Summaries: 9.3% coverage</strong> — needs <code>coworker memory train</code> call-to-action</li>
+<li><strong>Model names stored as raw JSON</strong> from OpenCode — should normalize</li>
+</ol>
+<hr>
+<h3>4. Implementation Priority</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Priority</th>
+<th>Item</th>
+<th>Effort</th>
+</tr></thead><tbody>
+<tr>
+<td>P0</td>
+<td>Fix &quot;FilesHotspots&quot; display bug</td>
+<td>S</td>
+<td>✅ done</td>
+</tr>
+<tr>
+<td>P0</td>
+<td>Fix tab bar visual distinction</td>
+<td>S</td>
+<td>✅ done</td>
+</tr>
+<tr>
+<td>P0</td>
+<td>Fix tooltip raw key display</td>
+<td>S</td>
+<td>✅ done</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>Evolution lazy load (mem0 isolation)</td>
+<td>M</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>Panel Dispatcher with retry</td>
+<td>M</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>Complete INFO_MAP for all metrics</td>
+<td>M</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>Breadcrumb navigation</td>
+<td>M</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>API field name standardization</td>
+<td>L</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>API merges (M1-M8 from audit)</td>
+<td>L</td>
+</tr>
+<tr>
+<td>P3</td>
+<td>Responsive breakpoints</td>
+<td>M</td>
+</tr>
+<tr>
+<td>P3</td>
+<td>Session River visualization</td>
+<td>L</td>
+</tr>
+<tr>
+<td>P3</td>
+<td>Search/filter on list pages</td>
+<td>M</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>5. Non-Goals (for v2)</h3>
+<ul>
+<li>Mobile support (&lt; 768px)</li>
+<li>Real-time WebSocket updates</li>
+<li>Dark/light theme toggle</li>
+<li>Export to CSV/PDF</li>
+<li>User authentication / multi-tenant</li>
+</ul>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="self-evolving-agent-prd.html"><span class="label">Previous</span>Self-Evolving Agent — PRD</a><a class="next" href="self-evolving-agent-prd-zh.html"><span class="label">Next</span>Self-Evolving Agent — PRD</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

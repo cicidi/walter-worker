@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memory Graph — Test Plan · test-plan · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/dashboard-ui-prd.html">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-29-devil-advocate-reviews-summary.html">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/auto-worker-design.html">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/dashboard-design.html">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/qa-autonomous-agent-design.html">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../INDEX.html">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/band-ai-docs.html">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-agent-README.html">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-ai-docs.html">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-README.html">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-docs.html">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-agent-README.html">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/pioneer-docs.html">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/memory-graph-spec.html">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/qa-autonomous-agent-spec.html">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/self-evolving-agent-spec.html">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-29-current-state.html">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-dashboard-data-not-verified.html">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../impl-plan/self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../impl-plan/dependency-and-sequencing-impl-plan.html">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/qa-autonomous-agent-impl-plan.html">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="self-evolving-agent-test-plan.html"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="2026-07-29-test-execution-report.html">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="memory-graph-test-plan.html" aria-current="page">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>test-plan</span> / <span>Memory Graph — Test Plan</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/test-plan/memory-graph-test-plan">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>Memory Graph — Test Plan</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/test-plan/memory-graph-test-plan.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Memory Graph — Test Plan</h2>
+<blockquote class="callout" data-label="NOTE"><p>Initiative: self-evolving-agent | Type: test-plan | Status: <strong>draft v1.0</strong>  Covers: memory-graph-spec.md §1–§7</p></blockquote>
+<hr>
+<h3>1. Unit Tests</h3>
+<h4>1.1 Passive Decay</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Test</th>
+<th>Input</th>
+<th>Expected</th>
+</tr></thead><tbody>
+<tr>
+<td>D1</td>
+<td>Within protection window</td>
+<td>base=0.9, last_traversed=10 days ago</td>
+<td>effective=0.9</td>
+</tr>
+<tr>
+<td>D2</td>
+<td>At boundary</td>
+<td>base=0.9, last_traversed=20 days ago</td>
+<td>effective=0.9</td>
+</tr>
+<tr>
+<td>D3</td>
+<td>30 days idle</td>
+<td>base=0.9, last_traversed=30 days ago</td>
+<td>effective ≈ 0.814</td>
+</tr>
+<tr>
+<td>D4</td>
+<td>60 days idle</td>
+<td>base=0.9, last_traversed=60 days ago</td>
+<td>effective ≈ 0.602</td>
+</tr>
+<tr>
+<td>D5</td>
+<td>90 days idle</td>
+<td>base=0.5, last_traversed=90 days ago</td>
+<td>effective ≈ 0.248</td>
+</tr>
+<tr>
+<td>D6</td>
+<td>120 days idle</td>
+<td>base=0.9, last_traversed=120 days ago</td>
+<td>effective ≈ 0.330</td>
+</tr>
+<tr>
+<td>D7</td>
+<td>Zero base weight</td>
+<td>base=0.2, last_traversed=120 days ago</td>
+<td>effective &lt; 0.1</td>
+</tr>
+<tr>
+<td>D8</td>
+<td>Untraversed edge</td>
+<td>last_traversed_at=null</td>
+<td>effective = base (no decay)</td>
+</tr>
+<tr>
+<td>D9</td>
+<td>Future date</td>
+<td>last_traversed_at in future</td>
+<td>effective = base (clamp to 0)</td>
+</tr>
+</tbody></table></div>
+<h4>1.2 Confidence Mapping</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Test</th>
+<th>Input</th>
+<th>Expected</th>
+</tr></thead><tbody>
+<tr>
+<td>C1</td>
+<td>EXTRACTED</td>
+<td>confidence=&quot;EXTRACTED&quot;</td>
+<td>score=0.9</td>
+</tr>
+<tr>
+<td>C2</td>
+<td>INFERRED</td>
+<td>confidence=&quot;INFERRED&quot;</td>
+<td>score=0.7</td>
+</tr>
+<tr>
+<td>C3</td>
+<td>AMBIGUOUS</td>
+<td>confidence=&quot;AMBIGUOUS&quot;</td>
+<td>score=0.5</td>
+</tr>
+<tr>
+<td>C4</td>
+<td>Unknown string</td>
+<td>confidence=&quot;FOO&quot;</td>
+<td>score=0.5 (default AMBIGUOUS)</td>
+</tr>
+<tr>
+<td>C5</td>
+<td>Null/missing</td>
+<td>confidence=None</td>
+<td>score=0.5</td>
+</tr>
+</tbody></table></div>
+<h4>1.3 Node ID Namespace</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Test</th>
+<th>Input</th>
+<th>Expected</th>
+</tr></thead><tbody>
+<tr>
+<td>N1</td>
+<td>Graphify code ID</td>
+<td><code>src/auth.py::login</code></td>
+<td>Type <code>code</code></td>
+</tr>
+<tr>
+<td>N2</td>
+<td>Graphify doc ID</td>
+<td><code>docs/prd.md::r4_auth</code></td>
+<td>Type <code>document</code></td>
+</tr>
+<tr>
+<td>N3</td>
+<td>Session root ID</td>
+<td><code>session_20260727_001</code></td>
+<td>Type <code>session</code></td>
+</tr>
+<tr>
+<td>N4</td>
+<td>Session child ID</td>
+<td><code>session_20260727_001::attempt_bearer</code></td>
+<td>Type <code>decision_point</code></td>
+</tr>
+<tr>
+<td>N5</td>
+<td>No collision</td>
+<td>merge graphify + capture nodes</td>
+<td>0 ID conflicts</td>
+</tr>
+</tbody></table></div>
+<h4>1.4 Graphify Sync</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Test</th>
+<th>Input</th>
+<th>Expected</th>
+</tr></thead><tbody>
+<tr>
+<td>S1</td>
+<td>New code node</td>
+<td>graph.json missing <code>src/new.py::fn</code></td>
+<td>Added</td>
+</tr>
+<tr>
+<td>S2</td>
+<td>Existing code node</td>
+<td>graph.json has <code>src/auth.py::login</code></td>
+<td>Label updated, base_weight preserved</td>
+</tr>
+<tr>
+<td>S3</td>
+<td>New edge</td>
+<td>graph.json missing edge <code>a→b</code></td>
+<td>Added with base_weight=confidence_score</td>
+</tr>
+<tr>
+<td>S4</td>
+<td>Existing edge</td>
+<td>graph.json has edge <code>a→b::calls</code></td>
+<td>Skipped, base_weight untouched</td>
+</tr>
+<tr>
+<td>S5</td>
+<td>Removed file</td>
+<td>Graphify doesn&#x27;t include old node</td>
+<td>Orphaned in graph.json (no crash)</td>
+</tr>
+</tbody></table></div>
+<h4>1.5 Atomic Write</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Test</th>
+<th>Input</th>
+<th>Expected</th>
+</tr></thead><tbody>
+<tr>
+<td>A1</td>
+<td>Normal write</td>
+<td>graph.json with 500 nodes</td>
+<td>File updated correctly</td>
+</tr>
+<tr>
+<td>A2</td>
+<td>Simulated crash</td>
+<td>Kill process during write</td>
+<td>graph.json intact (no .tmp corruption)</td>
+</tr>
+<tr>
+<td>A3</td>
+<td>Disk full</td>
+<td>ENOSPC during write</td>
+<td>Old graph.json preserved</td>
+</tr>
+</tbody></table></div>
+<h4>1.6 Concurrency (Write-Ahead Queue, merge worker triggered by session-end hook)</h4>
+<blockquote class="callout" data-label="NOTE"><p><strong>From review #3:</strong> merge worker runs synchronously on the session-end hook (<code>coworker memory close</code>), not a 30s daemon. capture.py writes raw <code>pending/&lt;session&gt;.json</code>; the merge worker enriches + dedups + writes graph.json.</p></blockquote>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Test</th>
+<th>Input</th>
+<th>Expected</th>
+</tr></thead><tbody>
+<tr>
+<td>W1</td>
+<td>Two concurrent writes</td>
+<td>2 sessions end simultaneously</td>
+<td>Both session dumps written to pending/, merge worker serializes both</td>
+</tr>
+<tr>
+<td>W2</td>
+<td>Merge worker crash</td>
+<td>Kill merge worker mid-merge</td>
+<td>Pending file survives (not yet deleted), re-processed on next session&#x27;s hook invocation</td>
+</tr>
+<tr>
+<td>W3</td>
+<td>Single writer</td>
+<td>Only merge worker writes graph.json</td>
+<td>No race possible</td>
+</tr>
+</tbody></table></div>
+<h4>1.7 Node Deduplication</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Test</th>
+<th>Input</th>
+<th>Expected</th>
+</tr></thead><tbody>
+<tr>
+<td>D1</td>
+<td>Same file, same decision</td>
+<td>2 sessions both &quot;try bearer on auth.py&quot;</td>
+<td>Merged into one node, session_count=2</td>
+</tr>
+<tr>
+<td>D2</td>
+<td>Same file, different decision</td>
+<td>&quot;try cookie&quot; vs &quot;try bearer&quot;</td>
+<td>Two separate nodes</td>
+</tr>
+<tr>
+<td>D3</td>
+<td>Unrelated files</td>
+<td>&quot;try bearer on auth.py&quot; vs &quot;try bearer on db.py&quot;</td>
+<td>Two separate nodes</td>
+</tr>
+</tbody></table></div>
+<h4>1.8 Schema Version</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Test</th>
+<th>Input</th>
+<th>Expected</th>
+</tr></thead><tbody>
+<tr>
+<td>V1</td>
+<td>Load v1 graph</td>
+<td><code>{&quot;schema_version&quot;: &quot;1.0&quot;, ...}</code></td>
+<td>Valid, loaded</td>
+</tr>
+<tr>
+<td>V2</td>
+<td>Load legacy graph</td>
+<td>No schema_version field</td>
+<td>Treated as 1.0, loaded</td>
+</tr>
+<tr>
+<td>V3</td>
+<td>Future version</td>
+<td><code>{&quot;schema_version&quot;: &quot;2.0&quot;, ...}</code></td>
+<td>Attempt migration, or error with clear message</td>
+</tr>
+<tr>
+<td>V4</td>
+<td>Migration</td>
+<td>v1 → v2 schema with new edge field</td>
+<td>Migration function applies, data preserved</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>2. Integration Tests</h3>
+<h4>2.1 capture.py → graph.json</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Test</th>
+<th>Input</th>
+<th>Expected</th>
+</tr></thead><tbody>
+<tr>
+<td>I1</td>
+<td>Session transcript</td>
+<td>Standard session with code writes</td>
+<td>LLM returns session_nodes + session_edges in JSON</td>
+</tr>
+<tr>
+<td>I2</td>
+<td>Schema validation</td>
+<td>LLM output</td>
+<td>All required fields present (id, type, relation, confidence)</td>
+</tr>
+<tr>
+<td>I3</td>
+<td>Write to graph</td>
+<td>Valid session_nodes + session_edges</td>
+<td>Appended to graph.json, base_weight set</td>
+</tr>
+<tr>
+<td>I4</td>
+<td>Empty session</td>
+<td>Session with no actionable work</td>
+<td>Empty lists, no write</td>
+</tr>
+<tr>
+<td>I5</td>
+<td>Malformed LLM output</td>
+<td>LLM returns incomplete JSON</td>
+<td>Graceful error, no corrupt write</td>
+</tr>
+</tbody></table></div>
+<h4>2.2 Full Pipeline</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Test</th>
+<th>Input</th>
+<th>Expected</th>
+</tr></thead><tbody>
+<tr>
+<td>P1</td>
+<td>Build from scratch</td>
+<td>No graph.json exists</td>
+<td>Init from Graphify + mem0 lessons</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>Build incremental</td>
+<td>graph.json exists + new session</td>
+<td>Session nodes appended, old nodes preserved</td>
+</tr>
+<tr>
+<td>P3</td>
+<td>Query with decay</td>
+<td>graph.json with mixed-age edges</td>
+<td>Old edges ranked lower than fresh edges</td>
+</tr>
+</tbody></table></div>
+<h4>2.3 Graphify Interop</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Test</th>
+<th>Input</th>
+<th>Expected</th>
+</tr></thead><tbody>
+<tr>
+<td>G1</td>
+<td>First sync</td>
+<td>Empty graph.json + graphify output</td>
+<td>All code/doc nodes imported</td>
+</tr>
+<tr>
+<td>G2</td>
+<td>Re-sync</td>
+<td>graph.json has weights + new graphify output</td>
+<td>New nodes added, existing edges untouched</td>
+</tr>
+<tr>
+<td>G3</td>
+<td>Graphify missing</td>
+<td>graphify-out/ doesn&#x27;t exist</td>
+<td>graph.json still loads (session nodes only)</td>
+</tr>
+<tr>
+<td>G4</td>
+<td>Graphify empty</td>
+<td>graph.json has session nodes, graphify has 0 nodes</td>
+<td>Merge succeeds, session nodes survive</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>3. Behavioral Tests</h3>
+<h4>3.1 Path Reinforcement (v2 — needs agent-protocol)</h4>
+<blockquote class="callout" data-label="NOTE"><p><strong>Deferred to v1.5</strong> (spec §3): reinforcement weight-mutation requires agents to report traversal outcome. v1 only refreshes <code>last_traversed_at</code> (decay works); <code>base_weight</code> stays at the initial <code>confidence_score</code>.</p></blockquote>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Scenario</th>
+<th>Expected</th>
+</tr></thead><tbody>
+<tr>
+<td>B1</td>
+<td>2 sessions touch same code path</td>
+<td>Edge base_weight increases</td>
+</tr>
+<tr>
+<td>B2</td>
+<td>1 success after 1 failure</td>
+<td>Success path &gt; failure path weight</td>
+</tr>
+<tr>
+<td>B3</td>
+<td>Agent finds new route</td>
+<td>New edge added, old edge decays naturally</td>
+</tr>
+<tr>
+<td>B4</td>
+<td>Conflicting conclusions</td>
+<td>Both edges survive at 90%, agent sees both</td>
+</tr>
+</tbody></table></div>
+<h4>3.2 Long-Term Decay</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Scenario</th>
+<th>Expected</th>
+</tr></thead><tbody>
+<tr>
+<td>L1</td>
+<td>90-day idle edge</td>
+<td>effective_weight &lt; 0.3, suppressed from query</td>
+</tr>
+<tr>
+<td>L2</td>
+<td>Edge survives 20-day protection</td>
+<td>No decay before day 21</td>
+</tr>
+<tr>
+<td>L3</td>
+<td>Recently traversed edge</td>
+<td>Full weight, not decayed</td>
+</tr>
+</tbody></table></div>
+<h4>3.3 Edge Cases</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Scenario</th>
+<th>Expected</th>
+</tr></thead><tbody>
+<tr>
+<td>E1</td>
+<td>Circular reference in graph</td>
+<td>Traversal terminates, no infinite loop</td>
+</tr>
+<tr>
+<td>E2</td>
+<td>10,000 nodes</td>
+<td>Query &lt; 100ms</td>
+</tr>
+<tr>
+<td>E3</td>
+<td>Concurrent session writes</td>
+<td>Last write wins (atomic), no corruption</td>
+</tr>
+<tr>
+<td>E4</td>
+<td>Unicode node labels</td>
+<td>Stored and queried correctly</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>4. Metrics &amp; Validation</h3>
+<h4>4.1 Accuracy</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Test</th>
+<th>Input</th>
+<th>Expected</th>
+</tr></thead><tbody>
+<tr>
+<td>M1</td>
+<td>Graph useful</td>
+<td>Agent query returns relevant node, avoids grep</td>
+<td>graph_useful=True, avoided_tool_calls populated</td>
+</tr>
+<tr>
+<td>M2</td>
+<td>Graph miss</td>
+<td>Agent query returns empty, falls back to grep</td>
+<td>graph_useful=False, graph_misses logged</td>
+</tr>
+<tr>
+<td>M3</td>
+<td>Hit rate calculation</td>
+<td>47 queries, 38 useful</td>
+<td>hit_rate = 80.9%</td>
+</tr>
+<tr>
+<td>M4</td>
+<td>Miss logged as incident</td>
+<td>graph_misses populated</td>
+<td>Dashboard shows gap list</td>
+</tr>
+</tbody></table></div>
+<h4>4.2 Token/Tool Call Comparison</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Test</th>
+<th>Input</th>
+<th>Expected</th>
+</tr></thead><tbody>
+<tr>
+<td>M5</td>
+<td>Baseline exists</td>
+<td>Query sessions table before graph launch</td>
+<td>Returns non-zero row count</td>
+</tr>
+<tr>
+<td>M6</td>
+<td>Compare same initiative</td>
+<td>self-evolve tasks with vs without graph</td>
+<td>tool_calls lower with graph</td>
+</tr>
+<tr>
+<td>M7</td>
+<td>Read/Grep reduction</td>
+<td>avg search calls before vs after</td>
+<td>Reduction visible in SQL output</td>
+</tr>
+</tbody></table></div>
+<h4>4.3 Time</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Test</th>
+<th>Input</th>
+<th>Expected</th>
+</tr></thead><tbody>
+<tr>
+<td>M8</td>
+<td>Per-model timing</td>
+<td>Group by model + graph presence</td>
+<td>Valid AVG() returned</td>
+</tr>
+<tr>
+<td>M9</td>
+<td>Session duration</td>
+<td>session_stats.duration_min</td>
+<td>Matches session.yaml timestamps</td>
+</tr>
+</tbody></table></div>
+<h3>5. Non-Functional</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>ID</th>
+<th>Metric</th>
+<th>Target</th>
+</tr></thead><tbody>
+<tr>
+<td>NF1</td>
+<td>graph.json load time (5000 nodes)</td>
+<td>&lt; 500ms</td>
+</tr>
+<tr>
+<td>NF2</td>
+<td>Query latency (traverse + decay compute)</td>
+<td>&lt; 100ms</td>
+</tr>
+<tr>
+<td>NF3</td>
+<td>Memory usage (10k nodes in memory)</td>
+<td>&lt; 500 MB</td>
+</tr>
+<tr>
+<td>NF4</td>
+<td>File size growth per session</td>
+<td>&lt; 5 KB</td>
+</tr>
+<tr>
+<td>NF5</td>
+<td>Graphify sync time (walter-worker size)</td>
+<td>&lt; 30s</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>5. Test Data</h3>
+<h4>5.1 Sample Session Transcript (minimal)</h4>
+<pre><code>Tool: Write
+Input: {&quot;file_path&quot;: &quot;src/auth.py&quot;, &quot;content&quot;: &quot;def authenticate(token): ...&quot;}
+Result: File created
+
+Tool: Bash
+Input: curl http://localhost:8080/api/status -H &quot;Authorization: Bearer test&quot;
+Result: HTTP 200 {&quot;status&quot;: &quot;ok&quot;}</code></pre>
+<p>LLM should extract:</p>
+<ul>
+<li>node: <code>src/auth.py::authenticate</code> (type=code)</li>
+<li>edge: <code>session_N::attempt_bearer → src/auth.py::authenticate</code> (relation=modifies)</li>
+</ul>
+<h4>5.2 Sample Graphify Output (minimal)</h4>
+<pre><code>{
+  &quot;nodes&quot;: [
+    {&quot;id&quot;: &quot;src/auth.py::authenticate&quot;, &quot;label&quot;: &quot;authenticate&quot;, &quot;file_type&quot;: &quot;code&quot;, &quot;source_file&quot;: &quot;src/auth.py&quot;}
+  ],
+  &quot;links&quot;: [
+    {&quot;source&quot;: &quot;src/auth.py::authenticate&quot;, &quot;target&quot;: &quot;src/dashboard/app.py::dashboard_app&quot;, &quot;relation&quot;: &quot;calls&quot;, &quot;confidence&quot;: &quot;EXTRACTED&quot;}
+  ]
+}</code></pre>
+<h4>5.3 Merge Operation</h4>
+<pre><code>def test_merge_preserves_weights():
+    my_graph = load_graph(&quot;test_fixtures/my_graph.json&quot;)
+    graphify_new = load_graph(&quot;test_fixtures/graphify_new.json&quot;)
+
+    merged = sync_graphify_skeleton(my_graph, graphify_new)
+
+    # Existing edge keeps its weight
+    assert merged[&quot;links&quot;][0][&quot;base_weight&quot;] == 0.8
+    assert merged[&quot;links&quot;][0][&quot;last_traversed_at&quot;] == &quot;2026-01-15T00:00:00Z&quot;
+    # New edge is added
+    assert len(merged[&quot;links&quot;]) == len(my_graph[&quot;links&quot;]) + len(graphify_new[&quot;links&quot;])</code></pre>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="2026-07-29-test-execution-report.html"><span class="label">Previous</span>Memory Query System — Test Execution Report</a><a class="next" href="memory-query-test-plan.html"><span class="label">Next</span>Memory Query System — Test Plan</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

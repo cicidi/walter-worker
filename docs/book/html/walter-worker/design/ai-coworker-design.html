@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>walter-worker Design · design · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/walter-worker-prd.html"><span class="tree-ord">1</span>walter-worker — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-core-prd.html">Core CLI &amp; Initiative System PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-dashboard-prd.html">Dashboard PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/2026-06-11-knowledge-skill-prd.html">Knowledge Skill PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/ai-coworker-prd.html">walter-worker PRD</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../decision-history/walter-worker-decision-history.html"><span class="tree-ord">2</span>walter-worker — Decision History</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../decision-history/2025-04-10-integrate-loop-engineering-framework-by-running-lo-decision.html">Decision Record — 2025-04-10</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-03-30-feat-initial-commit--unified-ai-coworker-dev-env-decision.html">Decision Record — 2026-03-30</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-05-01-refactor-add-skill-restructure-plan-for-coworker--decision.html">Decision Record — 2026-05-01</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-05-06-feat-add-skill-meta-import-skill--import-externa-decision.html">Decision Record — 2026-05-06</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-11-docs-finalize-analytics-listener-design-with-db-s-decision.html">Decision Record — 2026-06-11</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-12-feat-add-opencode-context-injection-initiativema-decision.html">Decision Record — 2026-06-12</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-16-feat-replace-8-stage-pipeline-with-5-stage-workfl-decision.html">Decision Record — 2026-06-16</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-23-chore-remove-self-strain-decision.html">Decision Record — 2026-06-23</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-24-chore-review-fixes--broken-refs-tests-docs-ch-decision.html">Decision Record — 2026-06-24</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-06-30-fix-deploy-ai-coworker-skills-to-opencode-skill-d-decision.html">Decision Record — 2026-06-30</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-02-fix-auto-timestamp-state-files-to-prevent-session-decision.html">Decision Record — 2026-07-02</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-07-fix-add-catchexceptionsfalse-to-state-update-te-decision.html">Decision Record — 2026-07-07</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-08-fixanalytics-session-dedup--llm-semantic-knowl-decision.html">Decision Record — 2026-07-08</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-10-merge-pull-request-6-from-cicidiexperimentclaud-decision.html">Decision Record — 2026-07-10</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-13-feat-add-emoji-and-color-coded-fields-to-tmux-sta-decision.html">Decision Record — 2026-07-13</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-17-docs-add-doc-organize--indexmd-refs-to-claudem-decision.html">Decision Record — 2026-07-17</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-24-docs-add-post-session-skill-creation-trigger-to-p-decision.html">Decision Record — 2026-07-24</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-featdashboard-add-costtoken-modelide-effici-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-featwrong-history-skill--auto-injection-into-c-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-25-fixdashboard-restore-original-css-420442-line-decision.html">Decision Record — 2026-07-25</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/unknown-remove-budget-related-features-from-prd-budget-fl-decision.html">Decision Record — unknown</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="walter-worker-design.html"><span class="tree-ord">3</span>walter-worker — Design</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="ai-coworker-design.html" aria-current="page">walter-worker Design</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-analytics-dashboard-superpowers.html">Analytics Listener + Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-analytics-listener-design.html">Analytics Listener — Design Document</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-core-architecture-design.html">Core Architecture Design</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-feature-tracker.html">Feature Tracker</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-06-11-planning-hub.html">Planning Hub</a></li><li class="tree-leaf"><a class="tree-link" href="../plan/2026-09-25-deletion-list.html">Deletion List — 2026-09-25</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/2026-06-12-initiative-project-level-design.html">Initiative — Global to Project-Level Design</a></li><li class="tree-leaf"><a class="tree-link" href="../spec/ai-coworker-spec.html">walter-worker Technical Specification</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-26-decision-timeline.html">Decision Timeline — walter-worker</a></li><li class="tree-leaf"><a class="tree-link" href="../work-review/2026-06-11-analytics-dashboard/acceptance.html">Analytics Dashboard — Acceptance Review</a></li><li class="tree-leaf"><a class="tree-link" href="../work-review/2026-06-11-analytics-dashboard/report.html">Acceptance Report — Analytics Dashboard</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/walter-worker-impl-plan.html"><span class="tree-ord">4</span>walter-worker Implementation Plan</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/walter-worker-test-plan.html"><span class="tree-ord">5</span>walter-worker — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/ai-coworker-test-plan.html">walter-worker Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><span class="tree-link"><span class="tree-ord">10</span>sub-feature</span></summary><ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/analytics-dashboard/design/analytics-dashboard-design.html">analytics-dashboard</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/prd/analytics-dashboard-prd.html"><span class="tree-ord">1</span>Analytics Dashboard — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/decision-history/analytics-dashboard-decision-history.html"><span class="tree-ord">2</span>Analytics Dashboard — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/design/analytics-dashboard-design.html"><span class="tree-ord">3</span>Analytics Dashboard — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/impl-plan/analytics-dashboard-impl-plan.html"><span class="tree-ord">4</span>Analytics Dashboard — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-dashboard/test-plan/analytics-dashboard-test-plan.html"><span class="tree-ord">5</span>Analytics Dashboard — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/analytics-listener/design/analytics-listener-design.html">analytics-listener</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/prd/analytics-listener-prd.html"><span class="tree-ord">1</span>Analytics Listener — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/decision-history/analytics-listener-decision-history.html"><span class="tree-ord">2</span>Analytics Listener — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/design/analytics-listener-design.html"><span class="tree-ord">3</span>Analytics Listener — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/impl-plan/analytics-listener-impl-plan.html"><span class="tree-ord">4</span>Analytics Listener — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/analytics-listener/test-plan/analytics-listener-test-plan.html"><span class="tree-ord">5</span>Analytics Listener — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/core-cli/design/core-cli-design.html">core-cli</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/prd/core-cli-prd.html"><span class="tree-ord">1</span>Core CLI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/decision-history/core-cli-decision-history.html"><span class="tree-ord">2</span>Core CLI — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/design/core-cli-design.html"><span class="tree-ord">3</span>Core CLI — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/impl-plan/core-cli-impl-plan.html"><span class="tree-ord">4</span>Core CLI — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/core-cli/test-plan/core-cli-test-plan.html"><span class="tree-ord">5</span>Core CLI — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/feature-system/design/feature-system-design.html">feature-system</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/prd/feature-system-prd.html"><span class="tree-ord">1</span>Feature System — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/decision-history/feature-system-decision-history.html"><span class="tree-ord">2</span>Feature System — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/design/feature-system-design.html"><span class="tree-ord">3</span>Feature System — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/impl-plan/feature-system-impl-plan.html"><span class="tree-ord">4</span>Feature System — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/feature-system/test-plan/feature-system-test-plan.html"><span class="tree-ord">5</span>Feature System — Test Plan</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../features/setup-deploy/design/setup-deploy-design.html">setup-deploy</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/prd/setup-deploy-prd.html"><span class="tree-ord">1</span>Setup and Deploy — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/decision-history/setup-deploy-decision-history.html"><span class="tree-ord">2</span>Setup and Deploy — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/design/setup-deploy-design.html"><span class="tree-ord">3</span>Setup and Deploy — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/impl-plan/setup-deploy-impl-plan.html"><span class="tree-ord">4</span>Setup and Deploy — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../features/setup-deploy/test-plan/setup-deploy-test-plan.html"><span class="tree-ord">5</span>Setup and Deploy — Test Plan</a></li></ul></details></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>walter-worker</span> / <span>design</span> / <span>walter-worker Design</span></nav>
+    <article class="doc" data-doc="walter-worker/design/ai-coworker-design">
+      <header class="doc-head">
+        <p class="eyebrow">walter-worker</p>
+        <h1>walter-worker Design</h1>
+        <p class="source">Canonical: docs/features/walter-worker/design/ai-coworker-design.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>walter-worker Design</h2>
+<p><strong>Document Version:</strong> 1.0   <strong>Last Updated:</strong> 2026-07-25  </p>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Date</th>
+<th>Version</th>
+<th>Changes</th>
+</tr></thead><tbody>
+<tr>
+<td>2026-06-11</td>
+<td>0.1</td>
+<td>Initial commit; unified dev environment structure</td>
+</tr>
+<tr>
+<td>2026-06-12</td>
+<td>0.2</td>
+<td>Analytics listener &amp; dashboard design finalized</td>
+</tr>
+<tr>
+<td>2026-06-23</td>
+<td>0.5</td>
+<td>Big refactor: <code>global/</code> removed, skills consolidated, naming scheme change</td>
+</tr>
+<tr>
+<td>2026-07-02</td>
+<td>0.6</td>
+<td>Three-layer CLAUDE.md architecture introduced</td>
+</tr>
+<tr>
+<td>2026-07-10</td>
+<td>0.7</td>
+<td>CLAUDE.md harness optimization (95→60 lines)</td>
+</tr>
+<tr>
+<td>2026-07-17</td>
+<td>0.9</td>
+<td>Skills moved to <code>~/.claude/skills/</code>; doc types consolidated to 9</td>
+</tr>
+<tr>
+<td>2026-07-25</td>
+<td>1.0</td>
+<td>Memory substrate (mem0 + DeepSeek), auto-worker, dashboard extensions, 96% test coverage</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>1. High-Level Architecture</h3>
+<p>The project – <strong>walter-worker</strong> – is a <strong>context management system</strong> for AI coding assistants (Claude Code, OpenCode). It is <strong>not a development tool</strong> but a framework that orchestrates skills, contextual configuration, analytics, and memory to guide AI behaviour.</p>
+<pre><code>┌─────────────────────────────────────────────────────────┐
+│                    walter-worker                          │
+│                                                         │
+│  ┌─────────────┐  ┌──────────────┐  ┌────────────────┐ │
+│  │ CLAUDE.md   │  │   Skills     │  │   Analytics     │ │
+│  │ (3 layers)  │  │ (in skills/) │  │   Listener + DB │ │
+│  │             │  │  (CLI/agent) │  │                 │ │
+│  │ Global      │  │              │  │ SQLite schema   │ │
+│  │ Project     │  │ Manifest-    │  │ Dashboards      │ │
+│  │ Local       │  │ driven       │  │ (Flask webapp)  │ │
+│  │ (override)  │  │ install      │  │                 │ │
+│  └─────────────┘  └──────────────┘  └────────────────┘ │
+│                                                         │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │          Memory Substrate (mem0 + DeepSeek)       │   │
+│  │   Capture → Engine → Injection → Curator → Train  │   │
+│  └──────────────────────────────────────────────────┘   │
+│                                                         │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │          Auto-Worker (Claude SDK Agent)           │   │
+│  │   Safety gates, metrics, skill CLI integration   │   │
+│  └──────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────┘</code></pre>
+<h4>Key Architectural Components</h4>
+<ul>
+<li><strong>Skills Directory</strong> – All skills live under <code>skills/</code> at repository root. Each skill has an <code>SKILL.md</code> (frontmatter with dual-format for Claude Code + OpenCode). Skills are installed into <code>~/.claude/skills/</code> via a manifest-driven install/uninstall process.</li>
+<li><strong>Three-Layer CLAUDE.md</strong> – A layered configuration system: <code>Global</code> (system-wide), <code>Project</code> (per-repo), <code>Local</code> (user-specific overrides). This provides deterministic context inheritance.</li>
+<li><strong>Analytics Listener &amp; Dashboard</strong> – A background daemon that imports sessions from OpenCode/Claude Code (JSONL), deduplicates, and stores metadata in SQLite. A Flask web dashboard visualizes file operations, skill usage, costs, efficiency, etc.</li>
+<li><strong>Memory Substrate</strong> – Uses <code>mem0</code> as the foundation for long-term memory, with a DeepSeek LLM client for semantic operations. The pipeline is: capture → engine → injection → curator → training.</li>
+<li><strong>Auto-Worker</strong> – A Claude SDK agent that can execute skills autonomously with safety gates, metric tracking, and CLI integration.</li>
+</ul>
+<hr>
+<h3>2. Design Patterns</h3>
+<h4>2.1 Layered Configuration (Context Inheritance)</h4>
+<ul>
+<li><strong>Pattern:</strong> Chain of Responsibility / Override Chain</li>
+<li><strong>Rationale:</strong> Global configuration provides defaults (e.g., user conventions), Project overrides for team-specific rules, Local for personal tweaks. This avoids duplication and allows per-project customization.</li>
+<li><strong>Evidence:</strong> Commit <code>81e946e8</code> introduced &quot;three-layer CLAUDE.md architecture (Global → Project → Local)&quot;. Later simplified to 95→60 lines while preserving structure.</li>
+</ul>
+<h4>2.2 Skill-Based Modularity</h4>
+<ul>
+<li><strong>Pattern:</strong> Plugin / Module system</li>
+<li><strong>Rationale:</strong> Skills are self-contained units with a defined interface (<code>SKILL.md</code>). They can be added, removed, or updated independently. The skill directory is public and version-controlled.</li>
+<li><strong>Evidence:</strong> Skills moved to public <code>skills/</code> directory (<code>c4577dbf</code>). Skills renamed to a consistent naming scheme (<code>b22a2b8c</code>). Skills installed to <code>~/.claude/skills/</code> (<code>b177e61f</code>).</li>
+</ul>
+<h4>2.3 Manifest-Driven Install</h4>
+<ul>
+<li><strong>Pattern:</strong> Declarative Installation</li>
+<li><strong>Rationale:</strong> A manifest defines ownership, hooks, and dependencies. Uninstall is safe because the system tracks what it installed.</li>
+<li><strong>Evidence:</strong> Commit <code>4867eb69</code> &quot;manifest-driven install/uninstall with hook-ownership safety&quot;.</li>
+</ul>
+<h4>2.4 Event-Driven Analytics Import</h4>
+<ul>
+<li><strong>Pattern:</strong> Observer / Listener</li>
+<li><strong>Rationale:</strong> The analytics daemon watches for new session files (e.g., OpenCode JSONL) and imports them incrementally. Checkpoints are stored in SQLite.</li>
+<li><strong>Evidence:</strong> Commits <code>cdf88052</code> (analytics auto-import daemon with checkpoint), <code>6a642a28</code> (use DB as checkpoint).</li>
+</ul>
+<h4>2.5 Content Hash-Based Change Detection</h4>
+<ul>
+<li><strong>Pattern:</strong> Immutable / Hash comparison</li>
+<li><strong>Rationale:</strong> To detect skill renames without relying on <code>--delete</code> operations, content hashes are compared.</li>
+<li><strong>Evidence:</strong> Commit <code>7d90e61c</code> &quot;skill sync without --delete, detect renames via content hash&quot;.</li>
+</ul>
+<h4>2.6 State Files with Auto-Timestamp</h4>
+<ul>
+<li><strong>Pattern:</strong> Snapshot / Timestamped state</li>
+<li><strong>Rationale:</strong> Each task gets a state file under <code>docs/state/</code> with an automatic timestamp to prevent session collisions.</li>
+<li><strong>Evidence:</strong> Commits <code>432536cc</code> (move state files to <code>docs/state/</code>), <code>c1dfa568</code> (auto-timestamp state files).</li>
+</ul>
+<h4>2.7 Topic-Based Documentation Convention</h4>
+<ul>
+<li><strong>Pattern:</strong> Classification by type (9 types)</li>
+<li><strong>Rationale:</strong> Documents are organized by initiative (topic) and use suffix-based types (<code>.hld.md</code>, <code>.lld.md</code>, <code>.evidence.md</code>, etc.) to reduce fragmentation.</li>
+<li><strong>Evidence:</strong> Multiple merges and refactors consolidating from 12+ types down to 9 (<code>0906289b</code>, <code>b8e4bbe0</code>, <code>bc9f81ac</code>, <code>9729e37d</code>).</li>
+</ul>
+<hr>
+<h3>3. Technology Choices and Rationale</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Technology</th>
+<th>Decision</th>
+<th>Rationale</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>SQLite</strong></td>
+<td>Analytics database</td>
+<td>Zero-config, file-based, sufficient for single-user metrics and session metadata. Schema was designed to support dashboard views (skills, knowledge, session summaries).</td>
+</tr>
+<tr>
+<td><strong>DeepSeek API</strong></td>
+<td>LLM for memory dedup and semantic operations</td>
+<td>Chosen for low cost and good performance for embedding/knowledge tasks. API key requested during <code>init</code> and stored in <code>.local_config.yaml</code>.</td>
+</tr>
+<tr>
+<td><strong>mem0</strong></td>
+<td>Long-term memory substrate</td>
+<td>Provides out-of-the-box memory retrieval and storage; used as foundation for the memory pipeline (capture → engine → injection → curator → training).</td>
+</tr>
+<tr>
+<td><strong>Flask</strong></td>
+<td>Dashboard backend</td>
+<td>Lightweight, easily embeddable; dashboard was added as part of the analytics listener component.</td>
+</tr>
+<tr>
+<td><strong>tmux</strong></td>
+<td>Status bar integration (with worktree support)</td>
+<td>Many developers use tmux; worktree support was added to handle multiple active repositories.</td>
+</tr>
+<tr>
+<td><strong>Bash 3.2</strong></td>
+<td>Installation scripts</td>
+<td>Widely available on macOS; avoided <code>declare -A</code> to maintain compatibility (<code>7476a7b3</code>).</td>
+</tr>
+<tr>
+<td><strong>pytest</strong> (inferred)</td>
+<td>Testing framework</td>
+<td>300+ tests across 10 modules achieved 96% coverage.</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>4. Data Flow and Service Topology</h3>
+<h4>4.1 Session Import Pipeline</h4>
+<pre><code>OpenCode/Claude Code session JSONL
+     │
+     ▼
+Analytics Listener Daemon
+     │  (checkpoint stored in SQLite)
+     │
+     ▼
+SQLite Database
+  - sessions (metadata only, not raw messages)
+  - file_ops (file reads per session, op type)
+  - skills (skill usage)
+  - knowledge (semantic dedup via DeepSeek)
+  - session_summaries (aggregated)
+     │
+     ▼
+Dashboard (Flask webapp)
+  Views: session monitor, file ops, skill usage, unified timeline,
+         projects, hotspots, errors, memory control,
+         cost/token, model/IDE, efficiency, data quality</code></pre>
+<h4>4.2 CLAUDE.md Loading Order</h4>
+<pre><code>Global CLAUDE.md (user home, system-wide defaults)
+     │
+     ▼
+Project CLAUDE.md (repo root, project-level rules)
+     │
+     ▼
+Local CLAUDE.md (user-local overrides)
+     │
+     ▼
+Final context passed to AI assistant</code></pre>
+<h4>4.3 Skill Discovery and Installation</h4>
+<pre><code>Skills in skills/ directory (version-controlled in repo)
+     │  (install via manifest-driven script)
+     ▼
+~/.claude/skills/ (installed location, used by Claude Code and OpenCode)
+     │
+     ▼
+AI assistant reads SKILL.md frontmatter to activate skill</code></pre>
+<h4>4.4 Memory Pipeline</h4>
+<pre><code>Capture Layer (collects interactions, file changes)
+     │
+     ▼
+Engine Layer (processes, deduplicates via DeepSeek API)
+     │
+     ▼
+Injection Layer (injects relevant memories into context)
+     │
+     ▼
+Curator Layer (validates and organizes)
+     │
+     ▼
+Training Layer (updates mem0 embeddings)</code></pre>
+<hr>
+<h3>5. Key Trade-Offs and Why Specific Approaches Were Chosen</h3>
+<h4>5.1 Removed 8-Stage Pipeline in Favor of Simpler Workflow</h4>
+<ul>
+<li><strong>Decision:</strong> Replaced an 8-stage pipeline with a 5-stage workflow, then later removed the pipeline entirely (<code>455d9e99</code>, <code>5d56b85c</code>).</li>
+<li><strong>Rationale:</strong> The multi-stage development pipeline was overly bureaucratic for AI assistants. A simpler &quot;Development Loop&quot; (suggest next actions, compact state) proved more effective.</li>
+<li><strong>Impact:</strong> Reduced CLAUDE.md from 95 to 60 lines; smoother context load.</li>
+</ul>
+<h4>5.2 Global vs. Project-Level Storage for Initiatives</h4>
+<ul>
+<li><strong>Decision:</strong> Initiatives migrated from global (user-wide) to project-level storage (<code>2a9e69ea</code>).</li>
+<li><strong>Rationale:</strong> Project-specific initiatives avoid cluttering the global context and allow each repo to define its own priorities.</li>
+<li><strong>Impact:</strong> Initiatives are now scoped per repository; global initiatives still exist for system-level concerns.</li>
+</ul>
+<h4>5.3 Session Metadata Only – Not Raw Messages</h4>
+<ul>
+<li><strong>Decision:</strong> Analytics stores only session metadata, not full raw messages (<code>8015aad1</code>).</li>
+<li><strong>Rationale:</strong> Raw messages are bulky and privacy-sensitive; metadata (file ops, skill usage, duration) is sufficient for dashboard analytics. Full messages can be referenced from the original session files.</li>
+<li><strong>Impact:</strong> Database remains small; incremental imports are fast.</li>
+</ul>
+<h4>5.4 DB as Checkpoint vs. File-Based Position</h4>
+<ul>
+<li><strong>Decision:</strong> Use SQLite as the checkpoint for analytics import instead of a file-based offset (<code>6a642a28</code>).</li>
+<li><strong>Rationale:</strong> DB checkpoint allows incremental updates and easy query of what has been imported. Also supports session dedup via manifest checks.</li>
+<li><strong>Impact:</strong> Simpler consistency; import daemon is restart-safe.</li>
+</ul>
+<h4>5.5 Removed Budget Concept from Autonomous Agent PRD</h4>
+<ul>
+<li><strong>Decision:</strong> Budget flags and &quot;Budget exhausted&quot; conditions were removed; replaced by a hard 12-hour time limit (<code>claude-code</code> entry 2026-07-24).</li>
+<li><strong>Rationale:</strong> Budgets added complexity without clear benefit; a simple timeout is more robust and understandable. Cost tracking moved to analytics (non-enforcing).</li>
+<li><strong>Impact:</strong> Simplified safety model; termination is now based on completion, goal achievement, or max-time.</li>
+</ul>
+<h4>5.6 Consolidation of Document Types from 10+ to 9</h4>
+<ul>
+<li><strong>Decision:</strong> Merged <code>compare</code> into <code>research</code>, <code>evidence</code> as suffix, <code>hld/lld</code> into <code>design</code>, <code>why-this</code> into <code>decision-history</code> (<code>0906289b</code>, <code>b8e4bbe0</code>, <code>bc9f81ac</code>, <code>9729e37d</code>).</li>
+<li><strong>Rationale:</strong> Too many document types caused fragmentation; a simpler type system with suffix conventions makes the docs easier to navigate and maintain.</li>
+<li><strong>Impact:</strong> Docs are now organized by 9 types with consistent naming (initiative-doc-type.md).</li>
+</ul>
+<h4>5.7 Skills Migration from Global/Personal to Public <code>skills/</code></h4>
+<ul>
+<li><strong>Decision:</strong> All skills moved to <code>skills/</code> directory, personal skills removed (<code>c7b2ea3f</code>, <code>1989bb09</code>).</li>
+<li><strong>Rationale:</strong> Skills should be shared and version-controlled as part of the project. The skill-factory (separate repository) holds general-purpose skills; walter-worker retains 5 core skills.</li>
+<li><strong>Impact:</strong> Reduced code duplication; clear boundary between core and external skills.</li>
+</ul>
+<h4>5.8 Dual-Format for Claude Code + OpenCode</h4>
+<ul>
+<li><strong>Decision:</strong> Skill frontmatter supports both Claude Code and OpenCode formats (<code>6055e4b9</code>).</li>
+<li><strong>Rationale:</strong> Both AI assistants are used; maintaining dual-format ensures compatibility without forking.</li>
+<li><strong>Impact:</strong> Single skill definition works across platforms; minor complexity in frontmatter parsing.</li>
+</ul>
+<hr>
+<p>*This design document is based solely on decisions recorded in the project history up to 2026-07-25.*</p>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="walter-worker-design.html"><span class="label">Previous</span>walter-worker — Design</a><a class="next" href="../plan/2026-06-11-analytics-dashboard-superpowers.html"><span class="label">Next</span>Analytics Listener + Dashboard — Implementation Plan</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

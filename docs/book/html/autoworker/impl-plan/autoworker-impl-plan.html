@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auto-worker — Implementation Plan · impl-plan · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/autoworker-prd.html"><span class="tree-ord">1</span>Auto-worker — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/autoworker-decision-history.html"><span class="tree-ord">2</span>Auto-worker — Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/autoworker-design.html"><span class="tree-ord">3</span>Auto-worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="autoworker-impl-plan.html" aria-current="page"><span class="tree-ord">4</span>Auto-worker — Implementation Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/autoworker-test-plan.html"><span class="tree-ord">5</span>Auto-worker — Test Plan</a></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>autoworker</span> / <span>impl-plan</span> / <span>Auto-worker — Implementation Plan</span></nav>
+    <article class="doc" data-doc="autoworker/impl-plan/autoworker-impl-plan">
+      <header class="doc-head">
+        <p class="eyebrow">autoworker</p>
+        <h1>Auto-worker — Implementation Plan</h1>
+        <p class="source">Canonical: docs/features/autoworker/impl-plan/autoworker-impl-plan.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Auto-worker — Implementation Plan</h2>
+<p>This plan was written after the code shipped. Each task records a unit of work that exists at commit <code>a0f4ce0</code>, what it depends on, what it blocks, and the test that proves it. Behavior is defined in the <a href="../design/autoworker-design.html">design</a>.</p>
+<h3>Global Constraints</h3>
+<p>A loop must stop on its time budget and its round cap. A missing or failing agent is never reported as success (<a class="id-ref" href="../decision-history/autoworker-decision-history.html#ARD-C">ARD-C</a>). The Python code itself does not create commits, branches, or issues.</p>
+<h3>Acceptance Criteria</h3>
+<p>The feature is not done while the blocking open question <a class="id-ref" href="../design/autoworker-design.html#QUES-A">QUES-A</a> is open. Beyond that, it is done when the tasks below are done, their Verify lines pass, and every other open question is fixed or explicitly accepted by the owner.</p>
+<h3>Execution order</h3>
+<p><a class="id-ref" href="#IMPL-A">IMPL-A</a> first, because the loop starts the agent through it. <a class="id-ref" href="#IMPL-B">IMPL-B</a> depends on <a class="id-ref" href="#IMPL-A">IMPL-A</a>. <a class="id-ref" href="#IMPL-C">IMPL-C</a> depends on nothing and can proceed in parallel.</p>
+<h3 id="IMPL-A"><a class="id-ref" href="#IMPL-A">IMPL-A</a> — Agent start</h3>
+<p>Start a headless <code>claude</code> session with a time limit and report a missing command as a failure (<a class="id-ref" href="../design/autoworker-design.html#DSGN-B">DSGN-B</a>, <a class="id-ref" href="../decision-history/autoworker-decision-history.html#ARD-B">ARD-B</a>, <a class="id-ref" href="../decision-history/autoworker-decision-history.html#ARD-C">ARD-C</a>). Depends on nothing. Blocks <a class="id-ref" href="#IMPL-B">IMPL-B</a>.</p>
+<p>Verify: <a href="../../../../../tests/python/test_autoworker_engine.py"><code>tests/python/test_autoworker_engine.py</code></a> <code>test_uses_the_headless_print_invocation</code>, <code>test_missing_cli_does_not_report_success</code>, and <code>test_the_reason_names_the_missing_cli</code> pass.</p>
+<h3 id="IMPL-B"><a class="id-ref" href="#IMPL-B">IMPL-B</a> — Loop and state file</h3>
+<p>The <code>run</code> command, the wrong-history injection, the rounds, the stop conditions, and the state file (<a class="id-ref" href="../design/autoworker-design.html#DSGN-A">DSGN-A</a> to <a class="id-ref" href="../design/autoworker-design.html#DSGN-C">DSGN-C</a>). Depends on <a class="id-ref" href="#IMPL-A">IMPL-A</a>. Blocks nothing.</p>
+<p>Verify: a test, still to be written in <a href="../../../../../tests/python/test_autoworker_engine.py"><code>tests/python/test_autoworker_engine.py</code></a>, passes. It points <code>HOME</code> at a temporary folder, replaces <code>_spawn_agent</code> with a stub and <code>time.sleep</code> with a no-op, and calls <code>AutoWorkerAgent(state_dir=&lt;temporary folder&gt;).run(max_hours=1)</code>. With a stub that succeeds, it checks that the run stops at 50 rounds and that the state file holds <code>## Round 1 Agent Output</code>, a <code>## Summary</code> section, and the status completed. With a stub that fails, it checks that the failed rounds are recorded and the run reports failure. The failure half fails today because of <a href="../design/autoworker-design.html#open-questions">QUES-A</a>, the open gap for <a class="id-ref" href="../prd/autoworker-prd.html#PRD-D">PRD-D</a>.</p>
+<h3 id="IMPL-C"><a class="id-ref" href="#IMPL-C">IMPL-C</a> — <code>find-issues</code></h3>
+<p>The phases, the report, and the exit statuses (<a class="id-ref" href="../design/autoworker-design.html#DSGN-D">DSGN-D</a>). Depends on nothing. Blocks nothing.</p>
+<p>Verify: <a href="../../../../../tests/python/test_cli.py"><code>tests/python/test_cli.py</code></a> <code>test_unknown_phases_are_an_error</code>, <code>test_failing_tests_exit_non_zero</code>, <code>test_a_clean_run_exits_zero</code>, <code>test_a_different_project_reads_its_own_docs</code>, and <code>test_an_unknown_project_says_so_rather_than_reading_another</code> pass.</p>
+<h3>Change Log</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Version</th>
+<th>Date</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td>0.1</td>
+<td>2026-11-04</td>
+<td>Draft (never committed)</td>
+</tr>
+<tr>
+<td>0.2</td>
+<td>2026-11-24</td>
+<td>Rewritten as a record of shipped work with Verify lines; added Acceptance Criteria (<a class="id-ref" href="../decision-history/autoworker-decision-history.html#ARD-A">ARD-A</a>)</td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>2026-11-24</td>
+<td>Review fixes: <a class="id-ref" href="#IMPL-B">IMPL-B</a> has a checkable Verify line linked to <a class="id-ref" href="../design/autoworker-design.html#QUES-A">QUES-A</a>; <a class="id-ref" href="../design/autoworker-design.html#QUES-J">QUES-J</a> recorded as non-blocking; <a class="id-ref" href="#IMPL-C">IMPL-C</a> Verify names all five tests (<a class="id-ref" href="../decision-history/autoworker-decision-history.html#ARD-E">ARD-E</a>)</td>
+</tr>
+</tbody></table></div>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../design/autoworker-design.html"><span class="label">Previous</span>Auto-worker — Design</a><a class="next" href="../test-plan/autoworker-test-plan.html"><span class="label">Next</span>Auto-worker — Test Plan</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>

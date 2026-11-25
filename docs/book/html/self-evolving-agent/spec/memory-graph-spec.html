@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memory Graph — Spec · spec · Spec Atlas</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../assets/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><a href="../../index.html"><span class="brand-mark">SDD</span><span class="brand-name">Spec Atlas</span></a></div>
+    <button class="strike-btn" type="button" onclick="var r=document.documentElement;var off=r.dataset.strike!=='off';r.dataset.strike=off?'off':'on';this.textContent=off?'显示删除线':'隐藏删除线'">隐藏删除线</button>
+  </div>
+</header>
+<div class="site">
+  <aside class="sidebar">
+  <nav aria-label="Directory">
+    <div class="tree-overview"><a class="tree-link" href="../../index.html"><span class="tree-link__num">00</span>All features</a></div>
+    <ul class="tree"><li class="tree-branch"><details open><summary><a class="tree-link" href="../prd/self-evolving-agent-prd.html"><span class="tree-ord">1</span>Self-Evolving Agent — PRD</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../prd/dashboard-ui-prd.html">Dashboard UI — PRD</a></li><li class="tree-leaf"><a class="tree-link" href="../prd/self-evolving-agent-prd-zh.html">Self-Evolving Agent — PRD</a></li></ul></details></li><li class="tree-leaf"><a class="tree-link" href="../decision-history/2026-07-29-devil-advocate-reviews-summary.html">Devil&#x27;s Advocate Reviews — Consolidated Decision History</a></li><li class="tree-leaf"><a class="tree-link" href="../design/auto-worker-design.html">Auto-Worker — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/dashboard-design.html">Dashboard — Evolution Page Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/memory-platform-design.html">Memory Platform — Design</a></li><li class="tree-leaf"><a class="tree-link" href="../design/qa-autonomous-agent-design.html">QA Autonomous Agent — Design ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="../INDEX.html">self-evolving-agent — Document Index</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/actian-vectordb-docs.html">Actian VectorAI DB — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/band-ai-docs.html">BAND AI — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-agent-README.html">The Agent Guild</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/guild-ai-docs.html">Guild.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-README.html">Hermes Agent ☤</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/hermes-agent-docs.html">Hermes Agent — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-agent-README.html">jam agent README</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/jam-docs.html">Jam.dev MCP — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/pioneer-docs.html">Pioneer.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="../reference/senso-ai-docs.html">Senso.ai — Reference Documentation</a></li><li class="tree-leaf"><a class="tree-link" href="memory-graph-spec.html" aria-current="page">Memory Graph — Spec</a></li><li class="tree-leaf"><a class="tree-link" href="qa-autonomous-agent-spec.html">QA Autonomous Agent — Spec ⚠️ DEFERRED</a></li><li class="tree-leaf"><a class="tree-link" href="self-evolving-agent-spec.html">Self-Evolving Agent — Memory Platform Spec</a></li><li class="tree-leaf"><a class="tree-link" href="../state/2026-07-29-current-state.html">Self-Evolving Agent — Current State</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/INDEX.html">Wrong History — Index</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-css-js-overwrite.html">Dashboard CSS/JS silently overwritten by Write tool</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-25-dashboard-init-call-lost.html">Dashboard INIT call overwritten during Edit insertion</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-adversarial-review-pro-agent-must-not-surrender.html">Adversarial review&#x27;s PRO agent surrendered 12/12 — review became a 1-agent monologue, missed a HIGH bug</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-27-dashboard-data-not-verified.html">Dashboard data was present but WRONG — never validated against source of truth</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-file_ops-table-accumulated-47,933-duplicates-(96%)-due-to-mi.html">file_ops table accumulated 47,933 duplicates (96%) due to missing UNIQUE constraint</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-07-28-find-issues-command-always-fails-on-code-phase-due-to-120s-t.html">find-issues command always fails on code phase due to 120s test timeout</a></li><li class="tree-leaf"><a class="tree-link" href="../wrong-history/entries/2026-09-25-install.sh-re-run-on-a-live-machine-pruned-13-deployed-skill.html">install.sh re-run on a live machine pruned 13 deployed skill mirrors</a></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../impl-plan/self-evolving-agent-impl-plan.html"><span class="tree-ord">4</span>Self-Evolving Agent — Implementation Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../impl-plan/dependency-and-sequencing-impl-plan.html">Dependency &amp; Sequencing — QA Skill vs Self-Evolution Engine</a></li><li class="tree-leaf"><a class="tree-link" href="../impl-plan/qa-autonomous-agent-impl-plan.html">QA Autonomous Agent Implementation Plan ⚠️ DEFERRED</a></li></ul></details></li><li class="tree-branch"><details open><summary><a class="tree-link" href="../test-plan/self-evolving-agent-test-plan.html"><span class="tree-ord">5</span>Self-Evolving Agent — Test Plan</a></summary><ul class="tree"><li class="tree-leaf"><a class="tree-link" href="../test-plan/2026-07-29-test-execution-report.html">Memory Query System — Test Execution Report</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-graph-test-plan.html">Memory Graph — Test Plan</a></li><li class="tree-leaf"><a class="tree-link" href="../test-plan/memory-query-test-plan.html">Memory Query System — Test Plan</a></li></ul></details></li></ul>
+  </nav>
+</aside>
+  <main class="content">
+    <nav class="breadcrumbs"><a href="../../index.html">Docs</a> / <span>self-evolving-agent</span> / <span>spec</span> / <span>Memory Graph — Spec</span></nav>
+    <article class="doc" data-doc="self-evolving-agent/spec/memory-graph-spec">
+      <header class="doc-head">
+        <p class="eyebrow">self-evolving-agent</p>
+        <h1>Memory Graph — Spec</h1>
+        <p class="source">Canonical: docs/features/self-evolving-agent/spec/memory-graph-spec.md</p>
+      </header>
+      
+      <div class="doc-body">
+        <h2>Memory Graph — Spec</h2>
+<blockquote class="callout" data-label="NOTE"><p>Initiative: self-evolving-agent | Type: spec | Status: <strong>draft v1.0</strong>  The Memory Graph is a stigmergy-inspired knowledge graph that federates static code/document structure (from Graphify) with dynamic session experience (from AI transcript extraction). Agents deposit traces, later agents follow the strongest paths, and the graph self-reinforces over time.</p></blockquote>
+<hr>
+<h3>§0 Background</h3>
+<h4>0.1 Biological Metaphor</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Biology</th>
+<th>Memory Graph</th>
+</tr></thead><tbody>
+<tr>
+<td>Ant/bee</td>
+<td>Each AI session</td>
+</tr>
+<tr>
+<td>Food/nectar</td>
+<td>Insight, lesson, decision discovered in session</td>
+</tr>
+<tr>
+<td>Pheromone trail / waggle dance</td>
+<td>Nodes + edges written to graph with base_weight</td>
+</tr>
+<tr>
+<td>Trail concentration</td>
+<td>Edge weight — more traversals = stronger</td>
+</tr>
+<tr>
+<td>Pheromone evaporation</td>
+<td>Passive decay — unused edges fade over time</td>
+</tr>
+<tr>
+<td>Hive floor (shared environment)</td>
+<td>Graph itself — all agents read/write the same structure</td>
+</tr>
+</tbody></table></div>
+<h4>0.2 Relationship to Existing Systems</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>System</th>
+<th>Role</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>Graphify</strong></td>
+<td>Static skeleton: code + documents → <code>graphify-out/graph.json</code> (read-only input source). Weekly cron sync via deterministic ID merge.</td>
+</tr>
+<tr>
+<td><strong>mem0</strong></td>
+<td>Vector index for semantic search. Complementary to graph traversal — answers &quot;what is similar?&quot; while graph answers &quot;what is connected and how?&quot;</td>
+</tr>
+<tr>
+<td><strong>capture.py</strong></td>
+<td>Per-session extraction. LLM reads transcript → outputs lessons (mem0), session nodes + edges (graph).</td>
+</tr>
+<tr>
+<td><strong>Memory Graph</strong></td>
+<td>The authoritative live graph. Federates Graphify skeleton + session experience. Owns weights, decay, reinforcement. Stored at <code>~/.coworker/memory/graph.json</code>.</td>
+</tr>
+</tbody></table></div>
+<hr>
+<h3>§1 Data Model</h3>
+<h4>1.1 Node Types</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>type</th>
+<th>provenance</th>
+<th>id format</th>
+<th>source</th>
+</tr></thead><tbody>
+<tr>
+<td><code>code</code></td>
+<td>graphify</td>
+<td><code>path/to/file.py::symbol_name</code></td>
+<td>Graphify</td>
+</tr>
+<tr>
+<td><code>document</code></td>
+<td>graphify</td>
+<td><code>path/to/doc.md::section_title</code></td>
+<td>Graphify</td>
+</tr>
+<tr>
+<td><code>session</code></td>
+<td>capture</td>
+<td><code>session_&lt;date&gt;_&lt;seq&gt;</code></td>
+<td>capture.py</td>
+</tr>
+<tr>
+<td><code>decision_point</code></td>
+<td>capture</td>
+<td><code>session_&lt;date&gt;_&lt;seq&gt;::&lt;decision_label&gt;</code></td>
+<td>capture.py</td>
+</tr>
+<tr>
+<td><code>concept</code></td>
+<td>either</td>
+<td>arbitrary, unique</td>
+<td>either</td>
+</tr>
+</tbody></table></div>
+<h4>1.2 Edge Schema</h4>
+<pre><code>{
+  &quot;source&quot;: &quot;node_id&quot;,
+  &quot;target&quot;: &quot;node_id&quot;,
+  &quot;relation&quot;: &quot;calls | imports | implements | references | depends_on | tried | pivoted_to | modifies | contradicts | verifies | discusses&quot;,
+  &quot;confidence&quot;: &quot;EXTRACTED | INFERRED | AMBIGUOUS&quot;,
+  &quot;confidence_score&quot;: 0.9,       // EXTRACTED=0.9, INFERRED=0.7, AMBIGUOUS=0.5, WEAK=0.2
+  &quot;base_weight&quot;: 0.7,            // Initial: confidence_score
+  &quot;last_traversed_at&quot;: null,     // ISO timestamp or null
+  &quot;source_file&quot;: &quot;...&quot;,
+  &quot;provenance&quot;: &quot;graphify | capture&quot;
+}</code></pre>
+<h4>1.3 Confidence Tiers</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Tier</th>
+<th>Score</th>
+<th>Source</th>
+<th>Behavior</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>EXTRACTED</strong></td>
+<td>90% (0.9)</td>
+<td>Deterministic source (AST, grep)</td>
+<td>Gold — rewrite conflicting ≤70% edges</td>
+</tr>
+<tr>
+<td><strong>INFERRED</strong></td>
+<td>70% (0.7)</td>
+<td>LLM-based single-pass extraction</td>
+<td>Navigable — rewrite conflicting ≤50%</td>
+</tr>
+<tr>
+<td><strong>AMBIGUOUS</strong></td>
+<td>50% (0.5)</td>
+<td>LLM-based with uncertainty</td>
+<td>Reference only — don&#x27;t navigate; can be rewritten by ≥70%</td>
+</tr>
+<tr>
+<td><strong>WEAK</strong></td>
+<td>20% (0.2)</td>
+<td>Noise floor</td>
+<td>Recorded for audit; never returned in query results</td>
+</tr>
+</tbody></table></div>
+<p><strong>Comparing tiers:</strong> Tier names are <strong>not</strong> alphabetically ordered — never compare them with string operators. <code>confidence &lt; &quot;EXTRACTED&quot;</code> is a latent bug (<code>&#x27;INFERRED&#x27; &gt; &#x27;EXTRACTED&#x27;</code> and <code>&#x27;WEAK&#x27; &gt; &#x27;EXTRACTED&#x27;</code> lexicographically, so the guard would silently skip INFERRED/WEAK). Always compare the numeric <code>confidence_score</code>, or use the explicit rank <code>EXTRACTED(4) &gt; INFERRED(3) &gt; AMBIGUOUS(2) &gt; WEAK(1)</code>.</p>
+<h4>1.4 Node ID Namespace Isolation</h4>
+<p>Graphify IDs never collide with capture IDs:</p>
+<ul>
+<li>Graphify: <code>path/to/file::symbol</code> or <code>path/to/doc::heading</code></li>
+<li>Capture: always prefixed <code>session_&lt;date&gt;_&lt;seq&gt;</code> for root nodes, <code>session_&lt;date&gt;_&lt;seq&gt;::sub</code> for children</li>
+</ul>
+<blockquote class="callout" data-label="NOTE"><p><strong>From review #9 (Pro-win, clarified):</strong> namespace isolation does <strong>not</strong> rely on matching ID string prefixes. Each node&#x27;s <code>type</code> (<code>code</code>/<code>document</code> vs <code>session</code>/<code>decision_point</code>) and <code>provenance</code> (<code>graphify</code> vs <code>capture</code>) are <strong>set at creation</strong> (see test N1-N5) and stored as fields — never derived from the ID string. So even a file literally named <code>session_20260101_001.py</code> produces a Graphify node with <code>type=code, provenance=graphify</code>, unambiguously distinct from a capture node. IDs are compared as opaque primary keys.</p></blockquote>
+<hr>
+<h3>§2 Passive Decay</h3>
+<h4>2.1 Formula</h4>
+<pre><code>effective_weight = base_weight   if days_since(last_traversed_at) &lt; 20
+                 = base_weight × 0.99^(days - 20)   if days ≥ 20</code></pre>
+<div class="table-wrap"><table><thead><tr>
+<th>Days idle</th>
+<th>Effective weight (from 0.9)</th>
+<th>Effective weight (from 0.5)</th>
+</tr></thead><tbody>
+<tr>
+<td>10</td>
+<td>0.9 (protected)</td>
+<td>0.5 (protected)</td>
+</tr>
+<tr>
+<td>20</td>
+<td>0.9</td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>30</td>
+<td>0.814</td>
+<td>0.452</td>
+</tr>
+<tr>
+<td>60</td>
+<td>0.602</td>
+<td>0.335</td>
+</tr>
+<tr>
+<td>90</td>
+<td>0.446</td>
+<td>0.248</td>
+</tr>
+<tr>
+<td>120</td>
+<td>0.330</td>
+<td>0.183</td>
+</tr>
+</tbody></table></div>
+<blockquote class="callout" data-label="NOTE"><p><strong>Decay model boundary (from review #5):</strong> this exponential decay applies to <strong>graph edges only</strong>. <code>mem0</code> memory cards use a *different, step-function* decay already implemented in <a href="../../../../../src/coworker/memory/curator.py"><code>src/coworker/memory/curator.py</code></a> (<code>_score_memories</code>: <code>&lt;7d=1.0, 7-30d=0.5, 30-60d=0.1, &gt;60d=0</code>). The two models coexist by design — graph edges are weighted relations (continuous decay fits); mem0 cards are unstructured text (recency buckets fit). They operate on different stores and do not interact at decay time.</p></blockquote>
+<h4>2.2 Query Filter</h4>
+<ul>
+<li><code>effective_weight ≥ 0.5</code> → normal navigation</li>
+<li><code>0.3 ≤ effective_weight &lt; 0.5</code> → returned with <code>stale</code> flag</li>
+<li><code>effective_weight &lt; 0.3</code> → suppressed from results</li>
+</ul>
+<h4>2.3 Edge Cases</h4>
+<ul>
+<li><code>last_traversed_at = null</code> (never traversed) → <code>effective_weight = base_weight</code> (no decay)</li>
+<li><code>last_traversed_at</code> in the future → clamp to <code>now()</code>, compute normally</li>
+<li><code>base_weight = 0</code> or negative → treat as 0.2 (WEAK floor)</li>
+</ul>
+<h4>2.4 No Background Process</h4>
+<p>Decay is computed at query time — no daemon, no cron, no O(N) writes. Only the queried edges are evaluated.</p>
+<hr>
+<h3>§3 Path Reinforcement</h3>
+<blockquote class="callout" data-label="NOTE"><p><strong>Scope (v1 vs v2):</strong> v1 implements only <strong>decay</strong> (§2) and <strong>initial weights</strong> (<code>base_weight = confidence_score</code> at write time). The weight-mutations in §3.1/§3.2 and the <code>verify_finding</code> API (§3.3) require an <strong>agent-protocol</strong> — agents reporting traversal outcome (which path they followed, success/failure) — that is not yet designed. They are <strong>deferred to v1.5/v2</strong>. The pseudocode below is the corrected v2 design, kept here so v2 inherits correct logic rather than the original string-compare bug (see §1.3).</p></blockquote>
+<h4>3.1 Successful Traversal (v2)</h4>
+<p>When an agent follows a graph path and achieves a verified outcome:</p>
+<pre><code>for each edge in traversed_path:
+    edge[&quot;last_traversed_at&quot;] = now()
+    # Compare NUMERIC score, NEVER the tier string (latent bug — see §1.3).
+    # Reinforce INFERRED(0.7) + AMBIGUOUS(0.5) only:
+    #   EXTRACTED(0.9) is at ceiling; WEAK(0.2) must stay suppressed (§1.3).
+    if 0.2 &lt; edge[&quot;confidence_score&quot;] &lt; 0.9:
+        edge[&quot;base_weight&quot;] = min(0.9, edge[&quot;base_weight&quot;] + 0.05)</code></pre>
+<h4>3.2 Failed Traversal (v2)</h4>
+<p>When an agent follows a path and it leads to a dead end:</p>
+<pre><code>for each edge in traversed_path:
+    edge[&quot;last_traversed_at&quot;] = now()
+    edge[&quot;base_weight&quot;] = max(0.2, base_weight - 0.1)  # cap floor at 0.2</code></pre>
+<p><strong>Rationale (clock reset on failure, §3.2):</strong> decay (§2) models *disuse* — an unused edge fades. A failed traversal is still a *use* (the agent exercised the path), so the decay clock refreshes. The *failure* signal is carried by the <code>-0.1</code> ratchet, which is independent of the decay clock. Two mechanisms, two signals: ratchet = &quot;this path fails&quot;, decay = &quot;this path is unused&quot;. A consistently-failing edge is driven to the 0.2 floor by the ratchet (5 failures from 0.7), not by decay.</p>
+<h4>3.3 Verification Signals (v2)</h4>
+<p>A traversal is &quot;successful&quot; when:</p>
+<ul>
+<li>Code compiles + tests pass after the change</li>
+<li>PRD → Spec → Code → Test chain is intact</li>
+<li>A downstream agent confirms the finding independently</li>
+</ul>
+<p><strong>Concrete verification API:</strong></p>
+<pre><code>def verify_finding(node_id: str, verification_type: str, evidence: dict):
+    &quot;&quot;&quot;Called by agent after independently confirming a prior finding.&quot;&quot;&quot;
+    edge = find_edge_to_reinforce(graph, node_id)
+    if edge:
+        edge[&quot;verified_by&quot;].append({
+            &quot;agent_session&quot;: evidence.get(&quot;session_id&quot;),
+            &quot;verification_type&quot;: verification_type,  # &quot;test_pass&quot; | &quot;pr_merged&quot; | &quot;agent_confirmed&quot;
+            &quot;timestamp&quot;: now(),
+        })
+        # Only reinforce when an explicit verification event fires
+        if verification_type in (&quot;test_pass&quot;, &quot;pr_merged&quot;):
+            edge[&quot;last_traversed_at&quot;] = now()
+            edge[&quot;base_weight&quot;] = min(0.9, edge[&quot;base_weight&quot;] + 0.05)</code></pre>
+<p>Verification is opt-in and explicit — agents call <code>verify_finding()</code> when they have evidence. This replaces the vague &quot;downstream agent confirms&quot; with a concrete API.</p>
+<blockquote class="callout" data-label="NOTE"><p><strong>v1 gap (from review #4):</strong> <code>verify_finding</code> / <code>record_traversal</code> currently have <strong>zero callers</strong> — no CLI subcommand, hook, or MCP tool invokes them. Without a caller, <code>last_traversed_at</code> stays <code>null</code> and decay never fires. v1 therefore refreshes <code>last_traversed_at</code> directly in the <strong>merge worker</strong> when a session references an edge (§8.3), making decay work *without* the agent-protocol. Wiring the full <code>verify_finding</code> caller (CLI + agent-protocol + integration test) is <strong>v1.5</strong>.</p></blockquote>
+<hr>
+<h3>§4 Session Integration (capture.py)</h3>
+<h4>4.0 Dual IDE Support</h4>
+<p>Both Claude Code and OpenCode sessions feed the same graph. The graph layer is IDE-agnostic.</p>
+<blockquote class="callout" data-label="NOTE"><p><strong>Honest current state (from review #1):</strong> the prior claim that &quot;capture.py already supports both IDEs via existing hook config in <code>coworker.yaml</code>&quot; is <strong>FALSE</strong>. Verified against the codebase: - <strong>OpenCode</strong> (<code>adapters/opencode.py</code>) writes only MCP/permission config —   <strong>zero hook integration</strong>. - <strong>Claude Code</strong> (<code>~/.claude/settings.json</code>) routes <code>PostToolUse</code> →   <code>on-post-tool.sh</code> (analytics JSONL only) and <code>Stop</code> → <code>coworker state-update</code>.   <strong>No hook calls <code>coworker memory sync</code> / <code>close</code> today.</strong> - <code>coworker.yaml</code> has <strong>no <code>hooks:</code> section</strong>.  The capture.py *module* and the <code>coworker memory sync</code>/<code>close</code> CLI subcommands exist, but are dead code from the hook perspective. <strong>Wiring the session-end hook is required v1 work</strong> (see §10).</p></blockquote>
+<div class="table-wrap"><table><thead><tr>
+<th></th>
+<th>Claude Code</th>
+<th>OpenCode</th>
+</tr></thead><tbody>
+<tr>
+<td><strong>Session-end hook (graph)</strong></td>
+<td><code>Stop</code> (stdin) → <code>coworker memory close</code> — <strong>wired in setup/install.sh</strong></td>
+<td><code>session.end</code> → <code>coworker memory close</code> (needs verification)</td>
+</tr>
+<tr>
+<td>Per-turn hook</td>
+<td><code>PostToolUse</code> → analytics JSONL only (<strong>NOT</strong> graph)</td>
+<td><code>tool.execute.after</code> → analytics only (<strong>NOT</strong> graph)</td>
+</tr>
+<tr>
+<td>Transcript format</td>
+<td>JSONL</td>
+<td>JSONL</td>
+</tr>
+<tr>
+<td>Graph write</td>
+<td><code>capture.py</code> → <code>pending/&lt;session&gt;.json</code> → merge worker → <code>graph.json</code></td>
+<td>Same</td>
+</tr>
+<tr>
+<td>node provenance</td>
+<td><code>provenance: &quot;claude-code&quot;</code></td>
+<td><code>provenance: &quot;opencode&quot;</code></td>
+</tr>
+</tbody></table></div>
+<p><strong>Graph extracts at session-end only</strong> — one LLM pass over the full transcript, not per-turn. Per-turn extraction is expensive and fragmented; the full transcript gives the LLM complete context for accurate node/edge extraction. <code>PostToolUse</code> continues to serve <strong>analytics</strong> (recording tool calls) and is unrelated to the graph.</p>
+<p>Implementation: the graph extension is a new output field in capture.py&#x27;s session-end LLM call. The required per-IDE change is <strong>wiring the session-end hook</strong> (§10), not modifying capture.py.</p>
+<p>Note: OpenCode session import to analytics.db is a pre-existing gap (see self-evolving-agent-spec §3.2). It affects metrics dashboard completeness but does NOT block graph functionality — graph writes happen in capture.py, not analytics import.</p>
+<h4>4.1 Prompt Extension</h4>
+<p>Add to <code>SESSION_END_PROMPT</code>:</p>
+<pre><code>3. Graph nodes — key entities this session touched (files, concepts, decisions).
+   - id format: session_&lt;date&gt;_&lt;seq&gt;::&lt;short_label&gt;
+   - type: session | decision_point | concept
+   - Use past lessons (mem0) and wrong-history as reference for what to recognize.
+
+4. Graph edges — relationships discovered.
+   - relation: tried | pivoted_to | modifies | implements | verifies | contradicts | discusses
+   - confidence: EXTRACTED (certain from transcript) | INFERRED (likely) | AMBIGUOUS (guess)
+   - Always link to corresponding Graphify code/document nodes when known.</code></pre>
+<p>LLM output:</p>
+<pre><code>{
+  &quot;lessons&quot;: [...],
+  &quot;skill_candidates&quot;: [...],
+  &quot;session_nodes&quot;: [{...}],
+  &quot;session_edges&quot;: [{...}]
+}</code></pre>
+<h4>4.2 Write Logic (capture.py → pending only)</h4>
+<blockquote class="callout" data-label="NOTE"><p><strong>From review #3:</strong> capture.py <strong>never touches <code>graph.json</code></strong>. It writes only a raw session dump to <code>pending/&lt;session_id&gt;.json</code>. Enrichment (<code>base_weight</code>, <code>last_traversed_at</code>, <code>provenance</code>), dedup (§4.3), and the merge into <code>graph.json</code> are the <strong>merge worker&#x27;s</strong> job (§8.3). This preserves the single-writer invariant and resolves the §4.3-vs-§8.3 contradiction.</p></blockquote>
+<pre><code>def _write_session_pending(pending_dir, session_id, session_nodes, session_edges):
+    &quot;&quot;&quot;capture.py writes RAW nodes/edges. No enrichment, no dedup, no graph.json.&quot;&quot;&quot;
+    dump = {
+        &quot;session_id&quot;: session_id,
+        &quot;nodes&quot;: session_nodes,   # raw — no base_weight/provenance yet
+        &quot;edges&quot;: session_edges,   # raw — confidence only; enrichment happens in merge worker
+    }
+    write_json_atomic(pending_dir / f&quot;{session_id}.json&quot;, dump, indent=2)</code></pre>
+<p>The merge worker (§8.3) enriches each edge using the <strong>single shared mapper</strong> (defined here; §5.2 Graphify-sync reuses the same function — do not duplicate under <code>_confidence_to_score</code> or any other name, per review #10):</p>
+<pre><code>def _confidence_to_score(confidence: str) -&gt; float:
+    &quot;&quot;&quot;Single source of truth for tier → score. Used by BOTH capture-merge (§4.2)
+    and Graphify-sync (§5.2). Unknown/missing → AMBIGUOUS (0.5).&quot;&quot;&quot;
+    return {&quot;EXTRACTED&quot;: 0.9, &quot;INFERRED&quot;: 0.7, &quot;AMBIGUOUS&quot;: 0.5, &quot;WEAK&quot;: 0.2}.get(confidence, 0.5)</code></pre>
+<p>Enrichment sets <code>base_weight = _confidence_to_score(confidence)</code>, <code>last_traversed_at = now()</code> (<strong>refreshed on every session reference</strong> — this is what makes decay actually fire in v1; see §3.3 v1-gap note), and <code>provenance = &quot;capture&quot;</code>. The merge worker then dedups nodes (§4.3) and appends to <code>graph.json</code>.</p>
+<blockquote class="callout" data-label="NOTE"><p><strong>ID validation (from review #8):</strong> when enriching edges, the merge worker validates that each edge&#x27;s <code>target</code> node exists in the graph (or is among the session&#x27;s own new nodes). Edges whose target is a freeform/unresolved ID (e.g. LLM emitted <code>src/auth.py</code> instead of the Graphify ID <code>src/auth.py::authenticate</code>) are <strong>skipped and logged as <code>graph_misses</code></strong> rather than written as dangling edges.</p></blockquote>
+<h4>4.3 Node Deduplication (runs in merge worker)</h4>
+<blockquote class="callout" data-label="NOTE"><p><strong>From review #3:</strong> dedup runs in the <strong>merge worker</strong> (which holds the full graph), not in capture.py (which only sees its own session dump and therefore could never find duplicates). <code>_dedup_and_merge</code> is called by the merge worker after enrichment (§4.2), before appending to <code>graph.json</code>.</p></blockquote>
+<p>Multiple sessions touching the same code/file produce near-identical nodes. The merge worker merges on write:</p>
+<pre><code>def _dedup_and_merge(g, new_node):
+    # g = full graph (merge worker holds it).
+    for existing in g[&quot;nodes&quot;]:
+        if (existing.get(&quot;type&quot;) == new_node[&quot;type&quot;] and
+            existing.get(&quot;related_file&quot;) == new_node.get(&quot;related_file&quot;) and
+            _similarity(existing[&quot;label&quot;], new_node[&quot;label&quot;]) &gt; 0.7):
+            existing[&quot;session_count&quot;] = existing.get(&quot;session_count&quot;, 1) + 1
+            existing[&quot;last_seen&quot;] = new_node.get(&quot;timestamp&quot;)
+            return existing[&quot;id&quot;]  # reuse existing ID, don&#x27;t create duplicate
+    g[&quot;nodes&quot;].append(new_node)
+    return new_node[&quot;id&quot;]</code></pre>
+<p><strong><code>_similarity</code> definition (from review #7):</strong> pinned to Python&#x27;s standard-library <code>difflib.SequenceMatcher</code> so the 0.7 threshold is meaningful (Jaccard / cosine / Levenshtein behave differently and would require re-tuning):</p>
+<pre><code>import difflib
+def _similarity(a: str, b: str) -&gt; float:
+    &quot;&quot;&quot;Label similarity in [0, 1]. 1.0 = identical. Pinned to difflib so the
+    0.7 dedup threshold has a single, reproducible meaning.&quot;&quot;&quot;
+    return difflib.SequenceMatcher(None, a.lower(), b.lower()).ratio()</code></pre>
+<p>Threshold 0.7 with <code>SequenceMatcher</code> prevents unrelated sessions from merging while catching &quot;session A tried X&quot; vs &quot;session B tried X on same file&quot;. Test plan D1/D3 (§1.7) assert merge/no-merge outcomes against this pinned metric.</p>
+<h4>4.4 Archival</h4>
+<ul>
+<li>Archive: edges with <code>effective_weight &lt; 0.1</code> for 90+ days → moved to <code>~/.coworker/memory/archive/graph_archive.json</code></li>
+<li>Target: graph.json ≤ 50 MB</li>
+</ul>
+<hr>
+<h3>§5 Graphify Integration</h3>
+<h4>5.1 Schema Mismatch</h4>
+<p>Graphify output uses <code>links</code> (not edges), different confidence naming, no weight fields. <strong>We never modify Graphify&#x27;s file.</strong> We copy relevant nodes + edges into our graph.json on first run.</p>
+<h4>5.2 Sync Logic</h4>
+<pre><code>def sync_graphify_skeleton(my_graph, new_graphify_json):
+    new_nodes = new_graphify_json[&quot;nodes&quot;]
+    new_links = new_graphify_json[&quot;links&quot;]
+
+    for node in new_nodes:
+        if node[&quot;id&quot;] not in my_graph:
+            my_graph.add(node)
+        else:
+            # Update metadata, preserve weights
+            my_graph[node[&quot;id&quot;]][&quot;label&quot;] = node.get(&quot;label&quot;, node[&quot;id&quot;])
+            my_graph[node[&quot;id&quot;]][&quot;community&quot;] = node.get(&quot;community&quot;)
+
+    for link in new_links:
+        key = (link[&quot;source&quot;], link[&quot;target&quot;], link.get(&quot;relation&quot;, &quot;references&quot;))
+        if key not in my_graph:
+            edge = {
+                &quot;source&quot;: link[&quot;source&quot;],
+                &quot;target&quot;: link[&quot;target&quot;],
+                &quot;relation&quot;: link.get(&quot;relation&quot;, &quot;references&quot;),
+                &quot;confidence&quot;: link.get(&quot;confidence&quot;, &quot;INFERRED&quot;),
+                &quot;confidence_score&quot;: _confidence_to_score(link.get(&quot;confidence&quot;)),
+                &quot;base_weight&quot;: _confidence_to_score(link.get(&quot;confidence&quot;)),
+                &quot;last_traversed_at&quot;: None,
+                &quot;provenance&quot;: &quot;graphify&quot;,
+            }
+            my_graph.add(edge)
+        # existing edges: skip — preserve our weights</code></pre>
+<h4>5.3 Schedule</h4>
+<ul>
+<li><strong>On install:</strong> <code>graphify .</code> once, import skeleton</li>
+<li><strong>Weekly cron:</strong> <code>0 3 * * 0</code> (Sunday 3am) re-sync — new code/docs from <code>git pull</code> not seen in sessions</li>
+<li><strong>On-demand:</strong> after major PRD/Spec rewrite</li>
+</ul>
+<h4>5.4 File Rename Handling (future)</h4>
+<p>If Graphify detects a renamed file, it produces a new ID. Old node&#x27;s weights are orphaned. Mitigation (v2): label-based fuzzy match <code>find_by_label_and_type()</code> to reconnect renamed nodes. Scope: low-frequency problem, not in v1.</p>
+<hr>
+<h3>§6 Query API</h3>
+<h4>6.1 Search Modes</h4>
+<pre><code>def query(graph, question, mode=&quot;both&quot;):
+    if mode in (&quot;graph&quot;, &quot;both&quot;):
+        # Traverse graph with decay-adjusted weights
+        results_graph = graph_traverse(graph, question)
+    if mode in (&quot;vector&quot;, &quot;both&quot;):
+        # mem0 semantic search
+        results_vector = mem0_client.search(question)
+    return merge_and_rank(results_graph, results_vector)</code></pre>
+<h4>6.2 Graph Traversal</h4>
+<ul>
+<li>Start from nodes matching query terms</li>
+<li>BFS with max depth 3</li>
+<li>Rank by edge effective_weight</li>
+<li>Prefer EXTRACTED (90%) edges over INFERRED (70%)</li>
+<li>Suppress edges with effective_weight &lt; 0.3</li>
+</ul>
+<h4>6.3 Agent Integration</h4>
+<pre><code>Agent receives task → query(graph, task) → receives ranked paths
+    → decides which path to follow
+    → after completion → record_traversal(path, success=True/False)</code></pre>
+<hr>
+<h3>§7 Visualization</h3>
+<h4>7.1 Reuse Graphify&#x27;s Export — ⚠️ UNVERIFIED (from review #12)</h4>
+<blockquote class="callout" data-label="NOTE"><p><strong>Verification gap:</strong> Graphify is <strong>not currently installed</strong> (no <code>graphify</code> package, no <code>graphify-out/</code> directory). The claim below — that Graphify&#x27;s export module *consumes our* <code>graph.json</code> (output direction) — is <strong>unverified</strong>. This is distinct from §5.1, which defends the *input* direction (Graphify → our graph) via a translation layer; that translation layer does <strong>not</strong> defend this output-direction reuse claim.</p></blockquote>
+<p>Our <code>graph.json</code> is NetworkX node-link format — *intended* to match what Graphify&#x27;s export module consumes. Pending verification:</p>
+<pre><code># UNVERIFIED — gate behind a §11 test before relying on it:
+python -m graphify.export graphify-out/ --input ~/.coworker/memory/graph.json</code></pre>
+<p><strong>v1 action:</strong> treat the <code>/graph</code> tab (§7.2) as dependent on verifying this command. If Graphify&#x27;s actual export format differs, fall back to a direct NetworkX → pyvis render (§7.2) without the Graphify export step.</p>
+<h4>7.2 Dashboard Integration</h4>
+<p>The live graph is embedded in the analytics dashboard as a <code>/graph</code> tab:</p>
+<pre><code>Dashboard
+├── Overview
+├── Projects
+├── Evolution
+├── Graph    ← NEW: interactive viz powered by pyvis/vis.js
+└── ...</code></pre>
+<p>Features:</p>
+<ul>
+<li>Node color by type (code=blue, document=green, session=orange, decision_point=red)</li>
+<li>Edge thickness by effective_weight (thicker = stronger)</li>
+<li>Community grouping via Graphify&#x27;s Leiden labels</li>
+<li>Toggle: show/hide decayed edges (effective_weight &lt; 0.3)</li>
+<li>Click node → show related sessions + code files</li>
+</ul>
+<p>Implementation: NetworkX → pyvis → embed in FastAPI route. <strong>~150-250 lines</strong> of Python (from review #14: existing dashboard query modules run 150-486 lines; a pyvis integration with weight-driven thickness, decay toggle, and click-to-detail panel is realistically in that range — the original &quot;~50 lines&quot; estimate was 4-8× too low).</p>
+<hr>
+<h3>§8 Storage</h3>
+<h4>8.1 File Layout</h4>
+<pre><code>~/.coworker/memory/
+├── graph.json              # Live merged graph (authoritative)
+├── archive/
+│   └── graph_archive.json  # Edges decayed below 0.1 for 90+ days
+├── vector/                 # mem0 Qdrant store (existing)
+└── MEMORY.md               # Curator export (existing, read-only)</code></pre>
+<h4>8.2 Schema Version</h4>
+<p>graph.json includes a version field for forward compatibility:</p>
+<pre><code>{
+  &quot;schema_version&quot;: &quot;1.0&quot;,
+  &quot;nodes&quot;: [...],
+  &quot;links&quot;: [...],
+  &quot;hyperedges&quot;: [...]
+}</code></pre>
+<p>On load, check <code>schema_version</code>. If missing → treat as 1.0. Future versions include a migration function: <code>migrate_graph(data, from_version, to_version)</code>.</p>
+<h4>8.3 Concurrency &amp; Merge Worker</h4>
+<p>Two sessions ending simultaneously must not silently drop each other&#x27;s edges. Solution: <strong>write-ahead queue</strong> (not file locking).</p>
+<blockquote class="callout" data-label="NOTE"><p><strong>From review #3 + #4:</strong> the merge worker does <strong>enrichment + dedup + decay refresh</strong>, not just append. And it is triggered <strong>synchronously by the session-end hook</strong> (<code>coworker memory close</code>, §4.0) — not by a 30s daemon/cron, avoiding a new long-running process for a single-user tool.</p></blockquote>
+<pre><code>session-end hook (Stop / session.end)
+     │  invokes `coworker memory close`
+     ▼
+capture.py → ~/.coworker/memory/pending/&lt;session_id&gt;.json   (atomic write, never conflicts)
+     │
+     ▼
+merge worker (single-threaded, invoked synchronously by the hook)
+     │
+     ├─ read pending/&lt;session_id&gt;.json  (+ any leftover pending/*.json from a prior crashed run)
+     ├─ ENRICH each edge:
+     │     base_weight       = _confidence_to_score(confidence)   (§4.2)
+     │     last_traversed_at = now()         ← makes decay fire in v1 (§3.3 v1-gap)
+     │     provenance        = &quot;capture&quot;
+     ├─ validate edge targets exist (skip + log dangling as graph_misses)   (§4.2)
+     ├─ DEDUP nodes via _dedup_and_merge                                     (§4.3)
+     ├─ merge into graph.json (single writer, no race)
+     ├─ write graph.json (atomic os.replace)
+     └─ delete pending/&lt;session_id&gt;.json</code></pre>
+<p>Each session writes an independent file — zero contention. The merge worker serializes all writes. Triggered synchronously by the session-end hook, so the graph updates immediately when a session ends (no daemon, no 30s latency). If the worker crashes mid-merge, the pending file survives (not yet deleted) and is re-processed on the next session&#x27;s hook invocation.</p>
+<blockquote class="callout" data-label="NOTE"><p><strong>Why synchronous hook, not a daemon (review #3 decision):</strong> walter-worker is a single-user, low-concurrency tool. A 30s daemon adds process-management and crash-recovery overhead for negligible benefit. The session-end hook already fires per session; running merge there gives immediate updates with no new long-running process. Two sessions ending simultaneously still serialize safely (each writes its own pending file; the merge worker is single-threaded).</p></blockquote>
+<h4>8.4 Atomic Writes</h4>
+<p>All writes use temp-file + rename to prevent corruption on crash:</p>
+<pre><code>def write_json_atomic(path, data):
+    tmp = path.parent / f&quot;.{path.name}.tmp&quot;
+    json.dump(data, open(tmp, &quot;w&quot;), indent=2)
+    os.replace(tmp, path)  # atomic on POSIX</code></pre>
+<hr>
+<h3>§9 Metrics &amp; Validation</h3>
+<p>Three dimensions. All data from analytics.db. No new services, no cron.</p>
+<h4>9.1 Data Sources</h4>
+<div class="table-wrap"><table><thead><tr>
+<th>Data</th>
+<th>Source</th>
+<th>Status</th>
+</tr></thead><tbody>
+<tr>
+<td>Session metadata (project, model, cwd)</td>
+<td><code>sessions</code> table</td>
+<td>✅ existing</td>
+</tr>
+<tr>
+<td>Tool calls (Grep, Read, Bash) per session</td>
+<td><code>tool_calls</code> + <code>session_stats</code></td>
+<td>✅ existing</td>
+</tr>
+<tr>
+<td>Session duration</td>
+<td><code>session_stats.duration_min</code></td>
+<td>✅ existing</td>
+</tr>
+<tr>
+<td>Baseline (no graph) comparison data</td>
+<td>Same tables, sessions before graph launch</td>
+<td>✅ existing</td>
+</tr>
+<tr>
+<td>Graph query accuracy</td>
+<td><code>graph_queries</code> table (new, ~40 lines)</td>
+<td>❌ to implement</td>
+</tr>
+</tbody></table></div>
+<h4>9.2 Dimension 1: Accuracy — Does graph actually help?</h4>
+<pre><code># capture.py writes this at session end
+{
+    &quot;session_id&quot;: &quot;...&quot;,
+    &quot;query&quot;: &quot;add OAuth to dashboard&quot;,
+    &quot;graph_hits&quot;: 5,              # 返回了几个节点
+    &quot;graph_useful&quot;: True,         # agent 判断：帮到了？
+    &quot;avoided_tool_calls&quot;: [       # 因为 graph 跳过的
+        &quot;grep auth → skipped&quot;,
+        &quot;read src/auth.py → skipped&quot;
+    ],
+    &quot;graph_misses&quot;: [             # 没搜到的，fallback
+        &quot;oauth config format → graph empty → grep oauth&quot;
+    ]
+}</code></pre>
+<pre><code>-- Dashboard: accuracy panel
+SELECT
+    COUNT(*) as total,
+    SUM(CASE WHEN graph_useful THEN 1 ELSE 0 END) as hits,
+    ROUND(100.0 * SUM(CASE WHEN graph_useful THEN 1 ELSE 0 END) / COUNT(*), 1) as hit_rate,
+    GROUP_CONCAT(DISTINCT graph_misses) as gaps_to_fill
+FROM graph_queries
+WHERE timestamp &gt;= date(&#x27;now&#x27;, &#x27;-7 days&#x27;);</code></pre>
+<h4>9.3 Dimension 2: Token &amp; Tool Call Savings</h4>
+<pre><code>-- Same task type, with vs without graph
+SELECT
+    s.initiative,
+    CASE WHEN gq.session_id IS NULL THEN &#x27;without_graph&#x27; ELSE &#x27;with_graph&#x27; END as mode,
+    COUNT(*) as sessions,
+    AVG(ss.tool_count) as avg_tool_calls,
+    AVG(ss.read_count + ss.bash_count) as avg_search_calls
+FROM sessions s
+JOIN session_stats ss ON s.id = ss.session_id
+LEFT JOIN (SELECT DISTINCT session_id FROM graph_queries) gq ON s.id = gq.session_id
+GROUP BY s.initiative, mode;</code></pre>
+<h4>9.4 Dimension 3: Time per Turn</h4>
+<pre><code>-- Turn-level timing per model, with/without graph
+-- (tool_calls.ts already has timestamps)
+SELECT
+    s.model,
+    CASE WHEN gq.session_id IS NULL THEN &#x27;no_graph&#x27; ELSE &#x27;graph&#x27; END as mode,
+    AVG(ss.duration_min) as avg_minutes,
+    COUNT(*) as session_count
+FROM sessions s
+JOIN session_stats ss ON s.id = ss.session_id
+LEFT JOIN (SELECT DISTINCT session_id FROM graph_queries) gq ON s.id = gq.session_id
+GROUP BY s.model, mode;</code></pre>
+<h4>9.5 Baseline</h4>
+<p>Baseline data already exists in analytics.db — all historical sessions were recorded without graph. To enable A/B comparison:</p>
+<ol>
+<li>Add a <code>graph_enabled</code> column to the sessions table (default 0).</li>
+<li>Set <code>graph_enabled = 1</code> for all sessions created after the graph launch timestamp.</li>
+<li>Comparison queries use <code>WHERE graph_enabled = 0</code> for baseline, <code>= 1</code> for with-graph.</li>
+</ol>
+<p>No waiting period — historical data is the baseline. The v1 checkbox for &quot;Baseline metrics collection&quot; refers to adding this column and backfilling, not to collecting new data.</p>
+<h4>9.6 Dashboard Panel</h4>
+<pre><code>Dashboard → Evolution → Graph Metrics
+
+  📊 Accuracy (7 days)
+  ├─ Queries: 47
+  ├─ Useful:  38 (80.9%)
+  ├─ Misses:   9 → logged as incidents
+  └─ Gaps: [oauth config, error handler, ...]
+
+  💰 Token &amp; Tool Calls
+  ┌─────────────┬──────────┬──────────┐
+  │ Initiative   │ No Graph │ Graph    │
+  ├─────────────┼──────────┼──────────┤
+  │ self-evolve │ 87 calls │ 50 calls │
+  │ dashboard   │ 62 calls │ 35 calls │
+  └─────────────┴──────────┴──────────┘
+
+  ⏱️  Avg Time (min)
+  ┌─────────────┬──────────┬──────────┐
+  │ Model        │ No Graph │ Graph    │
+  ├─────────────┼──────────┼──────────┤
+  │ claude-5     │   18     │   10     │
+  │ deepseek-v4  │   15     │    9     │
+  └─────────────┴──────────┴──────────┘</code></pre>
+<p>No numbers are pre-filled. All values come from real SQL queries at page load.</p>
+<hr>
+<h3>§10 Scope &amp; Non-Goals</h3>
+<h4>In Scope (v1)</h4>
+<ul>
+<li>[ ] <strong>Wire session-end hooks</strong> — Claude <code>Stop</code> → <code>coworker memory close</code>; OpenCode <code>session.end</code> → same (verify OpenCode hook support) (§4.0, #1)</li>
+<li>[ ] capture.py prompt extension: session_nodes + session_edges (session-end extraction only, no per-turn)</li>
+<li>[ ] <strong>capture.py writes raw <code>pending/&lt;session_id&gt;.json</code> only</strong> — never touches graph.json (§4.2, #3)</li>
+<li>[ ] <strong>Merge worker</strong>: enrich + ID-validate + dedup + merge + atomic write, triggered synchronously by the session-end hook (§8.3, #3/#4)</li>
+<li>[ ] graph.json init from Graphify + mem0 existing lessons (with <code>schema_version: &quot;1.0&quot;</code>)</li>
+<li>[ ] passive decay at query time (with <code>last_traversed_at</code> refreshed by merge worker — #4)</li>
+<li>[ ] atomic writes</li>
+<li>[ ] curator: stale edge archival</li>
+<li>[ ] Dashboard: <code>/graph</code> tab with interactive visualization (§7.2; pending §7.1 Graphify-export verification)</li>
+<li>[ ] Baseline metrics: <code>graph_enabled</code> column + backfill + comparison queries</li>
+</ul>
+<h4>Out of Scope (v1.5)</h4>
+<ul>
+<li>[ ] <strong>Path reinforcement weight-mutation</strong> (<code>+0.05</code> success / <code>-0.1</code> failure) — needs an agent-protocol for traversal outcome (§3.1, §3.2, #4)</li>
+<li>[ ] <strong><code>verify_finding()</code> / <code>record_traversal</code> caller wiring</strong> — CLI + agent-protocol + integration test (§3.3, #4)</li>
+</ul>
+<h4>Out of Scope (v2+)</h4>
+<ul>
+<li>[ ] File rename detection (label-based fuzzy merge)</li>
+<li>[ ] Real-time graph sync (currently: synchronous session-end hook)</li>
+<li>[ ] Multi-project graph federation</li>
+<li>[ ] Graph-vs-vector conflict resolution (AI self-judges for now)</li>
+</ul>
+<hr>
+<h3>§11 Test Plan</h3>
+<blockquote class="callout" data-label="NOTE"><p>See companion: <a href="../test-plan/memory-graph-test-plan.html">memory-graph-test-plan.md</a></p></blockquote>
+<h4>11.1 Unit Tests</h4>
+<ul>
+<li>Decay computation: verify effective_weight at days 0, 10, 20, 30, 60, 90, 120</li>
+<li>Confidence mapping: EXTRACTED→0.9, INFERRED→0.7, AMBIGUOUS→0.5, WEAK→0.2</li>
+<li>Node ID namespace: graphify IDs don&#x27;t collide with session IDs</li>
+<li>Graphify sync: new nodes added, existing edges untouched</li>
+<li>Atomic write: crash mid-write doesn&#x27;t corrupt graph.json</li>
+</ul>
+<h4>11.2 Integration Tests</h4>
+<ul>
+<li>capture.py LLM output schema validation (session_nodes + session_edges present)</li>
+<li>Full pipeline: session transcript → nodes/edges → graph.json written</li>
+<li>Query: decay-suppressed edges not returned</li>
+</ul>
+<h4>11.3 Behavioral Tests</h4>
+<ul>
+<li>2 sessions on same topic → edges reinforced</li>
+<li>90-day idle edge → weight &lt; 0.3 → suppressed</li>
+<li>Conflicting conclusions (2 agents, 90% each, opposite) → both survive, agent self-judges</li>
+</ul>
+<hr>
+<h3>Change Log</h3>
+<h4>v1.1 (2026-07-27) — independent re-review fixes (devil-advocate v2)</h4>
+<p>Driven by <code>docs/self-evolving-agent/devil-advocate/2026-07-27-memory-graph-v2/report.md</code>. The v1 review&#x27;s &quot;ready for implementation&quot; verdict was <strong>retracted</strong>: 3 of its 5 &quot;fixes&quot; were themselves defective, and 1 HIGH bug (§3.1 string-compare) was invisible to v1.</p>
+<p><strong>Must-fix (HIGH):</strong></p>
+<ul>
+<li><strong>#1 §4.0</strong> — retracted the false &quot;capture.py already supports both IDEs&quot; claim;</li>
+</ul>
+<p>  documented honest current state; graph now session-end-only (no per-turn);   dual-IDE hook wiring added to §10.</p>
+<ul>
+<li><strong>#2 §3.1</strong> — fixed the string-compare bug: guard is now</li>
+</ul>
+<p>  <code>0.2 &lt; confidence_score &lt; 0.9</code> (numeric; reinforces INFERRED+AMBIGUOUS only).   §1.3 added a tier-rank comparison warning.</p>
+<ul>
+<li><strong>#3 §4.3/§8.3</strong> — resolved the contradiction: dedup moved to the merge worker;</li>
+</ul>
+<p>  capture.py writes raw <code>pending/</code> only; merge worker does enrich+validate+dedup+merge.</p>
+<ul>
+<li><strong>#4 §3/§8.3</strong> — <code>last_traversed_at</code> is now refreshed by the merge worker (so</li>
+</ul>
+<p>  decay actually fires in v1). Reinforcement weight-mutation + <code>verify_finding</code>   caller deferred to v1.5 (need an agent-protocol).</p>
+<p><strong>Should-fix:</strong></p>
+<ul>
+<li>#5 §2.1 — decay-model boundary documented (graph=exponential, mem0=step).</li>
+<li>#7 §4.3 — <code>_similarity</code> pinned to <code>difflib.SequenceMatcher</code>.</li>
+<li>#8 §4.2 — ID validation in merge worker (skip/log dangling edges).</li>
+<li>#10 — unified <code>_confidence_to_score</code> (removed duplicate <code>_map_gf_confidence</code>).</li>
+<li>#11 §3.2 — clock-reset-on-failure rationale documented.</li>
+<li>#12 §7.1 — Graphify-export reuse marked UNVERIFIED.</li>
+<li>#14 §7.2 — pyvis line estimate corrected (~50 → ~150-250).</li>
+</ul>
+<h4>v1.0 (2026-07-27) — initial draft + v1 devil-advocate fixes</h4>
+      </div>
+    </article>
+    <nav class="pager" aria-label="Previous and next"><a class="prev" href="../reference/senso-ai-docs.html"><span class="label">Previous</span>Senso.ai — Reference Documentation</a><a class="next" href="qa-autonomous-agent-spec.html"><span class="label">Next</span>QA Autonomous Agent — Spec ⚠️ DEFERRED</a></nav>
+  </main>
+</div>
+<footer class="foot"><div class="foot-inner">Assembled from committed <code>.md</code>. The Markdown is authoritative; this page is a reading view.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>if(window.mermaid){mermaid.initialize({startOnLoad:false});}</script>
+<script src="../../assets/app.js"></script>
+</body>
+</html>
