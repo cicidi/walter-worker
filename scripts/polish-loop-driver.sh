@@ -14,7 +14,7 @@ STATE="$REPO/docs/state/polish-loop.md"
 RUNNER="$REPO/docs/state/RUNNER.md"
 STOP="$REPO/.polish-loop-stop"
 LOG="$REPO/docs/state/loop.log"
-MANAGER_MODEL="${POLISH_MANAGER_MODEL:-zai-coding-plan/glm-5.2}"
+MANAGER_MODEL="${POLISH_MANAGER_MODEL:-zai-coding-plan/glm-5.4}"
 INTERVAL="${POLISH_INTERVAL:-1800}"
 MAX_CYCLES="${POLISH_MAX_CYCLES:-20}"
 
