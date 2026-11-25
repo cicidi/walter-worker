@@ -16,7 +16,6 @@ is the only record left of them. The original file is copied aside first.
 from __future__ import annotations
 
 import os
-import shutil
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
@@ -65,8 +64,11 @@ def repair(db_path: str | Path | None = None, verbose: bool = True) -> dict:
     path = Path(db_path) if db_path else _default_db_path()
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     backup = path.with_name(f"{path.name}.bak-{stamp}")
-    shutil.copy2(path, backup)
     conn = get_db(path)
+    # The backup API, not a file copy: the database runs in WAL mode and a copy
+    # of the main file alone misses whatever is still in the -wal file.
+    with sqlite3.connect(backup) as dst:
+        conn.backup(dst)
     report: dict = {"backup": str(backup)}
 
     seed = [r[0] for r in conn.execute(

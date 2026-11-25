@@ -75,7 +75,8 @@ def query_tools():
     conn = get_db()
     rows = conn.execute(
         """SELECT tool, tool_type, server_name, COUNT(*) as calls,
-                  ROUND(AVG(duration_ms), 1) as avg_ms, MAX(duration_ms) as max_ms
+                  ROUND(AVG(duration_ms), 1) as avg_ms, MAX(duration_ms) as max_ms,
+                  COUNT(duration_ms) as timed
            FROM tool_calls GROUP BY tool, tool_type ORDER BY calls DESC"""
     ).fetchall()
     conn.close()
@@ -101,7 +102,11 @@ def query_files(project: str | None = None, file_type: str | None = None, limit:
 
 def query_knowledge():
     conn = get_db()
-    rows = conn.execute("SELECT * FROM knowledge ORDER BY generated_at DESC").fetchall()
+    rows = conn.execute(
+        """SELECT k.*, (SELECT COUNT(*) FROM knowledge_sessions ks WHERE ks.knowledge_id = k.id)
+                  AS session_count
+           FROM knowledge k ORDER BY generated_at DESC"""
+    ).fetchall()
     conn.close()
     return [dict(r) for r in rows]
 
@@ -320,6 +325,15 @@ def query_error_patterns():
                LIMIT 50"""
         ).fetchall()
         return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def query_unknown_error_status() -> int:
+    """Tool calls imported before the error flag was read."""
+    conn = _get_db_conn()
+    try:
+        return conn.execute("SELECT COUNT(*) FROM tool_calls WHERE is_error IS NULL").fetchone()[0]
     finally:
         conn.close()
 

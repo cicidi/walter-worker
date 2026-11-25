@@ -316,7 +316,8 @@ def api_errors():
     """Error patterns across tools and sessions."""
     tool_errors = queries.query_error_patterns()
     session_errors = queries.query_session_errors(10)
-    return {"tool_errors": tool_errors, "session_errors": session_errors}
+    return {"tool_errors": tool_errors, "session_errors": session_errors,
+            "unknown_status": queries.query_unknown_error_status()}
 
 
 @app.get("/api/memory-stats")
