@@ -88,3 +88,22 @@ SEDEOF
   [ "$status" -eq 0 ]
   [[ "$output" != *"No such file"* ]]
 }
+
+# StopRecordOnly: every reply imports the session into analytics.db, even after
+# the session is already in index.jsonl (the dedupe exit below the import).
+@test "imports the session on every reply, with the hook payload on stdin" {
+  printf '#!/usr/bin/env bash\necho "$* $(cat)" >> "%s/calls"\n' "$TEST_TMP" > "$TEST_TMP/bin/coworker"
+  echo '{"session_id":"sess1"}' > "$HOME/.coworker/analytics/index.jsonl"
+
+  run bash -c "echo '{\"session_id\":\"sess1\",\"transcript_path\":\"/t.jsonl\"}' | bash '$HOOK'"
+  [ "$status" -eq 0 ]
+  run grep -c 'analytics import-session {"session_id":"sess1","transcript_path":"/t.jsonl"}' "$TEST_TMP/calls"
+  [ "$output" -eq 1 ]
+}
+
+@test "a failing import does not fail the hook or print" {
+  printf '#!/usr/bin/env bash\necho boom >&2; exit 3\n' > "$TEST_TMP/bin/coworker"
+  run bash -c "echo '{\"session_id\":\"sess1\"}' | bash '$HOOK' 2>&1"
+  [ "$status" -eq 0 ]
+  [ -z "$output" ]
+}

@@ -523,39 +523,38 @@ print('pruned=' + str(any('initiative-edit' in x for x in m.get('pruned', []))))
   [ "$output" = "pruned=True" ]
 }
 
-@test "registers session-end capture on the Stop hook" {
-  # capture.process_session_end is the loop's session-end stage. The design
-  # reserved `coworker memory close` for it, but that name went to the graph
-  # command, so the stage had no caller and no hook — the loop's first stage
-  # was unreachable.
-  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
-  [ "$status" -eq 0 ]
-
-  run python3 -c "
-import json, os
+_hook_cmds() {
+  python3 -c "
+import json, os, sys
 cfg = json.load(open(os.path.expanduser('~/.claude/settings.json')))
-cmds = [h.get('command', '')
-        for g in cfg.get('hooks', {}).get('Stop', [])
-        for h in (g.get('hooks') or [])]
-print('\n'.join(c for c in cmds if 'memory capture' in c))
-"
-  [[ "$output" == *"memory capture"* ]]
+print('\n'.join(h.get('command', '')
+                for g in cfg.get('hooks', {}).get(sys.argv[1], [])
+                for h in (g.get('hooks') or [])))
+" "$1"
 }
 
-@test "does not add a second capture hook when one is present" {
+@test "registers the session summary on SessionEnd, not on Stop" {
+  # Stop fires after every reply, so a summary there made one LLM call per
+  # reply. Stop only records the chat; the summary runs once per session.
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run _hook_cmds SessionEnd
+  [[ "$output" == *"/.coworker/analytics/hooks/on-session-end.sh"* ]]
+  run _hook_cmds Stop
+  [[ "$output" != *"memory capture"* ]]
+  [[ "$output" != *"memory close"* ]]
+  [ -x "$HOME/.coworker/analytics/hooks/on-session-end.sh" ]
+}
+
+@test "does not add a second SessionEnd hook when one is present" {
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
   [ "$status" -eq 0 ]
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
   [ "$status" -eq 0 ]
 
-  run python3 -c "
-import json, os
-cfg = json.load(open(os.path.expanduser('~/.claude/settings.json')))
-n = sum(1 for g in cfg.get('hooks', {}).get('Stop', [])
-        for h in (g.get('hooks') or []) if 'memory capture' in h.get('command', ''))
-print(n)
-"
-  [ "$output" = "1" ]
+  run _hook_cmds SessionEnd
+  [ "$(grep -c on-session-end.sh <<< "$output")" = "1" ]
 }
 
 @test "a second install keeps the CLAUDE.md the first install created" {
@@ -578,23 +577,24 @@ print(n)
   grep -q "my own rule" "$HOME/.claude/CLAUDE.md"
 }
 
-@test "a capture and close joined into one hook are not added back separately" {
+@test "takes an earlier install's capture and close off Stop, keeping the user's hooks" {
   cat > "$HOME/.claude/settings.json" << 'JSONEOF'
-{"hooks": {"Stop": [{"matcher": "", "hooks": [
-  {"type": "command", "command": "coworker memory capture; coworker memory close", "async": true}
-]}]}}
+{"hooks": {"Stop": [
+  {"matcher": "", "hooks": [
+    {"type": "command", "command": "coworker memory capture; coworker memory close", "async": true}]},
+  {"matcher": "", "hooks": [{"type": "command", "command": "coworker memory capture"}]},
+  {"matcher": "", "hooks": [{"type": "command", "command": "my-own-stop-hook"},
+                            {"type": "command", "command": "coworker memory close"}]}
+]}}
 JSONEOF
   run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
   [ "$status" -eq 0 ]
 
-  run python3 -c "
-import json, os
-cfg = json.load(open(os.path.expanduser('~/.claude/settings.json')))
-cmds = [h.get('command') for g in cfg['hooks']['Stop'] for h in (g.get('hooks') or [])]
-print(sum('memory capture' in c for c in cmds), sum('memory close' in c for c in cmds),
-      'coworker memory capture; coworker memory close' in cmds)
-"
-  [ "$output" = "1 1 True" ]
+  run _hook_cmds Stop
+  [[ "$output" != *"memory capture"* ]]
+  [[ "$output" != *"memory close"* ]]
+  [[ "$output" == *"my-own-stop-hook"* ]]
+  [[ "$output" == *"on-stop.sh"* ]]
 }
 
 @test "configures hooks even when the coworker CLI prints output" {

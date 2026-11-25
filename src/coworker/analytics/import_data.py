@@ -134,7 +134,7 @@ def import_session(session_dir: Path, conn_or_path=None):
                         seq += 1
                         conn.execute(
                             "INSERT OR REPLACE INTO messages (session_id, seq, type, content, ts) VALUES (?, ?, ?, ?, ?)",
-                            (session_id, seq, t, content[:10000], ts),
+                            (session_id, seq, t, content, ts),
                         )
                 if seq > 0:
                     raw_imported = True
