@@ -102,6 +102,11 @@ def api_top_files(limit: int = 50):
     return queries.query_top_files(limit)
 
 
+@app.get("/api/file-summary")
+def api_file_summary():
+    return queries.query_file_summary()
+
+
 @app.get("/api/file-stats")
 def api_file_stats():
     return queries.query_file_stats()

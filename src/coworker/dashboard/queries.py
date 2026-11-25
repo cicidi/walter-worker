@@ -119,6 +119,26 @@ def query_features():
     return [dict(r) for r in rows]
 
 
+_UTC_NOW_MINUS_30M = "strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-30 minutes')"
+
+
+def _daily_counts(conn, days: int) -> list[dict]:
+    """Sessions per local calendar day for the last `days` days, newest first,
+    zero-filled. The old query took the last N days *that had sessions*, so a
+    "14 day" chart spanned seven weeks, and it bucketed by the UTC date."""
+    rows = conn.execute(
+        """WITH RECURSIVE d(day, n) AS (
+               SELECT date('now', 'localtime'), 1
+               UNION ALL SELECT date(day, '-1 day'), n + 1 FROM d WHERE n < ?)
+           SELECT d.day, COUNT(s.id) AS c
+           FROM d LEFT JOIN sessions s
+             ON s.created_at != '' AND date(s.created_at, 'localtime') = d.day
+           GROUP BY d.day ORDER BY d.day DESC""",
+        (max(1, min(int(days), 3650)),),
+    ).fetchall()
+    return [dict(r) for r in rows]
+
+
 def query_overview():
     conn = get_db()
     total_sessions = conn.execute("SELECT COUNT(*) FROM sessions").fetchone()[0]
@@ -126,20 +146,26 @@ def query_overview():
     total_tools = conn.execute("SELECT COUNT(*) FROM tool_calls").fetchone()[0]
     total_skills = conn.execute("SELECT COUNT(*) FROM skills").fetchone()[0]
     total_knowledge = conn.execute("SELECT COUNT(*) FROM knowledge").fetchone()[0]
-    active = conn.execute("SELECT COUNT(*) FROM sessions WHERE closed_at IS NULL OR closed_at = ''").fetchone()[0]
+    # Active = activity in the last 30 minutes. closed_at holds the last event
+    # time; "closed_at is empty" counted every session the importer never
+    # closed — 644 of 785.
+    active = conn.execute(
+        "SELECT COUNT(*) FROM sessions WHERE closed_at >= " + _UTC_NOW_MINUS_30M
+    ).fetchone()[0]
 
+    # The stats join is what the table's Msgs/Tools/Dur columns read; without
+    # it every recent session showed 0.
     recent = conn.execute(
-        "SELECT * FROM sessions ORDER BY created_at DESC LIMIT 10"
+        """SELECT s.*, ss.message_count, ss.tool_count, ss.duration_min
+           FROM sessions s LEFT JOIN session_stats ss ON s.id = ss.session_id
+           ORDER BY s.created_at DESC LIMIT 10"""
     ).fetchall()
 
     tool_dist = conn.execute(
         "SELECT tool, COUNT(*) as c FROM tool_calls GROUP BY tool ORDER BY c DESC LIMIT 10"
     ).fetchall()
 
-    daily = conn.execute(
-        """SELECT substr(created_at, 1, 10) as day, COUNT(*) as c
-           FROM sessions GROUP BY day ORDER BY day DESC LIMIT 14"""
-    ).fetchall()
+    daily = _daily_counts(conn, 14)
 
     conn.close()
     return {
@@ -151,7 +177,7 @@ def query_overview():
         "active_sessions": active,
         "recent_sessions": [dict(r) for r in recent],
         "tool_distribution": [dict(r) for r in tool_dist],
-        "daily_sessions": [dict(r) for r in daily],
+        "daily_sessions": daily,
     }
 
 
@@ -242,8 +268,9 @@ def query_file_hotspots(limit: int = 30):
             """SELECT path, file_type, COUNT(*) as total_ops,
                       SUM(CASE WHEN op='write' THEN 1 ELSE 0 END) as writes,
                       SUM(CASE WHEN op='edit' THEN 1 ELSE 0 END) as edits,
-                      SUM(CASE WHEN op='read' THEN 1 ELSE 0 END) as reads,
+                      SUM(CASE WHEN op IN ('read','glob') THEN 1 ELSE 0 END) as reads,
                       SUM(CASE WHEN op NOT IN ('read','write','edit','glob') THEN 1 ELSE 0 END) as deletes,
+                      GROUP_CONCAT(DISTINCT project) as project_list,
                       COUNT(DISTINCT session_id) as sessions_touched,
                       COUNT(DISTINCT project) as projects,
                       MAX(ts) as last_touched
@@ -263,11 +290,11 @@ def query_activity_timeline(hours: int = 24):
     conn = _get_db_conn()
     try:
         rows = conn.execute(
-            """SELECT substr(ts, 1, 13) as hour,
+            """SELECT strftime('%Y-%m-%dT%H', ts, 'localtime') as hour,
                       COUNT(*) as tool_calls,
                       COUNT(DISTINCT session_id) as active_sessions
                FROM tool_calls
-               WHERE ts >= datetime('now', ? || ' hours')
+               WHERE ts >= strftime('%Y-%m-%dT%H:%M:%fZ', 'now', ? || ' hours')
                GROUP BY hour
                ORDER BY hour DESC""",
             (f"-{hours}",),
@@ -287,8 +314,7 @@ def query_error_patterns():
                       COUNT(DISTINCT tc.session_id) as sessions_affected,
                       GROUP_CONCAT(DISTINCT substr(tc.result, 1, 120)) as sample_errors
                FROM tool_calls tc
-               WHERE tc.result LIKE '%error%' OR tc.result LIKE '%fail%'
-                  OR tc.result LIKE '%exception%' OR tc.result LIKE '%traceback%'
+               WHERE tc.is_error = 1
                GROUP BY tc.tool, tc.server_name
                ORDER BY error_count DESC
                LIMIT 50"""
@@ -331,8 +357,7 @@ def query_session_errors(limit: int = 20):
                       GROUP_CONCAT(DISTINCT tc.tool) as failing_tools
                FROM sessions s
                JOIN tool_calls tc ON s.id = tc.session_id
-               WHERE tc.result LIKE '%error%' OR tc.result LIKE '%fail%'
-                  OR tc.result LIKE '%exception%'
+               WHERE tc.is_error = 1
                GROUP BY s.id
                ORDER BY s.created_at DESC
                LIMIT ?""",
@@ -357,13 +382,7 @@ def query_session_errors(limit: int = 20):
 def query_daily_sessions(days: int = 14):
     conn = _get_db_conn()
     try:
-        rows = conn.execute(
-            """SELECT substr(created_at, 1, 10) as day, COUNT(*) as c, s.ide
-               FROM sessions s WHERE created_at IS NOT NULL
-               GROUP BY day ORDER BY day DESC LIMIT ?""",
-            (days,),
-        ).fetchall()
-        return [dict(r) for r in rows]
+        return _daily_counts(conn, days)
     finally:
         conn.close()
 
@@ -379,18 +398,38 @@ def query_session_messages(session_id: str):
         conn.close()
 
 
+_SKILL_NAME_SQL = "COALESCE(json_extract(tc.args, '$.skill'), json_extract(tc.args, '$.name'))"
+
+
+def query_file_summary():
+    """Totals for the files page, over every file op rather than a page of them."""
+    conn = _get_db_conn()
+    try:
+        r = conn.execute(
+            """SELECT COUNT(DISTINCT path) AS files,
+                      SUM(op IN ('read', 'glob')) AS reads,
+                      SUM(op IN ('write', 'edit')) AS writes
+               FROM file_ops"""
+        ).fetchone()
+        return {k: r[k] or 0 for k in ("files", "reads", "writes")}
+    finally:
+        conn.close()
+
+
 def query_skill_detail(name: str = None, days: int = 1):
     conn = _get_db_conn()
     try:
         params = []
-        sql = """SELECT tc.tool as skill_name, tc.session_id, s.project, s.created_at,
-                        tc.duration_ms, tc.args, tc.result
+        # The skill's name is in the call's args. This compared `tool` to
+        # 'Skill' and to the name at once, which no row satisfies.
+        sql = """SELECT """ + _SKILL_NAME_SQL + """ as skill_name, tc.session_id, s.project,
+                        s.created_at, tc.ts, tc.duration_ms, tc.args, tc.result
                  FROM tool_calls tc JOIN sessions s ON tc.session_id = s.id
-                 WHERE tc.tool = 'Skill'"""
+                 WHERE tc.tool = 'Skill' AND json_valid(tc.args)"""
         if name:
-            sql += " AND tc.tool = ?"
+            sql += " AND " + _SKILL_NAME_SQL + " = ?"
             params.append(name)
-        sql += " ORDER BY s.created_at DESC LIMIT 500"
+        sql += " ORDER BY tc.ts DESC LIMIT 500"
         rows = conn.execute(sql, params).fetchall()
         return [dict(r) for r in rows]
     finally:
@@ -403,7 +442,9 @@ def query_skill_timeline(name: str, days: int = 1):
         rows = conn.execute(
             """SELECT tc.session_id, s.created_at, tc.duration_ms
                FROM tool_calls tc JOIN sessions s ON tc.session_id = s.id
-               WHERE tc.tool = ? ORDER BY s.created_at DESC LIMIT 200""",
+               WHERE tc.tool = 'Skill' AND json_valid(tc.args)
+                 AND """ + _SKILL_NAME_SQL + """ = ?
+               ORDER BY tc.ts DESC LIMIT 200""",
             (name,),
         ).fetchall()
         return [dict(r) for r in rows]

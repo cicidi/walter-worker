@@ -120,6 +120,8 @@ def import_claude_jsonl(jsonl_file: Path, conn):
     message_rows: list[tuple] = []
     seen_ids: set[str] = set()
     usage_by_msg: dict[str, dict] = {}
+    # tool_use_id -> (is_error, error text) from the tool_result blocks.
+    results: dict[str, tuple[int, str | None]] = {}
 
     # The Stop hook re-imports the same session after every reply; skill calls
     # counted by an earlier import must not be counted again.
@@ -162,6 +164,13 @@ def import_claude_jsonl(jsonl_file: Path, conn):
             message_rows.append((sid, seq, etype, text, ts))
 
         if etype != "assistant":
+            for b in content:
+                if isinstance(b, dict) and b.get("type") == "tool_result" and b.get("tool_use_id"):
+                    err = 1 if b.get("is_error") else 0
+                    out = b.get("content")
+                    if isinstance(out, list):
+                        out = "\n".join(x.get("text", "") for x in out if isinstance(x, dict))
+                    results[b["tool_use_id"]] = (err, str(out or "")[:500] if err else None)
             continue
         for block in content:
             if not isinstance(block, dict) or block.get("type") != "tool_use":
@@ -226,6 +235,11 @@ def import_claude_jsonl(jsonl_file: Path, conn):
             parent_skill, args, result, duration_ms, seq_before, seq_after, ts)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         tool_call_rows)
+    # A result arrives after its call, often in a later import.
+    conn.executemany(
+        "UPDATE tool_calls SET is_error = ?, result = COALESCE(?, result) "
+        "WHERE session_id = ? AND call_id = ?",
+        [(e, txt, sid, cid) for cid, (e, txt) in results.items()])
     conn.executemany(
         """INSERT OR IGNORE INTO file_ops (session_id, call_id, op, path, file_type, project, skill_name, seq, ts)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
@@ -257,6 +271,16 @@ def _write_stats(conn, sid, read_count, write_count, bash_count, duration_min,
         "SELECT COUNT(*) FROM tool_calls WHERE session_id = ? AND tool = 'Skill'", (sid,)).fetchone()[0]
     turns = conn.execute(
         "SELECT COUNT(*) FROM messages WHERE session_id = ? AND type = 'user'", (sid,)).fetchone()[0]
+    # Active minutes: gaps over 30 minutes between events are idle time. The
+    # first-to-last span made a session resumed a week later read as 10,000m.
+    active = conn.execute(
+        """SELECT CAST(SUM(CASE WHEN gap <= 1800 THEN gap ELSE 0 END) / 60 AS INTEGER) FROM (
+               SELECT (julianday(ts) - julianday(LAG(ts) OVER (ORDER BY ts))) * 86400 AS gap
+               FROM (SELECT ts FROM messages WHERE session_id = ? AND ts != ''
+                     UNION ALL SELECT ts FROM tool_calls WHERE session_id = ? AND ts != ''))""",
+        (sid, sid)).fetchone()[0]
+    if active is not None:
+        duration_min = active
     conn.execute(
         """INSERT OR REPLACE INTO session_stats
            (session_id, message_count, tool_count, skill_count, read_count, write_count, bash_count,
@@ -422,12 +446,15 @@ def import_opencode(conn, force: bool = False) -> int:
             ts = utc_iso(p["time_created"])
             call_id = d.get("callID") or p["id"]
             conn.execute(
-                """INSERT OR IGNORE INTO tool_calls
+                """INSERT INTO tool_calls
                    (session_id, call_id, tool, tool_type, server_name, args, result,
-                    duration_ms, seq_before, seq_after, ts)
-                   VALUES (?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?)""",
+                    duration_ms, seq_before, seq_after, ts, is_error)
+                   VALUES (?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?)
+                   ON CONFLICT(session_id, call_id) DO UPDATE SET result=excluded.result,
+                       duration_ms=excluded.duration_ms, is_error=excluded.is_error""",
                 (root_id, call_id, tool, "builtin", json.dumps(args),
-                 (str(out) if out is not None else "")[:2000], dur, seq, seq, ts),
+                 (str(out) if out is not None else "")[:2000], dur, seq, seq, ts,
+                 {"error": 1, "completed": 0}.get(st.get("status"))),
             )
             if tool in ("Read", "Glob"):
                 read_c += 1

@@ -826,7 +826,9 @@ def test_import_opencode_full_session(monkeypatch, tmp_path):
     st = conn.execute("SELECT * FROM session_stats").fetchone()
     assert (st["message_count"], st["tool_count"], st["turn_count"]) == (2, 2, 1)
     assert (st["tokens_input"], st["tokens_cache_read"], st["cost"]) == (150, 1500, 2.0)
-    assert st["duration_min"] == 1
+    # Active minutes between events (all within seconds), not the span to
+    # time_updated.
+    assert st["duration_min"] == 0
 
 
 def test_import_opencode_skips_unchanged_and_reimports_updated(monkeypatch, tmp_path):
@@ -867,6 +869,23 @@ def test_import_claude_jsonl_ignores_replayed_tool_calls(auto_db, tmp_path):
     st = auto_db.execute("SELECT * FROM session_stats").fetchone()
     # One API response written as two lines is counted once.
     assert (st["tool_count"], st["tokens_input"], st["tokens_output"], st["tokens_cache_read"]) == (1, 3, 4, 5)
+
+
+def test_import_claude_jsonl_records_tool_errors(auto_db, tmp_path):
+    from coworker.analytics.auto_import import import_claude_jsonl
+    f = _make_jsonl(tmp_path / "s2.jsonl", [
+        {"type": "assistant", "timestamp": "2025-01-01T10:00:00Z", "cwd": "/tmp/p",
+         "message": {"content": [{"type": "tool_use", "name": "Edit", "id": "e1", "input": {}},
+                                 {"type": "tool_use", "name": "Read", "id": "r1", "input": {}}]}},
+        {"type": "user", "timestamp": "2025-01-01T10:00:01Z",
+         "message": {"content": [
+             {"type": "tool_result", "tool_use_id": "e1", "is_error": True, "content": "not found"},
+             {"type": "tool_result", "tool_use_id": "r1", "content": "file body"}]}},
+    ])
+    import_claude_jsonl(f, auto_db)
+    rows = dict(auto_db.execute("SELECT call_id, is_error FROM tool_calls").fetchall())
+    assert rows == {"e1": 1, "r1": 0}
+    assert auto_db.execute("SELECT result FROM tool_calls WHERE call_id='e1'").fetchone()[0] == "not found"
 
 
 def test_run_once_reimports_changed_transcript(monkeypatch, tmp_path):

@@ -384,11 +384,13 @@ class TestQueryOverview:
         assert result["total_tools"] == 5
         assert result["total_skills"] == 2
         assert result["total_knowledge"] == 2
-        # s2 has closed_at=NULL → active
-        assert result["active_sessions"] == 1
+        # Active means an event in the last 30 minutes; every fixture session
+        # is from 2025. "closed_at is NULL" counted 644 of 785 real sessions.
+        assert result["active_sessions"] == 0
         assert len(result["recent_sessions"]) == 3
         assert len(result["tool_distribution"]) > 0
-        assert len(result["daily_sessions"]) > 0
+        # Zero-filled calendar days, newest first.
+        assert len(result["daily_sessions"]) == 14
 
     def test_tool_distribution_correct(self, test_db):
         result = queries.query_overview()
@@ -841,3 +843,33 @@ class TestWriteEndpointsRefuseForeignPages:
             "every POST in dashboard.js must carry the header, or the guard "
             "breaks the page it protects"
         )
+
+
+class TestQueryRegressions:
+    """Bugs found by checking the dashboard against analytics.db by hand."""
+
+    def test_skill_detail_matches_name_in_args(self, test_db):
+        test_db.execute(
+            "INSERT INTO tool_calls (session_id, call_id, tool, args, ts) "
+            "VALUES ('s1', 'sk', 'Skill', '{\"skill\": \"commit\"}', '2025-01-01T10:00:09')")
+        test_db.commit()
+        rows = queries.query_skill_detail("commit")
+        assert [(r["skill_name"], r["session_id"]) for r in rows] == [("commit", "s1")]
+        assert [r["session_id"] for r in queries.query_skill_timeline("commit")] == ["s1"]
+
+    def test_models_sums_are_not_multiplied_by_tool_calls(self, test_db):
+        test_db.execute("UPDATE session_stats SET cost = 1.0 WHERE session_id = 's1'")
+        test_db.commit()
+        claude = next(m for m in queries.query_models() if m["model_group"] == "claude-3")
+        # s1 has three tool calls; the old join reported 3.0.
+        assert claude["total_cost"] == 1.0
+        assert claude["request_count"] == 3
+
+    def test_file_summary_counts_every_op(self, test_db):
+        assert queries.query_file_summary() == {"files": 3, "reads": 3, "writes": 2}
+
+    def test_errors_use_the_error_flag_not_the_text(self, test_db):
+        test_db.execute("UPDATE tool_calls SET result = 'no errors found', is_error = 0")
+        test_db.execute("UPDATE tool_calls SET is_error = 1 WHERE call_id = 'call-4'")
+        test_db.commit()
+        assert [(e["tool"], e["error_count"]) for e in queries.query_error_patterns()] == [("Bash", 1)]
