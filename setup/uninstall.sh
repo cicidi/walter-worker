@@ -8,7 +8,6 @@ set -euo pipefail
 # Option: --restore-pristine restores the pre-install backup snapshot.
 # =============================================================================
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MANIFEST="$HOME/.coworker/install-manifest.json"
 
 YELLOW='\033[1;33m'
@@ -115,7 +114,6 @@ rm -f /tmp/.coworker-uninstall-$$
 # Remove hook entries by command path
 echo ""
 log "Removing hook entries..."
-REMOVED_HOOKS=0
 if [[ -f "$CLAUDE_SETTINGS" ]]; then
   python3 -c "
 import json
@@ -173,9 +171,6 @@ json.dump(cfg, open('$CLAUDE_SETTINGS', 'w'), indent=2)
 print(f'  {n} hook entries removed')
 " | while read -r line; do
   echo "$line"
-  if [[ "$line" =~ ^[[:space:]]*([0-9]+)[[:space:]].* ]]; then
-    REMOVED_HOOKS="${BASH_REMATCH[1]}"
-  fi
 done
 fi
 
