@@ -239,7 +239,7 @@ else
       for src_i in "${!SRC_DIRS[@]}"; do
         if [[ "${SRC_DIR_HASHES[$src_i]}" == "$old_hash" ]]; then
           log "Renamed skill: $old_dir → ${SRC_DIRS[$src_i]} (cleaning up old)"
-          rm -rf "$OPENCODE_SKILLS_DIR/$old_dir"
+          rm -rf "${OPENCODE_SKILLS_DIR:?}/$old_dir"
           break
         fi
       done
@@ -562,7 +562,7 @@ if [[ -d "$THE_SUPER_LAB_DIR" ]]; then
 
       # OpenCode — symlink the whole directory to the source
       if [[ -e "$opencode_dir/$name" && ! -L "$opencode_dir/$name" ]]; then
-        rm -rf "$opencode_dir/$name"
+        rm -rf "${opencode_dir:?}/$name"
       fi
       ln -sfn "${skill_dir%/}" "$opencode_dir/$name"
 
