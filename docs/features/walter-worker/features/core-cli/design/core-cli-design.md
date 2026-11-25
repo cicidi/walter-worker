@@ -9,7 +9,7 @@ last_verified: 2026-11-24
 
 # Core CLI — Design
 
-Requirements are in the [PRD](../prd/core-cli-prd.md). Decisions are in the [decision history](../decision-history/core-cli-decision-history.md). Behavior below was read from the code at commit `a0f4ce0`; where it does not meet a requirement, the gap is an Open Question.
+Requirements are in the [PRD](../prd/core-cli-prd.md). Decisions are in the [decision history](../decision-history/core-cli-decision-history.md). Behavior below was read from the code at commit `a0f4ce0`, and rechecked at `634adf1` after walter-worker PRs #16 to #23; where it does not meet a requirement, the gap is an Open Question.
 
 ## Problem Statement
 
@@ -87,11 +87,11 @@ A failed check marks the item rejected. `skill reject ID` marks it rejected. `ap
 
 The command prints the plan. An overwrite made without a base lists up to five of the lines it replaces; a conflict lists up to five lines it would lose. `--force` turns conflicts into overwrites. `--dry-run` stops after the plan. With no `~/.claude/CLAUDE.md` it prints a hint to run the installer and exits 0. Without a terminal and without `-y` it prints a refusal and exits 0. When no section would be overwritten or appended it prints "Already up to date"; otherwise it asks for confirmation.
 
-It then backs up the file under the label `upgrade`, merges in memory, and checks every protected span, pairing spans by order and comparing their text (QUES-N). On a violation the command stops without writing the file and exits 1. After a write, or when nothing needed writing, it stores the template as the new base; a conflicted section keeps its old base, so it is reported again. This implements PRD-I.
+It then backs up the file under the label `upgrade`, merges in memory, and checks every protected span, pairing spans by order and comparing their text (QUES-N). On a violation the command stops without writing the file and exits 1. After a write, or when nothing needed writing, it stores the template as the new base; a conflicted section keeps its old base, so it is reported again. This implements PRD-I when the base holds the section; otherwise an overwrite can drop the user's lines after listing them (QUES-M).
 
 ### DSGN-H — `restore`
 
-Backups are folders named `<YYYYMMDD-HHMMSS>-<label>` under `~/.coworker/backups/`, each holding copies at their original absolute paths. At most twenty folders are kept per label; the `pristine` folder is never pruned. `restore BACKUP` accepts a path, a folder name, or a label, and a label picks the newest folder whose name ends with it. It lists up to ten files, asks for confirmation unless `-y` is given, and copies every file back. It does not back up the current files first and does not delete files absent from the backup. An unknown backup, or a backup folder that holds no files, is an error with exit status 1. Besides folders under `~/.coworker/backups/`, `restore` accepts any existing directory given as a path, and copies each file in it to the absolute path that mirrors its place in that directory (QUES-V). This implements PRD-J; the label match can pick a longer label (QUES-I).
+Backups are folders named `<YYYYMMDD-HHMMSS>-<label>` under `~/.coworker/backups/`, each holding copies at their original absolute paths. At most twenty folders are kept per label; the `pristine` folder, the snapshot the installer takes before its first change and `uninstall --restore-pristine` restores, is never pruned. `restore BACKUP` accepts a path, a folder name, or a label, and a label picks the newest folder whose name ends with it. It lists up to ten files, asks for confirmation unless `-y` is given, and copies every file back. It does not back up the current files first and does not delete files absent from the backup. An unknown backup, or a backup folder that holds no files, is an error with exit status 1. Besides folders under `~/.coworker/backups/`, `restore` accepts any existing directory given as a path, and copies each file in it to the absolute path that mirrors its place in that directory (QUES-V). This implements PRD-J; the label match can pick a longer label (QUES-I).
 
 ### DSGN-I — `state-update`
 
@@ -109,7 +109,7 @@ Once `~/.coworker/` exists (`init --global` creates it), the walk from any folde
 
 ## Testing Decisions
 
-Commands are tested through Click's test runner against a temporary home directory; adapters and the merge are tested directly. The cases are in the [test plan](../test-plan/core-cli-test-plan.md).
+Most command tests use Click's test runner and a temporary home directory; some read or write the real one (QUES-X); adapters and the merge are tested directly. The cases are in the [test plan](../test-plan/core-cli-test-plan.md).
 
 ## Out of Scope
 
@@ -151,7 +151,7 @@ The project layer cannot override per-tool settings or a global skill of the sam
 | **QUES-J** | `sync` never removes a skill dropped from the configuration. A skill folder with a subfolder makes the Claude Code adapter fail with "Is a directory", so later files and later skills are not installed. Fix both? | Found in the code at `a0f4ce0`; the failure was reproduced by the 2026-11-24 review (I2). | cicidi | no |
 | **QUES-K** | `project sync` rewrites `CLAUDE.md` with no backup. Back it up? | Found in the code at `a0f4ce0`. | cicidi | no |
 | **QUES-L** | `state-update` treats the home folder as a managed project whenever `~/.coworker/` exists, so it writes `~/docs/state/` from any unmanaged repository under the home folder. Exclude the home folder, or require `.coworker/coworker.yaml`? | Reproduced by the 2026-11-24 review (C1). The existing test sets the home folder to a folder without `.coworker/`, so it does not catch this. Since PR #19 (`b03f596`, ARD-G) no hook runs it, so only a manual run writes there. | cicidi | no |
-| **QUES-M** | Before PR #21, `upgrade` overwrote a section that both the user and the template changed, discarding the user's lines without listing them. This contradicts PRD-I. List them and keep the section as a conflict, or change the requirement? | Reproduced by the 2026-11-24 review (C2). Fixed in PR #21 (`f917bbf`) by a three-way merge (ARD-H). Without a base, the section is still overwritten, but its lines are listed first. | cicidi | no |
+| **QUES-M** | Before PR #21, `upgrade` overwrote a section that both the user and the template changed, discarding the user's lines without listing them. This contradicts PRD-I. List them and keep the section as a conflict, or change the requirement? | Reproduced by the 2026-11-24 review (C2). Fixed in PR #21 (`f917bbf`) by a three-way merge (ARD-H). Without a base, the section is still overwritten, but its lines are listed first. Owner to accept or fix the no-base path. | cicidi | no |
 | **QUES-N** | Before PR #20, the protected-span check compared spans by line number, so a change in line count above an untouched span is reported as a violation and `upgrade` exits 1. Compare span text instead? | Reproduced by the 2026-11-24 review (I1); fixed in PR #20 (`8e3b48c`). | cicidi | no |
 | **QUES-O** | `sync` deletes a `mcpServers` block from Claude Code's `settings.json` and does not move its servers to `~/.claude.json`. Migrate them, or keep the block? | Reproduced by the 2026-11-24 review (I3). A `json-sync` backup is taken, but the action list does not mention the removal. | cicidi | yes |
 | **QUES-P** | Keys in the `gemini` and `opencode` sections outside `extra` are dropped, and the `claude` section is never written to any file. Accept these keys, or remove the `claude` section from the template? | Reproduced by the 2026-11-24 review (I4). | cicidi | no |
@@ -162,6 +162,7 @@ The project layer cannot override per-tool settings or a global skill of the sam
 | **QUES-U** | `sync --project` resolves global skill paths against the project folder, so they are not found. Resolve each skill against the file that declared it? | Found by the 2026-11-24 review (W4) and confirmed in the code at `a0f4ce0`. | cicidi | no |
 | **QUES-V** | `restore` accepts any directory and copies its files onto the mirrored absolute paths. Restrict it to `~/.coworker/backups/`? | Found by the 2026-11-24 review (W5) and confirmed in the code at `a0f4ce0`. | cicidi | no |
 | **QUES-W** | The safety check allows `/` and `..` in a skill name, so promotion can write outside `~/.coworker/skills/`. Reject them? | Found by the 2026-11-24 review (minor) and confirmed by reading the code at `a0f4ce0`; not reproduced. | cicidi | no |
+| **QUES-X** | Some tests use the real home folder; one overwrote the owner's `~/.coworker/project.yaml` on 2026-11-24. Give every test a temporary HOME? | `test_cli.py` `test_the_block_is_cleared_elsewhere_too` calls `save_project_catalog`, which writes `config.py:185` at `634adf1`; `test_status` reads the real config. | cicidi | yes |
 
 ## Reversibility
 
@@ -184,3 +185,4 @@ Files backed up before a change can be restored with `coworker restore <label>`:
 | 0.2 | 2026-11-24 | Rewritten from the code at `a0f4ce0` with the 13 required sections; gaps recorded as QUES-A to QUES-K (ARD-A, ARD-D) |
 | 0.3 | 2026-11-24 | Review fixes: false claims corrected (backups, rollback, per-tool sections, project-file search, reversibility); exit statuses and `skill pending` options added; gaps recorded as QUES-L to QUES-W (ARD-D, ARD-F) |
 | 0.4 | 2026-11-24 | QUES-A, QUES-M, and QUES-N answered by PRs #20 and #21; QUES-L not blocking after PR #19 (ARD-G, ARD-H) |
+| 0.5 | 2026-11-24 | Rechecked at `634adf1`; PRD-I limit stated; `pristine` explained; QUES-X (tests use the real home) added |

@@ -91,7 +91,7 @@ Facts that span areas, such as the home folder layout, live here and must be kep
 | ID | Question | Answer so far | Owner | Blocking |
 |---|---|---|---|---|
 | **QUES-A** | Should the legacy documents in `prd/`, `design/`, `decision-history/`, `plan/`, `spec/`, `state/`, and `work-review/` be folded into the sub-features and removed, renamed to the current standard, or kept as they are? | Kept and linked as parts on 2026-11-24; restructuring needs the owner's decision. | cicidi | no |
-| **QUES-B** | The sub-features record 16 blocking code gaps: setup-deploy QUES-F; core-cli QUES-B, QUES-O, QUES-S, QUES-T; analytics-listener QUES-A, QUES-I, QUES-J, QUES-K; analytics-dashboard QUES-G, QUES-H; memory-platform QUES-A, QUES-B, QUES-I, QUES-J; autoworker QUES-A. Which are fixed first? | Listed in each sub-feature design; walter-worker PRs #17, #19, #20, and #21 cleared six others; open PR #22 has a fix for memory-platform QUES-I. | cicidi | no |
+| **QUES-B** | The sub-features record 16 blocking code gaps: setup-deploy QUES-F; core-cli QUES-B, QUES-O, QUES-S, QUES-T, QUES-X; analytics-listener QUES-A, QUES-I, QUES-K, QUES-P; analytics-dashboard QUES-G, QUES-H; memory-platform QUES-A, QUES-B, QUES-J; autoworker QUES-A. Which are fixed first? | Listed in each sub-feature design; walter-worker PRs #17, #19, #20, and #21 cleared six others; PRs #22 and #23 cleared memory-platform QUES-I and analytics-listener QUES-J. | cicidi | no |
 
 ## Reversibility
 
@@ -119,6 +119,7 @@ Terms used across walter-worker's specifications. Sub-feature designs may add th
 | Open Question | A tracked gap or undecided point, with an owner and a blocking flag, in a design's Open Questions table |
 | Turn | One user prompt and the agent's complete reply to it; a session is a series of turns |
 | Stop hook | A hook on Claude Code's Stop event, which fires each time the agent finishes a reply, so once per turn ([hooks docs](https://docs.claude.com/en/docs/claude-code/hooks)) |
+| SessionEnd hook | A hook on Claude Code's SessionEnd event, which fires once when a session ends; the hook's comment says Claude Code cancels it after 1.5 s (`on-session-end.sh:9` at `634adf1`); the current default is UNKNOWN |
 | Embedding | A list of numbers that represents a text's meaning, so that texts with similar meanings get similar numbers |
 | mem0 | The open-source library that keeps memories in a vector store and uses a language model to extract them from text |
 | Qdrant | The vector database that mem0 uses; here it runs in local mode, as files on the user's machine |
@@ -135,3 +136,4 @@ Terms used across walter-worker's specifications. Sub-feature designs may add th
 | 0.3 | 2026-11-24 | Glossary rows added from the memory-platform review |
 | 0.4 | 2026-11-24 | QUES-B regenerated from every sub-feature's blocking questions |
 | 0.5 | 2026-11-24 | QUES-B updated after walter-worker PRs #16 to #21 |
+| 0.6 | 2026-11-24 | QUES-B updated after PRs #22 and #23 (16 to 14), then core-cli QUES-X and analytics-listener QUES-P added (16); glossary adds SessionEnd hook |

@@ -9,7 +9,7 @@ last_verified: 2026-11-24
 
 # Setup and Deploy — Design
 
-Requirements are in the [PRD](../prd/setup-deploy-prd.md). Decisions and their reasons are in the [decision history](../decision-history/setup-deploy-decision-history.md). Behavior below was read from the scripts at commit `a0f4ce0`.
+Requirements are in the [PRD](../prd/setup-deploy-prd.md). Decisions and their reasons are in the [decision history](../decision-history/setup-deploy-decision-history.md). Behavior below was read from the scripts at commit `a0f4ce0`; a later fix names its own commit.
 
 ## Problem Statement
 
@@ -37,7 +37,7 @@ Global mode writes Claude Code commands to `~/.claude/commands` and OpenCode ins
 
 ### DSGN-B — Pristine snapshot and the global CLAUDE.md
 
-On the first install on a machine, before any other change, the installer copies `~/.claude/settings.json` and `~/.claude/CLAUDE.md` into `~/.coworker/backups/pristine/`. It writes the path of each file that did not exist into `absent.txt`, and it writes a `.taken` marker file so the snapshot is never taken again. `uninstall.sh --restore-pristine` copies the two files back and deletes each path listed in `absent.txt`, because for a fresh machine the pristine state of that file is "absent". The global `CLAUDE.md` is created from the template only when it is missing. The manifest claims it only when this run created it. These rules implement PRD-B and PRD-C.
+On the first install on a machine, before any other change, the installer copies `~/.claude/settings.json` and `~/.claude/CLAUDE.md` into `~/.coworker/backups/pristine/`. It writes the path of each file that did not exist into `absent.txt`, and it writes a `.taken` marker file so the snapshot is never taken again. `uninstall.sh --restore-pristine` copies the two files back and deletes each path listed in `absent.txt`, because for a fresh machine the pristine state of that file is "absent". The global `CLAUDE.md` is created from the template only when it is missing. The manifest claims it when this run created it, and keeps that claim on later runs (QUES-C). Creating it also writes the merge base `~/.coworker/claude-md-base.md`. These rules implement PRD-B and PRD-C.
 
 ### DSGN-C — Skill deployment
 
@@ -57,13 +57,13 @@ The the-super-lab skills are deployed on every run, whatever the user answered t
 
 ### DSGN-D — Hook registration
 
-The installer adds seven hook commands to `~/.claude/settings.json`: four analytics scripts under `~/.coworker/analytics/hooks/` (prompt submitted, before a tool runs, after a tool runs, session stop), the correction detector on prompt submit, and `coworker memory capture` and `coworker memory close` on stop. A hook is added only when no existing entry for that event has the same command, either as its whole command or as one step of a compound command joined by `;`, `&&`, or `||` (QUES-A). Entries the installer did not add are never changed or removed. When the OpenCode analytics plugin directory exists in the checkout, the installer also registers it in `~/.config/opencode/config.json`; when it does not exist, nothing is registered. This implements PRD-F.
+The installer adds six hook commands to `~/.claude/settings.json`: four analytics scripts under `~/.coworker/analytics/hooks/` (prompt submitted, before a tool runs, after a tool runs, session stop), the correction detector on prompt submit, and `on-session-end.sh` on session end, which runs the memory summary once per session: memory capture, a model call, then close, which folds it into the memory graph ([memory-platform](../../../../memory-platform/design/memory-platform-design.md) ARD-H). A hook is added only when no existing entry for that event has the same command, either as its whole command or as one step of a compound command joined by `;`, `&&`, or `||` (QUES-A). It also removes from Stop each hook whose every step is `coworker memory capture` or `coworker memory close`, which earlier installs added (`setup/install.sh:687-699` at `634adf1`). A compound hook with any other step is kept whole (QUES-K). Those hooks are removed even when the user added them (QUES-J). Other entries are never changed or removed. When the OpenCode analytics plugin directory exists in the checkout, the installer also registers it in `~/.config/opencode/config.json`; when it does not exist, nothing is registered. This implements PRD-F.
 
 ### DSGN-E — Install manifest
 
-The last step writes `~/.coworker/install-manifest.json` with `schema_version: 2`. There is one manifest per machine, whichever mode wrote it. It holds the install mode, the project path, a list of claimed files, the walter-worker hook commands, and a list of owned directories.
+The last step writes `~/.coworker/install-manifest.json` with `schema_version: 2`. There is one manifest per machine, whichever mode wrote it. It holds the install mode, the project path, the repository path (`repo_root`), a list of claimed files, the walter-worker hook commands, a list of owned directories, and the paths this run pruned (`pruned`).
 
-The claimed files are, by full path: the selected commands and their OpenCode mirrors, every file found in the hooks directory, every file found under each the-super-lab skill's Claude Code and Cursor destination, the OpenCode symlinks, the global `CLAUDE.md` when this run or an earlier install created it, and `~/.coworker/claude-md-base.md` when it exists. The only owned directory is `~/.config/opencode/skills/walter-worker` (DSGN-G). The list does not match PRD-G exactly: some written paths are not claimed and some claimed paths were not written by this run, which is tracked as QUES-G.
+The claimed files are, by full path: the selected commands and their OpenCode mirrors, every file found in the hooks directory, every file found under each the-super-lab skill's Claude Code and Cursor destination, the OpenCode symlinks, each file of the bundle copy under `~/.config/opencode/skills/walter-worker` named from the source tree, the global `CLAUDE.md` when this run or an earlier install created it, and `~/.coworker/claude-md-base.md` when it exists. The only owned directory is `~/.config/opencode/skills/walter-worker` (DSGN-G). The list does not match PRD-G exactly: some written paths are not claimed and some claimed paths were not written by this run, which is tracked as QUES-G.
 
 Before writing, the installer compares the new list with the previous manifest. A path the previous manifest claimed, that still exists, and that this run did not claim is removed, and any directory that removal empties is removed too, but never a root such as `~/.claude/skills` itself. When the user answers "None" to the skill question, previously claimed paths under `~/.claude/commands/` are carried forward instead of removed, because "install nothing new" does not mean "delete what I have"; project-mode commands and OpenCode mirrors are not carried (QUES-I).
 
@@ -135,6 +135,8 @@ Directory copies go stale until the next install or update; editing a skill in t
 | **QUES-G** | The claim list misses written paths (`init.md`, the AGENTS.md symlink, `.gitignore` lines, the OpenCode plugin entry) and claims paths this run did not write (every file in the hooks directory and every file in a skill destination). Should claims be built from the write steps instead of from globs? | Found by the 2026-11-24 review. | cicidi | no |
 | **QUES-H** | Declining the the-super-lab update in `update.sh` has no effect because the installer already pulled it. Should the installer stop pulling, so the question means something? | Found by the 2026-11-24 review. | cicidi | no |
 | **QUES-I** | Answering "None" carries forward only global commands, so project-mode commands and all OpenCode mirrors are pruned. Should the carry cover every path class step 10 and step 11 write? | Reproduced by the 2026-11-24 review. | cicidi | no |
+| **QUES-J** | Install removes Stop hooks made only of capture and close even when the user added them, against PRD-F. Check the manifest? | `setup/install.sh:687-699` at `634adf1`. | cicidi | no |
+| **QUES-K** | A Stop hook joining capture or close with another command is kept, so capture still runs per reply. Drop only those steps? | `setup/install.sh:690-694` at `634adf1`. | cicidi | no |
 
 ## Reversibility
 
@@ -142,7 +144,7 @@ Every install is reversible through the manifest: `uninstall.sh` removes what wa
 
 ## Terms
 
-The parent walter-worker design has no glossary yet, so the terms this feature uses are defined here.
+Shared terms are in the [parent glossary](../../../design/walter-worker-design.md#glossary); the rows below are specific to this feature.
 
 | Term | Meaning |
 |---|---|
@@ -166,3 +168,5 @@ The parent walter-worker design has no glossary yet, so the terms this feature u
 | 0.2 | 2026-11-24 | Rewritten from the scripts at `a0f4ce0`; added the 13 required sections; removed the false managed-region clause (ARD-D) |
 | 0.3 | 2026-11-24 | Review fixes: CLI contract, project-mode side effects, Step 6 copy, real manifest and uninstall behavior; code conflicts recorded as QUES-C to QUES-I (ARD-E); Terms section added |
 | 0.4 | 2026-11-24 | QUES-A answered by PR #16; QUES-C, QUES-D, and QUES-E fixed by PR #17; merge base claimed (PR #21) |
+| 0.5 | 2026-11-24 | DSGN-D after PR #22: six hooks, the summary on SessionEnd, old capture and close steps taken off Stop; QUES-J added |
+| 0.6 | 2026-11-24 | Review fixes: CLAUDE.md claim carried forward; Stop removal is per hook (QUES-K); manifest fields; parent glossary linked |

@@ -9,7 +9,7 @@ last_verified: 2026-11-24
 
 # Core CLI — Test Plan
 
-Each case names the requirement from the [PRD](../prd/core-cli-prd.md) it covers and the pytest test that implements it at commit `a0f4ce0`. Command tests use Click's test runner against a temporary home directory.
+Each case names the requirement from the [PRD](../prd/core-cli-prd.md) it covers and the pytest test that implements it at commit `634adf1`. Most command tests use Click's test runner and a temporary home directory; some use the real one (design QUES-X).
 
 ## Test Cases
 
@@ -29,12 +29,12 @@ Each case names the requirement from the [PRD](../prd/core-cli-prd.md) it covers
 | **TST-L** | PRD-J | Restore by label works, an unknown backup is an error, and declining leaves the file alone | `test_cli.py` `test_it_restores_by_label`, `test_an_unknown_backup_is_an_error`, `test_declining_leaves_the_file_alone` |
 | **TST-M** | PRD-K | State update is silent in a folder with no marker up to a home folder that has no `.coworker/`, writes one file for two stops, and writes at the project root | `test_state_update.py` `test_state_update_noop_outside_coworker`, `test_two_stops_one_file`; `test_cli.py` `test_writes_to_the_root_not_the_cwd` |
 | **TST-N** | PRD-K | State update writes nothing from an unmanaged repository under a home folder that has `~/.coworker/` | No test yet; fails today (QUES-L) |
-| **TST-O** | PRD-I | `upgrade` never discards a user's line in a section both the user and the template changed, unless `--force` is given | `test_semantic_merge.py` `test_both_changed_is_a_conflict`; `test_cli.py` `test_upgrade_without_base_lists_replaced_lines_and_writes_base` |
+| **TST-O** | PRD-I | With a merge base, a section both sides changed is kept as a conflict unless `--force`; without one, its lines are listed before the overwrite (QUES-M) | `test_semantic_merge.py` `test_both_changed_is_a_conflict`; `test_cli.py` `test_upgrade_without_base_lists_replaced_lines_and_writes_base` |
 | **TST-P** | PRD-D | Sync keeps or migrates a user's `mcpServers` block found in Claude Code's `settings.json` | No test yet; fails today (QUES-O) |
 | **TST-Q** | PRD-G | `project sync` leaves the user's text after a START marker that has no END marker | No test yet; fails today (QUES-S) |
 | **TST-R** | PRD-G | `project add`, `edit`, and `remove` keep the catalog's comments and unknown keys, or back the file up first | No test yet; fails today (QUES-T) |
 
-Not covered today: `init --global` (TST-A), an invalid configuration (QUES-C), the `skill pending`, `approve`, and `reject` commands at the command level, and `status` with an active feature beyond a smoke test. Also untested: keys outside `extra` in the per-tool sections and the unused `claude` section (QUES-P), approving a rejected item (QUES-Q), the `--approve-all` count with a failing item and the `--type` filter (QUES-R; `test_pending.py` `test_batch_approve` covers only items that pass), a skill folder with a subfolder (QUES-J), global skills under `sync --project` (QUES-U), `restore` of a directory outside the backups folder (QUES-V), and a skill name containing `..` (QUES-W). Two tests pin today's behavior that an open question disputes: `test_semantic_merge.py` `test_non_placeholder_different_body_triggers_overwrite` (QUES-M) and `test_claude_adapter.py` `test_replace_or_append_truncated_block_appends_after_start` (QUES-S). The open questions are in the [design](../design/core-cli-design.md#open-questions).
+Not covered today: `init --global` (TST-A), an invalid configuration (QUES-C), the `skill pending`, `approve`, and `reject` commands at the command level, and `status` with an active feature beyond a smoke test. Also untested: keys outside `extra` in the per-tool sections and the unused `claude` section (QUES-P), approving a rejected item (QUES-Q), the `--approve-all` count with a failing item and the `--type` filter (QUES-R; `test_pending.py` `test_batch_approve` covers only items that pass), a skill folder with a subfolder (QUES-J), global skills under `sync --project` (QUES-U), `restore` of a directory outside the backups folder (QUES-V), and a skill name containing `..` (QUES-W). One test pins today's behavior that an open question disputes: `test_claude_adapter.py` `test_replace_or_append_truncated_block_appends_after_start` (QUES-S). The open questions are in the [design](../design/core-cli-design.md#open-questions).
 
 ## Test Execution Order
 
@@ -42,7 +42,7 @@ Run `test_config.py` and `test_backup.py` first, because every command builds on
 
 ## Expected Pass Threshold
 
-Every case with a test must pass; the threshold is 100%. TST-A and TST-G have no test, so PRD-A and PRD-E are not yet verified by automation. TST-N to TST-R have no test and would fail against the code at `a0f4ce0`; each is tied to a blocking open question.
+Every case with a test must pass; the threshold is 100%. TST-A and TST-G have no test, so PRD-A and PRD-E are not yet verified by automation. TST-N, TST-P, TST-Q, and TST-R have no test and would fail today. TST-P to TST-R are tied to blocking open questions, and TST-N to the non-blocking QUES-L.
 
 ## Traceability
 
@@ -67,3 +67,4 @@ Every case with a test must pass; the threshold is 100%. TST-A and TST-G have no
 | 0.1 | 2026-11-04 | Draft (never committed) |
 | 0.2 | 2026-11-24 | Rewritten with one case per requirement, mapped to pytest tests, untested behavior listed (ARD-A) |
 | 0.3 | 2026-11-24 | Review fixes: TST-J no longer cites the staging-limit test; TST-K says "stops without writing"; TST-N to TST-R added for the blocking gaps; untested behavior extended (ARD-F) |
+| 0.4 | 2026-11-24 | Commit `634adf1`; TST-O matches its tests; threshold and pinned-test notes corrected; QUES-X noted |

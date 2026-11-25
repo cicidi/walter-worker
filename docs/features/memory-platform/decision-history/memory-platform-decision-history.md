@@ -15,6 +15,7 @@ Decisions about memory capture, storage, and curation. Newest first. Each decisi
 
 | ID | Date | Decision |
 |---|---|---|
+| **ARD-H** | 2026-11-24 | The session summary (memory capture, then close) runs once per session from a detached SessionEnd hook; the Stop hook no longer runs capture or close. |
 | **ARD-G** | 2026-11-24 | This feature's documents describe the memory code as it behaves at `a0f4ce0` and are the authority for current behavior; the older memory design and memory-graph-spec.md under docs/features/self-evolving-agent/ remain as design history and are not edited here. |
 | **ARD-F** | 2026-11-24 | The review-fix pass for this backfill is applied as edits larger than the 10-line/200-character limit, authorized by the owner's 2026-11-24 instruction to decide the approach ("你自己看着弄"). |
 | **ARD-D** | 2026-11-24 | Where the code does not meet a requirement, the PRD keeps the requirement, the design states what the code does today, and the gap is a design Open Question for the owner to decide. |
@@ -24,6 +25,10 @@ Decisions about memory capture, storage, and curation. Newest first. Each decisi
 | **ARD-B** | 2026-07-25 | Lessons are stored in mem0 over a local vector database with local embeddings; language-model calls go to DeepSeek, with Gemini as fallback. |
 
 ## Evidence Appendix
+
+### ARD-H
+
+The owner decided on 2026-11-24: "stop hook 只记录chat history 不做summary". The owner then chose to run the summary once per session ("run once"). The code states why: Stop fires after every reply, so capture made one 15-20 s model call per reply (`on-session-end.sh:4-7` at `a91ebbd`). The hook detaches the run because, as its comment says, Claude Code cancels a SessionEnd hook after 1.5 s (`on-session-end.sh:9-12`); newer Claude Code releases may differ. Rejected: keeping capture and close on Stop. Evidence: walter-worker PR #22, merged as `a91ebbd`; the owner's words of 2026-11-24.
 
 ### ARD-G
 
@@ -59,3 +64,4 @@ Local embeddings keep stored vectors on the machine and cost nothing per call; t
 |---|---|---|
 | 0.1 | 2026-11-24 | Created with ARD-A to ARD-E |
 | 0.2 | 2026-11-24 | Review fixes: ARD-F (edit-size authorization for the review-fix pass) and ARD-G (this feature is the authority for current behavior) added |
+| 0.3 | 2026-11-24 | ARD-H added: the summary runs once per session from a SessionEnd hook; the 1.5 s limit attributed to the hook's comment |

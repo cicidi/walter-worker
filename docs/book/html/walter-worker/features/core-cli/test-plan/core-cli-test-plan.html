@@ -32,7 +32,7 @@
       
       <div class="doc-body">
         <h2>Core CLI — Test Plan</h2>
-<p>Each case names the requirement from the <a href="../prd/core-cli-prd.html">PRD</a> it covers and the pytest test that implements it at commit <code>a0f4ce0</code>. Command tests use Click&#x27;s test runner against a temporary home directory.</p>
+<p>Each case names the requirement from the <a href="../prd/core-cli-prd.html">PRD</a> it covers and the pytest test that implements it at commit <code>634adf1</code>. Most command tests use Click&#x27;s test runner and a temporary home directory; some use the real one (design <a class="id-ref" href="../design/core-cli-design.html#QUES-X">QUES-X</a>).</p>
 <h3>Test Cases</h3>
 <div class="table-wrap"><table><thead><tr>
 <th>ID</th>
@@ -127,7 +127,7 @@
 <tr>
 <td><strong id="TST-O"><a class="id-ref" href="#TST-O">TST-O</a></strong></td>
 <td><a class="id-ref" href="../prd/core-cli-prd.html#PRD-I">PRD-I</a></td>
-<td><code>upgrade</code> never discards a user&#x27;s line in a section both the user and the template changed, unless <code>--force</code> is given</td>
+<td>With a merge base, a section both sides changed is kept as a conflict unless <code>--force</code>; without one, its lines are listed before the overwrite (<a class="id-ref" href="../design/core-cli-design.html#QUES-M">QUES-M</a>)</td>
 <td><code>test_semantic_merge.py</code> <code>test_both_changed_is_a_conflict</code>; <code>test_cli.py</code> <code>test_upgrade_without_base_lists_replaced_lines_and_writes_base</code></td>
 </tr>
 <tr>
@@ -149,11 +149,11 @@
 <td>No test yet; fails today (<a class="id-ref" href="../design/core-cli-design.html#QUES-T">QUES-T</a>)</td>
 </tr>
 </tbody></table></div>
-<p>Not covered today: <code>init --global</code> (<a class="id-ref" href="#TST-A">TST-A</a>), an invalid configuration (<a class="id-ref" href="../design/core-cli-design.html#QUES-C">QUES-C</a>), the <code>skill pending</code>, <code>approve</code>, and <code>reject</code> commands at the command level, and <code>status</code> with an active feature beyond a smoke test. Also untested: keys outside <code>extra</code> in the per-tool sections and the unused <code>claude</code> section (<a class="id-ref" href="../design/core-cli-design.html#QUES-P">QUES-P</a>), approving a rejected item (<a class="id-ref" href="../design/core-cli-design.html#QUES-Q">QUES-Q</a>), the <code>--approve-all</code> count with a failing item and the <code>--type</code> filter (<a class="id-ref" href="../design/core-cli-design.html#QUES-R">QUES-R</a>; <code>test_pending.py</code> <code>test_batch_approve</code> covers only items that pass), a skill folder with a subfolder (<a class="id-ref" href="../design/core-cli-design.html#QUES-J">QUES-J</a>), global skills under <code>sync --project</code> (<a class="id-ref" href="../design/core-cli-design.html#QUES-U">QUES-U</a>), <code>restore</code> of a directory outside the backups folder (<a class="id-ref" href="../design/core-cli-design.html#QUES-V">QUES-V</a>), and a skill name containing <code>..</code> (<a class="id-ref" href="../design/core-cli-design.html#QUES-W">QUES-W</a>). Two tests pin today&#x27;s behavior that an open question disputes: <code>test_semantic_merge.py</code> <code>test_non_placeholder_different_body_triggers_overwrite</code> (<a class="id-ref" href="../design/core-cli-design.html#QUES-M">QUES-M</a>) and <code>test_claude_adapter.py</code> <code>test_replace_or_append_truncated_block_appends_after_start</code> (<a class="id-ref" href="../design/core-cli-design.html#QUES-S">QUES-S</a>). The open questions are in the <a href="../design/core-cli-design.html#open-questions">design</a>.</p>
+<p>Not covered today: <code>init --global</code> (<a class="id-ref" href="#TST-A">TST-A</a>), an invalid configuration (<a class="id-ref" href="../design/core-cli-design.html#QUES-C">QUES-C</a>), the <code>skill pending</code>, <code>approve</code>, and <code>reject</code> commands at the command level, and <code>status</code> with an active feature beyond a smoke test. Also untested: keys outside <code>extra</code> in the per-tool sections and the unused <code>claude</code> section (<a class="id-ref" href="../design/core-cli-design.html#QUES-P">QUES-P</a>), approving a rejected item (<a class="id-ref" href="../design/core-cli-design.html#QUES-Q">QUES-Q</a>), the <code>--approve-all</code> count with a failing item and the <code>--type</code> filter (<a class="id-ref" href="../design/core-cli-design.html#QUES-R">QUES-R</a>; <code>test_pending.py</code> <code>test_batch_approve</code> covers only items that pass), a skill folder with a subfolder (<a class="id-ref" href="../design/core-cli-design.html#QUES-J">QUES-J</a>), global skills under <code>sync --project</code> (<a class="id-ref" href="../design/core-cli-design.html#QUES-U">QUES-U</a>), <code>restore</code> of a directory outside the backups folder (<a class="id-ref" href="../design/core-cli-design.html#QUES-V">QUES-V</a>), and a skill name containing <code>..</code> (<a class="id-ref" href="../design/core-cli-design.html#QUES-W">QUES-W</a>). One test pins today&#x27;s behavior that an open question disputes: <code>test_claude_adapter.py</code> <code>test_replace_or_append_truncated_block_appends_after_start</code> (<a class="id-ref" href="../design/core-cli-design.html#QUES-S">QUES-S</a>). The open questions are in the <a href="../design/core-cli-design.html#open-questions">design</a>.</p>
 <h3>Test Execution Order</h3>
 <p>Run <code>test_config.py</code> and <code>test_backup.py</code> first, because every command builds on them. Then the adapter suites, then <code>test_init_command.py</code>, <code>test_upgrade_command.py</code>, <code>test_state_update.py</code>, <code>test_pending.py</code>, and finally <code>test_cli.py</code>.</p>
 <h3>Expected Pass Threshold</h3>
-<p>Every case with a test must pass; the threshold is 100%. <a class="id-ref" href="#TST-A">TST-A</a> and <a class="id-ref" href="#TST-G">TST-G</a> have no test, so <a class="id-ref" href="../prd/core-cli-prd.html#PRD-A">PRD-A</a> and <a class="id-ref" href="../prd/core-cli-prd.html#PRD-E">PRD-E</a> are not yet verified by automation. <a class="id-ref" href="#TST-N">TST-N</a> to <a class="id-ref" href="#TST-R">TST-R</a> have no test and would fail against the code at <code>a0f4ce0</code>; each is tied to a blocking open question.</p>
+<p>Every case with a test must pass; the threshold is 100%. <a class="id-ref" href="#TST-A">TST-A</a> and <a class="id-ref" href="#TST-G">TST-G</a> have no test, so <a class="id-ref" href="../prd/core-cli-prd.html#PRD-A">PRD-A</a> and <a class="id-ref" href="../prd/core-cli-prd.html#PRD-E">PRD-E</a> are not yet verified by automation. <a class="id-ref" href="#TST-N">TST-N</a>, <a class="id-ref" href="#TST-P">TST-P</a>, <a class="id-ref" href="#TST-Q">TST-Q</a>, and <a class="id-ref" href="#TST-R">TST-R</a> have no test and would fail today. <a class="id-ref" href="#TST-P">TST-P</a> to <a class="id-ref" href="#TST-R">TST-R</a> are tied to blocking open questions, and <a class="id-ref" href="#TST-N">TST-N</a> to the non-blocking <a class="id-ref" href="../design/core-cli-design.html#QUES-L">QUES-L</a>.</p>
 <h3>Traceability</h3>
 <div class="table-wrap"><table><thead><tr>
 <th>Requirement</th>
@@ -224,6 +224,11 @@
 <td>0.3</td>
 <td>2026-11-24</td>
 <td>Review fixes: <a class="id-ref" href="#TST-J">TST-J</a> no longer cites the staging-limit test; <a class="id-ref" href="#TST-K">TST-K</a> says &quot;stops without writing&quot;; <a class="id-ref" href="#TST-N">TST-N</a> to <a class="id-ref" href="#TST-R">TST-R</a> added for the blocking gaps; untested behavior extended (<a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-F">ARD-F</a>)</td>
+</tr>
+<tr>
+<td>0.4</td>
+<td>2026-11-24</td>
+<td>Commit <code>634adf1</code>; <a class="id-ref" href="#TST-O">TST-O</a> matches its tests; threshold and pinned-test notes corrected; <a class="id-ref" href="../design/core-cli-design.html#QUES-X">QUES-X</a> noted</td>
 </tr>
 </tbody></table></div>
       </div>

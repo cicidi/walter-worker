@@ -32,7 +32,7 @@
       
       <div class="doc-body">
         <h2>Setup and Deploy — Implementation Plan</h2>
-<p>This plan was written after the scripts shipped. Each task below records a unit of work that exists at commit <code>a0f4ce0</code>, what it depends on, what it blocks, and the test that proves it is done. Behavior is defined in the <a href="../design/setup-deploy-design.html">design</a>; this plan does not restate it.</p>
+<p>This plan was written after the scripts shipped. Each task below records a unit of work that exists at commit <code>634adf1</code>, what it depends on, what it blocks, and the test that proves it is done. Behavior is defined in the <a href="../design/setup-deploy-design.html">design</a>; this plan does not restate it.</p>
 <h3>Global Constraints</h3>
 <p>The scripts run under <code>set -euo pipefail</code>, so an unguarded failing command aborts the install. Steps that may fail without stopping the install are guarded explicitly and warn instead; <a class="id-ref" href="../design/setup-deploy-design.html#DSGN-H">DSGN-H</a> lists them. Python embedded in the scripts sits inside double-quoted bash strings and must contain no double quote, backtick, or dollar-parenthesis. The scripts must run on bash 3.2, so they use indexed arrays only. Every path the installer writes must be claimed in the manifest by name (<a class="id-ref" href="../design/setup-deploy-design.html#DSGN-E">DSGN-E</a>).</p>
 <h3>Acceptance Criteria</h3>
@@ -40,22 +40,22 @@
 <h3>Execution order</h3>
 <p><a class="id-ref" href="#IMPL-A">IMPL-A</a> first, because every later task writes paths that <a class="id-ref" href="#IMPL-A">IMPL-A</a> must be able to record and prune. <a class="id-ref" href="#IMPL-B">IMPL-B</a> and <a class="id-ref" href="#IMPL-C">IMPL-C</a> can proceed in parallel after it. <a class="id-ref" href="#IMPL-D">IMPL-D</a> depends on <a class="id-ref" href="#IMPL-A">IMPL-A</a>&#x27;s manifest format. <a class="id-ref" href="#IMPL-E">IMPL-E</a> and <a class="id-ref" href="#IMPL-F">IMPL-F</a> depend on the manifest that <a class="id-ref" href="#IMPL-A">IMPL-A</a> writes.</p>
 <h3 id="IMPL-A"><a class="id-ref" href="#IMPL-A">IMPL-A</a> — Manifest by name</h3>
-<p>Write <code>~/.coworker/install-manifest.json</code> with <code>schema_version: 2</code>, claiming each written path by name, and prune paths the previous manifest claimed that this run did not produce (<a class="id-ref" href="../design/setup-deploy-design.html#DSGN-E">DSGN-E</a>). Depends on nothing. Blocks <a class="id-ref" href="#IMPL-D">IMPL-D</a>, <a class="id-ref" href="#IMPL-E">IMPL-E</a>, and <a class="id-ref" href="#IMPL-F">IMPL-F</a>.</p>
+<p>Write <code>~/.coworker/install-manifest.json</code> with <code>schema_version: 2</code>, claiming each written path by name, and prune paths the previous manifest claimed that this run did not produce (<a class="id-ref" href="../design/setup-deploy-design.html#DSGN-E">DSGN-E</a>). Depends on: nothing. Blocks: <a class="id-ref" href="#IMPL-B">IMPL-B</a>, <a class="id-ref" href="#IMPL-C">IMPL-C</a>, <a class="id-ref" href="#IMPL-D">IMPL-D</a>, <a class="id-ref" href="#IMPL-E">IMPL-E</a>, and <a class="id-ref" href="#IMPL-F">IMPL-F</a>.</p>
 <p>Verify: <a href="../../../../../../../tests/setup/test_install.bats"><code>tests/setup/test_install.bats</code></a> cases &quot;retires a path an earlier install claimed and this one does not&quot; and &quot;leaves a skill this installer never wrote alone&quot; pass.</p>
 <h3 id="IMPL-B"><a class="id-ref" href="#IMPL-B">IMPL-B</a> — Pristine snapshot and global CLAUDE.md</h3>
-<p>Take the one-time snapshot with its <code>.taken</code> marker and <code>absent.txt</code>, and create <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> only when missing (<a class="id-ref" href="../design/setup-deploy-design.html#DSGN-B">DSGN-B</a>). Depends on <a class="id-ref" href="#IMPL-A">IMPL-A</a> for the rule that the manifest claims <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> only when this run created it. Blocks <a class="id-ref" href="#IMPL-F">IMPL-F</a>&#x27;s restore path.</p>
+<p>Take the one-time snapshot with its <code>.taken</code> marker and <code>absent.txt</code>, and create <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> only when missing (<a class="id-ref" href="../design/setup-deploy-design.html#DSGN-B">DSGN-B</a>). Depends on: <a class="id-ref" href="#IMPL-A">IMPL-A</a> for the rule that the manifest claims <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> once an install created it. Blocks: <a class="id-ref" href="#IMPL-F">IMPL-F</a>&#x27;s restore path.</p>
 <p>Verify: <code>test_uninstall.bats</code> &quot;a pristine snapshot is taken even when the files do not exist yet&quot; and <code>test_install.bats</code> &quot;preserves existing global CLAUDE.md&quot; pass.</p>
 <h3 id="IMPL-C"><a class="id-ref" href="#IMPL-C">IMPL-C</a> — Skill deployment</h3>
-<p>Deploy the-super-lab skills to the three tools and bundle skills as commands, skipping same-file destinations and retiring identical command copies (<a class="id-ref" href="../design/setup-deploy-design.html#DSGN-C">DSGN-C</a>). Depends on <a class="id-ref" href="#IMPL-A">IMPL-A</a>. Blocks nothing.</p>
+<p>Deploy the-super-lab skills to the three tools and bundle skills as commands, skipping same-file destinations and retiring identical command copies (<a class="id-ref" href="../design/setup-deploy-design.html#DSGN-C">DSGN-C</a>). Depends on: <a class="id-ref" href="#IMPL-A">IMPL-A</a>. Blocks: nothing.</p>
 <p>Verify: <code>test_install.bats</code> &quot;deploys the-super-lab skills to the three harnesses&quot;, &quot;a skill directory symlinked back to the source does not abort the install&quot;, and &quot;a the-super-lab skill named in --skills is not also written as a command&quot; pass.</p>
 <h3 id="IMPL-D"><a class="id-ref" href="#IMPL-D">IMPL-D</a> — Hook registration</h3>
-<p>Merge the seven hook commands into <code>settings.json</code> without duplicating any (<a class="id-ref" href="../design/setup-deploy-design.html#DSGN-D">DSGN-D</a>). Depends on <a class="id-ref" href="#IMPL-A">IMPL-A</a> for claiming the hook scripts. Blocks <a class="id-ref" href="#IMPL-F">IMPL-F</a>&#x27;s hook removal.</p>
-<p>Verify: <code>test_install.bats</code> &quot;no shipped on-* hook is left unregistered&quot; and &quot;does not add a second capture hook when one is present&quot; pass.</p>
+<p>Merge the six hook commands into <code>settings.json</code> without duplicating any, and take the old capture and close steps off Stop (<a class="id-ref" href="../design/setup-deploy-design.html#DSGN-D">DSGN-D</a>). Depends on: <a class="id-ref" href="#IMPL-A">IMPL-A</a> for claiming the hook scripts. Blocks: <a class="id-ref" href="#IMPL-F">IMPL-F</a>&#x27;s hook removal.</p>
+<p>Verify: <code>test_install.bats</code> &quot;no shipped on-* hook is left unregistered&quot;, &quot;does not add a second SessionEnd hook when one is present&quot;, and &quot;takes an earlier install&#x27;s capture and close off Stop, keeping the user&#x27;s hooks&quot; pass.</p>
 <h3 id="IMPL-E"><a class="id-ref" href="#IMPL-E">IMPL-E</a> — Update replays the recorded answers</h3>
-<p>Read the mode and command selection from the manifest and pass them to the installer (<a class="id-ref" href="../design/setup-deploy-design.html#DSGN-F">DSGN-F</a>). Depends on <a class="id-ref" href="#IMPL-A">IMPL-A</a>. Blocks nothing.</p>
+<p>Read the mode and command selection from the manifest and pass them to the installer (<a class="id-ref" href="../design/setup-deploy-design.html#DSGN-F">DSGN-F</a>). Depends on: <a class="id-ref" href="#IMPL-A">IMPL-A</a>. Blocks: nothing.</p>
 <p>Verify: <code>test_update.bats</code> &quot;resolves the install mode from the manifest, not coworker.yaml&quot; and &quot;update reuses the recorded skill selection instead of re-asking&quot; pass.</p>
 <h3 id="IMPL-F"><a class="id-ref" href="#IMPL-F">IMPL-F</a> — Uninstall reverses the manifest</h3>
-<p>Remove claimed paths and walter-worker hooks, refuse a version-1 manifest, and support <code>--restore-pristine</code> (<a class="id-ref" href="../design/setup-deploy-design.html#DSGN-G">DSGN-G</a>). Depends on <a class="id-ref" href="#IMPL-A">IMPL-A</a>, <a class="id-ref" href="#IMPL-B">IMPL-B</a>, and <a class="id-ref" href="#IMPL-D">IMPL-D</a>. Blocks nothing.</p>
+<p>Remove claimed paths and walter-worker hooks, refuse a version-1 manifest, and support <code>--restore-pristine</code> (<a class="id-ref" href="../design/setup-deploy-design.html#DSGN-G">DSGN-G</a>). Depends on: <a class="id-ref" href="#IMPL-A">IMPL-A</a>, <a class="id-ref" href="#IMPL-B">IMPL-B</a>, and <a class="id-ref" href="#IMPL-D">IMPL-D</a>. Blocks: nothing.</p>
 <p>Verify: <code>test_uninstall.bats</code> &quot;refuses to remove files from a pre-schema_version manifest&quot;, &quot;uninstall keeps the user&#x27;s own CLAUDE.md and their own hooks&quot;, and &quot;install saves a pristine snapshot that uninstall can restore&quot; pass.</p>
 <h3>Change Log</h3>
 <div class="table-wrap"><table><thead><tr>
@@ -77,6 +77,11 @@
 <td>0.3</td>
 <td>2026-11-24</td>
 <td>Global Constraints corrected; Acceptance Criteria gated on the blocking open questions (<a class="id-ref" href="../decision-history/setup-deploy-decision-history.html#ARD-E">ARD-E</a>)</td>
+</tr>
+<tr>
+<td>0.4</td>
+<td>2026-11-24</td>
+<td><a class="id-ref" href="#IMPL-D">IMPL-D</a> after PR #22 (six hooks, tests renamed); Depends on and Blocks labels; <a class="id-ref" href="#IMPL-A">IMPL-A</a> blocks <a class="id-ref" href="#IMPL-B">IMPL-B</a> and <a class="id-ref" href="#IMPL-C">IMPL-C</a></td>
 </tr>
 </tbody></table></div>
       </div>

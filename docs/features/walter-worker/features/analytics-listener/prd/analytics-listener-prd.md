@@ -13,7 +13,7 @@ last_verified: 2026-11-24
 
 The analytics listener records what happens in Claude Code sessions so that walter-worker can later show statistics, summarize sessions, and learn from them. It has two halves. Hooks (commands Claude Code runs on events such as "the user sent a prompt" or "a tool finished") append records to per-session files under `~/.coworker/analytics/sessions/<session id>/`. Importers then load those files, and Claude Code's own session transcripts, into a local SQLite database at `~/.coworker/analytics/analytics.db`, which the [analytics dashboard](../../analytics-dashboard/prd/analytics-dashboard-prd.md) and the [memory platform](../../../../memory-platform/prd/memory-platform-prd.md) read. A third, smaller hook watches prompts for signs that the user is correcting the agent and writes a draft note when it finds one. OpenCode, another AI coding tool in the terminal, is covered only through the session metadata it keeps itself.
 
-This document states what the listener must do. The [design](../design/analytics-listener-design.md) states how it behaves today, including where the code does not yet meet a requirement. Facts were checked against the code at commit `a0f4ce0`.
+This document states what the listener must do. The [design](../design/analytics-listener-design.md) states how it behaves today, including where the code does not yet meet a requirement. Facts were checked against the code at commit `a0f4ce0`, and against `634adf1` for walter-worker PRs #22 and #23.
 
 ## Goals and Success Metrics
 
@@ -46,7 +46,7 @@ As a developer, I want my session data kept locally and easy to find, so that I 
 
 ## Out of Scope
 
-The web dashboard is the [analytics dashboard](../../analytics-dashboard/prd/analytics-dashboard-prd.md) feature. Session summaries, knowledge cards (`coworker knowledge`), the memory curator, and the other `Stop` hooks (`coworker memory capture` and `coworker memory close`) belong to the [memory platform](../../../../memory-platform/prd/memory-platform-prd.md) feature. Registering the hooks is done by the installer ([setup-deploy](../../setup-deploy/prd/setup-deploy-prd.md)). Gemini CLI sessions are not recorded.
+The web dashboard is the [analytics dashboard](../../analytics-dashboard/prd/analytics-dashboard-prd.md) feature. Session summaries, knowledge cards (`coworker knowledge`), the memory curator, and the `SessionEnd` hook that runs `coworker memory capture` and `coworker memory close` belong to the [memory platform](../../../../memory-platform/prd/memory-platform-prd.md) feature. Registering the hooks is done by the installer ([setup-deploy](../../setup-deploy/prd/setup-deploy-prd.md)). Gemini CLI sessions are not recorded.
 
 ## Resources Needed
 
@@ -59,3 +59,4 @@ bash and python3 for the hooks; Python with the walter-worker package for the im
 | 0.1 | 2026-11-04 | Draft (never committed) |
 | 0.2 | 2026-11-24 | Rewritten from the code at `a0f4ce0`; the false OpenCode plugin and `index.jsonl` claims removed (ARD-A) |
 | 0.3 | 2026-11-24 | Review fixes: memory platform linked, OpenCode explained; requirements unchanged (ARD-D, ARD-E) |
+| 0.4 | 2026-11-24 | Out of Scope names the SessionEnd hook (walter-worker PR #22); facts rechecked at `634adf1` |

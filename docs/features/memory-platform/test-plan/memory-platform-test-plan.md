@@ -9,13 +9,13 @@ last_verified: 2026-11-24
 
 # Memory Platform — Test Plan
 
-Each case names the requirement from the [PRD](../prd/memory-platform-prd.md) it covers and the test that implements it at commit `a0f4ce0`. The tests named below are mocked: the language model and mem0 are replaced, so they make no outside call and need no key. Some of the same files also hold key-gated tests. Tests marked `real` call DeepSeek when `DEEPSEEK_API_KEY` is set and are skipped otherwise. Tests marked `integration` use the real mem0 store under the user's home folder and are skipped when mem0 is not configured. No case below relies on a key-gated test.
+Each case names the requirement from the [PRD](../prd/memory-platform-prd.md) it covers and the test that implements it at commit `634adf1`. The tests named below are mocked: the language model and mem0 are replaced, so they make no outside call and need no key. Some of the same files also hold key-gated tests. Tests marked `real` call DeepSeek when `DEEPSEEK_API_KEY` is set and are skipped otherwise. Tests marked `integration` use the real mem0 store under the user's home folder and are skipped when mem0 is not configured. No case below relies on a key-gated test.
 
 ## Test Cases
 
 | ID | Covers | Case | Test |
 |---|---|---|---|
-| **TST-A** | PRD-A | Capture without a configured key stays quiet, empty input is an error, the skill threshold is configurable, and memories carry the real project | `tests/python/test_cli.py` `test_unconfigured_mem0_skips_quietly`, `test_empty_stdin_is_an_error_not_a_silent_pass`; `tests/python/test_capture.py` `TestSkillThresholdIsConfigurable`, `TestMemoriesAreTaggedWithTheRealProject` |
+| **TST-A** | PRD-A | Capture without a configured key stays quiet, empty input is an error, the skill threshold is configurable, and memories carry the real project | `tests/python/test_cli.py` `test_unconfigured_mem0_skips_quietly`, `test_empty_stdin_is_an_error_not_a_silent_pass`; `tests/python/test_capture.py` `TestSkillThresholdIsConfigurable`, `TestMemoriesAreTaggedWithTheRealProject`; `tests/hooks/on-session-end.bats` "runs capture with the payload, then close", "returns before the summary finishes" |
 | **TST-B** | PRD-B | Nodes are folded, edges are weighted, writes are atomic, and a named session merges only its own dump | `tests/memory/test_graph_core.py` `TestNodeDedup`, `TestEdgeEnrichment`, `TestAtomicWrite`; `tests/python/test_cli.py` `test_a_named_session_processes_only_that_dump` |
 | **TST-C** | PRD-C | Queries respect the budget and the minimum score, and vector search works without a graph | `tests/memory/test_query_quality.py` `test_budget_zero_returns_nothing`, `TestMinScoreFiltering`; `tests/python/test_cli.py` `TestQueryVectorDoesNotNeedAGraph` |
 | **TST-D** | PRD-D | The due check works, decay runs, imported old sessions are pruned, and the hook path stays quiet | `tests/python/test_curator.py` `TestDueCheck`, `TestDecayActuallyRuns`, `test_an_imported_old_session_is_pruned`; `tests/python/test_cli.py` `test_curate_stays_quiet_on_the_hook_path` |
@@ -26,7 +26,7 @@ Each case names the requirement from the [PRD](../prd/memory-platform-prd.md) it
 | **TST-I** | PRD-I | `init` refuses to overwrite a populated graph, and Graphify sync imports nodes and edges while keeping existing weights | `tests/python/test_cli.py` `test_refuses_to_overwrite_a_populated_graph`; `tests/memory/test_graph_core.py` `TestGraphifySync`, `TestGraphifyEdgeCases` |
 | **TST-J** | PRD-J | Wrong-history entries keep their continuation lines | `tests/python/test_wrong_history.py` `test_the_continuation_is_kept` |
 
-Not covered today: a dump with invalid values (QUES-A), concurrent merges (QUES-B), a damaged `graph.json` (QUES-C), and the wrong-history commands run from another folder (QUES-F). Also not covered: capture and merge repeated on every turn (QUES-I), edges of a folded node (QUES-J), a locked Qdrant store during capture (QUES-K), and capture outlasting the hook time limit (QUES-L). The open questions are in the [design](../design/memory-platform-design.md#open-questions).
+Not covered today: a dump with invalid values (QUES-A), concurrent merges (QUES-B), a damaged `graph.json` (QUES-C), and the wrong-history commands run from another folder (QUES-F). Also not covered: edges of a folded node (QUES-J), a locked Qdrant store during capture (QUES-K), and a capture run that never ends, since it has no time limit (QUES-L). The open questions are in the [design](../design/memory-platform-design.md#open-questions).
 
 ## Test Execution Order
 
@@ -58,3 +58,4 @@ Every mocked test named in a case must pass; the threshold is 100%. A skipped te
 | 0.1 | 2026-11-04 | Draft (never committed) |
 | 0.2 | 2026-11-24 | Rewritten with one case per requirement, mapped to tests, untested behavior listed (ARD-A) |
 | 0.3 | 2026-11-24 | Review fixes: only mocked tests cited, key-gated tests and skips explained, `test_min_score_filters_quality` replaced by `TestMinScoreFiltering`, Graphify sync tests added to TST-I, new gaps listed (ARD-D, ARD-F) |
+| 0.4 | 2026-11-24 | PR #22 merged: TST-A cites the SessionEnd hook tests; QUES-I left the untested list (ARD-H); commit `634adf1` |

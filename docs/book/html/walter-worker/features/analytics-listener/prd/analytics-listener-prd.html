@@ -34,7 +34,7 @@
         <h2>Analytics Listener — PRD</h2>
 <h3>Overview</h3>
 <p>The analytics listener records what happens in Claude Code sessions so that walter-worker can later show statistics, summarize sessions, and learn from them. It has two halves. Hooks (commands Claude Code runs on events such as &quot;the user sent a prompt&quot; or &quot;a tool finished&quot;) append records to per-session files under <code>~/.coworker/analytics/sessions/&lt;session id&gt;/</code>. Importers then load those files, and Claude Code&#x27;s own session transcripts, into a local SQLite database at <code>~/.coworker/analytics/analytics.db</code>, which the <a href="../../analytics-dashboard/prd/analytics-dashboard-prd.html">analytics dashboard</a> and the <a href="../../../../memory-platform/prd/memory-platform-prd.html">memory platform</a> read. A third, smaller hook watches prompts for signs that the user is correcting the agent and writes a draft note when it finds one. OpenCode, another AI coding tool in the terminal, is covered only through the session metadata it keeps itself.</p>
-<p>This document states what the listener must do. The <a href="../design/analytics-listener-design.html">design</a> states how it behaves today, including where the code does not yet meet a requirement. Facts were checked against the code at commit <code>a0f4ce0</code>.</p>
+<p>This document states what the listener must do. The <a href="../design/analytics-listener-design.html">design</a> states how it behaves today, including where the code does not yet meet a requirement. Facts were checked against the code at commit <code>a0f4ce0</code>, and against <code>634adf1</code> for walter-worker PRs #22 and #23.</p>
 <h3>Goals and Success Metrics</h3>
 <div class="table-wrap"><table><thead><tr>
 <th>Goal</th>
@@ -96,7 +96,7 @@
 </tr>
 </tbody></table></div>
 <h3>Out of Scope</h3>
-<p>The web dashboard is the <a href="../../analytics-dashboard/prd/analytics-dashboard-prd.html">analytics dashboard</a> feature. Session summaries, knowledge cards (<code>coworker knowledge</code>), the memory curator, and the other <code>Stop</code> hooks (<code>coworker memory capture</code> and <code>coworker memory close</code>) belong to the <a href="../../../../memory-platform/prd/memory-platform-prd.html">memory platform</a> feature. Registering the hooks is done by the installer (<a href="../../setup-deploy/prd/setup-deploy-prd.html">setup-deploy</a>). Gemini CLI sessions are not recorded.</p>
+<p>The web dashboard is the <a href="../../analytics-dashboard/prd/analytics-dashboard-prd.html">analytics dashboard</a> feature. Session summaries, knowledge cards (<code>coworker knowledge</code>), the memory curator, and the <code>SessionEnd</code> hook that runs <code>coworker memory capture</code> and <code>coworker memory close</code> belong to the <a href="../../../../memory-platform/prd/memory-platform-prd.html">memory platform</a> feature. Registering the hooks is done by the installer (<a href="../../setup-deploy/prd/setup-deploy-prd.html">setup-deploy</a>). Gemini CLI sessions are not recorded.</p>
 <h3>Resources Needed</h3>
 <p>bash and python3 for the hooks; Python with the walter-worker package for the importers; SQLite through Python&#x27;s standard library. Tests are pytest suites under <code>tests/analytics/</code> and <code>tests/python/</code> plus bats tests under <code>tests/hooks/</code>.</p>
 <h3>Change Log</h3>
@@ -119,6 +119,11 @@
 <td>0.3</td>
 <td>2026-11-24</td>
 <td>Review fixes: memory platform linked, OpenCode explained; requirements unchanged (<a class="id-ref" href="../decision-history/analytics-listener-decision-history.html#ARD-D">ARD-D</a>, <a class="id-ref" href="../decision-history/analytics-listener-decision-history.html#ARD-E">ARD-E</a>)</td>
+</tr>
+<tr>
+<td>0.4</td>
+<td>2026-11-24</td>
+<td>Out of Scope names the SessionEnd hook (walter-worker PR #22); facts rechecked at <code>634adf1</code></td>
 </tr>
 </tbody></table></div>
       </div>

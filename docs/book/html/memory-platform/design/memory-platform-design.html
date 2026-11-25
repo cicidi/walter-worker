@@ -32,27 +32,28 @@
       
       <div class="doc-body">
         <h2>Memory Platform — Design</h2>
-<p>Requirements are in the <a href="../prd/memory-platform-prd.html">PRD</a>. Decisions are in the <a href="../decision-history/memory-platform-decision-history.html">decision history</a>. Behavior below was read from the code at commit <code>a0f4ce0</code>. Where it does not meet a requirement, the gap is an Open Question (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-D">ARD-D</a>). This design is the authority for the memory code&#x27;s current behavior; the older memory documents under <code>self-evolving-agent</code> are design history (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-G">ARD-G</a>).</p>
+<p>Requirements are in the <a href="../prd/memory-platform-prd.html">PRD</a>. Decisions are in the <a href="../decision-history/memory-platform-decision-history.html">decision history</a>. Behavior below was read from the code at commit <code>a0f4ce0</code>, and capture&#x27;s trigger from <code>634adf1</code>, after walter-worker PR #22. Each <code>file:line</code> citation names its commit. Where it does not meet a requirement, the gap is an Open Question (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-D">ARD-D</a>). This design is the authority for the memory code&#x27;s current behavior; the older memory documents under <code>self-evolving-agent</code> are design history (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-G">ARD-G</a>).</p>
 <p>This feature implements <a class="id-ref" href="../prd/memory-platform-prd.html#PRD-E">PRD-E</a> of the <a href="../../walter-worker/prd/walter-worker-prd.html">parent walter-worker PRD</a>, the rule that lessons are kept across sessions and curated. It also follows the parent&#x27;s <a class="id-ref" href="../prd/memory-platform-prd.html#PRD-G">PRD-G</a>, which says no component blocks a session through its own failure, and <a class="id-ref" href="../prd/memory-platform-prd.html#PRD-H">PRD-H</a>, which says session content leaves the machine only where a design documents it. The rules shared by every area are in the <a href="../../walter-worker/design/walter-worker-design.html">parent design</a>. Terms such as turn, Stop hook, mem0, Qdrant, and Graphify are defined in its <a href="../../walter-worker/design/walter-worker-design.html#glossary">glossary</a>.</p>
 <h3>Problem Statement</h3>
 <p>Each Claude Code session starts from nothing. Corrections, conventions, and hard-won fixes from earlier sessions are lost unless someone writes them down, and a pile of notes nobody prunes becomes noise.</p>
 <h3>Solution</h3>
-<p>Two stores with different strengths. The vector store, mem0 over a local Qdrant database with local embeddings, holds short lessons and finds them by meaning. The knowledge graph, one JSON file, holds typed nodes (code, documents, sessions, decision points, concepts) and typed edges, which can answer &quot;what is connected to this file&quot;. Capture writes to both stores. It runs as a Stop hook, so it runs after every turn rather than once at session end (<a class="id-ref" href="#QUES-I">QUES-I</a>). The graph side goes through a pending dump that a separate merge step folds in, so a slow or failed merge never delays capture. A curator ages the vector store weekly. Graph edges added by capture fade with time, but edges imported from Graphify never fade (<a class="id-ref" href="#DSGN-C">DSGN-C</a>).</p>
+<p>Two stores with different strengths. The vector store, mem0 over a local Qdrant database with local embeddings, holds short lessons and finds them by meaning. The knowledge graph, one JSON file, holds typed nodes (code, documents, sessions, decision points, concepts) and typed edges, which can answer &quot;what is connected to this file&quot;. Capture writes to both stores. It runs once per session, after the session ends, from a SessionEnd hook that detaches it (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-H">ARD-H</a>). The graph side goes through a pending dump that a separate merge step folds in, so a slow or failed merge never delays capture. A curator ages the vector store weekly. Graph edges added by capture fade with time, but edges imported from Graphify never fade (<a class="id-ref" href="#DSGN-C">DSGN-C</a>).</p>
 <h3>User Stories</h3>
 <p>The user stories are in the <a href="../prd/memory-platform-prd.html#user-stories">PRD</a>.</p>
 <h3>Implementation Decisions</h3>
-<p>Language-model calls go to DeepSeek first and fall back to Gemini; embeddings are computed locally, so stored vectors never leave the machine (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-B">ARD-B</a>). Graph writes are atomic (temporary file, then rename) (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-C">ARD-C</a>). Capture and merge are two Stop hooks rather than one, so capture can return quickly. Claude Code starts all hooks registered for one event at the same time (<a href="https://docs.claude.com/en/docs/claude-code/hooks">hooks docs</a>), so the two run side by side, not one after the other.</p>
+<p>Language-model calls go to DeepSeek first and fall back to Gemini; embeddings are computed locally, so stored vectors never leave the machine (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-B">ARD-B</a>). Graph writes are atomic (temporary file, then rename) (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-C">ARD-C</a>). Capture and merge are two commands. One detached shell runs capture and then merge, so the merge folds in the dump that capture just wrote (<a class="id-ref" href="#DSGN-B">DSGN-B</a>, <a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-H">ARD-H</a>).</p>
 <h3>Design</h3>
-<h4 id="DSGN-A"><a class="id-ref" href="#DSGN-A">DSGN-A</a> — Capture after every turn</h4>
-<p>The installer registers <code>coworker memory capture</code> as a Stop hook and sets no time limit of its own. Claude Code fires the Stop event each time the agent finishes a reply, so capture runs once per turn, not once per session. The analytics hook <code>on-stop.sh</code>, which is registered on the same event, says so in its own comment at <code>a0f4ce0</code>. A command hook without a time limit gets Claude Code&#x27;s default limit of 60 seconds (<a href="https://docs.claude.com/en/docs/claude-code/hooks">hooks docs</a>).</p>
-<p>Capture reads the hook payload from standard input. It needs a session id and a transcript path. Empty or malformed input, or a missing field, is an error with exit status 1. Capture then sets up the vector store. If mem0 is not installed, that is an error with exit status 1, even when no key is set (<a class="id-ref" href="#QUES-E">QUES-E</a>). Every other setup failure makes capture return quietly with status 0 and write nothing, not even an audit line. A missing <code>DEEPSEEK_API_KEY</code> is one such failure. A local Qdrant store that another process holds open is another, and it happens when two sessions stop at once or when the curator opens the store at the same stop (<a class="id-ref" href="#QUES-K">QUES-K</a>).</p>
-<p>Capture reads the last 50,000 characters of the transcript. It makes one language-model call that asks for lessons, candidate skills, and graph facts as JSON. Each lesson is stored in the vector store, tagged with the project, which is the name of the transcript&#x27;s working folder. Each candidate skill reported with at least ten tool calls is staged for approval, subject to <a class="id-ref" href="#DSGN-F">DSGN-F</a>; <code>COWORKER_SKILL_THRESHOLD</code> changes the number. The graph facts are written atomically to <code>~/.coworker/memory/pending/&lt;session id&gt;.json</code>. One line goes to <code>~/.coworker/memory/audit.log</code>. A failed lesson write, skill staging, or dump write is logged, and capture continues.</p>
-<p>Because capture runs every turn, each turn sends the transcript tail to the provider again. Each turn also stores its lessons again and stages its skill candidates again. Every staging counts against the limit of three per day, even when it is the same candidate. Each turn overwrites the session&#x27;s pending dump, and <code>close</code> merges it again (<a class="id-ref" href="#DSGN-B">DSGN-B</a>). Whether mem0 recognizes a repeated lesson is UNKNOWN. This gap is <a class="id-ref" href="#QUES-I">QUES-I</a>.</p>
-<p>Three more failures exit with status 1 at every stop where they happen. They are an unreadable transcript, a provider failure, and a reply that is not valid JSON. The last one includes the case where DeepSeek returns only its reasoning text, which the client passes on with the prefix <code>[reasoning]</code>. Provider and JSON failures write an audit line marked <code>error</code>; an unreadable transcript writes none. The parent design&#x27;s first shared rule says a hook ignores its own failures, and these exits do not meet it (<a class="id-ref" href="#QUES-O">QUES-O</a>).</p>
-<p>The model client gives each request a 30-second limit. It tries each provider up to three times and waits 1 and then 2 seconds between tries. If every try times out, one provider takes 93 seconds. When the Gemini fallback is configured and also times out, the call takes 186 seconds. The OpenAI library that sends the requests adds its own retries to each try (two by default in the installed version 2.48.0), so the real worst case is longer. Each stored lesson adds a mem0 write with up to three tries, and each try makes mem0&#x27;s own DeepSeek call, whose time limit is UNKNOWN. A slow provider can therefore outlast the 60-second hook limit. Claude Code then stops capture. If that happens before the dump is written, the turn&#x27;s graph facts are lost (<a class="id-ref" href="#QUES-L">QUES-L</a>).</p>
-<p>These rules implement <a class="id-ref" href="../prd/memory-platform-prd.html#PRD-A">PRD-A</a>, except for the mem0-not-installed case, the silent setup failures, the runs on every turn, and the exit-1 paths.</p>
+<a id="dsgn-a-capture-after-every-turn"></a>
+<h4 id="DSGN-A"><a class="id-ref" href="#DSGN-A">DSGN-A</a> — Capture once per session</h4>
+<p>The installer registers <code>on-session-end.sh</code> as a SessionEnd hook, and removes each Stop hook made only of the old capture and close steps; a mixed hook is kept (<code>setup/install.sh:687-700</code> at <code>634adf1</code>, setup-deploy <a class="id-ref" href="#QUES-K">QUES-K</a>). The hook saves its payload to a temporary file, starts capture and then close as a detached run, and exits 0 at once (<code>on-session-end.sh:13-21</code> at <code>634adf1</code>). It uses <code>setsid</code>, or <code>nohup</code> where <code>setsid</code> is missing, so the run is meant to outlive the hook and <code>claude</code> (<code>on-session-end.sh:9-12</code>); no test checks this, and on the <code>nohup</code> path it is UNKNOWN. Capture therefore runs once per SessionEnd event, and no time limit applies to it (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-H">ARD-H</a>). Its exit status and output go nowhere.</p>
+<p>Capture reads the hook payload from standard input. It needs a session id and a transcript path. Empty or malformed input, or a missing field, is an error with exit status 1. Capture then sets up the vector store. If mem0 is not installed, that is an error with exit status 1, even when no key is set (<a class="id-ref" href="#QUES-E">QUES-E</a>). Every other setup failure makes capture return quietly with status 0 and write nothing, not even an audit line. A missing <code>DEEPSEEK_API_KEY</code> is one such failure. A local Qdrant store that another process holds open is another, and it happens when two sessions end at once, or when a curator run opens the store at the same time (<a class="id-ref" href="#QUES-K">QUES-K</a>).</p>
+<p>Capture reads the last 50,000 characters of the transcript. It makes one language-model call that asks for lessons, candidate skills, and graph facts as JSON. Each lesson is stored in the vector store, tagged with the project, which is the name of the transcript&#x27;s working folder. Each candidate skill reported with at least ten tool calls is staged for approval, subject to <a class="id-ref" href="#DSGN-F">DSGN-F</a>; <code>COWORKER_SKILL_THRESHOLD</code> changes the number. The graph facts are written atomically to <code>~/.coworker/memory/pending/&lt;session id&gt;.json</code>. One line goes to <code>~/.coworker/memory/audit.log</code>. A failed lesson write, skill staging, or dump write goes to standard error, which the detached run discards, and capture continues.</p>
+<p>Capture runs once per SessionEnd event (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-H">ARD-H</a>). Whether a resumed session fires SessionEnd again, and so sends its transcript again, is UNKNOWN. Each run stores its lessons and stages its skill candidates once. Every staging counts against the limit of three per day (<a class="id-ref" href="#DSGN-F">DSGN-F</a>). <code>close</code> then merges the session&#x27;s pending dump once (<a class="id-ref" href="#DSGN-B">DSGN-B</a>). This answers <a class="id-ref" href="#QUES-I">QUES-I</a>.</p>
+<p>Three more failures make capture exit with status 1. They are an unreadable transcript, a provider failure, and a reply that is not valid JSON. The last one includes the case where DeepSeek returns only its reasoning text, which the client passes on with the prefix <code>[reasoning]</code>. Provider and JSON failures write an audit line marked <code>error</code>; an unreadable transcript writes none. The hook exits 0 whatever capture returns, so the parent design&#x27;s first shared rule, that a hook ignores its own failures, now holds. A failure shows only in the audit log. The owner reported on 2026-11-24 that about 40% of capture runs log an error; the cause is UNKNOWN (<a class="id-ref" href="#QUES-O">QUES-O</a>).</p>
+<p>The model client gives each request a 30-second limit. It tries each provider up to three times and waits 1 and then 2 seconds between tries. If every try times out, one provider takes 93 seconds. When the Gemini fallback is configured and also times out, the call takes 186 seconds. The OpenAI library that sends the requests adds its own retries to each try (two by default in the installed version 2.48.0), so the real worst case is longer. Each stored lesson adds a mem0 write with up to three tries, and each try makes mem0&#x27;s own DeepSeek call, whose time limit is UNKNOWN. Nothing outside capture limits its run time, so a slow provider now delays only the summary (<a class="id-ref" href="#QUES-L">QUES-L</a>).</p>
+<p>These rules implement <a class="id-ref" href="../prd/memory-platform-prd.html#PRD-A">PRD-A</a>, except for the silent setup failures (<a class="id-ref" href="#QUES-K">QUES-K</a>) and the runs that end in an error (<a class="id-ref" href="#QUES-O">QUES-O</a>).</p>
 <h4 id="DSGN-B"><a class="id-ref" href="#DSGN-B">DSGN-B</a> — Merging into the graph</h4>
-<p><code>coworker memory close [SESSION_ID]</code> is also a Stop hook. It runs with no id, so every stop merges every pending dump. Claude Code starts it at the same time as capture, so a stop usually merges the dump that the previous turn&#x27;s capture wrote, not the one being written now. An unknown session id is an error with exit status 1.</p>
+<p><code>coworker memory close [SESSION_ID]</code> runs right after capture, in the same detached shell (<a class="id-ref" href="#DSGN-A">DSGN-A</a>). It runs with no id, so it merges every pending dump. That includes the dump capture just wrote, because the shell starts <code>close</code> after capture has returned (<code>on-session-end.sh:15</code> at <code>634adf1</code>). An unknown session id is an error with exit status 1.</p>
 <p>For each dump, the merge takes these steps in order:</p>
 <ul>
 <li>It marks the new nodes and edges as captured now.</li>
@@ -61,7 +62,7 @@
 <li>It drops each edge whose target node does not exist.</li>
 <li>It appends the remaining nodes and edges, saves the graph atomically, and deletes the dump.</li>
 </ul>
-<p>Folding does not redirect the dump&#x27;s edges to the surviving node. An edge that points at a folded node is dropped as a miss. An edge that starts from a folded node is appended with a source id that no node has, so no query can reach it. This loses graph facts and breaks <a class="id-ref" href="../prd/memory-platform-prd.html#PRD-B">PRD-B</a>&#x27;s folding rule (<a class="id-ref" href="#QUES-J">QUES-J</a>). Edges are never folded together, so repeated facts add duplicate edges (<a class="id-ref" href="#QUES-H">QUES-H</a>). Because <code>close</code> runs every turn and each turn rewrites the dump, the same facts are merged again and again. That raises session counts and adds more duplicate edges (<a class="id-ref" href="#QUES-I">QUES-I</a>).</p>
+<p>Folding does not redirect the dump&#x27;s edges to the surviving node. An edge that points at a folded node is dropped as a miss. An edge that starts from a folded node is appended with a source id that no node has, so no query can reach it. This loses graph facts and breaks <a class="id-ref" href="../prd/memory-platform-prd.html#PRD-B">PRD-B</a>&#x27;s folding rule (<a class="id-ref" href="#QUES-J">QUES-J</a>). Edges are never folded together, so repeated facts add duplicate edges (<a class="id-ref" href="#QUES-H">QUES-H</a>). Since <code>close</code> runs once per session, a session&#x27;s facts are merged once (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-H">ARD-H</a>).</p>
 <p>Two more gaps break <a class="id-ref" href="../prd/memory-platform-prd.html#PRD-B">PRD-B</a>. A dump with a node type, relation, or confidence value outside the allowed lists raises an error that nothing catches; the dump is never deleted, and because dumps are processed in sorted order, every later <code>close</code> fails on it (<a class="id-ref" href="#QUES-A">QUES-A</a>). There is no lock around reading, changing, and saving the graph, so two merges at once can lose updates (<a class="id-ref" href="#QUES-B">QUES-B</a>). A damaged <code>graph.json</code> makes every graph command fail with a traceback (<a class="id-ref" href="#QUES-C">QUES-C</a>).</p>
 <h4 id="DSGN-C"><a class="id-ref" href="#DSGN-C">DSGN-C</a> — Edge decay and queries</h4>
 <p>An edge&#x27;s effective weight is its starting weight for the first 20 days after its traversal time, and then it shrinks by 1% per day. Weights of 0.5 and above are normal, 0.3 to 0.5 are stale, and below 0.3 are suppressed. The weight is computed when read and never stored. A merge sets an edge&#x27;s traversal time to the moment of the merge, and queries never update it. So for an edge added by capture, decay counts from when the edge was merged. Edges imported from Graphify have no traversal time, so they never decay.</p>
@@ -102,7 +103,7 @@
 <h4 id="DSGN-E"><a class="id-ref" href="#DSGN-E">DSGN-E</a> — Snapshot and wrong-history in <code>CLAUDE.local.md</code></h4>
 <p><code>coworker memory refresh</code> searches the vector store for the current project&#x27;s active memories (up to ten) and writes them between <code>&lt;!-- MEMORY:&lt;project&gt; START --&gt;</code> and <code>&lt;!-- MEMORY:&lt;project&gt; END --&gt;</code> in <code>~/CLAUDE.local.md</code> in the home folder, creating the file or the block as needed. It also writes the critical and high-severity wrong-history rules between <code>&lt;!-- WRONG-HISTORY START --&gt;</code> and <code>&lt;!-- WRONG-HISTORY END --&gt;</code>. It always exits 0. Text outside the markers is unchanged. This implements <a class="id-ref" href="../prd/memory-platform-prd.html#PRD-E">PRD-E</a>. The wrong-history entries are read from a path relative to the current folder, so running the command elsewhere replaces the block with &quot;No wrong-history entries yet&quot; (<a class="id-ref" href="#QUES-F">QUES-F</a>). <code>refresh</code> rewrites <code>~/CLAUDE.local.md</code> in place without first copying it under <code>~/.coworker/backups/</code>, which the parent design&#x27;s second shared rule requires; the curator overwrites <code>MEMORY.md</code> the same way (<a class="id-ref" href="#QUES-P">QUES-P</a>). Nothing runs <code>refresh</code> at session start; the dashboard and the auto-worker can also write these blocks.</p>
 <h4 id="DSGN-F"><a class="id-ref" href="#DSGN-F">DSGN-F</a> — Skill staging limit</h4>
-<p>Staging a skill writes <code>~/.coworker/pending/skills/&lt;name&gt;.json</code> with status <code>pending</code>, replacing an earlier file of the same name. A circuit breaker, a counter in <code>~/.coworker/safety/circuit_state.json</code>, allows three stagings per fixed 24-hour window. The window is fixed, not sliding: it starts when the counter is created or reset, and the first check more than 24 hours later sets the count back to zero and starts a new window. When the breaker trips, staging fails and the caller logs it. A damaged counter file counts as allowed. Because capture runs every turn, one candidate staged again each turn can use up the whole day&#x27;s limit (<a class="id-ref" href="#QUES-I">QUES-I</a>). Only the dashboard can reset the counter. Promotion happens only through <code>coworker skill approve</code>. This implements <a class="id-ref" href="../prd/memory-platform-prd.html#PRD-F">PRD-F</a>.</p>
+<p>Staging a skill writes <code>~/.coworker/pending/skills/&lt;name&gt;.json</code> with status <code>pending</code>, replacing an earlier file of the same name. A circuit breaker, a counter in <code>~/.coworker/safety/circuit_state.json</code>, allows three stagings per fixed 24-hour window. The window is fixed, not sliding: it starts when the counter is created or reset, and the first check more than 24 hours later sets the count back to zero and starts a new window. When the breaker trips, staging fails and the caller logs it. A damaged counter file counts as allowed. Capture runs once per session, so a session stages each candidate once (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-H">ARD-H</a>). Only the dashboard can reset the counter. Promotion happens only through <code>coworker skill approve</code>. This implements <a class="id-ref" href="../prd/memory-platform-prd.html#PRD-F">PRD-F</a>.</p>
 <h4 id="DSGN-G"><a class="id-ref" href="#DSGN-G">DSGN-G</a> — Knowledge commands</h4>
 <p><code>coworker knowledge summarize SESSION_ID</code> summarizes one session from the analytics database with a language-model call and writes a summary row, plus knowledge cards when the model returns them; an unknown session or a model failure exits 1. <code>knowledge analyze [--since yesterday|today|N days ago|ISO date|all] [--all]</code> summarizes every session in the window, continues past a failed session, and exits 1 only when none succeeded; an unrecognized <code>--since</code> exits 1. The prompt never asks for cards, so cards appear only when the model adds them unasked (<a class="id-ref" href="#QUES-G">QUES-G</a>). This implements <a class="id-ref" href="../prd/memory-platform-prd.html#PRD-G">PRD-G</a>.</p>
 <h4 id="DSGN-H"><a class="id-ref" href="#DSGN-H">DSGN-H</a> — Privacy and keys</h4>
@@ -111,7 +112,7 @@
 <th>Sent to</th>
 </tr></thead><tbody>
 <tr>
-<td>The last 50,000 characters of the transcript, sent again after every turn (capture, <a class="id-ref" href="#QUES-I">QUES-I</a>)</td>
+<td>The last 50,000 characters of the transcript, sent at each SessionEnd event (capture, <a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-H">ARD-H</a>)</td>
 <td>DeepSeek, or Gemini if DeepSeek fails</td>
 </tr>
 <tr>
@@ -119,7 +120,7 @@
 <td>DeepSeek, or Gemini if DeepSeek fails</td>
 </tr>
 <tr>
-<td>Each lesson&#x27;s text, every time it is stored, which is every turn</td>
+<td>Each lesson&#x27;s text, when it is stored</td>
 <td>DeepSeek, through mem0&#x27;s own extraction</td>
 </tr>
 <tr>
@@ -146,9 +147,9 @@
 <th>依据</th>
 </tr></thead><tbody>
 <tr>
-<td>Whether Claude Code runs <code>capture</code> before <code>close</code> at a stop</td>
+<td>Whether <code>capture</code> runs before <code>close</code></td>
 <td>AI 查</td>
-<td>Answered: Claude Code starts all matching hooks at the same time, so neither runs first and <code>close</code> usually merges the previous turn&#x27;s dump (<a href="https://docs.claude.com/en/docs/claude-code/hooks">hooks docs</a>)</td>
+<td>Answered: one shell runs <code>capture</code>, then <code>close</code> (<code>on-session-end.sh:15</code> at <code>634adf1</code>)</td>
 </tr>
 <tr>
 <td>What to do with a dump that cannot be merged</td>
@@ -168,7 +169,7 @@
 <tr>
 <td>Whether capture and merge should run once per session instead of every turn</td>
 <td>人决定</td>
-<td><a class="id-ref" href="#QUES-I">QUES-I</a></td>
+<td>Decided: once per session (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-H">ARD-H</a>)</td>
 </tr>
 <tr>
 <td>What should happen to the edges of a folded node</td>
@@ -185,7 +186,7 @@
 <h3>Alternatives Considered</h3>
 <p>A single store was rejected: the vector store cannot answer &quot;what touches this file&quot;, and the graph cannot match a lesson by meaning. Merging the graph inside the capture hook was rejected so that a slow merge never lengthens the session&#x27;s end (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-C">ARD-C</a>).</p>
 <h3>Drawbacks</h3>
-<p>Capture costs one language-model call per turn and sends transcript text off the machine after every turn (<a class="id-ref" href="#QUES-I">QUES-I</a>). The graph only grows: edges are never folded or deleted except by rebuilding.</p>
+<p>Capture costs one language-model call per session and sends the transcript tail off the machine once per session (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-H">ARD-H</a>). A session&#x27;s lessons arrive only after it ends. The graph only grows: edges are never folded or deleted except by rebuilding.</p>
 <h3>Risks and Mitigations</h3>
 <div class="table-wrap"><table><thead><tr>
 <th>Risk</th>
@@ -204,12 +205,16 @@
 <td>Not mitigated; documented in <a class="id-ref" href="#DSGN-H">DSGN-H</a> (<a class="id-ref" href="#QUES-D">QUES-D</a>)</td>
 </tr>
 <tr>
-<td>Capture outlasts the hook time limit and is stopped</td>
-<td>Not mitigated; no time limit is set, so Claude Code&#x27;s 60-second default applies, and one model call can take 93 seconds per provider before giving up (<a class="id-ref" href="#DSGN-A">DSGN-A</a>, <a class="id-ref" href="#QUES-L">QUES-L</a>)</td>
+<td>A capture run lasts minutes after the session ends</td>
+<td>Not bounded; the detached run has no time limit, and one model call can take 93 seconds per provider before giving up (<a class="id-ref" href="#DSGN-A">DSGN-A</a>, <a class="id-ref" href="#QUES-L">QUES-L</a>)</td>
 </tr>
 <tr>
-<td>Capture runs every turn, repeating model calls and using up the staging limit</td>
-<td>Not mitigated (<a class="id-ref" href="#QUES-I">QUES-I</a>)</td>
+<td>Capture fails and no one sees it</td>
+<td>Only the audit log records a failure; about 40% of runs log an error, for an UNKNOWN cause (<a class="id-ref" href="#QUES-O">QUES-O</a>)</td>
+</tr>
+<tr>
+<td>A session ends without a SessionEnd event and gets no summary</td>
+<td>Not mitigated; which endings fire SessionEnd is UNKNOWN</td>
 </tr>
 <tr>
 <td>Two processes open the local Qdrant store at once</td>
@@ -258,8 +263,8 @@
 </tr>
 <tr>
 <td><strong id="QUES-E"><a class="id-ref" href="#QUES-E">QUES-E</a></strong></td>
-<td>Capture exits 1 when mem0 is not installed, even with no key set, so an unconfigured machine reports a failing Stop hook. Check the key first?</td>
-<td>Found in the code at <code>a0f4ce0</code>.</td>
+<td>Capture exits 1 when mem0 is not installed, even with no key set. Check the key first?</td>
+<td>Found in the code at <code>a0f4ce0</code>. Since PR #22 (<code>a91ebbd</code>) the SessionEnd hook discards that status, so no failing hook is reported.</td>
 <td>cicidi</td>
 <td>no</td>
 </tr>
@@ -286,10 +291,10 @@
 </tr>
 <tr>
 <td><strong id="QUES-I"><a class="id-ref" href="#QUES-I">QUES-I</a></strong></td>
-<td>Capture and <code>close</code> run as Stop hooks, so they run after every turn, not once per session. Each turn repeats the model call with the transcript, stores lessons again, uses up the daily staging limit, and merges the same facts again. Move them to the session-end event, or run them once per session?</td>
-<td>Found in the code at <code>a0f4ce0</code> (<a href="../../../../../setup/install.sh"><code>setup/install.sh</code></a> registers both on <code>Stop</code>). A fix is in walter-worker PR #22 (open, <code>ede4fd2</code>): one detached run per session from a SessionEnd hook, and install takes both off <code>Stop</code>.</td>
+<td>Capture and <code>close</code> ran as Stop hooks, so they ran after every turn, not once per session. Each turn repeated the model call with the transcript, stored lessons again, used up the daily staging limit, and merged the same facts again. Move them to the session-end event, or run them once per session?</td>
+<td>Found in the code at <code>a0f4ce0</code> (<a href="../../../../../setup/install.sh"><code>setup/install.sh</code></a> registers both on <code>Stop</code>). Fixed by walter-worker PR #22, merged as <code>a91ebbd</code>: one detached run per session from a SessionEnd hook, and install takes both off <code>Stop</code> (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-H">ARD-H</a>).</td>
 <td>cicidi</td>
-<td>yes</td>
+<td>no</td>
 </tr>
 <tr>
 <td><strong id="QUES-J"><a class="id-ref" href="#QUES-J">QUES-J</a></strong></td>
@@ -307,8 +312,8 @@
 </tr>
 <tr>
 <td><strong id="QUES-L"><a class="id-ref" href="#QUES-L">QUES-L</a></strong></td>
-<td>Capture has no time limit of its own, so Claude Code&#x27;s 60-second default applies, but one model call can take 93 seconds per provider. Set a time limit, or shorten the client&#x27;s retries?</td>
-<td>Found in the code at <code>a0f4ce0</code>.</td>
+<td>Capture runs detached with no time limit, and one model call can take 93 seconds per provider. Set a time limit, or shorten the client&#x27;s retries?</td>
+<td>Found in the code at <code>a0f4ce0</code>. Since PR #22 (<code>a91ebbd</code>) Claude Code no longer stops capture; a slow run only delays the summary.</td>
 <td>cicidi</td>
 <td>no</td>
 </tr>
@@ -328,8 +333,8 @@
 </tr>
 <tr>
 <td><strong id="QUES-O"><a class="id-ref" href="#QUES-O">QUES-O</a></strong></td>
-<td>Capture exits 1 at every stop where the transcript cannot be read, the provider fails, or the reply is not JSON, against the parent rule that hooks ignore their own failures. Exit 0 and log instead?</td>
-<td>Found in the code at <code>a0f4ce0</code>.</td>
+<td>Capture exits 1 when the transcript cannot be read, the provider fails, or the reply is not JSON. These failures show only in the audit log, with no cause, and an unreadable transcript writes no line. Log each failure&#x27;s cause?</td>
+<td>Found in the code at <code>a0f4ce0</code>. Since PR #22 (<code>a91ebbd</code>) the hook exits 0, so the parent rule that hooks ignore their own failures holds. The owner reported on 2026-11-24 that about 40% of runs log an error, cause UNKNOWN; logging the exception text is in progress, not merged.</td>
 <td>cicidi</td>
 <td>no</td>
 </tr>
@@ -344,14 +349,18 @@
 <h3>Reversibility</h3>
 <p><code>memory init --force</code> keeps a backup of the old graph, restorable with <code>coworker restore memory-init</code>. This matters because <code>init</code> replaces the graph even when it finds no Graphify output (<a class="id-ref" href="#QUES-N">QUES-N</a>). Archived memories cannot be unarchived, and there is no command to delete a memory. The blocks in <code>~/CLAUDE.local.md</code> can be removed by hand or rewritten by <code>memory refresh</code>. Staged skills can be rejected with <code>coworker skill reject</code>.</p>
 <h3>Terms</h3>
-<p>Terms used across walter-worker are in the <a href="../../walter-worker/design/walter-worker-design.html#glossary">parent glossary</a>. They include turn, Stop hook, vector store, embedding, mem0, Qdrant, fastembed, knowledge graph, Graphify, language-model provider, and wrong-history. The terms below are used only in this feature.</p>
+<p>Terms used across walter-worker are in the <a href="../../walter-worker/design/walter-worker-design.html#glossary">parent glossary</a>. They include turn, Stop hook, SessionEnd hook, vector store, embedding, mem0, Qdrant, fastembed, knowledge graph, Graphify, language-model provider, and wrong-history. The terms below are used only in this feature.</p>
 <div class="table-wrap"><table><thead><tr>
 <th>Term</th>
 <th>Meaning</th>
 </tr></thead><tbody>
 <tr>
+<td>Detached run</td>
+<td>A process started apart from the hook (<code>setsid</code>, or <code>nohup</code> where <code>setsid</code> is missing) so that it can keep running after the hook exits</td>
+</tr>
+<tr>
 <td>Pending dump</td>
-<td>The graph facts from one session, waiting in <code>~/.coworker/memory/pending/</code> to be merged; capture rewrites it every turn</td>
+<td>The graph facts from one session, waiting in <code>~/.coworker/memory/pending/</code> to be merged; capture writes it once per session</td>
 </tr>
 <tr>
 <td>Fold</td>
@@ -407,6 +416,16 @@
 <td>0.4</td>
 <td>2026-11-24</td>
 <td><a class="id-ref" href="#QUES-I">QUES-I</a> notes the fix in open PR #22; master behavior unchanged</td>
+</tr>
+<tr>
+<td>0.5</td>
+<td>2026-11-24</td>
+<td>PR #22 merged: capture and close run once per session from SessionEnd (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-H">ARD-H</a>); <a class="id-ref" href="#QUES-I">QUES-I</a> answered; <a class="id-ref" href="#QUES-E">QUES-E</a>, <a class="id-ref" href="#QUES-L">QUES-L</a>, <a class="id-ref" href="#QUES-O">QUES-O</a> re-read</td>
+</tr>
+<tr>
+<td>0.6</td>
+<td>2026-11-24</td>
+<td>Review fixes: per-hook Stop removal, once per SessionEnd event, detached-run limits stated as UNKNOWN, stderr discarded, Detached run term</td>
 </tr>
 </tbody></table></div>
       </div>

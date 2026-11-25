@@ -11,11 +11,11 @@ last_verified: 2026-11-24
 
 ## Overview
 
-The memory platform lets walter-worker remember across sessions. At the end of each Claude Code session, it asks a language model to extract lessons and candidate skills from the transcript. Lessons go into a local vector store, a database that finds text by meaning rather than by exact words. Facts about code, documents, and decisions go into a local knowledge graph at `~/.coworker/memory/graph.json`. Later sessions query both, and a weekly curator ages old memories. A snapshot of the project's memories can be written into `~/CLAUDE.local.md`, so the next session starts with them. A related command group, `coworker knowledge`, summarizes recorded sessions into the analytics database. Today the code runs capture after every turn rather than once at session end; the design records this gap as QUES-I.
+The memory platform lets walter-worker remember across sessions. At the end of each Claude Code session, it asks a language model to extract lessons and candidate skills from the transcript. Lessons go into a local vector store, a database that finds text by meaning rather than by exact words. Facts about code, documents, and decisions go into a local knowledge graph at `~/.coworker/memory/graph.json`. Later sessions query both, and a weekly curator ages old memories. A snapshot of the project's memories can be written into `~/CLAUDE.local.md`, so the next session starts with them. A related command group, `coworker knowledge`, summarizes recorded sessions into the analytics database. Capture runs once per session, from a detached SessionEnd hook (design DSGN-A, ARD-H).
 
 This feature implements PRD-E of the [parent walter-worker PRD](../../walter-worker/prd/walter-worker-prd.md), and it must meet the parent's PRD-G (no component blocks a session through its own failure) and PRD-H (session content leaves the machine only where documented). Terms are defined in the [parent glossary](../../walter-worker/design/walter-worker-design.md#glossary).
 
-This document states what the memory platform must do. The [design](../design/memory-platform-design.md) states how it behaves today, including where the code does not yet meet a requirement. Facts were checked against the code at commit `a0f4ce0`.
+This document states what the memory platform must do. The [design](../design/memory-platform-design.md) states how it behaves today, including where the code does not yet meet a requirement. Facts were checked against the code at commit `a0f4ce0`, and capture's trigger at `634adf1`.
 
 ## Goals and Success Metrics
 
@@ -65,3 +65,4 @@ Python with the `memory` extras: mem0, Qdrant in local mode, and fastembed, each
 | 0.1 | 2026-11-04 | Draft (never committed) |
 | 0.2 | 2026-11-24 | Rewritten from the code at `a0f4ce0`; the graph pipeline added, the false write-safety and audit claims removed (ARD-A) |
 | 0.3 | 2026-11-24 | Review fixes: the per-turn capture gap noted, parent PRD and glossary linked, long sentences split (ARD-D, ARD-F) |
+| 0.4 | 2026-11-24 | Overview: capture runs once per session (ARD-H) |

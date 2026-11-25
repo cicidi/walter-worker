@@ -75,7 +75,7 @@
 <h4 id="ARD-B"><a class="id-ref" href="#ARD-B">ARD-B</a></h4>
 <p>Current Cursor discovers Agent Skills under <code>~/.cursor/skills/&lt;name&gt;/SKILL.md</code>; the flat <code>~/.cursor/rules/&lt;name&gt;.md</code> files an earlier release wrote are rules, not skills, and were not loaded as skills. Some machines symlink a skill directory back into the-super-lab, which made <code>cp</code> fail with &quot;same file&quot; and aborted the install before hooks were written. Rejected: symlinking Cursor skills, because the manifest would then claim source files and uninstall could delete them out of the repository. Evidence: walter-worker commit <code>a3d08d7</code>, PR #14.</p>
 <h4 id="ARD-A"><a class="id-ref" href="#ARD-A">ARD-A</a></h4>
-<p>The schema-1 manifest claimed every file found under <code>~/.claude</code>, <code>~/.opencode</code>, and <code>~/.coworker/analytics</code>, including plugin caches, session transcripts, other tools&#x27; skills, and the analytics database. Uninstall then deleted all of it. Rejected: keeping directory claims with an exclusion list, because any list misses the next tool&#x27;s files. Evidence: walter-worker commit <code>016d875</code>. The refusal as shipped covers only the file list; hooks and owned directories are still removed, which the design tracks as <a class="id-ref" href="../design/setup-deploy-design.html#QUES-E">QUES-E</a>.</p>
+<p>The schema-1 manifest claimed every file found under <code>~/.claude</code>, <code>~/.opencode</code>, and <code>~/.coworker/analytics</code>, including plugin caches, session transcripts, other tools&#x27; skills, and the analytics database. Uninstall then deleted all of it. Rejected: keeping directory claims with an exclusion list, because any list misses the next tool&#x27;s files. Evidence: walter-worker commit <code>016d875</code>. The refusal first covered only the file list. PR #17 (<code>e5bfa54</code>) made uninstall refuse before any change, which closed <a class="id-ref" href="../design/setup-deploy-design.html#QUES-E">QUES-E</a>.</p>
 <h3>Change Log</h3>
 <div class="table-wrap"><table><thead><tr>
 <th>Version</th>
@@ -91,6 +91,11 @@
 <td>0.2</td>
 <td>2026-11-24</td>
 <td>Added <a class="id-ref" href="#ARD-E">ARD-E</a></td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>2026-11-24</td>
+<td><a class="id-ref" href="#ARD-A">ARD-A</a> evidence: <a class="id-ref" href="../design/setup-deploy-design.html#QUES-E">QUES-E</a> closed by PR #17</td>
 </tr>
 </tbody></table></div>
       </div>

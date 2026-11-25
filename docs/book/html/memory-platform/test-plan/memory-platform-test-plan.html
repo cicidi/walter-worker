@@ -32,7 +32,7 @@
       
       <div class="doc-body">
         <h2>Memory Platform — Test Plan</h2>
-<p>Each case names the requirement from the <a href="../prd/memory-platform-prd.html">PRD</a> it covers and the test that implements it at commit <code>a0f4ce0</code>. The tests named below are mocked: the language model and mem0 are replaced, so they make no outside call and need no key. Some of the same files also hold key-gated tests. Tests marked <code>real</code> call DeepSeek when <code>DEEPSEEK_API_KEY</code> is set and are skipped otherwise. Tests marked <code>integration</code> use the real mem0 store under the user&#x27;s home folder and are skipped when mem0 is not configured. No case below relies on a key-gated test.</p>
+<p>Each case names the requirement from the <a href="../prd/memory-platform-prd.html">PRD</a> it covers and the test that implements it at commit <code>634adf1</code>. The tests named below are mocked: the language model and mem0 are replaced, so they make no outside call and need no key. Some of the same files also hold key-gated tests. Tests marked <code>real</code> call DeepSeek when <code>DEEPSEEK_API_KEY</code> is set and are skipped otherwise. Tests marked <code>integration</code> use the real mem0 store under the user&#x27;s home folder and are skipped when mem0 is not configured. No case below relies on a key-gated test.</p>
 <h3>Test Cases</h3>
 <div class="table-wrap"><table><thead><tr>
 <th>ID</th>
@@ -44,7 +44,7 @@
 <td><strong id="TST-A"><a class="id-ref" href="#TST-A">TST-A</a></strong></td>
 <td><a class="id-ref" href="../prd/memory-platform-prd.html#PRD-A">PRD-A</a></td>
 <td>Capture without a configured key stays quiet, empty input is an error, the skill threshold is configurable, and memories carry the real project</td>
-<td><a href="../../../../../tests/python/test_cli.py"><code>tests/python/test_cli.py</code></a> <code>test_unconfigured_mem0_skips_quietly</code>, <code>test_empty_stdin_is_an_error_not_a_silent_pass</code>; <a href="../../../../../tests/python/test_capture.py"><code>tests/python/test_capture.py</code></a> <code>TestSkillThresholdIsConfigurable</code>, <code>TestMemoriesAreTaggedWithTheRealProject</code></td>
+<td><a href="../../../../../tests/python/test_cli.py"><code>tests/python/test_cli.py</code></a> <code>test_unconfigured_mem0_skips_quietly</code>, <code>test_empty_stdin_is_an_error_not_a_silent_pass</code>; <a href="../../../../../tests/python/test_capture.py"><code>tests/python/test_capture.py</code></a> <code>TestSkillThresholdIsConfigurable</code>, <code>TestMemoriesAreTaggedWithTheRealProject</code>; <code>tests/hooks/on-session-end.bats</code> &quot;runs capture with the payload, then close&quot;, &quot;returns before the summary finishes&quot;</td>
 </tr>
 <tr>
 <td><strong id="TST-B"><a class="id-ref" href="#TST-B">TST-B</a></strong></td>
@@ -101,7 +101,7 @@
 <td><a href="../../../../../tests/python/test_wrong_history.py"><code>tests/python/test_wrong_history.py</code></a> <code>test_the_continuation_is_kept</code></td>
 </tr>
 </tbody></table></div>
-<p>Not covered today: a dump with invalid values (<a class="id-ref" href="../design/memory-platform-design.html#QUES-A">QUES-A</a>), concurrent merges (<a class="id-ref" href="../design/memory-platform-design.html#QUES-B">QUES-B</a>), a damaged <code>graph.json</code> (<a class="id-ref" href="../design/memory-platform-design.html#QUES-C">QUES-C</a>), and the wrong-history commands run from another folder (<a class="id-ref" href="../design/memory-platform-design.html#QUES-F">QUES-F</a>). Also not covered: capture and merge repeated on every turn (<a class="id-ref" href="../design/memory-platform-design.html#QUES-I">QUES-I</a>), edges of a folded node (<a class="id-ref" href="../design/memory-platform-design.html#QUES-J">QUES-J</a>), a locked Qdrant store during capture (<a class="id-ref" href="../design/memory-platform-design.html#QUES-K">QUES-K</a>), and capture outlasting the hook time limit (<a class="id-ref" href="../design/memory-platform-design.html#QUES-L">QUES-L</a>). The open questions are in the <a href="../design/memory-platform-design.html#open-questions">design</a>.</p>
+<p>Not covered today: a dump with invalid values (<a class="id-ref" href="../design/memory-platform-design.html#QUES-A">QUES-A</a>), concurrent merges (<a class="id-ref" href="../design/memory-platform-design.html#QUES-B">QUES-B</a>), a damaged <code>graph.json</code> (<a class="id-ref" href="../design/memory-platform-design.html#QUES-C">QUES-C</a>), and the wrong-history commands run from another folder (<a class="id-ref" href="../design/memory-platform-design.html#QUES-F">QUES-F</a>). Also not covered: edges of a folded node (<a class="id-ref" href="../design/memory-platform-design.html#QUES-J">QUES-J</a>), a locked Qdrant store during capture (<a class="id-ref" href="../design/memory-platform-design.html#QUES-K">QUES-K</a>), and a capture run that never ends, since it has no time limit (<a class="id-ref" href="../design/memory-platform-design.html#QUES-L">QUES-L</a>). The open questions are in the <a href="../design/memory-platform-design.html#open-questions">design</a>.</p>
 <h3>Test Execution Order</h3>
 <p>Run <a href="../../../../../tests/memory/test_graph_core.py"><code>tests/memory/test_graph_core.py</code></a> and <a href="../../../../../tests/python/test_mem0_client.py"><code>tests/python/test_mem0_client.py</code></a> first, because the stores underlie everything else. Then capture, curator, injection, safety, and knowledge tests, then the memory classes in <code>test_cli.py</code>.</p>
 <h3>Expected Pass Threshold</h3>
@@ -172,6 +172,11 @@
 <td>0.3</td>
 <td>2026-11-24</td>
 <td>Review fixes: only mocked tests cited, key-gated tests and skips explained, <code>test_min_score_filters_quality</code> replaced by <code>TestMinScoreFiltering</code>, Graphify sync tests added to <a class="id-ref" href="#TST-I">TST-I</a>, new gaps listed (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-D">ARD-D</a>, <a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-F">ARD-F</a>)</td>
+</tr>
+<tr>
+<td>0.4</td>
+<td>2026-11-24</td>
+<td>PR #22 merged: <a class="id-ref" href="#TST-A">TST-A</a> cites the SessionEnd hook tests; <a class="id-ref" href="../design/memory-platform-design.html#QUES-I">QUES-I</a> left the untested list (<a class="id-ref" href="../decision-history/memory-platform-decision-history.html#ARD-H">ARD-H</a>); commit <code>634adf1</code></td>
 </tr>
 </tbody></table></div>
       </div>

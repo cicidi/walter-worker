@@ -40,6 +40,11 @@
 <th>Decision</th>
 </tr></thead><tbody>
 <tr>
+<td><strong><a class="id-ref" href="#ARD-H">ARD-H</a></strong></td>
+<td>2026-11-24</td>
+<td>The session summary (memory capture, then close) runs once per session from a detached SessionEnd hook; the Stop hook no longer runs capture or close.</td>
+</tr>
+<tr>
 <td><strong><a class="id-ref" href="#ARD-G">ARD-G</a></strong></td>
 <td>2026-11-24</td>
 <td>This feature&#x27;s documents describe the memory code as it behaves at <code>a0f4ce0</code> and are the authority for current behavior; the older memory design and memory-graph-spec.md under docs/features/self-evolving-agent/ remain as design history and are not edited here.</td>
@@ -76,6 +81,8 @@
 </tr>
 </tbody></table></div>
 <h3>Evidence Appendix</h3>
+<h4 id="ARD-H"><a class="id-ref" href="#ARD-H">ARD-H</a></h4>
+<p>The owner decided on 2026-11-24: &quot;stop hook 只记录chat history 不做summary&quot;. The owner then chose to run the summary once per session (&quot;run once&quot;). The code states why: Stop fires after every reply, so capture made one 15-20 s model call per reply (<code>on-session-end.sh:4-7</code> at <code>a91ebbd</code>). The hook detaches the run because, as its comment says, Claude Code cancels a SessionEnd hook after 1.5 s (<code>on-session-end.sh:9-12</code>); newer Claude Code releases may differ. Rejected: keeping capture and close on Stop. Evidence: walter-worker PR #22, merged as <code>a91ebbd</code>; the owner&#x27;s words of 2026-11-24.</p>
 <h4 id="ARD-G"><a class="id-ref" href="#ARD-G">ARD-G</a></h4>
 <p>The 2026-11-24 review found a second, older design for the same subsystem: the <a href="../../self-evolving-agent/design/memory-platform-design.html">older memory design</a> and the <a href="../../self-evolving-agent/spec/memory-graph-spec.html">memory graph spec</a>. The code still cites the second one as its specification, in <a href="../../../../../src/coworker/memory/graph.py"><code>src/coworker/memory/graph.py</code></a> line 3 at <code>a0f4ce0</code>. The two disagree with this feature on facts; for example, the older design&#x27;s overview figure puts <code>coworker memory sync</code> in the capture layer on its per-turn path, while in the code <code>memory sync</code> imports Graphify output. One fact needs one home, so this feature&#x27;s documents state current behavior and the older ones are kept only as history. Rejected: editing the older documents in this pass, because that is outside this pass&#x27;s scope, and retiring them now, which would go through doc-organize and needs the owner. Evidence: <code>raw/review/2026-11-24-spec-review-memory-platform-gaps.md</code>, finding I3.</p>
 <h4 id="ARD-F"><a class="id-ref" href="#ARD-F">ARD-F</a></h4>
@@ -105,6 +112,11 @@
 <td>0.2</td>
 <td>2026-11-24</td>
 <td>Review fixes: <a class="id-ref" href="#ARD-F">ARD-F</a> (edit-size authorization for the review-fix pass) and <a class="id-ref" href="#ARD-G">ARD-G</a> (this feature is the authority for current behavior) added</td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>2026-11-24</td>
+<td><a class="id-ref" href="#ARD-H">ARD-H</a> added: the summary runs once per session from a SessionEnd hook; the 1.5 s limit attributed to the hook&#x27;s comment</td>
 </tr>
 </tbody></table></div>
       </div>

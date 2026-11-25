@@ -41,7 +41,7 @@ Current Cursor discovers Agent Skills under `~/.cursor/skills/<name>/SKILL.md`; 
 
 ### ARD-A
 
-The schema-1 manifest claimed every file found under `~/.claude`, `~/.opencode`, and `~/.coworker/analytics`, including plugin caches, session transcripts, other tools' skills, and the analytics database. Uninstall then deleted all of it. Rejected: keeping directory claims with an exclusion list, because any list misses the next tool's files. Evidence: walter-worker commit `016d875`. The refusal as shipped covers only the file list; hooks and owned directories are still removed, which the design tracks as QUES-E.
+The schema-1 manifest claimed every file found under `~/.claude`, `~/.opencode`, and `~/.coworker/analytics`, including plugin caches, session transcripts, other tools' skills, and the analytics database. Uninstall then deleted all of it. Rejected: keeping directory claims with an exclusion list, because any list misses the next tool's files. Evidence: walter-worker commit `016d875`. The refusal first covered only the file list. PR #17 (`e5bfa54`) made uninstall refuse before any change, which closed QUES-E.
 
 ## Change Log
 
@@ -49,3 +49,4 @@ The schema-1 manifest claimed every file found under `~/.claude`, `~/.opencode`,
 |---|---|---|
 | 0.1 | 2026-11-24 | Created with ARD-A to ARD-D |
 | 0.2 | 2026-11-24 | Added ARD-E |
+| 0.3 | 2026-11-24 | ARD-A evidence: QUES-E closed by PR #17 |

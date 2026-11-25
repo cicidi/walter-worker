@@ -32,7 +32,7 @@
       
       <div class="doc-body">
         <h2>Core CLI — Design</h2>
-<p>Requirements are in the <a href="../prd/core-cli-prd.html">PRD</a>. Decisions are in the <a href="../decision-history/core-cli-decision-history.html">decision history</a>. Behavior below was read from the code at commit <code>a0f4ce0</code>; where it does not meet a requirement, the gap is an Open Question.</p>
+<p>Requirements are in the <a href="../prd/core-cli-prd.html">PRD</a>. Decisions are in the <a href="../decision-history/core-cli-decision-history.html">decision history</a>. Behavior below was read from the code at commit <code>a0f4ce0</code>, and rechecked at <code>634adf1</code> after walter-worker PRs #16 to #23; where it does not meet a requirement, the gap is an Open Question.</p>
 <h3>Problem Statement</h3>
 <p>Each AI coding tool keeps its own settings file in its own format: Claude Code in <code>settings.json</code> and <code>~/.claude.json</code>, Gemini CLI in <code>~/.gemini/settings.json</code>, OpenCode in <code>~/.config/opencode/config.json</code>. Keeping MCP servers and permissions consistent across them by hand drifts, and a tool that rewrites another tool&#x27;s file can silently delete the user&#x27;s own entries.</p>
 <h3>Solution</h3>
@@ -89,9 +89,9 @@
 <h4 id="DSGN-G"><a class="id-ref" href="#DSGN-G">DSGN-G</a> — <code>upgrade</code></h4>
 <p><code>upgrade [--dry-run] [-y] [--force]</code> compares <code>~/.claude/CLAUDE.md</code>, section by section (a section is a heading and the text under it), with the current template. These sections are kept: a section inside a protected span or containing a <code>&lt;!-- FEATURE:</code> or <code>&lt;!-- INITIATIVE:</code> marker, a section identical to the template, a section the user only appended to, a section whose template text is still a placeholder such as <code>_(none configured)_</code>, and a section the template does not have. Any other differing section is decided against the merge base <code>~/.coworker/claude-md-base.md</code>, the template as last written (<a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-H">ARD-H</a>). Only the template changed means overwrite, only the user changed means keep, and both changed means a conflict. Without a base, a section where the user added lines and the template added none is a conflict and is kept, and any other differing section is overwritten. A template section with a new heading is appended.</p>
 <p>The command prints the plan. An overwrite made without a base lists up to five of the lines it replaces; a conflict lists up to five lines it would lose. <code>--force</code> turns conflicts into overwrites. <code>--dry-run</code> stops after the plan. With no <code>~/.claude/CLAUDE.md</code> it prints a hint to run the installer and exits 0. Without a terminal and without <code>-y</code> it prints a refusal and exits 0. When no section would be overwritten or appended it prints &quot;Already up to date&quot;; otherwise it asks for confirmation.</p>
-<p>It then backs up the file under the label <code>upgrade</code>, merges in memory, and checks every protected span, pairing spans by order and comparing their text (<a class="id-ref" href="#QUES-N">QUES-N</a>). On a violation the command stops without writing the file and exits 1. After a write, or when nothing needed writing, it stores the template as the new base; a conflicted section keeps its old base, so it is reported again. This implements <a class="id-ref" href="../prd/core-cli-prd.html#PRD-I">PRD-I</a>.</p>
+<p>It then backs up the file under the label <code>upgrade</code>, merges in memory, and checks every protected span, pairing spans by order and comparing their text (<a class="id-ref" href="#QUES-N">QUES-N</a>). On a violation the command stops without writing the file and exits 1. After a write, or when nothing needed writing, it stores the template as the new base; a conflicted section keeps its old base, so it is reported again. This implements <a class="id-ref" href="../prd/core-cli-prd.html#PRD-I">PRD-I</a> when the base holds the section; otherwise an overwrite can drop the user&#x27;s lines after listing them (<a class="id-ref" href="#QUES-M">QUES-M</a>).</p>
 <h4 id="DSGN-H"><a class="id-ref" href="#DSGN-H">DSGN-H</a> — <code>restore</code></h4>
-<p>Backups are folders named <code>&lt;YYYYMMDD-HHMMSS&gt;-&lt;label&gt;</code> under <code>~/.coworker/backups/</code>, each holding copies at their original absolute paths. At most twenty folders are kept per label; the <code>pristine</code> folder is never pruned. <code>restore BACKUP</code> accepts a path, a folder name, or a label, and a label picks the newest folder whose name ends with it. It lists up to ten files, asks for confirmation unless <code>-y</code> is given, and copies every file back. It does not back up the current files first and does not delete files absent from the backup. An unknown backup, or a backup folder that holds no files, is an error with exit status 1. Besides folders under <code>~/.coworker/backups/</code>, <code>restore</code> accepts any existing directory given as a path, and copies each file in it to the absolute path that mirrors its place in that directory (<a class="id-ref" href="#QUES-V">QUES-V</a>). This implements <a class="id-ref" href="../prd/core-cli-prd.html#PRD-J">PRD-J</a>; the label match can pick a longer label (<a class="id-ref" href="#QUES-I">QUES-I</a>).</p>
+<p>Backups are folders named <code>&lt;YYYYMMDD-HHMMSS&gt;-&lt;label&gt;</code> under <code>~/.coworker/backups/</code>, each holding copies at their original absolute paths. At most twenty folders are kept per label; the <code>pristine</code> folder, the snapshot the installer takes before its first change and <code>uninstall --restore-pristine</code> restores, is never pruned. <code>restore BACKUP</code> accepts a path, a folder name, or a label, and a label picks the newest folder whose name ends with it. It lists up to ten files, asks for confirmation unless <code>-y</code> is given, and copies every file back. It does not back up the current files first and does not delete files absent from the backup. An unknown backup, or a backup folder that holds no files, is an error with exit status 1. Besides folders under <code>~/.coworker/backups/</code>, <code>restore</code> accepts any existing directory given as a path, and copies each file in it to the absolute path that mirrors its place in that directory (<a class="id-ref" href="#QUES-V">QUES-V</a>). This implements <a class="id-ref" href="../prd/core-cli-prd.html#PRD-J">PRD-J</a>; the label match can pick a longer label (<a class="id-ref" href="#QUES-I">QUES-I</a>).</p>
 <h4 id="DSGN-I"><a class="id-ref" href="#DSGN-I">DSGN-I</a> — <code>state-update</code></h4>
 <p><code>state-update [TASK] [-s SUMMARY]</code> walks up from the current folder to the first folder containing a <code>.coworker/</code> folder or a <code>CLAUDE.local.md</code> file, and exits silently with status 0 if none is found. It writes <code>&lt;root&gt;/docs/state/state-&lt;TASK&gt;.md</code>, where TASK defaults to today&#x27;s date. A new file gets a heading, a start time, a status line, and a <code>## Progress</code> section; an existing file gets a timestamped update with the summary.</p>
 <p>Once <code>~/.coworker/</code> exists (<code>init --global</code> creates it), the walk from any folder under the home folder stops at the home folder at the latest. A repository that walter-worker does not manage therefore gets its note written to <code>~/docs/state/state-&lt;date&gt;.md</code> when someone runs the command there by hand (<a class="id-ref" href="#QUES-L">QUES-L</a>). Since <a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-G">ARD-G</a>, no Stop hook runs it. <a class="id-ref" href="../prd/core-cli-prd.html#PRD-K">PRD-K</a> is therefore not met: it requires doing nothing outside a managed project. The summary is also ignored when the file is first created (<a class="id-ref" href="#QUES-H">QUES-H</a>).</p>
@@ -118,7 +118,7 @@
 </tr>
 </tbody></table></div>
 <h3>Testing Decisions</h3>
-<p>Commands are tested through Click&#x27;s test runner against a temporary home directory; adapters and the merge are tested directly. The cases are in the <a href="../test-plan/core-cli-test-plan.html">test plan</a>.</p>
+<p>Most command tests use Click&#x27;s test runner and a temporary home directory; some read or write the real one (<a class="id-ref" href="#QUES-X">QUES-X</a>); adapters and the merge are tested directly. The cases are in the <a href="../test-plan/core-cli-test-plan.html">test plan</a>.</p>
 <h3>Out of Scope</h3>
 <p>The feature commands, analytics, memory, the auto-worker, and the installer have their own specifications.</p>
 <h3>Further Notes</h3>
@@ -240,7 +240,7 @@
 <tr>
 <td><strong id="QUES-M"><a class="id-ref" href="#QUES-M">QUES-M</a></strong></td>
 <td>Before PR #21, <code>upgrade</code> overwrote a section that both the user and the template changed, discarding the user&#x27;s lines without listing them. This contradicts <a class="id-ref" href="../prd/core-cli-prd.html#PRD-I">PRD-I</a>. List them and keep the section as a conflict, or change the requirement?</td>
-<td>Reproduced by the 2026-11-24 review (C2). Fixed in PR #21 (<code>f917bbf</code>) by a three-way merge (<a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-H">ARD-H</a>). Without a base, the section is still overwritten, but its lines are listed first.</td>
+<td>Reproduced by the 2026-11-24 review (C2). Fixed in PR #21 (<code>f917bbf</code>) by a three-way merge (<a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-H">ARD-H</a>). Without a base, the section is still overwritten, but its lines are listed first. Owner to accept or fix the no-base path.</td>
 <td>cicidi</td>
 <td>no</td>
 </tr>
@@ -314,6 +314,13 @@
 <td>cicidi</td>
 <td>no</td>
 </tr>
+<tr>
+<td><strong id="QUES-X"><a class="id-ref" href="#QUES-X">QUES-X</a></strong></td>
+<td>Some tests use the real home folder; one overwrote the owner&#x27;s <code>~/.coworker/project.yaml</code> on 2026-11-24. Give every test a temporary HOME?</td>
+<td><code>test_cli.py</code> <code>test_the_block_is_cleared_elsewhere_too</code> calls <code>save_project_catalog</code>, which writes <code>config.py:185</code> at <code>634adf1</code>; <code>test_status</code> reads the real config.</td>
+<td>cicidi</td>
+<td>yes</td>
+</tr>
 </tbody></table></div>
 <h3>Reversibility</h3>
 <p>Files backed up before a change can be restored with <code>coworker restore &lt;label&gt;</code>: <code>init</code> for <code>init</code>, <code>json-sync</code> for Claude Code and Gemini settings, <code>upgrade</code> for the global <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a>. Writes without a backup (<a class="id-ref" href="#QUES-B">QUES-B</a>, <a class="id-ref" href="#QUES-E">QUES-E</a>, <a class="id-ref" href="#QUES-K">QUES-K</a>, <a class="id-ref" href="#QUES-S">QUES-S</a>, <a class="id-ref" href="#QUES-T">QUES-T</a>, and the <code>.gitignore</code> lines <code>init</code> appends) are not reversible by the tool. Removing a server from <code>coworker.yaml</code> and syncing again prunes that server only while at least one server stays configured; with an empty <code>mcp</code> list nothing is pruned. Permissions that <code>sync</code> adds are never removed by a later sync, so they must be removed by hand or restored from a backup. A <code>mcpServers</code> block that <code>sync</code> deletes from <code>settings.json</code> comes back only from a <code>json-sync</code> backup (<a class="id-ref" href="#QUES-O">QUES-O</a>).</p>
@@ -364,6 +371,11 @@
 <td>0.4</td>
 <td>2026-11-24</td>
 <td><a class="id-ref" href="#QUES-A">QUES-A</a>, <a class="id-ref" href="#QUES-M">QUES-M</a>, and <a class="id-ref" href="#QUES-N">QUES-N</a> answered by PRs #20 and #21; <a class="id-ref" href="#QUES-L">QUES-L</a> not blocking after PR #19 (<a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-G">ARD-G</a>, <a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-H">ARD-H</a>)</td>
+</tr>
+<tr>
+<td>0.5</td>
+<td>2026-11-24</td>
+<td>Rechecked at <code>634adf1</code>; <a class="id-ref" href="../prd/core-cli-prd.html#PRD-I">PRD-I</a> limit stated; <code>pristine</code> explained; <a class="id-ref" href="#QUES-X">QUES-X</a> (tests use the real home) added</td>
 </tr>
 </tbody></table></div>
       </div>

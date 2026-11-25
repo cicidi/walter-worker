@@ -34,7 +34,7 @@
         <h2>Setup and Deploy — PRD</h2>
 <h3>Overview</h3>
 <p>walter-worker ships three shell scripts that put it onto a developer&#x27;s machine and take it off again: <a href="../../../../../../../setup/install.sh"><code>setup/install.sh</code></a>, <a href="../../../../../../../setup/update.sh"><code>setup/update.sh</code></a>, and <a href="../../../../../../../setup/uninstall.sh"><code>setup/uninstall.sh</code></a>. Installing means four things. It deploys skills (instruction files an AI coding tool loads on demand) into Claude Code, Cursor, and OpenCode. It registers hooks (commands Claude Code runs on events such as &quot;the user sent a prompt&quot;) in <code>~/.claude/settings.json</code>. It creates a global <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> when none exists. It records what it wrote in an install manifest, a JSON file at <code>~/.coworker/install-manifest.json</code> that lets a later run undo exactly that work and nothing else.</p>
-<p>This document states what the scripts must do. How they do it, and where the code does not yet meet a requirement, is in the <a href="../design/setup-deploy-design.html">design</a>; terms are defined in its Terms section. The facts below were checked against the scripts at commit <code>a0f4ce0</code>.</p>
+<p>This document states what the scripts must do. How they do it, and where the code does not yet meet a requirement, is in the <a href="../design/setup-deploy-design.html">design</a>; terms are defined in its Terms section. The facts below were checked against the scripts at commit <code>a0f4ce0</code>, and against <code>634adf1</code> after walter-worker PRs #16 to #23.</p>
 <h3>Goals and Success Metrics</h3>
 <div class="table-wrap"><table><thead><tr>
 <th>Goal</th>
@@ -89,7 +89,7 @@
 </tr>
 <tr>
 <td><strong id="PRD-F"><a class="id-ref" href="#PRD-F">PRD-F</a></strong></td>
-<td>The installer registers its analytics hooks and its memory-capture hooks in <code>~/.claude/settings.json</code>. It never adds a hook that is already present and never removes an entry it did not add.</td>
+<td>The installer registers its analytics hooks and its session-summary hook in <code>~/.claude/settings.json</code>. It never adds a hook that is already present and never removes an entry it did not add.</td>
 </tr>
 <tr>
 <td><strong id="PRD-G"><a class="id-ref" href="#PRD-G">PRD-G</a></strong></td>
@@ -136,6 +136,11 @@
 <td>0.3</td>
 <td>2026-11-24</td>
 <td>Out of Scope corrected for the OpenCode plugin; requirements the code does not meet are tracked in the design&#x27;s Open Questions (<a class="id-ref" href="../decision-history/setup-deploy-decision-history.html#ARD-E">ARD-E</a>)</td>
+</tr>
+<tr>
+<td>0.4</td>
+<td>2026-11-24</td>
+<td><a class="id-ref" href="#PRD-F">PRD-F</a> names the one session-summary hook (walter-worker PR #22)</td>
 </tr>
 </tbody></table></div>
       </div>

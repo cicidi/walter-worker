@@ -32,7 +32,7 @@
       
       <div class="doc-body">
         <h2>Setup and Deploy — Design</h2>
-<p>Requirements are in the <a href="../prd/setup-deploy-prd.html">PRD</a>. Decisions and their reasons are in the <a href="../decision-history/setup-deploy-decision-history.html">decision history</a>. Behavior below was read from the scripts at commit <code>a0f4ce0</code>.</p>
+<p>Requirements are in the <a href="../prd/setup-deploy-prd.html">PRD</a>. Decisions and their reasons are in the <a href="../decision-history/setup-deploy-decision-history.html">decision history</a>. Behavior below was read from the scripts at commit <code>a0f4ce0</code>; a later fix names its own commit.</p>
 <h3>Problem Statement</h3>
 <p>Copying hooks and skills onto a machine by hand drifts from the source: files go stale, renamed skills leave old copies behind, and nobody can say afterwards which files belong to walter-worker. Earlier versions of the installer made this worse in two ways. They wrote the same skill to several places, so it showed up twice in a tool&#x27;s menu. They also recorded whole directories as their own, so uninstall deleted files that belonged to the user.</p>
 <h3>Solution</h3>
@@ -46,7 +46,7 @@
 <p>The installer accepts <code>--global</code>, <code>--project &lt;path&gt;</code>, <code>--skills &quot;&lt;names&gt;&quot;</code> (a space-separated selection that skips the skill question, used by update), and <code>--help</code>. Any other argument prints an error and exits with status 1. Without <code>--global</code> or <code>--project</code> it asks which mode to use; global is the default answer. The skill source can be moved with the <code>THE_SUPER_LAB_DIR</code> environment variable; the default is <code>~/project/the-super-lab</code>.</p>
 <p>Global mode writes Claude Code commands to <code>~/.claude/commands</code> and OpenCode instructions to <code>~/.opencode/instructions</code>. Project mode writes those two to <code>&lt;path&gt;/.claude/commands</code> and <code>&lt;path&gt;/.opencode/instructions</code>. It also symlinks <code>&lt;path&gt;/AGENTS.md</code> to <code>&lt;path&gt;/CLAUDE.md</code> when that file exists, and appends eight entries (such as <code>CLAUDE.local.md</code>, <code>.env</code>, and the state directory) to <code>&lt;path&gt;/.gitignore</code>. Neither change is recorded in the manifest. Project mode still writes everything that is global: the CLAUDE.md check, the snapshot, the hooks, and the the-super-lab skill mirrors, because those tools load personal skills only from the home directory. This clause implements <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-A">PRD-A</a>.</p>
 <h4 id="DSGN-B"><a class="id-ref" href="#DSGN-B">DSGN-B</a> — Pristine snapshot and the global CLAUDE.md</h4>
-<p>On the first install on a machine, before any other change, the installer copies <code>~/.claude/settings.json</code> and <code>~/.claude/CLAUDE.md</code> into <code>~/.coworker/backups/pristine/</code>. It writes the path of each file that did not exist into <code>absent.txt</code>, and it writes a <code>.taken</code> marker file so the snapshot is never taken again. <code>uninstall.sh --restore-pristine</code> copies the two files back and deletes each path listed in <code>absent.txt</code>, because for a fresh machine the pristine state of that file is &quot;absent&quot;. The global <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> is created from the template only when it is missing. The manifest claims it only when this run created it. These rules implement <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-B">PRD-B</a> and <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-C">PRD-C</a>.</p>
+<p>On the first install on a machine, before any other change, the installer copies <code>~/.claude/settings.json</code> and <code>~/.claude/CLAUDE.md</code> into <code>~/.coworker/backups/pristine/</code>. It writes the path of each file that did not exist into <code>absent.txt</code>, and it writes a <code>.taken</code> marker file so the snapshot is never taken again. <code>uninstall.sh --restore-pristine</code> copies the two files back and deletes each path listed in <code>absent.txt</code>, because for a fresh machine the pristine state of that file is &quot;absent&quot;. The global <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> is created from the template only when it is missing. The manifest claims it when this run created it, and keeps that claim on later runs (<a class="id-ref" href="#QUES-C">QUES-C</a>). Creating it also writes the merge base <code>~/.coworker/claude-md-base.md</code>. These rules implement <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-B">PRD-B</a> and <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-C">PRD-C</a>.</p>
 <h4 id="DSGN-C"><a class="id-ref" href="#DSGN-C">DSGN-C</a> — Skill deployment</h4>
 <p>The installer deploys skills from two sources in different forms.</p>
 <div class="table-wrap"><table><thead><tr>
@@ -78,10 +78,10 @@
 <p>A &quot;directory copy&quot; copies the files at the top level of the skill directory only; subdirectories such as <code>tests/</code> stay behind, and a file deleted from the source stays in the copy. A real directory found where the OpenCode symlink should go is deleted and replaced by the symlink.</p>
 <p>The the-super-lab skills are deployed on every run, whatever the user answered to the skill question. Only bundle skills are offered in that question, so a the-super-lab skill never also becomes a command (<a class="id-ref" href="../decision-history/setup-deploy-decision-history.html#ARD-C">ARD-C</a>). A command copy of a the-super-lab skill that an earlier release wrote is removed while it is still identical to its source; a copy that differs is kept and reported. If a destination file is the same file as its source, which happens when the destination directory is a symlink back into the-super-lab, the copy is skipped instead of failing the install. The <code>init</code> skill is always installed as a command. These rules implement <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-D">PRD-D</a> and <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-E">PRD-E</a>.</p>
 <h4 id="DSGN-D"><a class="id-ref" href="#DSGN-D">DSGN-D</a> — Hook registration</h4>
-<p>The installer adds seven hook commands to <code>~/.claude/settings.json</code>: four analytics scripts under <code>~/.coworker/analytics/hooks/</code> (prompt submitted, before a tool runs, after a tool runs, session stop), the correction detector on prompt submit, and <code>coworker memory capture</code> and <code>coworker memory close</code> on stop. A hook is added only when no existing entry for that event has the same command, either as its whole command or as one step of a compound command joined by <code>;</code>, <code>&amp;&amp;</code>, or <code>||</code> (<a class="id-ref" href="#QUES-A">QUES-A</a>). Entries the installer did not add are never changed or removed. When the OpenCode analytics plugin directory exists in the checkout, the installer also registers it in <code>~/.config/opencode/config.json</code>; when it does not exist, nothing is registered. This implements <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-F">PRD-F</a>.</p>
+<p>The installer adds six hook commands to <code>~/.claude/settings.json</code>: four analytics scripts under <code>~/.coworker/analytics/hooks/</code> (prompt submitted, before a tool runs, after a tool runs, session stop), the correction detector on prompt submit, and <code>on-session-end.sh</code> on session end, which runs the memory summary once per session: memory capture, a model call, then close, which folds it into the memory graph (<a href="../../../../memory-platform/design/memory-platform-design.html">memory-platform</a> ARD-H). A hook is added only when no existing entry for that event has the same command, either as its whole command or as one step of a compound command joined by <code>;</code>, <code>&amp;&amp;</code>, or <code>||</code> (<a class="id-ref" href="#QUES-A">QUES-A</a>). It also removes from Stop each hook whose every step is <code>coworker memory capture</code> or <code>coworker memory close</code>, which earlier installs added (<code>setup/install.sh:687-699</code> at <code>634adf1</code>). A compound hook with any other step is kept whole (<a class="id-ref" href="#QUES-K">QUES-K</a>). Those hooks are removed even when the user added them (<a class="id-ref" href="#QUES-J">QUES-J</a>). Other entries are never changed or removed. When the OpenCode analytics plugin directory exists in the checkout, the installer also registers it in <code>~/.config/opencode/config.json</code>; when it does not exist, nothing is registered. This implements <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-F">PRD-F</a>.</p>
 <h4 id="DSGN-E"><a class="id-ref" href="#DSGN-E">DSGN-E</a> — Install manifest</h4>
-<p>The last step writes <code>~/.coworker/install-manifest.json</code> with <code>schema_version: 2</code>. There is one manifest per machine, whichever mode wrote it. It holds the install mode, the project path, a list of claimed files, the walter-worker hook commands, and a list of owned directories.</p>
-<p>The claimed files are, by full path: the selected commands and their OpenCode mirrors, every file found in the hooks directory, every file found under each the-super-lab skill&#x27;s Claude Code and Cursor destination, the OpenCode symlinks, the global <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> when this run or an earlier install created it, and <code>~/.coworker/claude-md-base.md</code> when it exists. The only owned directory is <code>~/.config/opencode/skills/walter-worker</code> (<a class="id-ref" href="#DSGN-G">DSGN-G</a>). The list does not match <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-G">PRD-G</a> exactly: some written paths are not claimed and some claimed paths were not written by this run, which is tracked as <a class="id-ref" href="#QUES-G">QUES-G</a>.</p>
+<p>The last step writes <code>~/.coworker/install-manifest.json</code> with <code>schema_version: 2</code>. There is one manifest per machine, whichever mode wrote it. It holds the install mode, the project path, the repository path (<code>repo_root</code>), a list of claimed files, the walter-worker hook commands, a list of owned directories, and the paths this run pruned (<code>pruned</code>).</p>
+<p>The claimed files are, by full path: the selected commands and their OpenCode mirrors, every file found in the hooks directory, every file found under each the-super-lab skill&#x27;s Claude Code and Cursor destination, the OpenCode symlinks, each file of the bundle copy under <code>~/.config/opencode/skills/walter-worker</code> named from the source tree, the global <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> when this run or an earlier install created it, and <code>~/.coworker/claude-md-base.md</code> when it exists. The only owned directory is <code>~/.config/opencode/skills/walter-worker</code> (<a class="id-ref" href="#DSGN-G">DSGN-G</a>). The list does not match <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-G">PRD-G</a> exactly: some written paths are not claimed and some claimed paths were not written by this run, which is tracked as <a class="id-ref" href="#QUES-G">QUES-G</a>.</p>
 <p>Before writing, the installer compares the new list with the previous manifest. A path the previous manifest claimed, that still exists, and that this run did not claim is removed, and any directory that removal empties is removed too, but never a root such as <code>~/.claude/skills</code> itself. When the user answers &quot;None&quot; to the skill question, previously claimed paths under <code>~/.claude/commands/</code> are carried forward instead of removed, because &quot;install nothing new&quot; does not mean &quot;delete what I have&quot;; project-mode commands and OpenCode mirrors are not carried (<a class="id-ref" href="#QUES-I">QUES-I</a>).</p>
 <p>One consequence of the comparison breaks <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-H">PRD-H</a> today. A project-mode run prunes the paths the global install claimed, because both share one manifest (<a class="id-ref" href="#QUES-F">QUES-F</a>). These rules implement <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-G">PRD-G</a> and <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-H">PRD-H</a>, except where that question records a conflict.</p>
 <h4 id="DSGN-F"><a class="id-ref" href="#DSGN-F">DSGN-F</a> — Update</h4>
@@ -227,11 +227,25 @@
 <td>cicidi</td>
 <td>no</td>
 </tr>
+<tr>
+<td><strong id="QUES-J"><a class="id-ref" href="#QUES-J">QUES-J</a></strong></td>
+<td>Install removes Stop hooks made only of capture and close even when the user added them, against <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-F">PRD-F</a>. Check the manifest?</td>
+<td><code>setup/install.sh:687-699</code> at <code>634adf1</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
+<tr>
+<td><strong id="QUES-K"><a class="id-ref" href="#QUES-K">QUES-K</a></strong></td>
+<td>A Stop hook joining capture or close with another command is kept, so capture still runs per reply. Drop only those steps?</td>
+<td><code>setup/install.sh:690-694</code> at <code>634adf1</code>.</td>
+<td>cicidi</td>
+<td>no</td>
+</tr>
 </tbody></table></div>
 <h3>Reversibility</h3>
 <p>Every install is reversible through the manifest: <code>uninstall.sh</code> removes what was written, and <code>--restore-pristine</code> restores <code>settings.json</code> and <a href="../../../../../../../CLAUDE.md"><code>CLAUDE.md</code></a> to their state before the first install. A single bad install can also be undone by restoring the <code>settings.json</code> backup that uninstall writes. Skill copies can be regenerated at any time by re-running the installer.</p>
 <h3>Terms</h3>
-<p>The parent walter-worker design has no glossary yet, so the terms this feature uses are defined here.</p>
+<p>Shared terms are in the <a href="../../../design/walter-worker-design.html#glossary">parent glossary</a>; the rows below are specific to this feature.</p>
 <div class="table-wrap"><table><thead><tr>
 <th>Term</th>
 <th>Meaning</th>
@@ -306,6 +320,16 @@
 <td>0.4</td>
 <td>2026-11-24</td>
 <td><a class="id-ref" href="#QUES-A">QUES-A</a> answered by PR #16; <a class="id-ref" href="#QUES-C">QUES-C</a>, <a class="id-ref" href="#QUES-D">QUES-D</a>, and <a class="id-ref" href="#QUES-E">QUES-E</a> fixed by PR #17; merge base claimed (PR #21)</td>
+</tr>
+<tr>
+<td>0.5</td>
+<td>2026-11-24</td>
+<td><a class="id-ref" href="#DSGN-D">DSGN-D</a> after PR #22: six hooks, the summary on SessionEnd, old capture and close steps taken off Stop; <a class="id-ref" href="#QUES-J">QUES-J</a> added</td>
+</tr>
+<tr>
+<td>0.6</td>
+<td>2026-11-24</td>
+<td>Review fixes: CLAUDE.md claim carried forward; Stop removal is per hook (<a class="id-ref" href="#QUES-K">QUES-K</a>); manifest fields; parent glossary linked</td>
 </tr>
 </tbody></table></div>
       </div>

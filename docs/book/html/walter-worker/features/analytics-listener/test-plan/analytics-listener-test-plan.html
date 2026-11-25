@@ -32,7 +32,7 @@
       
       <div class="doc-body">
         <h2>Analytics Listener — Test Plan</h2>
-<p>Each case names the requirement from the <a href="../prd/analytics-listener-prd.html">PRD</a> it covers and the test that implements it at commit <code>a0f4ce0</code>. Hook tests run the scripts with sample payloads against a temporary home directory; importer tests use temporary databases.</p>
+<p>Each case names the requirement from the <a href="../prd/analytics-listener-prd.html">PRD</a> it covers and the test that implements it at commit <code>634adf1</code>. Hook tests run the scripts with sample payloads against a temporary home directory; importer tests use temporary databases.</p>
 <h3>Test Cases</h3>
 <div class="table-wrap"><table><thead><tr>
 <th>ID</th>
@@ -49,7 +49,7 @@
 <tr>
 <td><strong id="TST-B"><a class="id-ref" href="#TST-B">TST-B</a></strong></td>
 <td><a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-B">PRD-B</a></td>
-<td>Each <code>on-*.sh</code> file contains the text <code>python3 -c</code> at most once, and the stop hook stays quiet with no message files. The text count ignores the second interpreter started by <code>common.sh</code>, and no test checks that a hook exits successfully when it cannot write</td>
+<td>Each <code>on-*.sh</code> file contains the text <code>python3 -c</code> at most once, and the stop hook stays quiet with no message files. The text count ignores the interpreters started by <code>common.sh</code> and <code>record.py</code>, and no test checks that a hook exits successfully when it cannot write</td>
 <td><a href="../../../../../../../tests/analytics/test_hooks.py"><code>tests/analytics/test_hooks.py</code></a> <code>test_each_hook_starts_at_most_one_interpreter</code>; <a href="../../../../../../../tests/hooks/on-stop.bats"><code>tests/hooks/on-stop.bats</code></a> &quot;stays quiet when the session has no message files&quot;</td>
 </tr>
 <tr>
@@ -61,8 +61,8 @@
 <tr>
 <td><strong id="TST-D"><a class="id-ref" href="#TST-D">TST-D</a></strong></td>
 <td><a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-D">PRD-D</a></td>
-<td>Hook sessions, Claude Code transcripts, and OpenCode metadata are imported, before and after tool records are paired, and creating the schema twice works. No test re-runs an import</td>
-<td><a href="../../../../../../../tests/python/test_import_data.py"><code>tests/python/test_import_data.py</code></a> <code>test_import_session_basic</code>, <code>test_import_session_pre_and_post_merge</code>; <a href="../../../../../../../tests/python/test_auto_import.py"><code>tests/python/test_auto_import.py</code></a> <code>test_import_claude_jsonl_basic</code>, <code>test_import_opencode_skips_existing</code>; <a href="../../../../../../../tests/analytics/test_e2e_setup.py"><code>tests/analytics/test_e2e_setup.py</code></a> <code>test_db_idempotent</code></td>
+<td>Hook sessions, Claude Code transcripts, and OpenCode metadata are imported, before and after tool records are paired, and creating the schema twice works; a transcript re-import adds no duplicates. No test re-runs a hook-directory import</td>
+<td><a href="../../../../../../../tests/python/test_import_data.py"><code>tests/python/test_import_data.py</code></a> <code>test_import_session_basic</code>, <code>test_import_session_pre_and_post_merge</code>; <a href="../../../../../../../tests/python/test_auto_import.py"><code>tests/python/test_auto_import.py</code></a> <code>test_import_claude_jsonl_basic</code>, <code>test_import_opencode_skips_existing</code>, <code>test_import_claude_jsonl_reimport_appends_without_double_counting</code>, <code>test_cli_import_session_reads_hook_payload</code>; <a href="../../../../../../../tests/analytics/test_e2e_setup.py"><code>tests/analytics/test_e2e_setup.py</code></a> <code>test_db_idempotent</code></td>
 </tr>
 <tr>
 <td><strong id="TST-E"><a class="id-ref" href="#TST-E">TST-E</a></strong></td>
@@ -92,22 +92,21 @@
 <td><strong id="TST-I"><a class="id-ref" href="#TST-I">TST-I</a></strong></td>
 <td><a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-D">PRD-D</a></td>
 <td>A transcript whose typed prompt is a plain string stores that prompt</td>
-<td>No test; not implemented (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-I">QUES-I</a>)</td>
+<td><a href="../../../../../../../tests/python/test_auto_import.py"><code>tests/python/test_auto_import.py</code></a> <code>test_import_claude_jsonl_stores_typed_prompt_string</code>, <code>test_import_claude_jsonl_typed_prompt_without_prompt_source</code></td>
 </tr>
 <tr>
 <td><strong id="TST-J"><a class="id-ref" href="#TST-J">TST-J</a></strong></td>
 <td><a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-A">PRD-A</a></td>
-<td>A newline in a payload field, a payload that is not JSON, and a null duration each still produce a valid JSON line</td>
-<td>No test; not implemented (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-J">QUES-J</a>)</td>
+<td>A newline in a payload field and parallel tool calls give valid lines with unique numbers; no test sends a non-JSON payload or a null duration</td>
+<td><a href="../../../../../../../tests/analytics/test_hooks.py"><code>tests/analytics/test_hooks.py</code></a> <code>test_tool_id_with_newline_keeps_fields_in_place</code>, <code>test_parallel_tool_calls_get_valid_unique_seqs</code></td>
 </tr>
 </tbody></table></div>
 <p>The following behavior is not covered by any test today:</p>
 <ul>
 <li>The redaction that <a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-G">PRD-G</a> asks for (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-A">QUES-A</a>).</li>
 <li>The correction detector firing, because its tests run a file that does not exist (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-G">QUES-G</a>).</li>
-<li>Re-running an import (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-E">QUES-E</a>).</li>
-<li>Typed prompts stored as plain strings in transcripts (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-I">QUES-I</a>).</li>
-<li>Hook records with a newline in a field, an unparseable payload, or a null duration (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-J">QUES-J</a>).</li>
+<li>Re-running a hook-directory import (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-E">QUES-E</a>).</li>
+<li>Hook records from a payload that is not JSON, or with a null duration (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-J">QUES-J</a>).</li>
 <li>The hook-side quarantine, and <code>import</code> of <code>_unattributed</code> (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-L">QUES-L</a>).</li>
 <li>A hook whose write fails (<a class="id-ref" href="../design/analytics-listener-design.html#QUES-B">QUES-B</a>).</li>
 </ul>
@@ -115,7 +114,7 @@
 <h3>Test Execution Order</h3>
 <p>Run <code>test_db_migration.py</code> first, then the hook tests, then the importer tests, then <code>test_curator.py</code>, then <code>test_e2e_setup.py</code>, which runs the whole pipeline.</p>
 <h3>Expected Pass Threshold</h3>
-<p>Every case with a passing test must pass; the threshold is 100%. <a class="id-ref" href="#TST-F">TST-F</a>, <a class="id-ref" href="#TST-G">TST-G</a>, <a class="id-ref" href="#TST-I">TST-I</a>, and <a class="id-ref" href="#TST-J">TST-J</a> have no passing test, so <a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-F">PRD-F</a> and <a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-G">PRD-G</a> are not verified by automation, and <a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-A">PRD-A</a> and <a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-D">PRD-D</a> are verified only in part.</p>
+<p>Every case with a passing test must pass; the threshold is 100%. <a class="id-ref" href="#TST-F">TST-F</a> and <a class="id-ref" href="#TST-G">TST-G</a> have no passing test, so <a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-F">PRD-F</a> and <a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-G">PRD-G</a> are not verified by automation. <a class="id-ref" href="#TST-J">TST-J</a> covers two of its cases, so <a class="id-ref" href="../prd/analytics-listener-prd.html#PRD-A">PRD-A</a> is verified only in part.</p>
 <h3>Traceability</h3>
 <div class="table-wrap"><table><thead><tr>
 <th>Requirement</th>
@@ -174,6 +173,11 @@
 <td>0.3</td>
 <td>2026-11-24</td>
 <td>Review fixes: <a class="id-ref" href="#TST-B">TST-B</a>, <a class="id-ref" href="#TST-C">TST-C</a>, and <a class="id-ref" href="#TST-D">TST-D</a> state what their tests check; <a class="id-ref" href="#TST-H">TST-H</a> cites the curator tests; <a class="id-ref" href="#TST-I">TST-I</a> and <a class="id-ref" href="#TST-J">TST-J</a> added for <a class="id-ref" href="../design/analytics-listener-design.html#QUES-I">QUES-I</a> and <a class="id-ref" href="../design/analytics-listener-design.html#QUES-J">QUES-J</a> (<a class="id-ref" href="../decision-history/analytics-listener-decision-history.html#ARD-E">ARD-E</a>)</td>
+</tr>
+<tr>
+<td>0.4</td>
+<td>2026-11-24</td>
+<td>Tests from walter-worker PRs #22 and #23 cited in <a class="id-ref" href="#TST-D">TST-D</a>, <a class="id-ref" href="#TST-I">TST-I</a>, and <a class="id-ref" href="#TST-J">TST-J</a>; commit <code>634adf1</code></td>
 </tr>
 </tbody></table></div>
       </div>

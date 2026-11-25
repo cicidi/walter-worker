@@ -163,8 +163,8 @@
 </tr>
 <tr>
 <td><strong id="QUES-B"><a class="id-ref" href="#QUES-B">QUES-B</a></strong></td>
-<td>The sub-features record 16 blocking code gaps: setup-deploy QUES-F; core-cli <a class="id-ref" href="#QUES-B">QUES-B</a>, QUES-O, QUES-S, QUES-T; analytics-listener <a class="id-ref" href="#QUES-A">QUES-A</a>, QUES-I, QUES-J, QUES-K; analytics-dashboard QUES-G, QUES-H; memory-platform <a class="id-ref" href="#QUES-A">QUES-A</a>, <a class="id-ref" href="#QUES-B">QUES-B</a>, QUES-I, QUES-J; autoworker <a class="id-ref" href="#QUES-A">QUES-A</a>. Which are fixed first?</td>
-<td>Listed in each sub-feature design; walter-worker PRs #17, #19, #20, and #21 cleared six others; open PR #22 has a fix for memory-platform QUES-I.</td>
+<td>The sub-features record 16 blocking code gaps: setup-deploy QUES-F; core-cli <a class="id-ref" href="#QUES-B">QUES-B</a>, QUES-O, QUES-S, QUES-T, QUES-X; analytics-listener <a class="id-ref" href="#QUES-A">QUES-A</a>, QUES-I, QUES-K, QUES-P; analytics-dashboard QUES-G, QUES-H; memory-platform <a class="id-ref" href="#QUES-A">QUES-A</a>, <a class="id-ref" href="#QUES-B">QUES-B</a>, QUES-J; autoworker <a class="id-ref" href="#QUES-A">QUES-A</a>. Which are fixed first?</td>
+<td>Listed in each sub-feature design; walter-worker PRs #17, #19, #20, and #21 cleared six others; PRs #22 and #23 cleared memory-platform QUES-I and analytics-listener QUES-J.</td>
 <td>cicidi</td>
 <td>no</td>
 </tr>
@@ -242,6 +242,10 @@
 <td>A hook on Claude Code&#x27;s Stop event, which fires each time the agent finishes a reply, so once per turn (<a href="https://docs.claude.com/en/docs/claude-code/hooks">hooks docs</a>)</td>
 </tr>
 <tr>
+<td>SessionEnd hook</td>
+<td>A hook on Claude Code&#x27;s SessionEnd event, which fires once when a session ends; the hook&#x27;s comment says Claude Code cancels it after 1.5 s (<code>on-session-end.sh:9</code> at <code>634adf1</code>); the current default is UNKNOWN</td>
+</tr>
+<tr>
 <td>Embedding</td>
 <td>A list of numbers that represents a text&#x27;s meaning, so that texts with similar meanings get similar numbers</td>
 </tr>
@@ -296,6 +300,11 @@
 <td>0.5</td>
 <td>2026-11-24</td>
 <td><a class="id-ref" href="#QUES-B">QUES-B</a> updated after walter-worker PRs #16 to #21</td>
+</tr>
+<tr>
+<td>0.6</td>
+<td>2026-11-24</td>
+<td><a class="id-ref" href="#QUES-B">QUES-B</a> updated after PRs #22 and #23 (16 to 14), then core-cli QUES-X and analytics-listener QUES-P added (16); glossary adds SessionEnd hook</td>
 </tr>
 </tbody></table></div>
       </div>

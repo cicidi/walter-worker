@@ -77,7 +77,7 @@
 </tr>
 <tr>
 <td><strong id="PRD-D"><a class="id-ref" href="#PRD-D">PRD-D</a></strong></td>
-<td><code>sync</code> writes the configured MCP servers, permissions, skills, and walter-worker&#x27;s own hook into each selected tool. It keeps every entry the user wrote, removes only entries it wrote earlier that are no longer configured, and backs up a file before changing it. A failure in one tool does not stop the others.</td>
+<td><code>sync</code> writes the configured MCP servers, permissions, and skills into each selected tool, and adds no hook (<a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-G">ARD-G</a>). It keeps every entry the user wrote, removes only entries it wrote earlier that are no longer configured, and backs up a file before changing it. A failure in one tool does not stop the others.</td>
 </tr>
 <tr>
 <td><strong id="PRD-E"><a class="id-ref" href="#PRD-E">PRD-E</a></strong></td>
@@ -127,6 +127,11 @@
 <td>0.2</td>
 <td>2026-11-24</td>
 <td>Rewritten from the code at <code>a0f4ce0</code>; the false Cursor adapter and secret-reference claims removed; letter IDs (<a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-A">ARD-A</a>)</td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>2026-11-24</td>
+<td><a class="id-ref" href="#PRD-D">PRD-D</a>: <code>sync</code> adds no hook (<a class="id-ref" href="../decision-history/core-cli-decision-history.html#ARD-G">ARD-G</a>)</td>
 </tr>
 </tbody></table></div>
       </div>

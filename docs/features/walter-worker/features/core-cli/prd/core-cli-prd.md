@@ -40,7 +40,7 @@ As a developer whose file was changed by mistake, I want `coworker restore <labe
 | **PRD-A** | `init --global` creates `~/.coworker/coworker.yaml` from a template when it is missing and never overwrites it. |
 | **PRD-B** | `init --project` detects the project's language, frameworks, and AI tools, asks for confirmation, and writes the project configuration, the project's `CLAUDE.md` and `CLAUDE.local.md`, and `.gitignore` entries. A file that already exists is backed up before it is overwritten, and the user's text in `CLAUDE.local.md` survives. |
 | **PRD-C** | The effective configuration is the global file merged with the nearest project file, with documented precedence. An invalid file is reported with a message naming the file, not a stack trace. |
-| **PRD-D** | `sync` writes the configured MCP servers, permissions, skills, and walter-worker's own hook into each selected tool. It keeps every entry the user wrote, removes only entries it wrote earlier that are no longer configured, and backs up a file before changing it. A failure in one tool does not stop the others. |
+| **PRD-D** | `sync` writes the configured MCP servers, permissions, and skills into each selected tool, and adds no hook (ARD-G). It keeps every entry the user wrote, removes only entries it wrote earlier that are no longer configured, and backs up a file before changing it. A failure in one tool does not stop the others. |
 | **PRD-E** | No configuration command makes a network request. |
 | **PRD-F** | `status` prints the configuration and the active feature's progress without changing any file. |
 | **PRD-G** | `project` adds, edits, lists, shows, and removes catalog entries, and `project sync` writes the catalog into the project's `CLAUDE.md` between markers without touching other text. |
@@ -63,3 +63,4 @@ Python 3.10 or later with Click, Pydantic 2, PyYAML, and Rich. The pytest suites
 |---|---|---|
 | 0.1 | 2026-11-04 | Draft from the legacy core PRD (never committed) |
 | 0.2 | 2026-11-24 | Rewritten from the code at `a0f4ce0`; the false Cursor adapter and secret-reference claims removed; letter IDs (ARD-A) |
+| 0.3 | 2026-11-24 | PRD-D: `sync` adds no hook (ARD-G) |

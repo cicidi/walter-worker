@@ -32,7 +32,7 @@
       
       <div class="doc-body">
         <h2>Setup and Deploy — Test Plan</h2>
-<p>Most cases below run the real script against a temporary home directory, with <code>git</code> and the <code>coworker</code> command replaced by mocks. <a class="id-ref" href="#TST-N">TST-N</a> is weaker: its bats tests check the script&#x27;s text rather than running it, so <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-K">PRD-K</a> has no behavioral test yet. Each case names the requirement from the <a href="../prd/setup-deploy-prd.html">PRD</a> it covers and the bats test that implements it at commit <code>a0f4ce0</code>.</p>
+<p>Most cases below run the real script against a temporary home directory, with <code>git</code> and the <code>coworker</code> command replaced by mocks. <a class="id-ref" href="#TST-N">TST-N</a> is weaker: its bats tests check the script&#x27;s text rather than running it, so <a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-K">PRD-K</a> has no behavioral test yet. Each case names the requirement from the <a href="../prd/setup-deploy-prd.html">PRD</a> it covers and the bats test that implements it at commit <code>634adf1</code>.</p>
 <h3>Test Cases</h3>
 <div class="table-wrap"><table><thead><tr>
 <th>ID</th>
@@ -92,7 +92,7 @@
 <td><strong id="TST-I"><a class="id-ref" href="#TST-I">TST-I</a></strong></td>
 <td><a class="id-ref" href="../prd/setup-deploy-prd.html#PRD-F">PRD-F</a></td>
 <td>Every shipped hook is registered, and a second run adds none</td>
-<td><code>test_install.bats</code> &quot;no shipped on-* hook is left unregistered&quot;, &quot;does not add a second capture hook when one is present&quot;, &quot;a capture and close joined into one hook are not added back separately&quot;</td>
+<td><code>test_install.bats</code> &quot;no shipped on-* hook is left unregistered&quot;, &quot;registers the session summary on SessionEnd, not on Stop&quot;, &quot;does not add a second SessionEnd hook when one is present&quot;</td>
 </tr>
 <tr>
 <td><strong id="TST-J"><a class="id-ref" href="#TST-J">TST-J</a></strong></td>
@@ -125,7 +125,7 @@
 <td><code>test_update.bats</code> &quot;the-super-lab update can be declined&quot;, &quot;notifies when the-super-lab is not a git checkout&quot;</td>
 </tr>
 </tbody></table></div>
-<p>One case checks less than its requirement asks. <a class="id-ref" href="#TST-I">TST-I</a> checks only the capture hook for duplicates. The open questions are in the <a href="../design/setup-deploy-design.html#open-questions">design</a>.</p>
+<p>One case checks less than its requirement asks. <a class="id-ref" href="#TST-I">TST-I</a> checks only the SessionEnd hook for duplicates, and since PR #22 no test covers a step of a compound hook (<a class="id-ref" href="../design/setup-deploy-design.html#QUES-A">QUES-A</a>). The open questions are in the <a href="../design/setup-deploy-design.html#open-questions">design</a>.</p>
 <h3>Test Execution Order</h3>
 <p>Run <code>bats tests/setup/test_install.bats</code> first, because update and uninstall cases install before they act. Then run <code>test_update.bats</code>, then <code>test_uninstall.bats</code>. Within a file the cases are independent; each creates its own temporary home directory.</p>
 <h3>Expected Pass Threshold</h3>
@@ -200,6 +200,11 @@
 <td>0.3</td>
 <td>2026-11-24</td>
 <td>Weak and incomplete cases stated (<a class="id-ref" href="../decision-history/setup-deploy-decision-history.html#ARD-E">ARD-E</a>)</td>
+</tr>
+<tr>
+<td>0.4</td>
+<td>2026-11-24</td>
+<td><a class="id-ref" href="#TST-I">TST-I</a> cites the tests PR #22 renamed; the compound-hook test is gone</td>
 </tr>
 </tbody></table></div>
       </div>
