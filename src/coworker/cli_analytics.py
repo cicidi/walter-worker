@@ -25,9 +25,21 @@ def register_analytics(main_group: click.Group) -> None:
 
     @analytics.command("import")
     def analytics_import():
-        """Import raw JSONL sessions into SQLite."""
-        from .analytics.import_data import import_all
-        import_all()
+        """Import every session source (Claude JSONL, hooks, OpenCode) into SQLite.
+
+        This ran only the hook importer, so Claude transcripts and OpenCode were
+        never read by the command the docs point to.
+        """
+        from .analytics.auto_import import run_once
+        stats = run_once(verbose=True)
+        console.print(f"[green]Imported:[/green] {stats}")
+
+    @analytics.command("repair")
+    @click.option("--db", default=None, help="Path to analytics database")
+    def analytics_repair(db):
+        """Back up analytics.db, remove seed/duplicate rows, normalize and re-import."""
+        from .analytics.repair import repair
+        repair(db)
 
     @analytics.command("daemon")
     def analytics_daemon():

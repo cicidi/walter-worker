@@ -4,6 +4,7 @@ import time
 from pathlib import Path
 from datetime import datetime
 from .db import get_db
+from .normalize import canonical_tool, minutes_between, project_from_cwd, utc_iso
 
 HOME = Path.home()
 BASE = HOME / ".coworker" / "analytics"
@@ -97,40 +98,31 @@ def _count_jsonl_skill_calls(path: Path) -> set:
 
 
 def import_claude_jsonl(jsonl_file: Path, conn):
-    """Store session metadata + stats + file ops from Claude Code JSONL."""
+    """Store a Claude Code session from its JSONL transcript.
+
+    Only ``assistant`` entries are read for tool calls. ``api-request-blob``
+    entries replay the whole context the model was sent, earlier tool calls
+    included, so reading them counted one session's 437 tool calls as 838.
+    """
     sid = jsonl_file.stem
     lines = jsonl_file.read_text().strip().split("\n")
-    # Counted after the loop, from the rows actually stored. It used to be
-    # len(lines), the number of JSONL events — which includes tool results and
-    # summary lines — so the sessions list reported a message count the detail
-    # view could never reproduce.
-    msg_count = 0
 
     created = ""
+    last_ts = ""
     model = ""
     cwd = ""
     active_skill = None
-    file_count = 0
-    read_count = 0
-    write_count = 0
-    bash_count = 0
-    # file_ops.session_id references sessions(id), and the session row is only
-    # written once the loop has read the timestamp, model and cwd out of it. So
-    # these are collected here and inserted after it. Inserting them inline
-    # raised a foreign-key error on every session that touched a file, which is
-    # nearly all of them, and the caller reported success.
+    read_count = write_count = bash_count = 0
+    # file_ops, messages and tool_calls reference sessions(id), so they are
+    # collected here and inserted after the session row exists.
     file_ops_rows: list[tuple] = []
-    # The messages and tool_calls tables were never written on this path, only
-    # counted in session_stats. So the sessions list reported "3 messages" from
-    # session_stats while the detail view — which reads the tables — showed
-    # none, and the two could never agree. Both are filled in from the JSONL
-    # now, which is what makes the counts mean anything.
     tool_call_rows: list[tuple] = []
     message_rows: list[tuple] = []
+    seen_ids: set[str] = set()
+    usage_by_msg: dict[str, dict] = {}
 
-    # The Stop hook imports the same session after every reply. Calls already in
-    # tool_calls were counted by an earlier import; counting them again would
-    # add every skill call once per reply.
+    # The Stop hook re-imports the same session after every reply; skill calls
+    # counted by an earlier import must not be counted again.
     seen_calls = {r[0] for r in conn.execute(
         "SELECT call_id FROM tool_calls WHERE session_id = ?", (sid,))}
 
@@ -139,123 +131,141 @@ def import_claude_jsonl(jsonl_file: Path, conn):
             obj = json.loads(line)
         except json.JSONDecodeError:
             continue
-
-        if obj.get("type") == "assistant" and not created:
-            created = obj.get("timestamp", "")
-            mi = obj.get("message", {})
-            if isinstance(mi, dict):
-                model = mi.get("model", "")
+        etype = obj.get("type")
+        ts = obj.get("timestamp", "")
         if obj.get("cwd") and not cwd:
             cwd = obj["cwd"]
+        if etype not in ("user", "assistant"):
+            continue
+        if ts:
+            created = created or ts
+            last_ts = ts
 
         msg = obj.get("message", {})
-        ts = obj.get("timestamp", "")
-
         if not isinstance(msg, dict):
             continue
+        if etype == "assistant":
+            m = msg.get("model", "")
+            if m and m != "<synthetic>":
+                model = m
+            if isinstance(msg.get("usage"), dict):
+                usage_by_msg[msg.get("id") or f"{sid}-{seq}"] = msg["usage"]
 
         content = msg.get("content", []) if isinstance(msg.get("content"), list) else []
 
-        # Only the conversation is stored as messages. api-request-blob
-        # entries are the context Claude Code sends the model (system
-        # reminders, the skill list), and isMeta entries are skill bodies it
-        # inserts; storing them filed a thousand injected blocks as messages.
-        # Tool calls in any entry are still read below.
-        keep_text = obj.get("type") in ("user", "assistant") and not obj.get("isMeta")
-        text = "" if not keep_text else (_typed_prompt(obj, msg) or "\n".join(
+        # isMeta entries are skill bodies Claude Code inserts, not conversation.
+        text = "" if obj.get("isMeta") else (_typed_prompt(obj, msg) or "\n".join(
             b.get("text", "") for b in content
             if isinstance(b, dict) and b.get("type") == "text"
         ).strip())
         if text:
-            message_rows.append((sid, seq, obj.get("type", "unknown"), text, ts))
+            message_rows.append((sid, seq, etype, text, ts))
 
+        if etype != "assistant":
+            continue
         for block in content:
-            if not isinstance(block, dict):
+            if not isinstance(block, dict) or block.get("type") != "tool_use":
                 continue
-            btype = block.get("type", "")
+            call_id = block.get("id", f"{sid}-{seq}")
+            if call_id in seen_ids:
+                continue
+            seen_ids.add(call_id)
             tname = block.get("name", "")
+            args = block.get("input") or {}
 
-            if btype == "tool_use":
-                tool_call_rows.append((
-                    sid, block.get("id", f"{sid}-{seq}"), tname, "builtin", None,
-                    None, active_skill, json.dumps(block.get("input", {})), None,
-                    None, seq, seq, ts,
-                ))
-
-            if btype == "tool_use" and tname == "Skill":
+            if tname == "Skill":
                 active_skill = _skill_name(block) or None
-                sname = active_skill
-                if sname and block.get("id", f"{sid}-{seq}") not in seen_calls:
-                    conn.execute("INSERT OR IGNORE INTO skills (name) VALUES (?)", (sname,))
-                    conn.execute("UPDATE skills SET total_calls = total_calls + 1 WHERE name = ?", (sname,))
-
-            elif btype == "tool_use" and tname in ("Read", "Write", "Edit", "Glob", "Bash"):
-                file_count += 1
-                args = block.get("input", {})
-                fpath = args.get("file_path") or args.get("path") or args.get("filePath") or ""
-                op = tname.lower()
-
-                if tname in ("Read", "Glob"):
-                    read_count += 1
-                elif tname in ("Write", "Edit"):
-                    write_count += 1
-                elif tname == "Bash":
-                    bash_count += 1
-
-                if fpath:
-                    file_type = Path(fpath).suffix.lstrip(".") or None
-                    file_ops_rows.append(
-                        (sid, block.get("id", f"{sid}-{seq}"), op, fpath, file_type,
-                         jsonl_file.parent.name, active_skill, seq, ts)
-                    )
-
-            elif btype == "tool_use" and tname not in ("Skill", "Read", "Write", "Edit", "Glob", "Bash"):
-                # Non-skill, non-file tool — end skill context if one was active
+                if active_skill and call_id not in seen_calls:
+                    conn.execute("INSERT OR IGNORE INTO skills (name) VALUES (?)", (active_skill,))
+                    conn.execute(
+                        "UPDATE skills SET total_calls = total_calls + 1, "
+                        "first_invoked = COALESCE(first_invoked, ?), "
+                        "last_invoked = MAX(COALESCE(last_invoked, ''), ?) WHERE name = ?",
+                        (utc_iso(ts), utc_iso(ts), active_skill))
+            elif tname not in ("Read", "Write", "Edit", "Glob", "Bash"):
+                # Non-skill, non-file tool ends the skill context.
                 active_skill = None
 
+            tool_call_rows.append((
+                sid, call_id, tname, "builtin", None, None,
+                None if tname == "Skill" else active_skill,
+                json.dumps(args), None, None, seq, seq, ts,
+            ))
+
+            if tname in ("Read", "Glob"):
+                read_count += 1
+            elif tname in ("Write", "Edit"):
+                write_count += 1
+            elif tname == "Bash":
+                bash_count += 1
+            fpath = args.get("file_path") or args.get("path") or args.get("filePath") or ""
+            if fpath and tname in ("Read", "Write", "Edit", "Glob"):
+                file_ops_rows.append(
+                    (sid, call_id, tname.lower(), fpath, Path(fpath).suffix.lstrip(".") or None,
+                     project_from_cwd(cwd) or jsonl_file.parent.name, active_skill, seq, ts)
+                )
+
+    project = project_from_cwd(cwd) or jsonl_file.parent.name
+    created_u, closed_u = utc_iso(created), utc_iso(last_ts)
     # An upsert, not INSERT OR REPLACE: REPLACE deletes the old row first, and
-    # once messages and tool_calls reference it the foreign keys refuse that,
-    # so every re-import of a session failed.
+    # the foreign keys from messages and tool_calls refuse that.
     conn.execute(
-        """INSERT INTO sessions (id, ide, project, cwd, model, created_at)
-           VALUES (?, 'claude-code', ?, ?, ?, ?)
-           ON CONFLICT(id) DO UPDATE SET project=excluded.project, cwd=excluded.cwd,
-               model=excluded.model, created_at=excluded.created_at""",
-        (sid, jsonl_file.parent.name, cwd, model, created or ""),
+        """INSERT INTO sessions (id, ide, project, cwd, model, created_at, closed_at)
+           VALUES (?, 'claude-code', ?, ?, ?, ?, ?)
+           ON CONFLICT(id) DO UPDATE SET ide='claude-code', project=excluded.project,
+               cwd=excluded.cwd, model=excluded.model, created_at=excluded.created_at,
+               closed_at=excluded.closed_at""",
+        (sid, project, cwd, model, created_u, closed_u),
     )
+    conn.executemany(
+        "INSERT OR IGNORE INTO messages (session_id, seq, type, content, ts) VALUES (?, ?, ?, ?, ?)",
+        message_rows)
+    conn.executemany(
+        """INSERT OR IGNORE INTO tool_calls
+           (session_id, call_id, tool, tool_type, server_name, parent_call_id,
+            parent_skill, args, result, duration_ms, seq_before, seq_after, ts)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        tool_call_rows)
+    conn.executemany(
+        """INSERT OR IGNORE INTO file_ops (session_id, call_id, op, path, file_type, project, skill_name, seq, ts)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        file_ops_rows)
 
-    # Now that the session row exists, everything that references it can go in.
-    for row in message_rows:
-        conn.execute(
-            """INSERT OR IGNORE INTO messages (session_id, seq, type, content, ts)
-               VALUES (?, ?, ?, ?, ?)""",
-            row,
-        )
-    for row in tool_call_rows:
-        conn.execute(
-            """INSERT OR IGNORE INTO tool_calls
-               (session_id, call_id, tool, tool_type, server_name, parent_call_id,
-                parent_skill, args, result, duration_ms, seq_before, seq_after, ts)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            row,
-        )
-    for row in file_ops_rows:
-        conn.execute(
-            """INSERT OR IGNORE INTO file_ops (session_id, call_id, op, path, file_type, project, skill_name, seq, ts)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            row,
-        )
+    def _u(key, sub=None):
+        total = 0
+        for u in usage_by_msg.values():
+            v = u.get(key) if sub is None else (u.get(key) or {}).get(sub)
+            total += v if isinstance(v, int) else 0
+        return total
 
-    msg_count = len(message_rows)
+    _write_stats(conn, sid, read_count, write_count, bash_count,
+                 minutes_between(created_u, closed_u),
+                 tokens=(_u("input_tokens"), _u("output_tokens"),
+                         _u("output_tokens_details", "thinking_tokens"),
+                         _u("cache_read_input_tokens"), _u("cache_creation_input_tokens")),
+                 cost=0)
+    conn.commit()
 
+
+def _write_stats(conn, sid, read_count, write_count, bash_count, duration_min,
+                 tokens=(0, 0, 0, 0, 0), cost=0.0):
+    """session_stats counts come from the rows stored for the session, so the
+    sessions list, the overview and the detail view all agree."""
+    msg_count = conn.execute("SELECT COUNT(*) FROM messages WHERE session_id = ?", (sid,)).fetchone()[0]
+    tool_count = conn.execute("SELECT COUNT(*) FROM tool_calls WHERE session_id = ?", (sid,)).fetchone()[0]
+    skill_count = conn.execute(
+        "SELECT COUNT(*) FROM tool_calls WHERE session_id = ? AND tool = 'Skill'", (sid,)).fetchone()[0]
+    turns = conn.execute(
+        "SELECT COUNT(*) FROM messages WHERE session_id = ? AND type = 'user'", (sid,)).fetchone()[0]
     conn.execute(
         """INSERT OR REPLACE INTO session_stats
-           (session_id, message_count, tool_count, skill_count, read_count, write_count, bash_count, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-        (sid, msg_count, file_count, len(_get_skills(jsonl_file)), read_count, write_count,
-         bash_count, datetime.now().isoformat()),
+           (session_id, message_count, tool_count, skill_count, read_count, write_count, bash_count,
+            duration_min, updated_at, tokens_input, tokens_output, tokens_reasoning,
+            tokens_cache_read, tokens_cache_write, cost, turn_count)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (sid, msg_count, tool_count, skill_count, read_count, write_count, bash_count,
+         duration_min, datetime.now().isoformat(), *tokens, cost, turns),
     )
-    conn.commit()
 
 
 def import_claude_hooks(session_dir: Path, conn):
@@ -298,57 +308,180 @@ def import_claude_hooks(session_dir: Path, conn):
         conn.commit()
 
 
-def import_opencode_meta(conn):
-    """Import OpenCode session metadata from opencode.db."""
+def _oc_model(raw) -> str:
+    """OpenCode stores session.model as JSON ({"id": ..., "providerID": ...})."""
+    if not raw:
+        return ""
+    try:
+        m = json.loads(raw)
+    except (TypeError, ValueError):
+        return str(raw)
+    return (m.get("id") or m.get("modelID") or "") if isinstance(m, dict) else str(m)
+
+
+def import_opencode(conn, force: bool = False) -> int:
+    """Import OpenCode sessions, with their messages and tool calls, from opencode.db.
+
+    opencode.db is the only source for OpenCode: the old importer stored the
+    session row and nothing else (0 messages, 0 tools for every session), and
+    the hooks wrote a second copy of each session under a generated id.
+
+    A sub-agent session (parent_id set) is folded into its root session, the
+    way a Claude Code sub-agent belongs to the session that started it: its
+    tool calls and token spend count there, and it is not a session of its own.
+    A session is re-imported when OpenCode has updated it since the last import.
+    """
     if not OPCODE_DB.exists():
         return 0
     import sqlite3
-    existing = set(
-        r[0] for r in conn.execute("SELECT id FROM sessions WHERE ide='opencode'").fetchall()
-    )
     try:
-        oc = sqlite3.connect(str(OPCODE_DB))
+        oc = sqlite3.connect(f"file:{OPCODE_DB}?mode=ro", uri=True)
         oc.row_factory = sqlite3.Row
-        rows = oc.execute(
-            "SELECT id, title, model, cost, tokens_input, tokens_output, time_created "
-            "FROM session WHERE title IS NOT NULL AND title != ''"
-        ).fetchall()
-        oc.close()
+        sessions = oc.execute(
+            "SELECT id, parent_id, directory, model, cost, tokens_input, tokens_output, "
+            "tokens_reasoning, tokens_cache_read, tokens_cache_write, time_created, time_updated "
+            "FROM session").fetchall()
     except sqlite3.Error:
         return 0
 
+    by_id = {r["id"]: r for r in sessions}
+
+    def root_of(sid):
+        seen = set()
+        while by_id.get(sid) and by_id[sid]["parent_id"] and sid not in seen:
+            seen.add(sid)
+            sid = by_id[sid]["parent_id"]
+        return sid
+
+    family: dict[str, list] = {}
+    for r in sessions:
+        family.setdefault(root_of(r["id"]), []).append(r)
+
+    imported = {r[0]: r[1] for r in conn.execute(
+        "SELECT session_id, updated_at FROM session_stats ss JOIN sessions s ON s.id = ss.session_id "
+        "WHERE s.ide = 'opencode'")}
+
     count = 0
-    for row in rows:
-        sid = row["id"]
-        if sid in existing:
+    for root_id, members in family.items():
+        root = by_id.get(root_id)
+        if root is None:
             continue
-        created = row["time_created"]
-        if created:
+        last_update = utc_iso(max(m["time_updated"] or 0 for m in members))
+        prev = imported.get(root_id)
+        if prev and not force and prev >= last_update:
+            continue
+        ids = [m["id"] for m in members]
+        marks = ",".join("?" * len(ids))
+        try:
+            msgs = oc.execute(
+                f"SELECT id, session_id, time_created, json_extract(data,'$.role') AS role, "
+                f"json_extract(data,'$.modelID') AS model FROM message "
+                f"WHERE session_id IN ({marks}) ORDER BY time_created", ids).fetchall()
+            parts = oc.execute(
+                f"SELECT id, message_id, session_id, time_created, data FROM part "
+                f"WHERE session_id IN ({marks}) AND json_extract(data,'$.type') IN ('text','tool') "
+                f"ORDER BY time_created, id", ids).fetchall()
+        except sqlite3.Error:
+            continue
+
+        cwd = root["directory"] or ""
+        created = utc_iso(root["time_created"])
+        model = next((m["model"] for m in reversed(msgs)
+                      if m["session_id"] == root_id and m["role"] == "assistant" and m["model"]),
+                     "") or _oc_model(root["model"])
+        conn.execute(
+            """INSERT INTO sessions (id, ide, project, cwd, model, created_at, closed_at)
+               VALUES (?, 'opencode', ?, ?, ?, ?, ?)
+               ON CONFLICT(id) DO UPDATE SET ide='opencode', project=excluded.project,
+                   cwd=excluded.cwd, model=excluded.model, created_at=excluded.created_at,
+                   closed_at=excluded.closed_at""",
+            (root_id, project_from_cwd(cwd), cwd, model, created, last_update),
+        )
+
+        # Text of the root conversation only: a sub-agent's prompts are tool
+        # traffic, not the user's conversation.
+        role_of = {m["id"]: m["role"] for m in msgs}
+        texts: dict[str, list[str]] = {}
+        msg_ts: dict[str, int] = {m["id"]: m["time_created"] for m in msgs}
+        read_c = write_c = bash_c = 0
+        for seq, p in enumerate(parts):
             try:
-                created = datetime.fromtimestamp(int(created) / 1000).isoformat()
-            except (ValueError, TypeError, OSError):
-                pass
-        conn.execute(
-            """INSERT OR REPLACE INTO sessions (id, ide, model, created_at)
-               VALUES (?, 'opencode', ?, ?)""",
-            (sid, row["model"] or "", created or ""),
-        )
-        conn.execute(
-            """INSERT OR REPLACE INTO session_stats
-               (session_id, message_count, tool_count, updated_at)
-               VALUES (?, ?, ?, ?)""",
-            (sid, 0, 0, datetime.now().isoformat()),
-        )
+                d = json.loads(p["data"])
+            except (TypeError, ValueError):
+                continue
+            if d.get("type") == "text":
+                if p["session_id"] == root_id and not d.get("synthetic") and (d.get("text") or "").strip():
+                    texts.setdefault(p["message_id"], []).append(d["text"].strip())
+                continue
+            st = d.get("state") or {}
+            tool = canonical_tool(d.get("tool", ""))
+            args = st.get("input") or {}
+            t = st.get("time") or {}
+            dur = (t.get("end") - t.get("start")) if t.get("end") and t.get("start") else None
+            out = st.get("output") if st.get("status") != "error" else st.get("error")
+            ts = utc_iso(p["time_created"])
+            call_id = d.get("callID") or p["id"]
+            conn.execute(
+                """INSERT OR IGNORE INTO tool_calls
+                   (session_id, call_id, tool, tool_type, server_name, args, result,
+                    duration_ms, seq_before, seq_after, ts)
+                   VALUES (?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?)""",
+                (root_id, call_id, tool, "builtin", json.dumps(args),
+                 (str(out) if out is not None else "")[:2000], dur, seq, seq, ts),
+            )
+            if tool in ("Read", "Glob"):
+                read_c += 1
+            elif tool in ("Write", "Edit"):
+                write_c += 1
+            elif tool == "Bash":
+                bash_c += 1
+            fpath = args.get("filePath") or args.get("file_path") or args.get("path") or ""
+            if fpath and tool in ("Read", "Write", "Edit", "Glob"):
+                conn.execute(
+                    """INSERT OR IGNORE INTO file_ops (session_id, call_id, op, path, file_type, project, seq, ts)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (root_id, call_id, tool.lower(), fpath, Path(fpath).suffix.lstrip(".") or None,
+                     project_from_cwd(cwd), seq, ts),
+                )
+        for seq, (mid, chunks) in enumerate(sorted(texts.items(), key=lambda kv: msg_ts.get(kv[0], 0))):
+            conn.execute(
+                "INSERT OR REPLACE INTO messages (session_id, seq, type, content, ts) VALUES (?, ?, ?, ?, ?)",
+                (root_id, seq, role_of.get(mid) or "assistant", "\n".join(chunks), utc_iso(msg_ts.get(mid))),
+            )
+
+        def tot(col):
+            return sum(m[col] or 0 for m in members)
+        _write_stats(conn, root_id, read_c, write_c, bash_c, minutes_between(created, last_update),
+                     tokens=(tot("tokens_input"), tot("tokens_output"), tot("tokens_reasoning"),
+                             tot("tokens_cache_read"), tot("tokens_cache_write")),
+                     cost=round(tot("cost"), 6))
+        # updated_at doubles as the "imported up to" mark compared above.
+        conn.execute("UPDATE session_stats SET updated_at = ? WHERE session_id = ?",
+                     (last_update, root_id))
         count += 1
+    oc.close()
     conn.commit()
     return count
 
 
-def run_once(verbose: bool = False) -> dict:
+def _hook_ide(session_dir: Path) -> str:
+    yaml_file = session_dir / "session.yaml"
+    for line in yaml_file.read_text(encoding="utf-8").splitlines():
+        if line.startswith("ide:"):
+            return line.split(":", 1)[1].strip().strip('"')
+    return ""
+
+
+def run_once(verbose: bool = False, force: bool = False) -> dict:
+    """Import every session source. A Claude transcript is re-imported when the
+    file changed after its last import, so a live session's counts keep up
+    (skipping every known id froze them at the first Stop)."""
     conn = get_db()
     stats = {"claude_jsonl": 0, "claude_hooks": 0, "opencode": 0, "skipped": 0}
 
     existing = set(r[0] for r in conn.execute("SELECT id FROM sessions").fetchall())
+    imported_at = dict(conn.execute("SELECT session_id, updated_at FROM session_stats").fetchall())
+    jsonl_ids: set[str] = set()
 
     # --- Claude Code JSONL ---
     if CLAUDE_PROJECTS.exists():
@@ -357,7 +490,9 @@ def run_once(verbose: bool = False) -> dict:
                 continue
             for jsonl_file in sorted(project_dir.glob("*.jsonl")):
                 sid = jsonl_file.stem
-                if sid in existing:
+                jsonl_ids.add(sid)
+                mtime = datetime.fromtimestamp(jsonl_file.stat().st_mtime).isoformat()
+                if not force and sid in existing and (imported_at.get(sid) or "") >= mtime:
                     stats["skipped"] += 1
                     continue
                 try:
@@ -370,18 +505,19 @@ def run_once(verbose: bool = False) -> dict:
                     if verbose:
                         print(f"  [claude-jsonl] fail {sid}: {e}")
 
-    # --- Claude Code hooks ---
+    # --- Claude Code hooks (only when no transcript exists) ---
     if SESSIONS.exists():
         for session_dir in sorted(SESSIONS.iterdir()):
             if not session_dir.is_dir() or session_dir.name.startswith('.') or session_dir.name.startswith('_'):
                 continue
             if not (session_dir / "session.yaml").exists():
                 continue
-            # Use session_id from session.yaml (matches Claude Code's real session
-            # id from hook JSON), not the directory name, so multiple Stop events
-            # for the same conversation map to one DB session.
+            # opencode.db is the source for OpenCode; the hook copy carried a
+            # generated id and duplicated every session.
+            if _hook_ide(session_dir) == "opencode":
+                continue
             sid = _parse_session_id(session_dir)
-            if sid in existing:
+            if sid in existing or sid in jsonl_ids:
                 stats["skipped"] += 1
                 continue
             try:
@@ -395,8 +531,7 @@ def run_once(verbose: bool = False) -> dict:
                     print(f"  [claude-hooks] fail {sid}: {e}")
 
     # --- OpenCode ---
-    oc_count = import_opencode_meta(conn)
-    stats["opencode"] = oc_count
+    stats["opencode"] = import_opencode(conn, force=force)
 
     conn.close()
     return stats

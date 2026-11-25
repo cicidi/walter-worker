@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from datetime import datetime
 from .db import get_db
+from .normalize import canonical_tool, project_from_cwd, utc_iso
 
 HOME = Path.home()
 BASE = HOME / ".coworker" / "analytics"
@@ -27,18 +28,7 @@ def import_session(session_dir: Path, conn_or_path=None):
 
     # Auto-detect project from cwd if not set
     if not info.get("project"):
-        cwd = info.get("cwd", "").rstrip("/")
-        # /home/user/project/repo/subdir → repo
-        if "/project/" in cwd:
-            info["project"] = cwd.split("/project/")[-1].split("/")[0]
-        # /home/user → home
-        elif cwd.startswith("/home/") and cwd.count("/") <= 2:
-            info["project"] = "home"
-        # Fallback: last path component
-        elif "/" in cwd:
-            last = cwd.split("/")[-1]
-            if last and not last.startswith("-"):
-                info["project"] = last
+        info["project"] = project_from_cwd(info.get("cwd", ""))
 
     # Auto-detect branch from git if not in YAML (Claude Code doesn't write it)
     branch = info.get("branch", "")
@@ -79,9 +69,10 @@ def import_session(session_dir: Path, conn_or_path=None):
     conn.execute(
         """INSERT OR REPLACE INTO sessions (id, ide, project, cwd, model, feature, branch, created_at, closed_at)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-        (session_id, info.get("ide", ""), info.get("project", ""), info.get("cwd", ""),
+        (session_id, "claude-code" if info.get("ide") == "claude" else info.get("ide", ""),
+         info.get("project", ""), info.get("cwd", ""),
          info.get("model", ""), info.get("feature", ""), info.get("branch", ""),
-         info.get("created", ""), info.get("closed", "")),
+         utc_iso(info.get("created", "")), utc_iso(info.get("closed", ""))),
     )
 
     # Import from raw Claude Code JSONL for full message content (hooks truncate content)
@@ -192,7 +183,7 @@ def import_session(session_dir: Path, conn_or_path=None):
         for cid in sorted(all_call_ids):
             pre = pre_calls.get(cid, {})
             post = post_calls.get(cid, {})
-            tool = pre.get("tool") or post.get("tool", "")
+            tool = canonical_tool(pre.get("tool") or post.get("tool", ""))
             tool_type = pre.get("tool_type") or post.get("tool_type", "builtin")
             server_name = pre.get("server_name") or post.get("server_name", "")
             args_json = json.dumps(pre.get("args", {})) if pre.get("args") else None
