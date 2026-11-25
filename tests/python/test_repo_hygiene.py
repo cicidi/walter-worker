@@ -266,7 +266,8 @@ def test_every_file_a_hook_writes_is_one_an_importer_reads():
 
     written = {}  # filename -> where it is written
     for h in hooks:
-        for m in re.finditer(r"append_jsonl\s+\"([^\"]+)\"", h.read_text(encoding="utf-8", errors="ignore")):
+        # Records go through record.py, which appends to the path it is given.
+        for m in re.finditer(r"record\.py\".*\$SESSION_ID/([a-z_]+\.jsonl)\"", h.read_text(encoding="utf-8", errors="ignore")):
             written.setdefault(m.group(1), h.name)
 
     read = set()
