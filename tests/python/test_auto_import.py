@@ -1343,3 +1343,36 @@ def test_cli_import_session_quiet_without_transcript(auto_db):
     r = CliRunner().invoke(main, ["analytics", "import-session"], input="{}")
     assert r.exit_code == 0
     assert auto_db.execute("SELECT COUNT(*) FROM sessions").fetchone()[0] == 0
+
+
+def test_import_claude_jsonl_keeps_every_prompt_the_user_wrote(auto_db, tmp_path):
+    """Only promptSource "typed" was kept, which dropped what the user wrote
+    while a turn was running ("queued"), accepted suggestions, and claude -p
+    prompts ("sdk"). Only "system" is Claude Code's own text."""
+    from coworker.analytics.auto_import import import_claude_jsonl
+
+    d = tmp_path / "p"
+    d.mkdir()
+    lines = [_typed(f"from {src}", promptSource=src) for src in ("queued", "suggestion_accepted", "sdk")]
+    lines.append(_typed("<task-notification>x</task-notification>", promptSource="system"))
+    import_claude_jsonl(_make_jsonl(d / "s6.jsonl", lines), auto_db)
+    assert [r[0] for r in auto_db.execute("SELECT content FROM messages ORDER BY seq")] == [
+        "from queued", "from suggestion_accepted", "from sdk"]
+
+
+def test_import_claude_jsonl_skips_injected_entries(auto_db, tmp_path):
+    """api-request-blob entries are the context Claude Code sends the model
+    (system reminders, the skill list), and isMeta user entries are skill
+    bodies it inserts. Neither was written by the user or the assistant."""
+    from coworker.analytics.auto_import import import_claude_jsonl
+
+    d = tmp_path / "p"
+    d.mkdir()
+    import_claude_jsonl(_make_jsonl(d / "s7.jsonl", [
+        {"type": "api-request-blob", "message": {"content": [{"type": "text", "text": "<system-reminder>"}]}},
+        {"type": "user", "isMeta": True, "message": {"content": [{"type": "text", "text": "Base directory for this skill"}]}},
+        {"type": "user", "message": {"content": [{"type": "text", "text": "[Request interrupted by user]"}]}},
+        {"type": "assistant", "message": {"content": [{"type": "text", "text": "answer"}]}},
+    ]), auto_db)
+    assert [r[0] for r in auto_db.execute("SELECT content FROM messages ORDER BY seq")] == [
+        "[Request interrupted by user]", "answer"]

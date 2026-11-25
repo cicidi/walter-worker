@@ -154,3 +154,28 @@ class TestRebuildIndex:
         assert mem0.deleted is True
         assert len(mem0.added) == 1, "the session was not re-indexed"
         assert mem0.added[0]["run_id"] == "s1"
+
+
+class TestErrorReason:
+    """An error record said only "error": the exception went to stderr, which
+    the session-end hook discards, so ~40% of captures failed with no trace of
+    why. The reason now rides on the same line."""
+
+    def test_error_reason_on_one_line(self, tmp_path):
+        path = tmp_path / "audit.log"
+        write_audit_record(str(path), "stop", "s1", "session-end", 0, 9, "error",
+                           reason='Unterminated string\nat "x"')
+        line = path.read_text()
+        assert line.count("\n") == 1
+        assert line.rstrip().endswith('error reason="Unterminated string\\nat \\"x\\""')
+
+    def test_reason_does_not_break_gap_detection(self, tmp_path):
+        path = tmp_path / "audit.log"
+        write_audit_record(str(path), "stop", "s1", "t", 0, 1, "error", ts="2026-01-01T00:00:00Z", reason="a b c")
+        write_audit_record(str(path), "stop", "s1", "t", 0, 1, "ok", ts="2026-01-01T01:00:00Z")
+        assert check_gaps(str(path))[0]["session_id"] == "s1"
+
+    def test_ok_record_unchanged(self, tmp_path):
+        path = tmp_path / "audit.log"
+        write_audit_record(str(path), "stop", "s1", "t", 2, 5, "ok", ts="T")
+        assert path.read_text() == "T sync stop s1 tool=t lessons=2 ms=5 ok\n"

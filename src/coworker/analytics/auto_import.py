@@ -38,10 +38,12 @@ def _typed_prompt(obj: dict, msg: dict) -> str:
     string, not a block list, and the importer read only lists — so not one
     typed prompt reached the database. Strings that Claude Code itself
     injected (promptSource "system", or isMeta) are not the user's words.
-    Transcripts older than promptSource only have isMeta to go on."""
+    Every other source is: "queued" (written while a turn ran),
+    "suggestion_accepted", "sdk" (claude -p). Keeping only "typed" dropped
+    those. Transcripts older than promptSource only have isMeta to go on."""
     if obj.get("type") != "user" or obj.get("isMeta"):
         return ""
-    if obj.get("promptSource", "typed") != "typed":
+    if obj.get("promptSource") == "system":
         return ""
     content = msg.get("content")
     return content.strip() if isinstance(content, str) else ""
@@ -154,10 +156,16 @@ def import_claude_jsonl(jsonl_file: Path, conn):
 
         content = msg.get("content", []) if isinstance(msg.get("content"), list) else []
 
-        text = _typed_prompt(obj, msg) or "\n".join(
+        # Only the conversation is stored as messages. api-request-blob
+        # entries are the context Claude Code sends the model (system
+        # reminders, the skill list), and isMeta entries are skill bodies it
+        # inserts; storing them filed a thousand injected blocks as messages.
+        # Tool calls in any entry are still read below.
+        keep_text = obj.get("type") in ("user", "assistant") and not obj.get("isMeta")
+        text = "" if not keep_text else (_typed_prompt(obj, msg) or "\n".join(
             b.get("text", "") for b in content
             if isinstance(b, dict) and b.get("type") == "text"
-        ).strip()
+        ).strip())
         if text:
             message_rows.append((sid, seq, obj.get("type", "unknown"), text, ts))
 

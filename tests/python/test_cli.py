@@ -2568,3 +2568,9 @@ class TestStatusHonoursTheConfiguredDatabase:
         assert result["sessions"] == 1, (
             "the scan must count the configured database, not a hardcoded one"
         )
+
+
+def test_tests_never_see_the_real_project_catalog():
+    from coworker import config
+
+    assert Path.home() / ".coworker" not in config.PROJECT_CATALOG_PATH.parents

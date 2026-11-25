@@ -234,7 +234,8 @@ def process_turn(
         ms = int((time.time() - start) * 1000)
         logger.error("process_turn failed: %s", exc)
         if audit_path:
-            write_audit_record(audit_path, "posttooluse", session_id, tool_name, 0, ms, "error")
+            write_audit_record(audit_path, "posttooluse", session_id, tool_name, 0, ms, "error",
+                               reason=f"{type(exc).__name__}: {exc}")
         return TurnResult(lessons_extracted=0, error=str(exc))
 
 
@@ -363,7 +364,8 @@ def process_session_end(
         ms = int((time.time() - start) * 1000)
         logger.error("process_session_end failed: %s", exc)
         if audit_path:
-            write_audit_record(audit_path, "stop", session_id, "session-end", 0, ms, "error")
+            write_audit_record(audit_path, "stop", session_id, "session-end", 0, ms, "error",
+                               reason=f"{type(exc).__name__}: {exc}")
         return SessionEndResult(error=str(exc))
 
 

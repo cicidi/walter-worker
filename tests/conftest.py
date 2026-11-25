@@ -54,3 +54,19 @@ def installed_home(tmp_path_factory) -> Path:
     # install.sh should succeed; surface stderr if it didn't.
     assert proc.returncode == 0, f"install.sh failed:\n{proc.stderr}"
     yield home
+
+
+@pytest.fixture(autouse=True)
+def _no_real_project_catalog(tmp_path, monkeypatch):
+    """No test writes the developer's real ~/.coworker/project.yaml.
+
+    PROJECT_CATALOG_PATH is computed from the real home at import time, and a
+    test that called save_project_catalog without temp_coworker_dir replaced
+    the owner's whole catalog with one pytest entry. Every test now starts with
+    the path pointed into its own tmp_path; a fixture that patches it again
+    still wins.
+    """
+    import coworker.config as config
+
+    (tmp_path / "_catalog").mkdir(exist_ok=True)
+    monkeypatch.setattr(config, "PROJECT_CATALOG_PATH", tmp_path / "_catalog" / "project.yaml")
