@@ -1,0 +1,25 @@
+# Qdrant server for coworker memory (mem0).
+#
+# Embedded Qdrant locks ~/.coworker/memory/vector to one process; this server
+# lets the dashboard, Stop hook and memory MCP servers share one store.
+# Bound to loopback only. See setup/qdrant/README.md.
+#
+#   install -Dm644 setup/qdrant/coworker-qdrant.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now coworker-qdrant
+[Unit]
+Description=Qdrant vector store for coworker memory (mem0)
+After=network.target
+
+[Service]
+ExecStart=%h/.local/bin/qdrant
+WorkingDirectory=%h/.coworker/memory/qdrant-server
+Environment=QDRANT__SERVICE__HOST=127.0.0.1
+Environment=QDRANT__SERVICE__HTTP_PORT=6333
+Environment=QDRANT__SERVICE__GRPC_PORT=6334
+Environment=QDRANT__STORAGE__STORAGE_PATH=%h/.coworker/memory/qdrant-server/storage
+Environment=QDRANT__STORAGE__SNAPSHOTS_PATH=%h/.coworker/memory/qdrant-server/snapshots
+Environment=QDRANT__TELEMETRY_DISABLED=true
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
