@@ -18,8 +18,10 @@ async function mountPanel(containerId, fetchFn, renderFn, errorLabel) {
   el.innerHTML = '<div class="sk-panel"><div class="sk-bar w60"></div><div class="sk-bar w80"></div><div class="sk-bar w40"></div></div>';
   try {
     const data = await fetchFn();
+    if (!el.isConnected) return; // user left the page before the data arrived
     el.innerHTML = renderFn(data);
   } catch (e) {
+    if (!el.isConnected) return;
     el.innerHTML = '<div class="panel-error"><div class="err-icon">⚠</div><div class="err-msg">' + escHtml(errorLabel || 'Failed to load') + '</div><div class="err-detail">' + escHtml(e.message) + '</div><button class="retry-btn" onclick="mountPanel(\'' + containerId + '\', arguments[1], arguments[2], \'' + escHtml(errorLabel || '') + '\')">↻ Retry</button></div>';
     console.warn('Panel ' + containerId + ':', e.message);
   }
