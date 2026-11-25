@@ -33,6 +33,8 @@ YAML
     mkdir -p "$SESSIONS/_unattributed"
     SESSION_ID="_unattributed"
   fi
+  # Read by the hooks that source this file, which hand it to record.py.
+  # shellcheck disable=SC2034
   SEQ_FILE="$SESSIONS/$SESSION_ID/.seq"
 }
 
