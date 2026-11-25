@@ -52,7 +52,7 @@ class Mem0Client:
         llm_base_url: str = "https://api.deepseek.com",
         embedder_provider: str = "fastembed",
         embedder_model: str = "BAAI/bge-small-en-v1.5",
-        vector_store_path: str = "~/.coworker/memory/vector",
+        vector_store_path: str | None = None,
     ) -> "Mem0Client":
         """Create a Mem0Client from a typed configuration.
 
@@ -63,6 +63,10 @@ class Mem0Client:
             embedder_provider: mem0 provider key for embeddings (fastembed = local ONNX).
             embedder_model: Model ID for fastembed (BGE-small, 384-dim).
             vector_store_path: Filesystem path for the embedded Qdrant store.
+                When omitted, COWORKER_QDRANT_URL (if set) selects a Qdrant
+                server instead; otherwise ~/.coworker/memory/vector is used.
+                Embedded Qdrant locks its folder to one process, so set the
+                URL when the dashboard, hooks and MCP servers run together.
 
         Returns:
             Configured Mem0Client ready for use.
@@ -76,8 +80,14 @@ class Mem0Client:
         if not api_key:
             raise ConfigError("DEEPSEEK_API_KEY environment variable is required")
 
-        path = Path(vector_store_path).expanduser()
-        path.mkdir(parents=True, exist_ok=True)
+        url = os.environ.get("COWORKER_QDRANT_URL", "") if vector_store_path is None else ""
+        vector_store: dict = {"embedding_model_dims": 384}  # BGE-small embedding dimension
+        if url:
+            vector_store["url"] = url
+        else:
+            path = Path(vector_store_path or "~/.coworker/memory/vector").expanduser()
+            path.mkdir(parents=True, exist_ok=True)
+            vector_store.update(path=str(path), on_disk=True)
 
         config = {
             "llm": {
@@ -92,14 +102,7 @@ class Mem0Client:
                 "provider": embedder_provider,
                 "config": {"model": embedder_model},
             },
-            "vector_store": {
-                "provider": "qdrant",
-                "config": {
-                    "path": str(path),
-                    "embedding_model_dims": 384,  # BGE-small embedding dimension
-                    "on_disk": True,
-                },
-            },
+            "vector_store": {"provider": "qdrant", "config": vector_store},
         }
 
         try:
