@@ -38,15 +38,22 @@ async function read(res) {
   return res.json();
 }
 
+// Requests are built from the origin, not the page address. A page opened as
+// http://user:password@host/ has credentials in its address, and the browser
+// refuses to build a relative request from such an address, so every call
+// failed. The origin never carries credentials; the browser still sends the
+// login it already holds for this site.
+const API = location.origin + "/api/";
+
 // GET /api/<path>. `filtered` adds the global filters; `params` can override them.
 export function api(path, params = {}, { filtered = false } = {}) {
   const all = filtered ? { ...state.filters, ...params } : params;
-  return fetch("/api/" + path + query(all)).then(read);
+  return fetch(API + path + query(all)).then(read);
 }
 
 // State-changing calls carry the header the server requires on every POST.
 export function post(path, params = {}) {
-  return fetch("/api/" + path + query(params), { method: "POST", headers: { "X-Coworker-Dashboard": "1" } }).then(read);
+  return fetch(API + path + query(params), { method: "POST", headers: { "X-Coworker-Dashboard": "1" } }).then(read);
 }
 
 // ── Routing ──────────────────────────────────────────────────────────────────
