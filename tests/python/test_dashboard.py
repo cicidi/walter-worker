@@ -9,7 +9,13 @@ from pathlib import Path
 import pytest
 
 from coworker.analytics.db import SCHEMA
-from coworker.dashboard import queries, queries_analytics, queries_evolution
+from coworker.dashboard import (
+    queries,
+    queries_analytics,
+    queries_evolution,
+    queries_memory_roi,
+    queries_v2,
+)
 from coworker.dashboard.app import app
 from fastapi.testclient import TestClient
 
@@ -25,7 +31,7 @@ def _patch_get_db(monkeypatch):
     ~/.coworker/analytics/analytics.db, so their tests passed or failed
     depending on local data.
     """
-    for mod in (queries, queries_analytics, queries_evolution):
+    for mod in (queries, queries_analytics, queries_evolution, queries_v2, queries_memory_roi):
         monkeypatch.setattr(mod, "get_db", _make_shared_conn)
 
 
@@ -835,13 +841,15 @@ class TestWriteEndpointsRefuseForeignPages:
     def test_the_dashboards_own_js_sends_the_header(self):
         from importlib.resources import files as resource_files
 
-        js = (resource_files("coworker.dashboard") / "static" / "dashboard.js").read_text()
+        app_dir = resource_files("coworker.dashboard") / "static" / "app"
+        sources = {f.name: f.read_text() for f in app_dir.iterdir() if f.name.endswith(".js")}
 
-        posts = js.count("method:'POST'")
-        assert posts, "expected the dashboard to make POST calls"
-        assert js.count("X-Coworker-Dashboard") == posts, (
-            "every POST in dashboard.js must carry the header, or the guard "
-            "breaks the page it protects"
+        # Every state-changing call goes through post() in main.js, which is
+        # the one place that sets the header.
+        posts = sum(src.count('method: "POST"') for src in sources.values())
+        assert posts == 1, "POSTs must go through the single post() helper in main.js"
+        assert sources["main.js"].count("X-Coworker-Dashboard") == posts, (
+            "every POST must carry the header, or the guard breaks the page it protects"
         )
 
 

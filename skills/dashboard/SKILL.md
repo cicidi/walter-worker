@@ -66,9 +66,20 @@ coworker analytics dashboard &
 coworker analytics daemon
 ```
 
-The dashboard shows: session counts by project/feature, tool usage,
-model costs, skill evolution, and knowledge cards. Open http://localhost:8099
-in a browser after starting.
+Open http://localhost:8099 in a browser after starting. Pages:
+
+- **Overview** — when you work (weekday × hour), totals, and what stands out.
+- **Insights** — where tools fail and why, which capabilities you use, how you
+  prompt, session shape, tokens and cache.
+- **Memory** — whether capture, storage and recall are paying off, plus a
+  browser for stored lessons.
+- **Sessions**, **Tools and skills**, **Files**, **Projects** — explorers with
+  expandable rows.
+- **Evolution** — agent-written skills and drafts awaiting review.
+- **Data health** — how much of each field is actually recorded.
+
+One filter bar (agent, model, project, time range) drives every page except
+Memory, Evolution and Data health.
 
 If the `coworker-dashboard` systemd user service is installed
 (`setup/dashboard/`), it already serves 8099 — check with
