@@ -2496,6 +2496,8 @@ class TestDashboardBindsToLoopback:
         assert seen.get("host") == "127.0.0.1", "the default must not be exposed"
 
     def test_an_explicit_host_is_honoured_and_warned_about(self, monkeypatch):
+        # Beyond loopback needs a password (test_dashboard_auth covers the refusal).
+        monkeypatch.setenv("COWORKER_DASHBOARD_PASSWORD", "s3cret")
         seen = {}
         monkeypatch.setattr(
             "uvicorn.run", lambda app, **kw: seen.update(kw)
@@ -2506,7 +2508,7 @@ class TestDashboardBindsToLoopback:
         )
 
         assert seen.get("host") == "0.0.0.0"
-        assert "anyone who can reach this port" in result.output
+        assert "with a password" in result.output
 
 
 class TestSkillNewTellsTheTruthAboutWhereItWrote:

@@ -1,5 +1,9 @@
+import base64
+import binascii
 import json
 import logging
+import os
+import secrets
 from pathlib import Path
 from importlib.resources import files as resource_files
 
@@ -12,6 +16,58 @@ from . import queries
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Coworker Analytics Dashboard")
+
+
+def _credentials_ok(scope, user: str, password: str) -> bool:
+    """True when the request's Basic Authorization header matches."""
+    header = dict(scope.get("headers") or []).get(b"authorization", b"")
+    scheme, _, token = header.partition(b" ")
+    if scheme.lower() != b"basic":
+        return False
+    try:
+        given_user, _, given_pw = base64.b64decode(token, validate=True).partition(b":")
+    except (binascii.Error, ValueError):
+        return False
+    # Compare both halves every time so timing does not reveal which was wrong.
+    user_ok = secrets.compare_digest(given_user, user.encode())
+    pw_ok = secrets.compare_digest(given_pw, password.encode())
+    return user_ok and pw_ok
+
+
+class BasicAuthMiddleware:
+    """HTTP Basic Auth on every HTTP and WebSocket request.
+
+    On only when COWORKER_DASHBOARD_PASSWORD is set (user name from
+    COWORKER_DASHBOARD_USER, default "coworker"), so a loopback-only dashboard
+    works as before. Read per request, so tests and restarts see the current
+    value. The CLI refuses to listen beyond loopback without a password.
+    """
+
+    def __init__(self, inner):
+        self.inner = inner
+
+    async def __call__(self, scope, receive, send):
+        password = os.environ.get("COWORKER_DASHBOARD_PASSWORD", "")
+        if scope["type"] not in ("http", "websocket") or not password:
+            return await self.inner(scope, receive, send)
+        user = os.environ.get("COWORKER_DASHBOARD_USER", "coworker")
+        if _credentials_ok(scope, user, password):
+            return await self.inner(scope, receive, send)
+        if scope["type"] == "websocket":
+            await send({"type": "websocket.close", "code": 1008})
+            return
+        await send({
+            "type": "http.response.start",
+            "status": 401,
+            "headers": [
+                (b"www-authenticate", b'Basic realm="coworker dashboard", charset="UTF-8"'),
+                (b"content-type", b"text/plain; charset=utf-8"),
+            ],
+        })
+        await send({"type": "http.response.body", "body": b"Authentication required\n"})
+
+
+app.add_middleware(BasicAuthMiddleware)
 
 #: Header every state-changing request must carry. Its only job is to not be
 #: settable by a foreign page.

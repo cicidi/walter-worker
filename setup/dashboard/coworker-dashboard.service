@@ -7,6 +7,14 @@
 #
 #   install -Dm644 setup/dashboard/coworker-dashboard.service ~/.config/systemd/user/
 #   systemctl --user daemon-reload && systemctl --user enable --now coworker-dashboard
+#
+# Remote access: add COWORKER_DASHBOARD_PASSWORD=... to ~/.zshrc.secrets, then
+# override the host in a drop-in (the CLI refuses a non-loopback host without
+# a password). Log in as user "coworker". Plain HTTP: prefer a VPN or TLS proxy.
+#   systemctl --user edit coworker-dashboard
+#     [Service]
+#     ExecStart=
+#     ExecStart=%h/.local/bin/coworker analytics dashboard --host 0.0.0.0 --port 8099
 [Unit]
 Description=coworker analytics dashboard (port 8099)
 Wants=coworker-qdrant.service
