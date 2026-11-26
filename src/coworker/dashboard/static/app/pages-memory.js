@@ -205,5 +205,5 @@ export async function evolutionPage() {
         p.source_session ? disclosure("The session it came from", () => sessionDetail({ id: p.source_session })) : null),
     })),
     section("Knowledge graph", "Code, documents, sessions and decisions, linked.",
-      disclosure("Open the graph", () => h("iframe", { class: "graph", src: "/graph.html", title: "Knowledge graph" }))));
+      disclosure("Open the graph", () => h("iframe", { class: "graph", src: location.origin + "/graph.html", title: "Knowledge graph" }))));
 }

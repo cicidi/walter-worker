@@ -314,6 +314,16 @@ class TestPageFiles:
             assert "innerHTML" not in text.replace("never innerHTML", ""), f"{name} uses innerHTML"
             assert "insertAdjacentHTML" not in text and "document.write" not in text
 
+    def test_requests_are_built_from_the_origin(self):
+        # A page opened as http://user:password@host/ cannot make relative
+        # requests; every fetch must start from location.origin.
+        main = self.sources()["main.js"]
+        assert 'const API = location.origin + "/api/";' in main
+        assert main.count("fetch(") == main.count("fetch(API + ") == 2
+        for name, text in self.sources().items():
+            if name != "main.js":
+                assert "fetch(" not in text, f"{name} must call api() or post(), not fetch()"
+
     def test_static_files_must_be_revalidated(self):
         r = TestClient(app).get("/app/ui.js")
         assert r.status_code == 200 and r.headers["cache-control"] == "no-cache"
