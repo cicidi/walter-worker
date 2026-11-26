@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from datetime import datetime
 from .db import get_db
-from .normalize import canonical_tool, project_from_cwd, utc_iso
+from .normalize import canonical_tool, project_from_cwd, project_from_slug, utc_iso
 
 HOME = Path.home()
 BASE = HOME / ".coworker" / "analytics"
@@ -26,9 +26,12 @@ def import_session(session_dir: Path, conn_or_path=None):
     info = parse_session_yaml(session_dir)
     session_id = info.get("session_id", session_dir.name)
 
-    # Auto-detect project from cwd if not set
-    if not info.get("project"):
-        info["project"] = project_from_cwd(info.get("cwd", ""))
+    # A recorded project name is kept. A missing one, or a transcript-folder
+    # slug ("-home-u-project-repo"), is replaced by the name the cwd gives;
+    # a slug used as-is lists one project under two names.
+    recorded = info.get("project") or ""
+    if not recorded or recorded.startswith("-"):
+        info["project"] = project_from_cwd(info.get("cwd", "")) or project_from_slug(recorded)
 
     # Auto-detect branch from git if not in YAML (Claude Code doesn't write it)
     branch = info.get("branch", "")

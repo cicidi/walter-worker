@@ -4,7 +4,7 @@ import time
 from pathlib import Path
 from datetime import datetime
 from .db import get_db
-from .normalize import canonical_tool, minutes_between, project_from_cwd, utc_iso
+from .normalize import canonical_tool, minutes_between, project_from_cwd, project_from_slug, utc_iso
 
 HOME = Path.home()
 BASE = HOME / ".coworker" / "analytics"
@@ -97,6 +97,20 @@ def _count_jsonl_skill_calls(path: Path) -> set:
     return skills
 
 
+def _first_cwd(lines: list[str]) -> str:
+    """The first cwd recorded in a transcript, or ""."""
+    for line in lines:
+        if '"cwd"' not in line:
+            continue
+        try:
+            cwd = json.loads(line).get("cwd")
+        except (json.JSONDecodeError, AttributeError):
+            continue
+        if cwd:
+            return cwd
+    return ""
+
+
 def import_claude_jsonl(jsonl_file: Path, conn):
     """Store a Claude Code session from its JSONL transcript.
 
@@ -110,7 +124,12 @@ def import_claude_jsonl(jsonl_file: Path, conn):
     created = ""
     last_ts = ""
     model = ""
-    cwd = ""
+    request_model = ""
+    # The project comes from the cwd, and the cwd can first appear on a later
+    # line than the first file op. Find it before the main pass, so every row
+    # of this session gets the same project name.
+    cwd = _first_cwd(lines)
+    project = project_from_cwd(cwd) or project_from_slug(jsonl_file.parent.name)
     active_skill = None
     read_count = write_count = bash_count = 0
     # file_ops, messages and tool_calls reference sessions(id), so they are
@@ -135,8 +154,10 @@ def import_claude_jsonl(jsonl_file: Path, conn):
             continue
         etype = obj.get("type")
         ts = obj.get("timestamp", "")
-        if obj.get("cwd") and not cwd:
-            cwd = obj["cwd"]
+        if etype == "api-request" and isinstance(obj.get("params"), dict):
+            # Newer transcripts name the model here; assistant messages may
+            # carry only "<synthetic>".
+            request_model = obj["params"].get("model") or request_model
         if etype not in ("user", "assistant"):
             continue
         if ts:
@@ -211,10 +232,10 @@ def import_claude_jsonl(jsonl_file: Path, conn):
             if fpath and tname in ("Read", "Write", "Edit", "Glob"):
                 file_ops_rows.append(
                     (sid, call_id, tname.lower(), fpath, Path(fpath).suffix.lstrip(".") or None,
-                     project_from_cwd(cwd) or jsonl_file.parent.name, active_skill, seq, ts)
+                     project, active_skill, seq, ts)
                 )
 
-    project = project_from_cwd(cwd) or jsonl_file.parent.name
+    model = model or request_model
     created_u, closed_u = utc_iso(created), utc_iso(last_ts)
     # An upsert, not INSERT OR REPLACE: REPLACE deletes the old row first, and
     # the foreign keys from messages and tool_calls refuse that.

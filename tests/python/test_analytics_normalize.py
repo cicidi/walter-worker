@@ -73,3 +73,39 @@ def test_repair_removes_seed_and_duplicates_and_keeps_orphans(monkeypatch, tmp_p
     assert c.execute("SELECT name, total_calls FROM skills").fetchall() == [("commit", 1)]
     assert sorted(r[0] for r in c.execute("SELECT tool FROM tool_calls")) == ["Bash", "Skill"]
     assert Path(report["backup"]).exists()
+
+
+def test_project_from_slug():
+    from coworker.analytics.normalize import project_from_slug
+    home = Path("/home/u")
+    # Claude Code names a transcript folder after the cwd with "/" turned into "-".
+    assert project_from_slug("-home-u-project-the-super-lab", home) == "the-super-lab"
+    assert project_from_slug("-home-u", home) == "home"
+    assert project_from_slug("-tmp-scratch", home) == "tmp-scratch"  # not under home: keep it readable
+    assert project_from_slug("walter-worker", home) == "walter-worker"  # already a name
+    assert project_from_slug("", home) == ""
+
+
+def test_repair_renames_slug_projects_in_file_ops(monkeypatch, tmp_path):
+    from coworker.analytics import auto_import, repair as rep
+    from coworker.analytics.db import init_db
+
+    db = tmp_path / "analytics.db"
+    conn = init_db(db)
+    conn.executescript("""
+      INSERT INTO sessions (id, ide, project, cwd, created_at) VALUES
+        ('s1', 'claude-code', '-home-u-project-repo', '/home/u/project/repo', '2026-07-01T10:00:00Z');
+      INSERT INTO file_ops (session_id, call_id, op, path, project, seq, ts) VALUES
+        ('s1', 'c1', 'read', '/home/u/project/repo/a.py', '-home-u-project-repo', 1, '2026-07-01T10:00:01Z'),
+        ('s1', 'c2', 'edit', '/home/u/project/repo/b.py', 'repo', 2, '2026-07-01T10:00:02Z');
+    """)
+    conn.commit()
+    conn.close()
+    for name in ("OPCODE_DB", "CLAUDE_PROJECTS", "SESSIONS"):
+        monkeypatch.setattr(auto_import, name, tmp_path / "none")
+
+    rep.repair(db, verbose=False)
+
+    c = sqlite3.connect(db)
+    assert c.execute("SELECT project FROM sessions").fetchall() == [("repo",)]
+    assert c.execute("SELECT DISTINCT project FROM file_ops").fetchall() == [("repo",)]

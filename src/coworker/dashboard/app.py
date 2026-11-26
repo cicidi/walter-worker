@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import secrets
+import time
 from pathlib import Path
 from importlib.resources import files as resource_files
 
@@ -34,6 +35,37 @@ def _credentials_ok(scope, user: str, password: str) -> bool:
     return user_ok and pw_ok
 
 
+#: Wrong passwords allowed from one address inside AUTH_FAIL_WINDOW seconds
+#: before that address is locked out for the rest of the window. A typo or
+#: three is fine; a dictionary run is not.
+AUTH_FAIL_LIMIT = 10
+AUTH_FAIL_WINDOW = 300
+_auth_failures: dict[str, list[float]] = {}
+
+
+def _now() -> float:
+    return time.monotonic()
+
+
+def _lockout_seconds(address: str) -> int:
+    """Seconds this address stays locked out; 0 when it may try."""
+    recent = [t for t in _auth_failures.get(address, ()) if _now() - t < AUTH_FAIL_WINDOW]
+    if recent:
+        _auth_failures[address] = recent
+    else:
+        _auth_failures.pop(address, None)
+    if len(recent) < AUTH_FAIL_LIMIT:
+        return 0
+    return max(1, int(AUTH_FAIL_WINDOW - (_now() - recent[0])) + 1)
+
+
+def _record_failure(address: str) -> None:
+    if len(_auth_failures) > 10_000:  # a spray from many addresses must not grow this without bound
+        for key in [k for k, v in _auth_failures.items() if _now() - v[-1] >= AUTH_FAIL_WINDOW]:
+            del _auth_failures[key]
+    _auth_failures.setdefault(address, []).append(_now())
+
+
 class BasicAuthMiddleware:
     """HTTP Basic Auth on every HTTP and WebSocket request.
 
@@ -41,6 +73,11 @@ class BasicAuthMiddleware:
     COWORKER_DASHBOARD_USER, default "coworker"), so a loopback-only dashboard
     works as before. Read per request, so tests and restarts see the current
     value. The CLI refuses to listen beyond loopback without a password.
+
+    An address that sends AUTH_FAIL_LIMIT wrong passwords within
+    AUTH_FAIL_WINDOW seconds gets 429 until the window passes, whatever it
+    sends, so a guesser cannot tell when it hit the right one. Requests with
+    no credentials do not count: a browser's first request never has any.
     """
 
     def __init__(self, inner):
@@ -50,11 +87,24 @@ class BasicAuthMiddleware:
         password = os.environ.get("COWORKER_DASHBOARD_PASSWORD", "")
         if scope["type"] not in ("http", "websocket") or not password:
             return await self.inner(scope, receive, send)
-        user = os.environ.get("COWORKER_DASHBOARD_USER", "coworker")
-        if _credentials_ok(scope, user, password):
-            return await self.inner(scope, receive, send)
+        address = (scope.get("client") or ("unknown",))[0]
+        wait = _lockout_seconds(address)
+        if not wait:
+            user = os.environ.get("COWORKER_DASHBOARD_USER", "coworker")
+            if _credentials_ok(scope, user, password):
+                return await self.inner(scope, receive, send)
+            if dict(scope.get("headers") or []).get(b"authorization"):
+                _record_failure(address)
         if scope["type"] == "websocket":
             await send({"type": "websocket.close", "code": 1008})
+            return
+        if wait:
+            await send({
+                "type": "http.response.start",
+                "status": 429,
+                "headers": [(b"retry-after", str(wait).encode()), (b"content-type", b"text/plain; charset=utf-8")],
+            })
+            await send({"type": "http.response.body", "body": b"Too many wrong passwords. Try again later.\n"})
             return
         await send({
             "type": "http.response.start",

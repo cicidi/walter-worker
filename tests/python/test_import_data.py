@@ -1089,3 +1089,19 @@ def test_import_session_keeps_queued_prompt(import_db, tmp_path, monkeypatch):
     (d / "session.yaml").write_text('session_id: "q-1"\ncwd: /work/proj\ncreated: t\n')
     import_session(d, import_db)
     assert [r[0] for r in import_db.execute("SELECT content FROM messages WHERE session_id='q-1'")] == ["mid-turn"]
+
+
+def test_import_session_replaces_a_slug_project_with_the_cwd_name(tmp_path):
+    """session.yaml can record the transcript-folder slug as the project."""
+    from coworker.analytics.db import init_db
+    from coworker.analytics.import_data import import_session
+
+    session_dir = tmp_path / "s-slug"
+    session_dir.mkdir()
+    (session_dir / "session.yaml").write_text(
+        'session_id: s-slug\nproject: "-home-u-project-repo"\ncwd: /home/u/project/repo\n')
+    conn = init_db(tmp_path / "analytics.db")
+
+    import_session(session_dir, conn)
+
+    assert conn.execute("SELECT project FROM sessions WHERE id = 's-slug'").fetchone()[0] == "repo"

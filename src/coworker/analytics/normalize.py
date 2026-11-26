@@ -59,6 +59,25 @@ def project_from_cwd(cwd: str, home: Path | None = None) -> str:
     return cwd.rsplit("/", 1)[-1]
 
 
+def project_from_slug(slug: str, home: Path | None = None) -> str:
+    """Name a project from a Claude Code transcript folder.
+
+    Claude Code stores transcripts under a folder named after the cwd with
+    every "/" turned into "-": ``/home/u/project/repo`` → ``-home-u-project-repo``.
+    When no cwd is recorded, that folder name is all there is to go on. Used
+    raw, one project appears twice: once as ``repo``, once as the slug.
+    """
+    slug = slug or ""
+    if not slug.startswith("-"):
+        return slug  # already a name
+    if "-project-" in slug:
+        return slug.split("-project-", 1)[1]
+    home_slug = "-" + str(home or Path.home()).strip("/").replace("/", "-")
+    if slug == home_slug:
+        return "home"
+    return slug.lstrip("-")
+
+
 def minutes_between(start: str, end: str) -> int | None:
     try:
         a = datetime.fromisoformat(start.replace("Z", "+00:00"))
