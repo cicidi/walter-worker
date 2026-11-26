@@ -29,6 +29,8 @@ def _basic(user: str, password: str) -> dict:
 def client(monkeypatch):
     monkeypatch.delenv("COWORKER_DASHBOARD_PASSWORD", raising=False)
     monkeypatch.delenv("COWORKER_DASHBOARD_USER", raising=False)
+    from coworker.dashboard import app as app_module
+    app_module._auth_failures.clear()  # wrong-password counts must not leak between tests
     return TestClient(app)
 
 
@@ -88,3 +90,58 @@ def test_listens_publicly_with_a_password(fake_uvicorn, monkeypatch):
     r = CliRunner().invoke(main, ["analytics", "dashboard", "--host", "0.0.0.0"])
     assert r.exit_code == 0
     assert fake_uvicorn["host"] == "0.0.0.0"
+
+
+# ── Repeated wrong passwords are locked out ──────────────────────────────────
+
+@pytest.fixture
+def clock(monkeypatch):
+    """A clock the test moves by hand, and a clean failure record."""
+    from coworker.dashboard import app as app_module
+    now = {"t": 1000.0}
+    monkeypatch.setattr(app_module, "_now", lambda: now["t"])
+    app_module._auth_failures.clear()
+    yield now
+    app_module._auth_failures.clear()
+
+
+def test_too_many_wrong_passwords_lock_the_address_out(client, monkeypatch, clock):
+    from coworker.dashboard import app as app_module
+    monkeypatch.setenv("COWORKER_DASHBOARD_PASSWORD", "s3cret")
+    for _ in range(app_module.AUTH_FAIL_LIMIT):
+        assert client.get("/", headers=_basic("coworker", "guess")).status_code == 401
+
+    locked = client.get("/", headers=_basic("coworker", "guess"))
+    assert locked.status_code == 429
+    assert int(locked.headers["retry-after"]) > 0
+    # The right password does not get through either until the lockout ends,
+    # so a guesser cannot tell when it has hit the right one.
+    assert client.get("/", headers=_basic("coworker", "s3cret")).status_code == 429
+
+
+def test_the_lockout_ends_after_the_window(client, monkeypatch, clock):
+    from coworker.dashboard import app as app_module
+    monkeypatch.setenv("COWORKER_DASHBOARD_PASSWORD", "s3cret")
+    for _ in range(app_module.AUTH_FAIL_LIMIT):
+        client.get("/", headers=_basic("coworker", "guess"))
+    assert client.get("/", headers=_basic("coworker", "s3cret")).status_code == 429
+
+    clock["t"] += app_module.AUTH_FAIL_WINDOW + 1
+
+    assert client.get("/", headers=_basic("coworker", "s3cret")).status_code == 200
+
+
+def test_requests_without_credentials_do_not_count_as_guesses(client, monkeypatch, clock):
+    """A browser's first request never carries credentials; it must not lock anyone out."""
+    from coworker.dashboard import app as app_module
+    monkeypatch.setenv("COWORKER_DASHBOARD_PASSWORD", "s3cret")
+    for _ in range(app_module.AUTH_FAIL_LIMIT * 3):
+        assert client.get("/").status_code == 401
+    assert client.get("/", headers=_basic("coworker", "s3cret")).status_code == 200
+
+
+def test_a_few_typos_do_not_lock_out(client, monkeypatch, clock):
+    monkeypatch.setenv("COWORKER_DASHBOARD_PASSWORD", "s3cret")
+    for _ in range(3):
+        client.get("/", headers=_basic("coworker", "typo"))
+    assert client.get("/", headers=_basic("coworker", "s3cret")).status_code == 200

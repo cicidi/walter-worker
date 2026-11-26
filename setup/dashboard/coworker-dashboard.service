@@ -15,6 +15,17 @@
 #     [Service]
 #     ExecStart=
 #     ExecStart=%h/.local/bin/coworker analytics dashboard --host 0.0.0.0 --port 8099
+#
+# Keep the service off your working checkout. With an editable install the
+# service runs whatever branch is checked out there, so a half-finished branch
+# goes live on the next restart. Point it at its own clone of master, which is
+# fast-forwarded on every start (the service still starts if the network is down):
+#   git clone --branch master <repo-url> ~/.coworker/deploy/walter-worker
+#   systemctl --user edit coworker-dashboard
+#     [Service]
+#     Environment=PYTHONPATH=%h/.coworker/deploy/walter-worker/src
+#     ExecStartPre=-/usr/bin/git -C %h/.coworker/deploy/walter-worker pull --ff-only --quiet
+# To deploy after that: merge to master, then `systemctl --user restart coworker-dashboard`.
 [Unit]
 Description=coworker analytics dashboard (port 8099)
 Wants=coworker-qdrant.service

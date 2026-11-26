@@ -1378,3 +1378,76 @@ def test_import_claude_jsonl_skips_injected_entries(auto_db, tmp_path):
     ]), auto_db)
     assert [r[0] for r in auto_db.execute("SELECT content FROM messages ORDER BY seq")] == [
         "[Request interrupted by user]", "answer"]
+
+
+def test_import_claude_jsonl_project_for_ops_before_cwd_is_seen(auto_db, tmp_path):
+    """A file op on a line before the first cwd still gets the project name.
+
+    The project was read from cwd as lines went by, so early file ops fell
+    back to the transcript folder's slug ("-home-u-project-repo") and one
+    project showed up under two names.
+    """
+    from coworker.analytics.auto_import import import_claude_jsonl
+
+    project_dir = tmp_path / "-home-u-project-repo"
+    project_dir.mkdir()
+    jsonl_file = _make_jsonl(project_dir / "session-early-op.jsonl", [
+        {"type": "assistant", "timestamp": "2025-01-01T10:00:00",
+         "message": {"model": "claude-3", "content": [
+             {"type": "tool_use", "name": "Read", "id": "c1", "input": {"file_path": "/home/u/project/repo/a.py"}}]}},
+        {"type": "user", "timestamp": "2025-01-01T10:00:01", "cwd": "/home/u/project/repo",
+         "message": {"content": []}},
+    ])
+
+    import_claude_jsonl(jsonl_file, auto_db)
+
+    assert [r["project"] for r in auto_db.execute("SELECT project FROM file_ops")] == ["repo"]
+    assert auto_db.execute("SELECT project FROM sessions").fetchone()["project"] == "repo"
+
+
+def test_import_claude_jsonl_project_from_folder_slug_when_no_cwd(auto_db, tmp_path):
+    from coworker.analytics.auto_import import import_claude_jsonl
+
+    project_dir = tmp_path / "-home-u-project-repo"
+    project_dir.mkdir()
+    jsonl_file = _make_jsonl(project_dir / "session-no-cwd.jsonl", [
+        {"type": "assistant", "timestamp": "2025-01-01T10:00:00",
+         "message": {"model": "claude-3", "content": []}},
+    ])
+
+    import_claude_jsonl(jsonl_file, auto_db)
+
+    assert auto_db.execute("SELECT project FROM sessions").fetchone()["project"] == "repo"
+
+
+def test_import_claude_jsonl_model_from_api_request(auto_db, tmp_path):
+    """Newer transcripts name the model on api-request lines, not on assistant messages."""
+    from coworker.analytics.auto_import import import_claude_jsonl
+
+    project_dir = tmp_path / "test-project"
+    project_dir.mkdir()
+    jsonl_file = _make_jsonl(project_dir / "session-req-model.jsonl", [
+        {"type": "api-request", "params": {"model": "claude-fable-5-2"}},
+        {"type": "assistant", "timestamp": "2025-01-01T10:00:00", "cwd": "/tmp/proj",
+         "message": {"model": "<synthetic>", "content": [{"type": "text", "text": "hi"}]}},
+    ])
+
+    import_claude_jsonl(jsonl_file, auto_db)
+
+    assert auto_db.execute("SELECT model FROM sessions").fetchone()["model"] == "claude-fable-5-2"
+
+
+def test_import_claude_jsonl_assistant_model_wins_over_api_request(auto_db, tmp_path):
+    from coworker.analytics.auto_import import import_claude_jsonl
+
+    project_dir = tmp_path / "test-project"
+    project_dir.mkdir()
+    jsonl_file = _make_jsonl(project_dir / "session-both-models.jsonl", [
+        {"type": "api-request", "params": {"model": "requested-model"}},
+        {"type": "assistant", "timestamp": "2025-01-01T10:00:00", "cwd": "/tmp/proj",
+         "message": {"model": "answered-model", "content": []}},
+    ])
+
+    import_claude_jsonl(jsonl_file, auto_db)
+
+    assert auto_db.execute("SELECT model FROM sessions").fetchone()["model"] == "answered-model"

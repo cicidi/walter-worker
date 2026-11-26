@@ -22,7 +22,7 @@ from pathlib import Path
 
 from . import auto_import
 from .db import _default_db_path, get_db
-from .normalize import canonical_tool, project_from_cwd, utc_iso
+from .normalize import canonical_tool, project_from_cwd, project_from_slug, utc_iso
 
 _CHILD_TABLES = ("messages", "tool_calls", "file_ops", "session_stats",
                  "session_summaries", "knowledge_sessions", "graph_queries")
@@ -97,13 +97,19 @@ def repair(db_path: str | Path | None = None, verbose: bool = True) -> dict:
     # Normalize what no source can re-import any more.
     for sid, ide, project, cwd, created, closed in conn.execute(
             "SELECT id, ide, project, cwd, created_at, closed_at FROM sessions").fetchall():
-        proj = project_from_cwd(cwd) if cwd else project
-        if proj and proj.startswith("-home-"):
-            proj = project_from_cwd("/" + proj.lstrip("-").replace("-project-", "/project/", 1))
+        proj = project_from_cwd(cwd) if cwd else project_from_slug(project or "")
         conn.execute(
             "UPDATE sessions SET ide = ?, project = ?, created_at = ?, closed_at = ? WHERE id = ?",
             ("claude-code" if ide == "claude" else ide, proj or None,
              utc_iso(created), utc_iso(closed), sid))
+    # File ops written before their session's cwd was known carry the
+    # transcript-folder slug. Give them their session's project, or the name
+    # the slug stands for when the session has none.
+    conn.execute("""UPDATE file_ops SET project = (SELECT s.project FROM sessions s WHERE s.id = file_ops.session_id)
+                    WHERE project LIKE '-%' AND EXISTS (SELECT 1 FROM sessions s
+                        WHERE s.id = file_ops.session_id AND COALESCE(s.project, '') != '')""")
+    for (slug,) in conn.execute("SELECT DISTINCT project FROM file_ops WHERE project LIKE '-%'").fetchall():
+        conn.execute("UPDATE file_ops SET project = ? WHERE project = ?", (project_from_slug(slug), slug))
     for table in ("messages", "tool_calls", "file_ops"):
         rows = conn.execute(f"SELECT id, ts FROM {table} WHERE ts IS NOT NULL AND ts != '' "
                             f"AND ts NOT GLOB '????-??-??T??:??:??.???Z'").fetchall()
