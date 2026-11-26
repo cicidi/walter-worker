@@ -698,6 +698,10 @@ for g in cfg['hooks'].get('Stop', []):
 if 'Stop' in cfg['hooks']:
     cfg['hooks']['Stop'] = _stop
 _merge_hook('SessionEnd',        '$HOME/.coworker/analytics/hooks/on-session-end.sh')
+# Session start: register the session and check that its folder has its own
+# initiative in CLAUDE.local.md; when it does not, the agent asks the user to
+# create one instead of inheriting a parent folder's initiative.
+_merge_hook('SessionStart',      '$HOME/.coworker/analytics/hooks/on-session-start.sh')
 
 with open('$CLAUDE_SETTINGS', 'w') as f: json.dump(cfg, f, indent=2)
 " 2>/dev/null && ok "Claude Code hooks configured" || warn "Failed to configure Claude Code hooks"
