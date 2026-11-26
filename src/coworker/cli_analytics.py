@@ -85,7 +85,7 @@ def register_analytics(main_group: click.Group) -> None:
             conn.close()
 
     @analytics.command("dashboard")
-    @click.option("--port", default=8080, help="Port to listen on")
+    @click.option("--port", default=8099, show_default=True, help="Port to listen on")
     @click.option(
         "--host",
         default="127.0.0.1",

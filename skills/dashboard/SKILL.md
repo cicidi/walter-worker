@@ -51,7 +51,7 @@ Ask the user what they want to do. Present the three options:
 
 | Subcommand | Behavior |
 |------------|----------|
-| `start [--daemon]` | Launch dashboard on http://localhost:8080. With `--daemon`, also start background auto-import every 30 min |
+| `start [--daemon]` | Launch dashboard on http://localhost:8099. With `--daemon`, also start background auto-import every 30 min |
 | `import [--files <paths>]` | One-shot scan and import. Without `--files`, scans all unimported sessions across all projects |
 | `stop` | Stop the background daemon if running |
 
@@ -67,8 +67,13 @@ coworker analytics daemon
 ```
 
 The dashboard shows: session counts by project/feature, tool usage,
-model costs, skill evolution, and knowledge cards. Open http://localhost:8080
+model costs, skill evolution, and knowledge cards. Open http://localhost:8099
 in a browser after starting.
+
+If the `coworker-dashboard` systemd user service is installed
+(`setup/dashboard/`), it already serves 8099 — check with
+`systemctl --user is-active coworker-dashboard` and open the URL instead of
+starting a second copy, which would fail with "address already in use".
 
 ### import
 

@@ -1,0 +1,23 @@
+# Analytics dashboard on http://127.0.0.1:8099, always on.
+#
+# Runs outside any Claude session, so closing a session no longer stops it.
+# Reads secrets from ~/.zshrc.secrets (plain KEY=value; mem0 needs
+# DEEPSEEK_API_KEY) and uses the Qdrant server (setup/qdrant/), so it never
+# takes the embedded store's lock.
+#
+#   install -Dm644 setup/dashboard/coworker-dashboard.service ~/.config/systemd/user/
+#   systemctl --user daemon-reload && systemctl --user enable --now coworker-dashboard
+[Unit]
+Description=coworker analytics dashboard (port 8099)
+Wants=coworker-qdrant.service
+After=network.target coworker-qdrant.service
+
+[Service]
+EnvironmentFile=-%h/.zshrc.secrets
+Environment=COWORKER_QDRANT_URL=http://localhost:6333
+ExecStart=%h/.local/bin/coworker analytics dashboard --host 127.0.0.1 --port 8099
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
