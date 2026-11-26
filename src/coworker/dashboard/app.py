@@ -11,7 +11,7 @@ from importlib.resources import files as resource_files
 from fastapi import Depends, FastAPI, Header, WebSocket, HTTPException
 from fastapi.staticfiles import StaticFiles
 
-from . import queries
+from . import queries, queries_memory_roi, queries_v2
 
 logger = logging.getLogger(__name__)
 
@@ -529,8 +529,112 @@ def api_knowledge_sessions(knowledge_id: int):
     return queries.query_knowledge_sessions(knowledge_id)
 
 
+# ── v2: the redesigned dashboard. Every route takes the global filters. ──────
+
+def _filters(ide: str = "", model: str = "", project: str = "", days: int = 0) -> queries_v2.Filters:
+    return queries_v2.Filters(ide=ide, model=model, project=project, days=max(0, days))
+
+
+V2Filters = Depends(_filters)
+
+
+@app.get("/api/v2/filters")
+def api_v2_filters():
+    return queries_v2.filter_options()
+
+
+@app.get("/api/v2/pulse")
+def api_v2_pulse(f: queries_v2.Filters = V2Filters):
+    return queries_v2.pulse(f)
+
+
+@app.get("/api/v2/friction")
+def api_v2_friction(f: queries_v2.Filters = V2Filters):
+    return queries_v2.friction(f)
+
+
+@app.get("/api/v2/friction/tool")
+def api_v2_friction_tool(tool: str, f: queries_v2.Filters = V2Filters):
+    return queries_v2.friction_tool(tool, f)
+
+
+@app.get("/api/v2/adoption")
+def api_v2_adoption(f: queries_v2.Filters = V2Filters):
+    return queries_v2.adoption(f)
+
+
+@app.get("/api/v2/adoption/sessions")
+def api_v2_adoption_sessions(key: str, f: queries_v2.Filters = V2Filters):
+    return queries_v2.adoption_sessions(key, f)
+
+
+@app.get("/api/v2/prompts")
+def api_v2_prompts(f: queries_v2.Filters = V2Filters):
+    return queries_v2.prompts(f)
+
+
+@app.get("/api/v2/shape")
+def api_v2_shape(f: queries_v2.Filters = V2Filters):
+    return queries_v2.shape(f)
+
+
+@app.get("/api/v2/cost")
+def api_v2_cost(f: queries_v2.Filters = V2Filters):
+    return queries_v2.cost(f)
+
+
+@app.get("/api/v2/sessions")
+def api_v2_sessions(limit: int = 50, offset: int = 0, sort: str = "recent",
+                    f: queries_v2.Filters = V2Filters):
+    return queries_v2.sessions(f, limit=limit, offset=offset, sort=sort)
+
+
+@app.get("/api/v2/tools")
+def api_v2_tools(f: queries_v2.Filters = V2Filters):
+    return queries_v2.tools(f)
+
+
+@app.get("/api/v2/files")
+def api_v2_files(f: queries_v2.Filters = V2Filters):
+    return queries_v2.files(f)
+
+
+@app.get("/api/v2/projects")
+def api_v2_projects(f: queries_v2.Filters = V2Filters):
+    return queries_v2.projects(f)
+
+
+@app.get("/api/v2/health")
+def api_v2_health():
+    return queries_v2.health()
+
+
+@app.get("/api/v2/memory-roi")
+def api_v2_memory_roi():
+    return queries_memory_roi.memory_roi()
+
+
+@app.get("/api/v2/memories")
+def api_v2_memories(q: str = "", project: str = "", type: str = "", state: str = "", limit: int = 200):
+    return queries_memory_roi.memories(q=q, project=project, type_=type, state=state, limit=limit)
+
+
+class RevalidatedStatic(StaticFiles):
+    """Static files the browser must revalidate before reuse.
+
+    The page is ES modules that import each other by plain path, so a version
+    query on the entry file does not reach the rest. Without this, a browser
+    can keep running last week's ui.js against this week's main.js.
+    """
+
+    async def get_response(self, path, scope):
+        response = await super().get_response(path, scope)
+        response.headers["Cache-Control"] = "no-cache"
+        return response
+
+
 static_dir = resource_files("coworker.dashboard") / "static"
 if static_dir.is_dir():
-    app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")
+    app.mount("/", RevalidatedStatic(directory=str(static_dir), html=True), name="static")
 
 
