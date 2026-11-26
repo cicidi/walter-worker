@@ -1350,6 +1350,18 @@ class TestAnalyticsCommandBodies:
         assert result.exit_code == 0
         assert "Dashboard: http://localhost:9999" in result.output
 
+    def test_analytics_dashboard_default_port_is_8099(self, monkeypatch):
+        """No --port: 8099, the port the coworker-dashboard service and docs use."""
+        import types, sys
+        fake_uvicorn = types.ModuleType("uvicorn")
+        captured = {}
+        fake_uvicorn.run = lambda app, **kwargs: captured.update(kwargs)
+        monkeypatch.setitem(sys.modules, "uvicorn", fake_uvicorn)
+        result = runner.invoke(main, ["analytics", "dashboard"])
+        assert result.exit_code == 0
+        assert captured["port"] == 8099
+        assert "Dashboard: http://localhost:8099" in result.output
+
     def _invoke_dashboard(self, monkeypatch, args, during):
         """Run analytics dashboard with a stubbed uvicorn.
 
@@ -2484,6 +2496,8 @@ class TestDashboardBindsToLoopback:
         assert seen.get("host") == "127.0.0.1", "the default must not be exposed"
 
     def test_an_explicit_host_is_honoured_and_warned_about(self, monkeypatch):
+        # Beyond loopback needs a password (test_dashboard_auth covers the refusal).
+        monkeypatch.setenv("COWORKER_DASHBOARD_PASSWORD", "s3cret")
         seen = {}
         monkeypatch.setattr(
             "uvicorn.run", lambda app, **kw: seen.update(kw)
@@ -2494,7 +2508,7 @@ class TestDashboardBindsToLoopback:
         )
 
         assert seen.get("host") == "0.0.0.0"
-        assert "anyone who can reach this port" in result.output
+        assert "with a password" in result.output
 
 
 class TestSkillNewTellsTheTruthAboutWhereItWrote:

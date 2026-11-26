@@ -85,7 +85,7 @@ def register_analytics(main_group: click.Group) -> None:
             conn.close()
 
     @analytics.command("dashboard")
-    @click.option("--port", default=8080, help="Port to listen on")
+    @click.option("--port", default=8099, show_default=True, help="Port to listen on")
     @click.option(
         "--host",
         default="127.0.0.1",
@@ -96,6 +96,17 @@ def register_analytics(main_group: click.Group) -> None:
     def analytics_dashboard(port, host, db):
         """Start the analytics dashboard."""
         import os
+        # Beyond loopback, a password is mandatory: the dashboard serves
+        # sessions and memories and can change memory state.
+        if host not in ("127.0.0.1", "::1", "localhost") and not os.environ.get(
+            "COWORKER_DASHBOARD_PASSWORD"
+        ):
+            console.print(
+                f"[red]Refusing to listen on {host} without a password. Set "
+                f"COWORKER_DASHBOARD_PASSWORD (and optionally COWORKER_DASHBOARD_USER, "
+                f"default 'coworker'), or keep --host 127.0.0.1.[/red]"
+            )
+            raise SystemExit(2)
         # COWORKER_ANALYTICS_DB is process-global and _default_db_path() reads it,
         # so leaving it set would silently redirect every later analytics call in
         # this process — and every subprocess it spawns — at this database.
@@ -114,8 +125,8 @@ def register_analytics(main_group: click.Group) -> None:
             console.print(f"[green]Dashboard: http://{shown}:{port}[/green]")
             if host not in ("127.0.0.1", "::1"):
                 console.print(
-                    f"[yellow]Listening on {host} — anyone who can reach this "
-                    f"port can read your sessions and change memory state.[/yellow]"
+                    f"[yellow]Listening on {host} with a password (HTTP Basic Auth). "
+                    f"Over plain HTTP the password is visible on untrusted networks.[/yellow]"
                 )
             uvicorn.run(app, host=host, port=port, log_level="info")
         finally:

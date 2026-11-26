@@ -70,7 +70,7 @@ walter-worker runs inside Claude Code. Everything is a `/skill`:
 
 **Analytics:**
 ```
-/dashboard        # Setup → Import → Launch web UI (http://localhost:8080)
+/dashboard        # Setup → Import → Launch web UI (http://localhost:8099)
 ```
 
 General-purpose dev skills (`/auto-tdd`, `/bug`, `/wayfinder`, `/research`, …) come from **[the-super-lab](https://github.com/cicidi/the-super-lab)**.
