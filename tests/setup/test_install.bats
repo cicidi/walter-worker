@@ -557,6 +557,17 @@ print('\n'.join(h.get('command', '')
   [ "$(grep -c on-session-end.sh <<< "$output")" = "1" ]
 }
 
+@test "registers the initiative check on SessionStart, once" {
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+  run bash "$REPO_ROOT/setup/install.sh" --global <<< $'0'
+  [ "$status" -eq 0 ]
+
+  run _hook_cmds SessionStart
+  [ "$(grep -c on-session-start.sh <<< "$output")" = "1" ]
+  [ -x "$HOME/.coworker/analytics/hooks/on-session-start.sh" ]
+}
+
 @test "a second install keeps the CLAUDE.md the first install created" {
   # Only the creating run claimed CLAUDE.md, so the next run dropped the claim
   # and its own prune deleted the file — the CLAUDE.md flipped between present
